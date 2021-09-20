@@ -1,21 +1,17 @@
 ## Base
 
-Base image for building python webservices.
-
 ### Base build image
 
 #### Docker Hub
-
-https://hub.docker.com/repository/docker/opentdf/tdf-python-base
+https://hub.docker.com/repository/docker/virtru/etheria-base-build
 
 #### Buildkite
-
-https://buildkite.com/virtru/opentdf-base
+https://buildkite.com/virtru/etheria-base
 
 #### Local build
 ```shell
 cd service_base
-docker build --tag opentdf/tdf-python-base .
+docker build --tag virtru/etheria-base-build .
 ```
 
 #### Update requirements.txt

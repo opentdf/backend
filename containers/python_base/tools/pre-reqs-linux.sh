@@ -29,12 +29,11 @@ if [[ $# -gt 0 ]]; then
         stuff+=("$item")
         ;;
       *)
-        e "Unrecognized option: [$item]"
+        e "Unrecognized options: [$*]"
         ;;
     esac
   done
 else
-  monolog TRACE "pre-reqs-linux: Loading defaults"
   stuff=(docker helm kuttl minikube)
 fi
 
@@ -114,20 +113,14 @@ for item in "${stuff[@]}"; do
     helm)
       i_helm
       ;;
-    kind)
-      i_kind
-      ;;
     kuttl)
       i_kuttl
       ;;
     minikube)
       i_minikube
       ;;
-    tilt)
-      i_tilt
-      ;;
     *)
-      e "Unsupported option: [$item]"
+      e "Unrecognized options: [$*]"
       ;;
   esac
 done

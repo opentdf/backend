@@ -66,8 +66,8 @@ if [[ $LOAD_IMAGES ]]; then
   monolog INFO "Caching locally-built development Etheria images in Minikube"
   # Cache locally-built `latest` images, bypassing registry.
   # If this fails, try running 'docker-compose build' in the repo root
-  for s in abacus attribute-authority enitty-attributeute entitlement key-access remote-payload; do
-    maybe_load opentdf/tdf-$s:virtrulocal
+  for s in eas kas abacus entitlement remote_payload attribute_authority; do
+    maybe_load tdf3.service.$s:virtrulocal
   done
 else
   monolog DEBUG "Skipping loading of locally built service images"
@@ -97,8 +97,8 @@ fi
 # This should be removed eventually, as Keycloak isn't going away
 if [[ $USE_KEYCLOAK ]]; then
   monolog INFO "Caching locally-built development opentdf Keycloak in Minikube"
-  for s in attribute-provider identity identity-bootstrap; do
-    maybe_load opentdf/tdf-$s:virtrulocal
+  for s in attribute_provider keycloak keycloak_bootstrap; do
+    maybe_load tdf3.service.$s:virtrulocal
   done
 
   monolog --- INFO "Installing Virtru-ified Keycloak"

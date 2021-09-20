@@ -25,7 +25,7 @@ pipenv run uvicorn main:app --reload --port 4050
 ```shell
 # from project root
 TAG=`python3 -c "import service_remote_payload;print(service_remote_payload.__version__)"`
-docker build --no-cache --tag opentdf/tdf-remote-payload:${TAG} service_remote_payload
+docker build --no-cache --tag virtru/tdf-storage-service:${TAG} service_remote_payload
 ```
 
 ### secrets

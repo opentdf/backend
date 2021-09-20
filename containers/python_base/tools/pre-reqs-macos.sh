@@ -18,7 +18,7 @@ if [[ $# -gt 0 ]]; then
     shift
 
     case "$item" in
-      docker | helm | kind | kubectl | kuttl | minikube | octant | tilt)
+      docker | helm | kind | kuttl | minikube | octant | tilt)
         stuff+=("$item")
         ;;
       *)
@@ -27,7 +27,7 @@ if [[ $# -gt 0 ]]; then
     esac
   done
 else
-  stuff=(docker helm kind kubectl kuttl tilt)
+  stuff=(docker helm kuttl minikube)
 fi
 
 for i in "${stuff[@]}"; do

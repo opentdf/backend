@@ -2,7 +2,7 @@ all: dockerbuild
 
 COMPONENT_NAME=bootstrap
 COMPONENT_NAME_SNAKE=bootstrap
-IMAGE=opentdf/tdf-identity-bootstrap
+IMAGE=virtru/keycloak-bootstrap
 VERSION=0.3.5
 VENV_DIR=.venv
 PIPENV_VENV_IN_PROJECT=enabled

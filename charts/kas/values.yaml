@@ -1,11 +1,11 @@
-# Default values for eas.
+# Default values for kas.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 3
 
 image:
-  name: opentdf/tdf-entity-attribute:3.4.1-n000.he52adfd4
+  name: virtru/tdf-key-access-service:3.4.1-n000.he52adfd4
   pullPolicy: IfNotPresent
 
 secretName: "etheria-secrets"
@@ -13,6 +13,9 @@ secretName: "etheria-secrets"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+labels:
+  app: "kas"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -38,19 +41,15 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 4010
+  port: 8000
 
 ingress:
-  enabled: true
+  enabled: false
   annotations: {}
   hosts:
-    - host: eas.example.local
-      paths:
-      - backend:
-          service:
-            name: entity-attribute
-            port: 4010
-        path: /(.*)
+  - host: etheria.local
+    paths:
+    - /kas
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -63,6 +62,16 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
 
 autoscaling:
   enabled: false
@@ -81,8 +90,9 @@ affinity: {}
 maxUnavailable: 1
 
 endpoints:
-  # todo fix the next line, helper or whatever
-  kasDefaultUrl: https://kas/
+  easHost: https://eas.NAMESPACE.svc.cluster.local/
+  # TODO replace this with a template var instead of a hardcode when Keycloak charts are merged into Etheria.
+  oidcPubkeyEndpoint: http://keycloak-http:80
 
 livenessProbe:
 readinessProbe:

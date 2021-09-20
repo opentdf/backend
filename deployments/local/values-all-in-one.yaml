@@ -1,7 +1,7 @@
 abacus:
   ingress:
     hosts:
-    - host: etheria.local
+    - host: abacus.etheria.local
       paths:
       - backend:
           service:
@@ -10,64 +10,83 @@ abacus:
         path: /(.*)
       - backend:
           service:
-            name: entity-attribute
+            name: eas
             port: 4010
         path: /eas/(.*)
       - backend:
           service:
-            name: key-access
+            name: kas
             port: 8000
         path: /kas/(.*)
     tls:
     - hosts:
-      - etheria.local
-      secretName: etheria-tls
+      - abacus.etheria.local
+      secretName: abacus-tls
   endpoints:
-    eas: https://etheria.local/eas
-    kas: https://etheria.local/kas
-    abacus: https://etheria.local
-    nginxHost: etheria.local
-
-entity-attribute:
+    eas: https://abacus.etheria.local/eas
+    kas: https://abacus.etheria.local/kas
+    abacus: https://abacus.etheria.local
+    nginxHost: abacus.etheria.local
+eas:
   replicaCount: 1
   ingress:
-    enabled: false
+    hosts:
+    - host: abacus.etheria.local
+      paths:
+      - /eas
+    tls:
+    - hosts:
+      - abacus.etheria.local
+      secretName: eas-tls
+
   endpoints:
-    kasDefaultUrl: https://etheria.local/kas
+    kasDefaultUrl: https://abacus.etheria.local/kas
+
   image:
-    name: opentdf/tdf-entity-attribute:virtrulocal
+    name: tdf3.service.eas:virtrulocal
     pullPolicy: Never
+
   livenessProbe: null
   readinessProbe: null
 
-key-access:
+kas:
   replicaCount: 1
   ingress:
-    enabled: false
+    hosts:
+    - host: abacus.etheria.local
+      paths:
+      - /kas
+    tls:
+    - hosts:
+      - abacus.etheria.local
+      secretName: kas-tls
+
   endpoints:
-    easHost: https://etheria.local/eas
+    easHost: https://abacus.etheria.local/eas
+
   image:
-    name: opentdf/tdf-key-access:virtrulocal
+    name: tdf3.service.kas:virtrulocal
     pullPolicy: Never
+
   livenessProbe: null
   readinessProbe: null
 
 attribute-provider:
   image:
-    name: opentdf/tdf-attribute-provider:virtrulocal
+    name: tdf3.service.attribute_provider:virtrulocal
     pullPolicy: Never
 
-identity-bootstrap:
+keycloak-bootstrap:
   image:
-    name: opentdf/tdf-identity-bootstrap:virtrulocal
+    name: tdf3.service.keycloak_bootstrap:virtrulocal
     pullPolicy: Never
 
 attribute-authority:
   image:
-    name: opentdf/tdf-attribute-authority:virtrulocal
+    name: tdf3.service.attribute_authority:virtrulocal
     pullPolicy: Never
   postgres:
-    host: tdf-postgresql
+    host: my-tdfdb-postgresql.default.svc.cluster.local
     port: 5432
     user: postgres
     schema: tdf_attribute
@@ -75,19 +94,19 @@ attribute-authority:
 
 entitlement:
   image:
-    name: opentdf/tdf-entitlement:virtrulocal
+    name: tdf3.service.entitlement:virtrulocal
     pullPolicy: Never
   postgres:
-    host: tdf-postgresql
+    host: my-tdfdb-postgresql.default.svc.cluster.local
     port: 5432
     database: tdf_database
     schema: tdf_entitlement
-    user: postgres
 
 tdf-storage:
   image:
-    name: opentdf/tdf-remote-payload:virtrulocal
+    name: tdf3.service.remote_payload:virtrulocal
     pullPolicy: Never
 
   s3Bucket: "virtru-tdf-webservice"
   s3BucketRegion: "us-east-1"
+

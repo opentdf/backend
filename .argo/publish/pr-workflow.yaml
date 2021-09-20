@@ -40,14 +40,14 @@ spec:
     - name: service-list
       value: |
         [
-          { "appName": "tdf-key-access", "dockerHubRepoName": "opentdf/tdf-key-access", "hasChart": "true", "hasImage": "true"},
-          { "appName": "tdf-entity-attribute", "dockerHubRepoName": "opentdf/tdf-entity-attribute", "hasChart": "true", "hasImage": "true" },
-          { "appName": "tdf-attribute-provider", "dockerHubRepoName": "opentdf/tdf-attribute-provider", "hasChart": "true", "hasImage": "true" },
-          { "appName": "tdf-identity-bootstrap", "dockerHubRepoName": "opentdf/tdf-identity-bootstrap", "hasChart": "true", "hasImage": "true" },
-          { "appName": "tdf-attribute-authority", "dockerHubRepoName": "opentdf/tdf-attribute-authority", "hasChart": "true", "hasImage": "true" },
-          { "appName": "tdf-entitlement", "dockerHubRepoName": "opentdf/tdf-entitlement", "hasChart": "true", "hasImage": "true" },
-          { "appName": "tdf-remote-payload", "dockerHubRepoName": "opentdf/tdf-remote-payload", "hasChart": "true", "hasImage": "true" },
-          { "appName": "tdf-identity", "dockerHubRepoName": "opentdf/tdf-identity", "hasChart": "false", "hasImage": "true" },
+          { "appName": "kas", "dockerHubRepoName": "virtru/tdf-key-access-service", "hasChart": "true", "hasImage": "true"},
+          { "appName": "eas", "dockerHubRepoName": "virtru/tdf-entity-attribute-service", "hasChart": "true", "hasImage": "true" },
+          { "appName": "attribute_provider", "dockerHubRepoName": "virtru/claim-test-webservice", "hasChart": "true", "hasImage": "true" },
+          { "appName": "keycloak_bootstrap", "dockerHubRepoName": "virtru/keycloak-bootstrap", "hasChart": "true", "hasImage": "true" },
+          { "appName": "attribute_authority", "dockerHubRepoName": "virtru/tdf-attribute-authority-service", "hasChart": "true", "hasImage": "true" },
+          { "appName": "entitlement", "dockerHubRepoName": "virtru/tdf-entitlement-service", "hasChart": "true", "hasImage": "true" },
+          { "appName": "remote_payload", "dockerHubRepoName": "virtru/tdf-storage-service", "hasChart": "true", "hasImage": "true" },
+          { "appName": "keycloak", "dockerHubRepoName": "virtru/keycloak-poc", "hasChart": "false", "hasImage": "true" },
           { "appName": "etheria", "dockerHubRepoName": "", "hasChart": "true", "hasImage": "false" }
         ]
     - name: buildImage
@@ -107,7 +107,7 @@ spec:
           docker-compose -f docker-compose.build.yml build {{inputs.parameters.appName}};
           docker image ls;
           echo "tagging container";
-          docker tag opentdf/{{inputs.parameters.appName}}:{{inputs.parameters.imageVersionTag}} {{inputs.parameters.dockerHubRepoName}}:{{inputs.parameters.imageVersionTag}};
+          docker tag tdf3.service.{{inputs.parameters.appName}}:{{inputs.parameters.imageVersionTag}} {{inputs.parameters.dockerHubRepoName}}:{{inputs.parameters.imageVersionTag}};
           echo "pushing container {{inputs.parameters.dockerHubRepoName}}:{{inputs.parameters.imageVersionTag}} to dockerhub";
           docker push {{inputs.parameters.dockerHubRepoName}}:{{inputs.parameters.imageVersionTag}};
       sidecars:

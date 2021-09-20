@@ -26,13 +26,13 @@ spec:
       http:
         paths:
           {{- range .paths }}
-          - path: {{ .path }}
-            pathType: ImplementationSpecific
-            backend:
-                service:
-                  name: {{ .backend.service.name }}
-                  port:
-                    number: {{ .backend.service.port }}
+        - path: {{ .path }}
+          pathType: ImplementationSpecific
+          backend:
+              service:
+                name: {{ .backend.service.name }}
+                port:
+                  number: {{ .backend.service.port }}
           {{- end }}
   {{- end -}}
-{{- end }}
+  {{- end }}

@@ -1,33 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONTAINER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
-PROJECT_DIR="$(git rev-parse --show-toplevel)"
-ETERNIA_PATH="$(cd "${PROJECT_DIR}/../eternia" >/dev/null && pwd)"
-export PATH="$PATH:$PROJECT_DIR/tools"
+ETERNIA_PATH="../../../../eternia"
+RUNNER_REPO="virtru/eternia-kuttl-runner"
 
-IMAGE_NAME="opentdf/eternia-kuttl-runner"
-IMAGE_TAG="$(git rev-parse --short HEAD)"
+[ -d $ETERNIA_PATH ] && echo "\nFound eternia repo" || printf "\nIn order to build this test runner, you need a copy of the Eternia git repo cloned next to your Etheria top-level folder"
 
-pushd "${ETERNIA_PATH}" || {
-  monolog ERROR "To build this test runner, you need a copy of the Eternia git repo cloned next to your Etheria top-level folder"
-  exit 1
-}
+pushd ../../../../eternia
 
-monolog TRACE "Moving to Eternia to build base image with SDK-CLI.."
+printf "\nMoving to Eternia to build base image with SDK-CLI..\n"
+RUNNER_VER=$(git rev-parse --short HEAD) # Use the current Eternia Git commit SHA as this test runner's image tag
 
-# Use the current Eternia Git commit SHA as this test runner's image tag
-BASE_VER="$(git rev-parse --short HEAD)"
+printf '\nTagging this test runner with current Eternia HEAD: %s\n' "$RUNNER_VER"
 
-monolog INFO "Tagging this test runner with current Eternia HEAD: [${BASE_VER}]"
-docker build --target tester -t eternia-base .
-monolog TRACE "Built eternia-base at [${BASE_VER}]"
-popd
+docker build --target tester -t eternia-base . && popd
 
-pushd "${CONTAINER_DIR}" || {
-  monolog ERROR "Failed to cd to container context"
-  exit 1
-}
-docker build -t $IMAGE_NAME:$IMAGE_TAG .
-monolog INFO "Built $IMAGE_NAME image; to push this to Dockerhub run: [docker push $IMAGE_NAME:$IMAGE_TAG]"
-popd
+docker build -t $RUNNER_REPO:$RUNNER_VER .
+
+printf "\nBuilt $RUNNER_REPO:$RUNNER_VER image - make sure to push this to Dockerhub so it can be used by cluster tests:\n"
+printf "\ndocker push $RUNNER_REPO:$RUNNER_VER\n"
