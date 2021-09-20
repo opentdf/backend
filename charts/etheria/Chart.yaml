@@ -3,23 +3,23 @@ dependencies:
 - name: abacus
   repository: file://../abacus
   version: '^1.0.0'
-- name: attribute-authority
-  repository: file://../attribute_authority
-  version: '^1.0.0'
 - name: attribute-provider
   repository: file://../attribute_provider
   version: '^0.0.4'
+- name: kas
+  repository: file://../kas
+  version: '^1.0.0'
+- name: eas
+  repository: file://../eas
+  version: '^1.0.0'
+- name: keycloak-bootstrap
+  repository: file://../keycloak_bootstrap
+  version: '^0.1.0'
+- name: attribute-authority
+  repository: file://../attribute_authority
+  version: '^1.0.0'
 - name: entitlement
   repository: file://../entitlement
-  version: '^1.0.0'
-- name: entity-attribute
-  repository: file://../entity-attribute
-  version: '^1.0.0'
-- name: key-access
-  repository: file://../key-access
-  version: '^1.0.0'
-- name: identity-bootstrap
-  repository: file://../identity-bootstrap
   version: '^1.0.0'
 - name: tdf-storage
   repository: file://../remote_payload

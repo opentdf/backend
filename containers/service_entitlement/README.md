@@ -21,7 +21,7 @@ pipenv run uvicorn main:app --reload --port 4030
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag opentdf/tdf-entitlement:0.2.0 service_entitlement
+docker build --no-cache --tag virtru/tdf-entitlement-service:0.2.0 service_entitlement
 ```
 
 ### secrets

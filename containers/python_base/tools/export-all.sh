@@ -35,7 +35,7 @@ if ! docker-compose -f docker-compose.yml up --build -d; then
   exit 1
 fi
 
-if ! docker save -o build/export/docker-images.tar opentdf/tdf-entity-attribute:"${EAS_VERSION}" opentdf/tdf-key-access:"${KAS_VERSION}" opentdf/tdf-abacus:"${ABACUS_VERSION}" nginx:1.19.4 python:3; then
+if ! docker save -o build/export/docker-images.tar tdf3.service.eas:"${EAS_VERSION}" tdf3.service.kas:"${KAS_VERSION}" tdf3.service.abacus:"${ABACUS_VERSION}" nginx:1.19.4 python:3; then
   monolog ERROR "Failed to save docker images"
   exit 1
 fi

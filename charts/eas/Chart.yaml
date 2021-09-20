@@ -1,7 +1,7 @@
 apiVersion: v2
 appVersion: b616e2fc768a75005726c40fe5f1460a655f08ca
 description: A Helm chart for Kubernetes
-name: entity-attribute
+name: eas
 type: application
 version: 1.0.0
 maintainers:

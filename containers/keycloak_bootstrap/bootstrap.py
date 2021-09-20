@@ -5,7 +5,7 @@ import logging
 from keycloak import KeycloakAdmin
 
 logging.basicConfig()
-logger = logging.getLogger("identity-bootstrap")
+logger = logging.getLogger("keycloak_bootstrap")
 logger.setLevel(logging.DEBUG)
 
 keycloak_hostname = os.getenv("keycloak_hostname", "http://localhost:8080")

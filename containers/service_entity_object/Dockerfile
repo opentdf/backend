@@ -3,7 +3,7 @@ ARG PY_VERSION=3.9
 ARG ALPINE_VERSION=3.13
 
 # stage - build
-FROM opentdf/tdf-python-base AS build
+FROM virtru/etheria-base-build AS build
 WORKDIR /build
 # Install application dependencies
 COPY Pipfile .

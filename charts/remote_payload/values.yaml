@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  name: opentdf/tdf-remote-payload:3.4.1-n000.he52adfd4
+  name: virtru/tdf-storage-service:3.4.1-n000.he52adfd4
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

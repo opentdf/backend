@@ -1,7 +1,7 @@
 all: dockerbuild
 
 COMPONENT_NAME=attribute_provider
-IMAGE=opentdf/tdf-attribute-provider
+IMAGE=virtru/claim-test-webservice
 VERSION=0.2.4
 VENV_DIR=.venv
 PIPENV_VENV_IN_PROJECT=enabled

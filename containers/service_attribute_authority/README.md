@@ -21,7 +21,7 @@ pipenv run uvicorn main:app --reload --port 4020
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag opentdf/tdf-attribute-authority:0.2.0 service_attribute_authority
+docker build --no-cache --tag virtru/tdf-attribute-authority-service:0.2.0 service_attribute_authority
 ```
 
 ### secrets

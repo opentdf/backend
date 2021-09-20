@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
       - name: basic-encrypt-decrypt-test-runner
-        image: opentdf/eternia-kuttl-runner:d1f3c63e
+        image: virtru/eternia-kuttl-runner:d1f3c63e
         imagePullPolicy: Never
         command: ["/bin/bash", "-c"]
         args:

@@ -2,7 +2,7 @@
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE:-$_}")" >/dev/null && pwd)"
 export PATH="$TOOLS_DIR:$PATH"
 
-: "${LOCAL_TOOL:="kind"}"
+: "${LOCAL_TOOL:="minikube"}"
 
 e() {
   local rval=$?

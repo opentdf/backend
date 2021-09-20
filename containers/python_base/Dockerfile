@@ -1,5 +1,3 @@
-# opentdf/tdf-python-base
-
 ARG PY_VERSION=3.9
 ARG ALPINE_VERSION=3.13
 

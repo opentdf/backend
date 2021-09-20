@@ -7,7 +7,7 @@ autoscaling:
 fullnameOverride: ''
 image:
   pullPolicy: IfNotPresent
-  repository: opentdf/tdf-abacus
+  repository: virtru/tdf-abacus-web
 imagePullSecrets: []
 ingress:
   annotations:
@@ -24,6 +24,16 @@ ingress:
           name: abacus
           port: 443
       path: /(.*)
+    - backend:
+        service:
+          name: eas
+          port: 4010
+      path: /eas/(.*)
+    - backend:
+        service:
+          name: kas
+          port: 8000
+      path: /kas/(.*)
   tls:
   - hosts:
     - abacus.example.com

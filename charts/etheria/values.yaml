@@ -15,15 +15,15 @@ abacus:
             name: abacus
             port: 443
         path: /(.*)
-      # - backend:
-      #     service:
-      #       name: entity-attribute
-      #       port: 4010
-      #   path: /eas/(.*)
-      # - backend:
-      #     service:
-      #       name: key-access
-      #       port: 8000
+      - backend:
+          service:
+            name: eas
+            port: 4010
+        path: /eas/(.*)
+      - backend:
+          service:
+            name: kas
+            port: 8000
         path: /kas/(.*)
     tls:
     - hosts:
@@ -35,10 +35,9 @@ abacus:
     abacus: https://abacus-dryrun.virtrunetes.com
     nginxHost: abacus-dryrun.virtrunetes.com
 
-entity-attribute:
+eas:
   replicaCount: 1
   ingress:
-    enabled: true
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
       kubernetes.io/ingress.class: nginx
@@ -54,7 +53,7 @@ entity-attribute:
   endpoints:
     kasDefaultUrl: https://kas-dryrun.virtrunetes.com
 
-key-access:
+kas:
   replicaCount: 1
   ingress:
     annotations:
@@ -74,22 +73,22 @@ key-access:
 
 attribute-provider:
   image:
-    name: opentdf/tdf-attribute-provider:0.1.1
+    name: virtru/claim-test-webservice:0.1.1
   port: 5000
 
-identity-bootstrap:
+keycloak-bootstrap:
   image:
-    name: opentdf/tdf-identity-bootstrap
+    name: virtru/keycloak-bootstrap:0.2.1
     pullPolicy: Always
 
 attribute-authority:
   image:
-    name: opentdf/tdf-attribute-authority
+    name: virtru/tdf-attribute-authority-service
 
 entitlement:
   image:
-    name: opentdf/tdf-entitlement
+    name: virtru/tdf-entitlement-service
 
 tdf-storage:
   image:
-    name: opentdf/tdf-remote-payload
+    name: virtru/tdf-storage-service

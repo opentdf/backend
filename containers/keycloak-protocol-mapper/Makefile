@@ -1,4 +1,4 @@
-IMAGE=opentdf/tdf-identity
+IMAGE=virtru/keycloak-poc
 VERSION=0.3.5
 
 all: build
