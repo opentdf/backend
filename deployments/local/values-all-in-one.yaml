@@ -43,7 +43,7 @@ eas:
     kasDefaultUrl: https://abacus.etheria.local/kas
 
   image:
-    name: tdf3.service.eas:virtrulocal
+    name: virtru/tdf-entity-attribute-service:virtrulocal
     pullPolicy: Never
 
   livenessProbe: null
@@ -65,7 +65,7 @@ kas:
     easHost: https://abacus.etheria.local/eas
 
   image:
-    name: tdf3.service.kas:virtrulocal
+    name: virtru/tdf-key-access-service:virtrulocal
     pullPolicy: Never
 
   livenessProbe: null
@@ -73,17 +73,17 @@ kas:
 
 attribute-provider:
   image:
-    name: tdf3.service.attribute_provider:virtrulocal
+    name: virtru/tdf-claim-test-webservice:virtrulocal
     pullPolicy: Never
 
 keycloak-bootstrap:
   image:
-    name: tdf3.service.keycloak_bootstrap:virtrulocal
+    name: virtru/tdf-keycloak-bootstrap:virtrulocal
     pullPolicy: Never
 
 attribute-authority:
   image:
-    name: tdf3.service.attribute_authority:virtrulocal
+    name: virtru/tdf-attribute-authority-service:virtrulocal
     pullPolicy: Never
   postgres:
     host: my-tdfdb-postgresql.default.svc.cluster.local
@@ -94,7 +94,7 @@ attribute-authority:
 
 entitlement:
   image:
-    name: tdf3.service.entitlement:virtrulocal
+    name: virtru/tdf-entitlement-service:virtrulocal
     pullPolicy: Never
   postgres:
     host: my-tdfdb-postgresql.default.svc.cluster.local
@@ -104,7 +104,7 @@ entitlement:
 
 tdf-storage:
   image:
-    name: tdf3.service.remote_payload:virtrulocal
+    name: virtru/tdf-storage-service:virtrulocal
     pullPolicy: Never
 
   s3Bucket: "virtru-tdf-webservice"

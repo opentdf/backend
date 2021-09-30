@@ -1,5 +1,7 @@
+import json
 import os
 import re
+import sys
 from enum import Enum
 from typing import List, Optional
 
@@ -234,3 +236,6 @@ async def delete_attribute_entity_relationship(entityId: str, attributeURI: Http
         )
     )
     await database.execute(statement)
+
+if __name__ == "__main__":
+    print(json.dumps(app.openapi()), file=sys.stdout)

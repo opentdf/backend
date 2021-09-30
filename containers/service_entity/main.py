@@ -1,4 +1,6 @@
+import json
 import os
+import sys
 from enum import Enum
 from typing import List, Optional
 
@@ -134,3 +136,6 @@ async def create_entity(request: Entity):
     result = await database.execute(query)
     if result:
         return request
+
+if __name__ == "__main__":
+    print(json.dumps(app.openapi()), file=sys.stdout)

@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import sys
 from enum import Enum
 from typing import Optional, List
 
@@ -210,3 +212,7 @@ async def create_authority_namespace(request_authority_namespace: HttpUrl):
     for row in result:
         namespaces.append(f"{row.get(table_authority_namespace.c.name)}")
     return namespaces
+
+
+if __name__ == "__main__":
+    print(json.dumps(app.openapi()), file=sys.stdout)

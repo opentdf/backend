@@ -1,0 +1,140 @@
+#!/usr/bin/env bash
+# Generate `offline-bundle` zipfile containing:
+#   * opentdf-backend.zip: a zip file of this project's main branch
+#   * opentdf-service-images.tar, containing all microservices
+#   * third-party-images.tar, useful third party images
+#   * Client libraries and scripts
+#   * TK Helm charts for deploying the servicesin a k8s cluster
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+export PATH="$PATH:$APP_DIR"
+
+monolog TRACE "Running [$0${1+ }$*]"
+
+if ! cd "$PROJECT_ROOT"; then
+  monolog ERROR "Unable to find project root [${PROJECT_ROOT}] from APP_DIR=[${APP_DIR}]"
+  exit 1
+fi
+
+mkdir -p build/export
+
+today="$(date +%Y-%m-%d)"
+digest="$(git rev-parse --short HEAD)"
+suffix="${today}-${digest}"
+echo "${suffix}" > build/export/CURRENT
+
+# EXPORT SERVICES SOURCE AS ZIP FILE
+monolog TRACE "Exporting archive as [build/export/opentdf-backend-${suffix}.zip]"
+if ! git archive --format=zip --prefix=opentdf-backend "--output=build/export/opentdf-backend-${suffix}.zip" main; then
+  monolog ERROR "Failed to create source content archive, opentdf-backend-${suffix}.zip"
+  exit 1
+fi
+
+monolog TRACE "Building all containers with tag [offline-${suffix}]"
+export ETHERIA_TAG="offline-${suffix}"
+if ! make all-containers; then
+  monolog ERROR "Failed to build containers"
+  exit 1
+fi
+
+to_save=()
+for x in entity-attribute-service key-access-service abacus-web claim-test-webservice keycloak keycloak attribute-authority-service entitlement-service storage-service; do
+  to_save+=( "virtru/tdf-${x}:${ETHERIA_TAG}" )
+done
+
+monolog TRACE "Save docker images as [build/export/opentdf-service-images-${suffix}.tar] from [${to_save[*]}]"
+if ! docker save -o "build/export/opentdf-service-images-${suffix}.tar" "${to_save[@]}"; then
+  monolog ERROR "Failed to save docker images ${to_save[*]}"
+  exit 1
+fi
+
+# third party items
+# KIND: https://kind.sigs.k8s.io/docs/user/working-offline/
+# Get the latest from 
+  # Get the latest from 
+kind_version=kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
+monolog TRACE "Save docker images as [build/export/third-party-images-${suffix}.tar] from [${kind_version}]"
+if ! docker save -o "build/export/third-party-image-kind-${suffix}.tar" "${kind_version}"; then
+  monolog ERROR "Failed to save docker image ${kind_version}"
+  exit 1
+fi
+echo $kind_version >"build/export/third-party-image-kind-${suffix}.meta"
+
+# Third party helm charts
+if ! helm pull --repo https://codecentric.github.io/helm-charts --version 15.0.1 keycloak; then
+  monolog ERROR "Unable to helm pull keycloak"
+  exit 1
+fi
+
+# Make sure we have pinned first party helm charts
+if ! helm dependency update "$CHART_ROOT/etheria"; then 
+  monolog ERROR "Unable to update composite chart"
+  exit 1
+fi
+
+
+maybe-exit() {
+  local err="$?"
+  if [[ ! $err ]]; then
+    monolog ERROR "$1; err=$err"
+    exit 1
+  fi
+}
+
+
+# # DOWNLOAD SOME SDKS
+# TODO: Release client to npm
+# TDF3_LATEST=$(curl -s http://registry.npmjs.org/tdf3-js/latest/ | sed 's/.*"tarball":"\([^"]*\).*/\1/')
+# TDF3_TGZ=$(echo "$TDF3_LATEST" | sed 's/.*-\/\(.*\.tgz\)$/\1/')
+# curl -s "https://registry.npmjs.org/tdf3-js/-/$TDF3_TGZ" --output "build/export/sdk-$TDF3_TGZ"
+# maybe-exit "Failed to get latest of tdf3-js (${TDF3_LATEST}) from NPM, expected at [${TDF3_TGZ}]"
+
+pip-latest() {
+  local project
+  project="$1"
+  shift
+
+  local deets
+  deets="$(curl -s "https://pypi.org/pypi/${project}/json")"
+  maybe-exit "Getting details of [${project}] failed with $?"
+
+  local version
+  version="$(jq -r '.info.version' <<<"${deets}")"
+  maybe-exit "Getting latest version of [${project}] failed"
+
+  local variants
+  variants=$(jq -r --arg version "$version" '.releases[$version]' <<<"${deets}")
+  maybe-exit "Getting latest version of [${project}] failed"
+
+  local len
+  len=$(jq -r 'length' <<<"$variants")
+  maybe-exit "Surprising variants object"
+  [[ $len ]]
+  maybe-exit "len=[$len]"
+  monolog INFO "Found $len variants of $project $version"
+
+  local filename
+  local url
+  for ((i = 0; i < len; i++)); do
+    filename=$(jq -r --argjson i "$i" '.[$i].filename' <<<"${variants}")
+    url=$(jq -r --argjson i "$i" '.[$i].url' <<<"${variants}")
+    [[ $filename && $url ]]
+    maybe-exit "filename=[$filename] url=[$url]"
+    monolog INFO "Downloading $filename from $url"
+    curl -s "${url}" >"build/export/${filename}"
+    maybe-exit "Failed downloading [$url]"
+  done
+}
+
+pip-latest tdf3sdk
+
+# BUNDLE THAT STUFF UP
+fname="offline-bundle-${suffix}.zip"
+if ! ( cd build && zip -r "${fname}" export ); then
+  monolog ERROR "Failed to export as zip file"
+  exit 1
+fi
+
+echo "${suffix}" >build/export/COMPLETED
+monolog DEBUG "Saved stuff as build/${fname}"

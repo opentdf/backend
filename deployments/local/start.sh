@@ -3,6 +3,7 @@
 WORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 PROJECT_ROOT="$(cd "${WORK_DIR}/../../" >/dev/null && pwd)"
 CHART_ROOT="$PROJECT_ROOT/charts"
+EXPORT_ROOT="$PROJECT_ROOT/build/export"
 TOOLS_ROOT="$PROJECT_ROOT/containers/python_base/tools"
 CERTS_ROOT="$PROJECT_ROOT/containers/python_base/certs"
 export PATH="$TOOLS_ROOT:$PATH"
@@ -13,11 +14,11 @@ e() {
   exit $rval
 }
 
-. "${TOOLS_ROOT}/lib-local.sh"
-
+: "${ETHERIA_TAG:="virtrulocal"}"
 LOAD_IMAGES=1
 LOAD_SECRETS=1
 START_CLUSTER=1
+export RUN_OFFLINE=
 USE_KEYCLOAK=1
 
 while [[ $# -gt 0 ]]; do
@@ -41,11 +42,17 @@ while [[ $# -gt 0 ]]; do
       monolog TRACE "--no-start"
       START_CLUSTER=
       ;;
+    --offline)
+      monolog TRACE "--offline"
+      RUN_OFFLINE=1
+      ;;
     *)
       e "Unrecognized options: $*"
       ;;
   esac
 done
+
+. "${TOOLS_ROOT}/lib-local.sh"
 
 # Make sure required utilities are installed.
 local_info || e "Local cluster manager [${LOCAL_TOOL}] is not available"
@@ -63,11 +70,11 @@ maybe_load() {
 }
 
 if [[ $LOAD_IMAGES ]]; then
-  monolog INFO "Caching locally-built development Etheria images in Minikube"
+  monolog INFO "Caching locally-built development Etheria images in dev cluster"
   # Cache locally-built `latest` images, bypassing registry.
   # If this fails, try running 'docker-compose build' in the repo root
-  for s in eas kas abacus entitlement remote_payload attribute_authority; do
-    maybe_load tdf3.service.$s:virtrulocal
+  for s in entity-attribute-service key-access-service abacus-web entitlement-service storage-service attribute-authority-service; do
+    maybe_load virtru/tdf-$s:${ETHERIA_TAG}
   done
 else
   monolog DEBUG "Skipping loading of locally built service images"
@@ -96,13 +103,17 @@ fi
 # Only do this if we were told to disable Keycloak
 # This should be removed eventually, as Keycloak isn't going away
 if [[ $USE_KEYCLOAK ]]; then
-  monolog INFO "Caching locally-built development opentdf Keycloak in Minikube"
-  for s in attribute_provider keycloak keycloak_bootstrap; do
-    maybe_load tdf3.service.$s:virtrulocal
+  monolog INFO "Caching locally-built development opentdf Keycloak in dev cluster"
+  for s in claim-test-webservice keycloak keycloak-bootstrap; do
+    maybe_load virtru/tdf-$s:${ETHERIA_TAG}
   done
 
-  monolog --- INFO "Installing Virtru-ified Keycloak"
-  helm upgrade --install keycloak --repo https://codecentric.github.io/helm-charts keycloak -f "${WORK_DIR}/values-virtru-keycloak.yaml" || e "Unable to helm upgrade keycloak"
+  monolog INFO --- "Installing Virtru-ified Keycloak"
+  if [[ $RUN_OFFLINE ]]; then
+    helm upgrade --install keycloak "${EXPORT_ROOT}"/keycloak-15.0.1.tgz -f "${WORK_DIR}/values-virtru-keycloak.yaml" --set image.tag=${ETHERIA_TAG:-virtrulocal} || e "Unable to helm upgrade keycloak"
+  else
+    helm upgrade --install keycloak --repo https://codecentric.github.io/helm-charts keycloak -f "${WORK_DIR}/values-virtru-keycloak.yaml" --set image.tag=${ETHERIA_TAG:-virtrulocal} || e "Unable to helm upgrade keycloak"
+  fi
   monolog INFO "Waiting until Keycloak server is ready"
 
   while [[ $(kubectl get pods keycloak-0 -n default -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}') != "True" ]]; do
@@ -111,7 +122,16 @@ if [[ $USE_KEYCLOAK ]]; then
 
 fi
 
-monolog --- INFO "Umbrella chart"
-helm repo add virtru https://charts.production.virtru.com || true #Might fail if you've already done this, and that's OK
-helm dependency update "$CHART_ROOT/etheria" || e "Unable to update composite chart"
-helm upgrade --install etheria "$CHART_ROOT/etheria" -f "${WORK_DIR}/values-all-in-one.yaml" || e "Unable to install composite chart"
+monolog INFO --- "Umbrella chart"
+val_file="${WORK_DIR}/values-all-in-one.yaml"
+if [[ $ETHERIA_TAG ]]; then
+  sed "s/:virtrulocal/:$ETHERIA_TAG/" "${WORK_DIR}/values-all-in-one.yaml" > values-all.yaml.tmp
+  val_file=values-all.yaml.tmp
+fi
+if [[ $RUN_OFFLINE ]]; then
+  helm upgrade --install etheria "${CHARTS_ROOT}"/etheria -f "${val_file}" || e "Unable to install composite chart"
+else
+  helm repo add virtru https://charts.production.virtru.com || true #Might fail if you've already done this, and that's OK
+  helm dependency update "$CHART_ROOT/etheria" || e "Unable to update composite chart"
+  helm upgrade --install etheria "$CHART_ROOT/etheria" -f "${val_file}" || e "Unable to install composite chart"
+fi

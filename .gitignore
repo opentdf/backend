@@ -43,6 +43,4 @@ kubeconfig
 !/containers/kas/kas_core/tdf3_kas_core/util/keys/keys_for_tests/*
 
 # Helm
-charts/etheria/Chart.lock
-charts/etheria/charts
 /.helm/

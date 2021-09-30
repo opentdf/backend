@@ -1,5 +1,7 @@
 import datetime
+import json
 import os
+import sys
 from enum import Enum
 from typing import Optional
 
@@ -255,3 +257,7 @@ class Error(Exception):
 
     def to_raw(self):
         return {"title": self.title, "detail": self.message, "status": self.status}
+
+
+if __name__ == "__main__":
+    print(json.dumps(app.openapi()), file=sys.stdout)

@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import sys
 import uuid as uuid
 from enum import Enum
 from http import HTTPStatus
@@ -126,3 +128,7 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
             logging.error(e)
             raise HTTPException(status_code=500, detail=f"{str(e)}") from e
     return Response()  # empty response
+
+
+if __name__ == "__main__":
+    print(json.dumps(app.openapi()), file=sys.stdout)
