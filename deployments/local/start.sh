@@ -66,7 +66,7 @@ if [[ $LOAD_IMAGES ]]; then
   monolog INFO "Caching locally-built development Etheria images in Minikube"
   # Cache locally-built `latest` images, bypassing registry.
   # If this fails, try running 'docker-compose build' in the repo root
-  for s in eas kas abacus entitlement remote_payload attribute_authority; do
+  for s in eas kas entitlement remote_payload attribute_authority; do
     maybe_load tdf3.service.$s:virtrulocal
   done
 else

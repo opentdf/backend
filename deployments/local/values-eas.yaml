@@ -1,5 +1,5 @@
 endpoints:
-  kasDefaultUrl: https://abacus.etheria.local/kas
+  kasDefaultUrl: https://etheria.local/kas
 replicaCount: 1
 service:
   type: ClusterIP
@@ -19,7 +19,7 @@ ingress:
     kubernetes.io/ingress.class: nginx
   enabled: true
   hosts:
-  - host: abacus.etheria.local
+  - host: etheria.local
     paths:
       - backend:
           service:
@@ -28,5 +28,5 @@ ingress:
         path: /eas
   tls:
   - hosts:
-    - abacus.etheria.local
+    - etheria.local
     secretName: eas-tls

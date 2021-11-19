@@ -24,18 +24,21 @@ fi
 # BUILD KAS AND AS DOCKER IMAGES
 EAS_VERSION=$(<eas/VERSION)
 KAS_VERSION=$(<kas_app/VERSION)
-ABACUS_VERSION=$(grep version abacus/web/package.json | awk -F \" '{print $4}')
+# GET LATEST FROM opentdf/frontend
+ABACUS_VERSION="0.3.0"
 
 export EAS_VERSION
 export KAS_VERSION
 export ABACUS_VERSION
+
+docker save -o build/export/docker-image-abacus.tar virtru/tdf-abacus-web:"${ABACUS_VERSION}"
 
 if ! docker-compose -f docker-compose.yml up --build -d; then
   monolog ERROR "Failed to create docker images"
   exit 1
 fi
 
-if ! docker save -o build/export/docker-images.tar tdf3.service.eas:"${EAS_VERSION}" tdf3.service.kas:"${KAS_VERSION}" tdf3.service.abacus:"${ABACUS_VERSION}" nginx:1.19.4 python:3; then
+if ! docker save -o build/export/docker-images.tar tdf3.service.eas:"${EAS_VERSION}" tdf3.service.kas:"${KAS_VERSION}" nginx:1.19.4 python:3; then
   monolog ERROR "Failed to save docker images"
   exit 1
 fi

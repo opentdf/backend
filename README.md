@@ -14,11 +14,6 @@ Etheria is a monorepo which contains the following projects:
   - [Readme](kas/lib/README.md)
   - ![Linting and Coverage](https://github.com/virtru/etheria/workflows/Linting%20and%20Coverage/badge.svg)
   - ![Validate OpenAPI](https://github.com/virtru/etheria/workflows/Validate%20OpenAPI/badge.svg)
-- Abacus Web
-  - [Readme](abacus/web/README.md) 
-  - ![Abacus Lint & Test](https://github.com/virtru/etheria/workflows/Abacus%20Lint%20&%20Test/badge.svg)
-  - [Storybook](https://virtru.github.io/etheria)
-  - ![Deploy Storybook](https://github.com/virtru/etheria/workflows/Deploy%20Storybook/badge.svg)
 - A reference Keycloak OIDC identity provider handling auth flows
   - [Readme](README-keycloak-idp.md)
   - [KUTTL K8S Cluster tests](tests/README.md)
@@ -312,15 +307,5 @@ Requirements (1) and (2) are described in [generate keys](#generate-keys) above.
 ## Production
 
 _TBD_
-
-## Abacus
-
-To get Abacus up and running
-
-1. Update `abacus.Dockerfile` with the location of the EAS URL `ENV NEXT_PUBLIC_EAS_API_URL https://etheria.local/eas/`
-2. Build Docker image from root dir `docker build --file abacus.Dockerfile . --target server`
-3. Run the image `docker run -d -p 8080:80 -e NEXT_TELEMETRY_DISABLED=1 <container_id>`
-
-See [Abacus's README](abacus/README) for more info.
 
 [^1]: https://docs.docker.com/compose/reference/logs/

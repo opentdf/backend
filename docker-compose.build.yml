@@ -32,17 +32,6 @@ services:
       dockerfile: Dockerfile
     image: tdf3.service.kas:${ETHERIA_TAG:-virtrulocal}
 
-  abacus:
-    build:
-      context: ./containers/abacus
-      dockerfile: Dockerfile
-      target: server
-      args:
-        abacusBaseUrl: /abacus
-        abacusAssetPrefix: /abacus
-        easApiUrl: https://etheria.local/eas
-    image: tdf3.service.abacus:${ETHERIA_TAG:-virtrulocal}
-
   attribute_provider:
     build:
       context: ./containers/attribute_provider
