@@ -1,10 +1,36 @@
 name: Merge Request Tests
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
 jobs:
+  helm-lint-test:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/helmpack/chart-testing:latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Lint
+        run: ct lint --target-branch main --all charts/
+
+      - name: Render Templates
+        run: |
+          cd charts
+          for d in */ ; do
+              if [ -f "$d/Chart.yaml" ]; then
+                echo "Rendering Helm chart $d to validate defaults..."
+                helm template "$d"
+              fi
+          done
+
   scriptcheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
       - name: 🦪 ✔ 🧼🧼🧼
         run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "koalaman/shellcheck:v0.8.0" --color=always tools/*
       - name:  🦪 ✅ 🦇🦇🦇
@@ -16,6 +42,8 @@ jobs:
       - scriptcheck
     steps:
       - uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
       - name: "🐍 KAS Core Pytest"
         run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.9" tools/monotest containers/kas/kas_core
       - name: "🐍 KAS App Pytest"
@@ -25,7 +53,10 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - unittests
+      - helm-lint-test
     steps:
       - uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
       - name: CI Build Local Docker Images
         run: make
