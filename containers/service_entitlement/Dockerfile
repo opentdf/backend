@@ -41,6 +41,7 @@ ENV POSTGRES_USER ""
 ENV POSTGRES_PASSWORD ""
 ENV POSTGRES_DATABASE ""
 ENV POSTGRES_SCHEMA "tdf_attribute"
+ENV SERVER_ROOT_PATH "/entitlement"
 
 EXPOSE 4030
-ENTRYPOINT python3 -m uvicorn --host 0.0.0.0 --port 4030 main:app
+ENTRYPOINT python3 -m uvicorn --host 0.0.0.0 --port 4030 main:app --root-path $SERVER_ROOT_PATH
