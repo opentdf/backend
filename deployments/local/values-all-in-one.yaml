@@ -1,6 +1,10 @@
 eas:
   replicaCount: 1
   ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubernetes.io/ingress.class: nginx
+    enabled: true
     hosts:
     - host: abacus.etheria.local
       paths:
@@ -9,20 +13,21 @@ eas:
     - hosts:
       - abacus.etheria.local
       secretName: eas-tls
-
   endpoints:
     kasDefaultUrl: https://abacus.etheria.local/kas
-
   image:
-    name: tdf3.service.eas:virtrulocal
+    name: virtru/tdf-entity-attribute-service:virtrulocal
     pullPolicy: Never
-
-  livenessProbe: null
-  readinessProbe: null
+  service:
+    type: ClusterIP
 
 kas:
   replicaCount: 1
   ingress:
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      kubernetes.io/ingress.class: nginx
+    enabled: true
     hosts:
     - host: abacus.etheria.local
       paths:
@@ -31,30 +36,26 @@ kas:
     - hosts:
       - abacus.etheria.local
       secretName: kas-tls
-
   endpoints:
     easHost: https://abacus.etheria.local/eas
-
   image:
-    name: tdf3.service.kas:virtrulocal
+    name: virtru/tdf-key-access-service:virtrulocal
     pullPolicy: Never
-
-  livenessProbe: null
-  readinessProbe: null
 
 attribute-provider:
   image:
-    name: tdf3.service.attribute_provider:virtrulocal
+    name: virtru/tdf-claim-test-webservice:virtrulocal
     pullPolicy: Never
+  port: 5000
 
 keycloak-bootstrap:
   image:
-    name: tdf3.service.keycloak_bootstrap:virtrulocal
+    name: virtru/tdf-keycloak-bootstrap:virtrulocal
     pullPolicy: Never
 
 attribute-authority:
   image:
-    name: tdf3.service.attribute_authority:virtrulocal
+    name: virtru/tdf-attribute-authority-service:virtrulocal
     pullPolicy: Never
   postgres:
     host: my-tdfdb-postgresql.default.svc.cluster.local
@@ -62,10 +63,9 @@ attribute-authority:
     user: postgres
     schema: tdf_attribute
 
-
 entitlement:
   image:
-    name: tdf3.service.entitlement:virtrulocal
+    name: virtru/tdf-entitlement-service:virtrulocal
     pullPolicy: Never
   postgres:
     host: my-tdfdb-postgresql.default.svc.cluster.local
@@ -75,9 +75,7 @@ entitlement:
 
 tdf-storage:
   image:
-    name: tdf3.service.remote_payload:virtrulocal
+    name: virtru/tdf-storage-service:virtrulocal
     pullPolicy: Never
-
-  s3Bucket: "virtru-tdf-webservice"
-  s3BucketRegion: "us-east-1"
-
+  s3Bucket: "datalake.etheria"
+  s3BucketRegion: "us-west-2"

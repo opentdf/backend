@@ -1,7 +1,7 @@
-name: publish
+name: Publish
 
 env:
-  ARGO_SERVER: "argo.mgmt.virtru.com:443"
+  ARGO_SERVER: "argo.mgmt-green.virtru.com:443"
   ARGO_HTTP1: "true"
   ARGO_SECURE: "true"
   ARGO_BASE_HREF: "/argo/"
@@ -11,10 +11,14 @@ defaults:
   run:
     shell: bash
 on:
-  pull_request:
-    branches:
-      - '**' #Match any branch name a PR is created for
-    types: [opened, synchronize, reopened]
+  workflow_call:
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_ROLE_TO_ASSUME:
+        required: true
 
 jobs:
   # Tags every artifact with the current branch's gitref
@@ -22,6 +26,7 @@ jobs:
   # Does not deploy anything or update the repo, just
   # tags and pushes artifacts
   pr_publish:
+    if: github.repository == 'opentdf/backend'
     runs-on: ubuntu-latest
     timeout-minutes: 45 #Potentially unneeded, testing to see if this helps with random 401 failures
     name: PR Publish by Gitref
@@ -38,7 +43,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           role-external-id: GitHubAction
           role-duration-seconds: 2700
-          role-session-name: etheria-action
+          role-session-name: opentdf-backend-action
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1

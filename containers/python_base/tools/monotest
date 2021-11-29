@@ -12,12 +12,12 @@
 # Usage: tools/monotest <app> <cov | watch>
 
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
-PROJECT_ROOT="$(cd "$TOOLS_DIR/../../../" >/dev/null && pwd)"
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
 export PATH="$PATH:$TOOLS_DIR"
 
 monolog TRACE "monotest: [$0 $*]"
 
-genkeys-if-needed
+genkeys-if-needed || exit 1
 
 _single_pytest() {
   monolog TRACE "_single_pytest: [$*]"
