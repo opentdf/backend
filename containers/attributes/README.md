@@ -1,19 +1,25 @@
+## Development
 
-## development
+### Start database
 
-### environment variables
+see [migration](../migration/README.md)
+
+### Configure server
 ```shell
 export POSTGRES_HOST=localhost
 export POSTGRES_USER=tdf_attribute_manager
 export POSTGRES_PASSWORD=myPostgresPassword
-export POSTGRES_DATABASE=tdf_database
+export POSTGRES_DATABASE=postgres
 export POSTGRES_SCHEMA=tdf_attribute
 ```
 
-### server
+### Start Server
 ```shell
-pipenv install
-pipenv run uvicorn main:app --reload --port 4020
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install --requirement requirements.txt
+python3 -m uvicorn main:app --reload --port 4020
 ```
 
 ### OpenAPI
@@ -21,7 +27,16 @@ pipenv run uvicorn main:app --reload --port 4020
 pipenv run python3 main.py > openapi.json
 ```
 
-## kubernetes
+### View API
+
+#### Swagger UI
+http://127.0.0.1:4020/docs
+
+#### ReDoc
+http://127.0.0.1:4020/redoc
+
+
+## Kubernetes
 
 ### build image
 ```shell

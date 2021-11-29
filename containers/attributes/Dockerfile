@@ -6,10 +6,8 @@ ARG ALPINE_VERSION=3.13
 FROM virtru/tdf-python-base:${PY_VERSION} AS build
 WORKDIR /build
 # Install application dependencies
-COPY Pipfile .
-COPY Pipfile.lock .
-RUN pipenv lock --keep-outdated --requirements > requirements.txt && \
-    pip3 install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir --requirement requirements.txt
 # Install application into WORKDIR
 COPY main.py .
 # Compile application
