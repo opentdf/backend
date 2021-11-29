@@ -1,3 +1,5 @@
+# Attributes
+
 ## Development
 
 ### Start database
@@ -22,18 +24,22 @@ python3 -m pip install --requirement requirements.txt
 python3 -m uvicorn main:app --reload --port 4020
 ```
 
-### OpenAPI
+### Extract OpenAPI
 ```shell
-pipenv run python3 main.py > openapi.json
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install --requirement requirements.txt
+python3 main.py > openapi.json
 ```
 
 ### View API
 
 #### Swagger UI
-http://127.0.0.1:4020/docs
+http://localhost:4020/docs
 
 #### ReDoc
-http://127.0.0.1:4020/redoc
+http://localhost:4020/redoc
 
 
 ## Kubernetes

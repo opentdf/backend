@@ -13,12 +13,13 @@ import uritools
 from fastapi import FastAPI, Request, Depends
 from fastapi import Security, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from keycloak import KeycloakOpenID
+from pydantic import BaseSettings
 from pydantic import HttpUrl, validator
 from pydantic import Json
 from pydantic.main import BaseModel
-from pydantic import BaseSettings
 from sqlalchemy import and_
 
 logging.basicConfig(
@@ -34,12 +35,45 @@ swagger_ui_init_oauth = {
     "scopes": ["email"],
 }
 
+
 class Settings(BaseSettings):
     openapi_url: str = "/openapi.json"
 
+
 settings = Settings()
 
-app = FastAPI(swagger_ui_init_oauth=swagger_ui_init_oauth, debug=True, openapi_url=settings.openapi_url)
+app = FastAPI(
+    swagger_ui_init_oauth=swagger_ui_init_oauth,
+    debug=True,
+    openapi_url=settings.openapi_url,
+)
+
+# OpenAPI
+tags_metadata = [
+    {
+        "name": "Entitlements",
+        "description": "Operations to manage entitlements entitled to entities.",
+    },
+]
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="openTDF",
+        version="1.0.0",
+        routes=app.routes,
+        tags=tags_metadata,
+    )
+    openapi_schema["info"]["x-logo"] = {
+        "url": "https://inxmad4bw31barrx17wec71c-wpengine.netdna-ssl.com/wp-content/uploads/2018/12/o_efa1e48d0db5ebc8-4.png"
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 app.add_middleware(
     CORSMiddleware,
@@ -164,7 +198,7 @@ class EntityAttributeRelationship(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "attribute": "https://eas.local/attr/ClassificationUS/value/Unclassified",
+                "attribute": "https://opentdf.io/attr/ClassificationUS/value/Unclassified",
                 "entityId": "Charlie_1234",
                 "state": "active",
             }
@@ -177,7 +211,7 @@ class ClaimsObject(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "attribute": "https://eas.local/attr/ClassificationUS/value/Unclassified",
+                "attribute": "https://opentdf.io/attr/ClassificationUS/value/Unclassified",
             }
         }
 
@@ -206,6 +240,7 @@ async def read_relationship():
 
 @app.get(
     "/v1/entity/claimsobject",
+    tags=["Entitlements"],
     response_model=List[ClaimsObject],
     dependencies=[Depends(get_auth)],
 )

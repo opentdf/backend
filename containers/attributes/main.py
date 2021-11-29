@@ -5,7 +5,7 @@ import sys
 from enum import Enum
 from http.client import NO_CONTENT
 from pprint import pprint
-from typing import Optional, List
+from typing import Optional, List, Annotated
 
 import databases as databases
 import sqlalchemy
@@ -16,11 +16,12 @@ from fastapi import Security, status
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.security import OpenIdConnect
-from pydantic import BaseSettings
+from keycloak import KeycloakOpenID
+from pydantic import BaseSettings, Field
 from pydantic import Json
 from pydantic import ValidationError, AnyUrl
 from pydantic.main import BaseModel
-from keycloak import KeycloakOpenID
+from sqlalchemy import and_
 
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL)
@@ -41,23 +42,6 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-tags_metadata = [
-    {
-        "name": "Attributes",
-        "description": "Operations to view data attributes."
-        + "TDF protocol supports ABAC (Attribute Based Access Control)."
-        + "This allows TDF protocol to implement policy driven and highly scalable access control mechanism.",
-    },
-    {
-        "name": "Authorities",
-        "description": "Operations to view and create attribute authorities.",
-    },
-    {
-        "name": "Attributes Definitions",
-        "description": "Operations to manage the rules and metadata of attributes. ",
-    },
-]
 
 app = FastAPI(
     debug=True,
@@ -160,6 +144,24 @@ async def add_response_headers(request: Request, call_next):
 
 
 # OpenAPI
+tags_metadata = [
+    {
+        "name": "Attributes",
+        "description": "Operations to view data attributes."
+        + "TDF protocol supports ABAC (Attribute Based Access Control)."
+        + "This allows TDF protocol to implement policy driven and highly scalable access control mechanism.",
+    },
+    {
+        "name": "Authorities",
+        "description": "Operations to view and create attribute authorities.",
+    },
+    {
+        "name": "Attributes Definitions",
+        "description": "Operations to manage the rules and metadata of attributes. ",
+    },
+]
+
+
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -185,12 +187,19 @@ class RuleEnum(str, Enum):
     allOf = "allOf"
 
 
+class AuthorityUrl(AnyUrl):
+    max_length = 2000
+
+
 class AttributeDefinition(BaseModel):
-    authority: AnyUrl
-    name: str
-    order: list
+    authority: AuthorityUrl
+    name: Annotated[str, Field(max_length=2000, exclusiveMaximum=2000)]
+    order: Annotated[
+        List[str],
+        Field(max_length=2000, exclusiveMaximum=2000),
+    ]
     rule: RuleEnum
-    state: Optional[str]
+    state: Annotated[Optional[str], Field(max_length=64, exclusiveMaximum=64)]
 
     class Config:
         schema_extra = {
@@ -202,6 +211,10 @@ class AttributeDefinition(BaseModel):
                 "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
             }
         }
+
+
+class AuthorityDefinition(BaseModel):
+    authority: AuthorityUrl
 
 
 @app.on_event("startup")
@@ -235,6 +248,11 @@ oidc_scheme = OpenIdConnect(
 )
 
 
+#
+# Attributes
+#
+
+
 @app.get("/attributes", tags=["Attributes"], response_model=List[AnyUrl])
 async def read_attributes():
     error = None
@@ -260,6 +278,11 @@ async def read_attributes():
             status_code=422, detail=f"attribute error: {str(error)}"
         ) from error
     return attributes
+
+
+#
+# Attributes Definitions
+#
 
 
 @app.get(
@@ -292,6 +315,7 @@ async def read_attributes_definitions():
     "/definitions/attributes",
     tags=["Attributes Definitions"],
     response_model=AttributeDefinition,
+    dependencies=[Depends(get_auth)],
 )
 async def create_attributes_definitions(request: AttributeDefinition):
     # lookup
@@ -353,6 +377,30 @@ async def update_attribute(request: AttributeDefinition):
     return request
 
 
+@app.delete(
+    "/definitions/attributes",
+    tags=["Attributes Definitions"],
+    response_model=None,
+    dependencies=[Depends(get_auth)],
+)
+async def delete_attributes_definitions(request: AttributeDefinition):
+    statement = table_attribute.delete().where(
+        and_(
+            table_attribute.c.authority == request.authority,
+            table_attribute.c.name == request.name,
+            table_attribute.c.rule == request.rule,
+            table_attribute.c.order == request.order,
+        )
+    )
+    await database.execute(statement)
+    return NO_CONTENT
+
+
+#
+# Authorities
+#
+
+
 @app.get("/authorities", tags=["Authorities"], dependencies=[Depends(get_auth)])
 async def read_authorities():
     query = table_authority.select()
@@ -363,10 +411,10 @@ async def read_authorities():
     return authorities
 
 
-@app.post("/authorities", tags=["Authorities"], dependencies=[Depends(get_auth)])
-async def create_authorities(authority: AnyUrl):
+@app.post("/authorities", tags=["Authorities"])  # , dependencies=[Depends(get_auth)])
+async def create_authorities(request: AuthorityDefinition):
     # insert
-    query = table_authority.insert().values(name=authority)
+    query = table_authority.insert().values(name=request.authority)
     try:
         await database.execute(query)
     except UniqueViolationError as e:
