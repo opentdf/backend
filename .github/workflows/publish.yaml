@@ -13,11 +13,11 @@ defaults:
 on:
   workflow_call:
     secrets:
-      aws-access-key-id:
+      AWS_ACCESS_KEY_ID:
         required: true
-      aws-secret-access-key:
+      AWS_SECRET_ACCESS_KEY:
         required: true
-      role-to-assume:
+      AWS_ROLE_TO_ASSUME:
         required: true
 
 jobs:
@@ -37,10 +37,10 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets. aws-access-key-id }}
-          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
-          role-to-assume: ${{ secrets.role-to-assume }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           role-external-id: GitHubAction
           role-duration-seconds: 2700
           role-session-name: opentdf-backend-action
