@@ -138,6 +138,8 @@ class AttributeRuleType(str, Enum):
     anyOf = "anyOf"
     allOf = "allOf"
 
+class AttributeNamespace(BaseModel):
+    request_authority_namespace: HttpUrl
 
 class Attribute(BaseModel):
     authorityNamespace: HttpUrl
@@ -299,9 +301,9 @@ async def read_authority_namespace():
 
 
 @app.post("/v1/authorityNamespace", dependencies=[Depends(get_auth)])
-async def create_authority_namespace(request_authority_namespace: HttpUrl):
+async def create_authority_namespace(request: AttributeNamespace):
     # insert
-    query = table_authority_namespace.insert().values(name=request_authority_namespace)
+    query = table_authority_namespace.insert().values(name=request.request_authority_namespace)
     try:
         await database.execute(query)
     except UniqueViolationError as e:
