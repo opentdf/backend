@@ -66,4 +66,4 @@ jobs:
   publish:
     needs:
       - build
-    uses: opentdf/backend/.github/workflows/publish.yaml@feature/xtest
+    uses: opentdf/backend/.github/workflows/publish.yaml@main
