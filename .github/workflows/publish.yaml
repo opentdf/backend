@@ -12,6 +12,13 @@ defaults:
     shell: bash
 on:
   workflow_call:
+    secrets:
+      aws-access-key-id:
+        required: true
+      aws-secret-access-key:
+        required: true
+      role-to-assume:
+        required: true
 
 jobs:
   # Tags every artifact with the current branch's gitref
@@ -30,13 +37,13 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets. aws-access-key-id }}
+          aws-secret-access-key: ${{ secrets.aws-secret-access-key }}
           aws-region: us-west-2
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ secrets.role-to-assume }}
           role-external-id: GitHubAction
           role-duration-seconds: 2700
-          role-session-name: etheria-action
+          role-session-name: opentdf-backend-action
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
