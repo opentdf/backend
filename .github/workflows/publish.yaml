@@ -20,6 +20,8 @@ on:
         required: true
       MARS_AWS_ROLE_TO_ASSUME:
         required: true
+      PERSONAL_ACCESS_TOKEN:
+        required: true
 
 jobs:
   argo_submit:
