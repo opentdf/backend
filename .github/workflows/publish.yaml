@@ -13,11 +13,11 @@ defaults:
 on:
   workflow_call:
     secrets:
-      AWS_ACCESS_KEY_ID:
+      MARS_AWS_ACCESS_KEY_ID:
         required: true
-      AWS_SECRET_ACCESS_KEY:
+      MARS_AWS_SECRET_ACCESS_KEY:
         required: true
-      AWS_ROLE_TO_ASSUME:
+      MARS_AWS_ROLE_TO_ASSUME:
         required: true
 
 jobs:
