@@ -62,9 +62,7 @@ const ClientPage = () => {
   }, [dispatch, entityId, keyCloak.authenticated]);
 
   useEffect(() => {
-    const selectedEntity = state?.client?.clientId
-      ? `service-account-${state.client.clientId}`
-      : '';
+    const selectedEntity = state?.client?.clientId ? state.client.clientId : '';
 
     if (selectedEntity) {
       setEntityId(selectedEntity);
