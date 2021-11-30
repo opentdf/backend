@@ -11,9 +11,6 @@ env:
   ARGO_BASE_HREF: "/argo/"
   ARGO_NAMESPACE: "argo"
 
-defaults:
-  run:
-    shell: bash
 on:
   workflow_call:
     secrets:
