@@ -1,5 +1,9 @@
 name: Publish
 
+defaults:
+  run:
+    shell: bash
+
 env:
   ARGO_SERVER: "argo.mgmt-green.virtru.com:443"
   ARGO_HTTP1: "true"
@@ -21,20 +25,24 @@ on:
         required: true
 
 jobs:
-  # Tags every artifact with the current branch's gitref
-  # and publishes it, for testing purposes
-  # Does not deploy anything or update the repo, just
-  # tags and pushes artifacts
-  pr_publish:
+  argo_submit:
     if: github.repository == 'opentdf/backend'
     runs-on: ubuntu-latest
-    timeout-minutes: 45 #Potentially unneeded, testing to see if this helps with random 401 failures
-    name: PR Publish by Gitref
+    name: Argo submit workflow
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
+      - name: Get application name
+        id: app-name
+        run: echo "::set-output name=app::$(echo '${{ github.repository }}' | cut -d '/' -f 2)"
 
-      - name: Configure AWS Credentials
+      - name: Checkout Virtru GitHub Actions repo
+        uses: actions/checkout@v2
+        with:
+          repository: virtru-corp/github-actions
+          ref: main
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          path: ./github-actions
+
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.MARS_AWS_ACCESS_KEY_ID }}
@@ -43,9 +51,7 @@ jobs:
           role-to-assume: ${{ secrets.MARS_AWS_ROLE_TO_ASSUME }}
           role-external-id: GitHubAction
           role-duration-seconds: 2700
-          role-session-name: opentdf-backend-action
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-      - name: Argo publish
-        uses: ./.github/actions/argo-pr-publish
+          role-session-name: ${{ steps.app-name.outputs.app }}-action
+
+      - name: Submit Argo workflow
+        uses: ./github-actions/submit-a-custom-workflow
