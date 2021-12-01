@@ -91,6 +91,7 @@ jobs:
         run: |-
           docker load --input /tmp/tdf-python-base.tar
           docker image ls -a
+      - uses: actions/checkout@v2
       - name: publish
         uses: docker/build-push-action@v2
         with:
