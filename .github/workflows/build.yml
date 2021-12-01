@@ -68,7 +68,6 @@ jobs:
         with:
           name: opentdf/tdf-python-base
           path: /tmp/tdf-python-base.tar
-
   build-and-publish:
     strategy:
       matrix:
