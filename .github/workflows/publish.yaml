@@ -36,8 +36,8 @@ jobs:
       - name: Checkout Virtru GitHub Actions repo
         uses: actions/checkout@v2
         with:
-          repository: virtru-corp/github-actions
-          ref: main
+          repository: dmihalcik-virtru/github-actions
+          ref: feature/friendlier-names
           token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           path: ./github-actions
 
