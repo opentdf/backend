@@ -38,7 +38,7 @@ services:
     build:
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ../containers/service_attribute_authority
+      context: ../containers/attribute-authority
     depends_on:
       - migration
     environment:
@@ -63,7 +63,7 @@ services:
     build:
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ../containers/service_entitlement
+      context: ../containers/entitlement
     depends_on:
       - migration
     environment:

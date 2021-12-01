@@ -9,8 +9,8 @@ We store several services combined in a single git repository for ease of develo
 
 - [Key Access Service](containers/kas/kas_core/)
 - Authorization Services
-  - [Attributes](containers/service_attribute_authority/)
-  - [Entitlements](containers/service_entitlement)
+  - [Attributes](containers/attribute-authority/)
+  - [Entitlements](containers/entitlement)
   - [Keycloak Claims Mapper](containers/keycloak-protocol-mapper)
 - Tools and shared libraries
 - Helm charts for deploying to kubernetes

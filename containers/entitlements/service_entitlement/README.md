@@ -26,7 +26,7 @@ pipenv run python3 main.py > openapi.json
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag virtru/tdf-entitlement-service:0.2.0 service_entitlement
+docker build --no-cache --tag virtru/tdf-entitlement-service:0.2.0 entitlement
 ```
 
 ### secrets
@@ -37,7 +37,7 @@ kubectl create secret generic entitlement-secrets --from-literal=POSTGRES_PASSWO
 ### helm
 ```shell
 # from project root
-helm upgrade --install entitlement ./charts/service_entitlement --debug
+helm upgrade --install entitlement ./charts/entitlement --debug
 ```
 
 ## design

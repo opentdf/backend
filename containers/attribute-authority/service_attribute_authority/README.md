@@ -26,7 +26,7 @@ pipenv run python3 main.py > openapi.json
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag virtru/tdf-attribute-authority-service:0.2.0 service_attribute_authority
+docker build --no-cache --tag virtru/tdf-attribute-authority-service:0.2.0 attribute-authority
 ```
 
 ### secrets
@@ -37,7 +37,7 @@ kubectl create secret generic attribute-authority-secrets --from-literal=POSTGRE
 ### helm
 ```shell
 # from project root
-helm upgrade --install attribute-authority ./charts/service_attribute_authority --debug
+helm upgrade --install attribute-authority ./charts/attribute-authority --debug
 ```
 
 ### ingress
