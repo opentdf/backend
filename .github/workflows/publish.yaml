@@ -54,3 +54,6 @@ jobs:
 
       - name: Submit Argo workflow
         uses: ./github-actions/submit-a-custom-workflow
+        with:
+          name: opentdf-backend-publish
+          path: .argo/publish/pr-workflow.yaml
