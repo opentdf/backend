@@ -68,15 +68,17 @@ jobs:
         with:
           name: opentdf/tdf-python-base
           path: /tmp/tdf-python-base.tar
+
   build-and-publish:
+    needs:
+      - build-base
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         repo:
           - kas
           - attribute-authority
           - entitlement
-    needs:
-      - build-base
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
