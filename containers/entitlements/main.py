@@ -5,18 +5,19 @@ import re
 import sys
 from enum import Enum
 from http.client import NO_CONTENT
-from typing import List, Optional
+from typing import Dict
+from typing import List, Optional, Annotated
 
 import databases as databases
 import sqlalchemy
 import uritools
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, Body
 from fastapi import Security, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from keycloak import KeycloakOpenID
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 from pydantic import HttpUrl, validator
 from pydantic import Json
 from pydantic.main import BaseModel
@@ -205,13 +206,29 @@ class EntityAttributeRelationship(BaseModel):
         }
 
 
-class ClaimsObject(BaseModel):
+class SNSMessageAttribute(BaseModel):
+    Value: str
+    Type: str
     attribute: HttpUrl
+
+
+class Entitlements(BaseModel):
+    __root__: Dict[
+        str,
+        Annotated[
+            List[str],
+            Field(max_length=2000, exclusiveMaximum=2000),
+        ],
+    ]
 
     class Config:
         schema_extra = {
             "example": {
-                "attribute": "https://opentdf.io/attr/ClassificationUS/value/Unclassified",
+                "123e4567-e89b-12d3-a456-426614174000": [
+                    "https://opentdf.io/attr/SecurityClearance/value/Unclassified",
+                    "https://opentdf.io/attr/OperationalRole/value/Manager",
+                    "https://opentdf.io/attr/OperationGroup/value/HR",
+                ],
             }
         }
 
@@ -220,6 +237,7 @@ class ClaimsObject(BaseModel):
     "/v1/entity/attribute",
     response_model=List[EntityAttributeRelationship],
     dependencies=[Depends(get_auth)],
+    include_in_schema=False,
 )
 async def read_relationship():
     query = (
@@ -239,20 +257,20 @@ async def read_relationship():
 
 
 @app.get(
-    "/v1/entity/claimsobject",
+    "/entitlements",
     tags=["Entitlements"],
-    response_model=List[ClaimsObject],
-    dependencies=[Depends(get_auth)],
+    response_model=List[Entitlements],
+    # dependencies=[Depends(get_auth)], FIXME
 )
-async def read_relationship():
+async def read_entitlements():
     query = (
         table_entity_attribute.select()
     )  # .where(entity_attribute.c.userid == request.userId)
     result = await database.fetch_all(query)
-    claimsobject: List[ClaimsObject] = []
+    claimsobject: List[Entitlements] = []
     for row in result:
         claimsobject.append(
-            ClaimsObject(
+            Entitlements(
                 attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
             )
         )
@@ -279,7 +297,11 @@ def parse_attribute_uri(attribute_uri):
     }
 
 
-@app.get("/v1/entity/{entityId}/attribute", dependencies=[Depends(get_auth)])
+@app.get(
+    "/v1/entity/{entityId}/attribute",
+    dependencies=[Depends(get_auth)],
+    include_in_schema=False,
+)
 async def read_entity_attribute_relationship(entityId: str):
     query = table_entity_attribute.select().where(
         table_entity_attribute.c.entity_id == entityId
@@ -297,24 +319,18 @@ async def read_entity_attribute_relationship(entityId: str):
     return relationships
 
 
-@app.get("/v1/entity/{entityId}/claimsobject", dependencies=[Depends(get_auth)])
-async def read_entity_attribute_relationship(entityId: str):
-    query = table_entity_attribute.select().where(
-        table_entity_attribute.c.entity_id == entityId
-    )
-    result = await database.fetch_all(query)
-    claimsobject: List[ClaimsObject] = []
-    for row in result:
-        claimsobject.append(
-            ClaimsObject(
-                attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
-            )
-        )
-    return claimsobject
-
-
-@app.put("/v1/entity/{entityId}/attribute", dependencies=[Depends(get_auth)])
-async def create_entity_attribute_relationship(entityId: str, request: List[HttpUrl]):
+@app.post(
+    "/entitlements/{entityId}",
+    tags=["Entitlements"],
+    # dependencies=[Depends(get_auth)]
+)
+async def add_entitlements_to_entity(
+    entityId: str,
+    request: Annotated[
+        List[str],
+        Field(max_length=2000, exclusiveMaximum=2000),
+    ],
+):
     rows = []
     for attribute_uri in request:
         attribute = parse_attribute_uri(attribute_uri)
@@ -331,7 +347,11 @@ async def create_entity_attribute_relationship(entityId: str, request: List[Http
     return request
 
 
-@app.get("/v1/attribute/{attributeURI:path}/entity/", dependencies=[Depends(get_auth)])
+@app.get(
+    "/v1/attribute/{attributeURI:path}/entity/",
+    dependencies=[Depends(get_auth)],
+    include_in_schema=False,
+)
 async def get_attribute_entity_relationship(attributeURI: str):
     logger.debug(attributeURI)
     attribute = parse_attribute_uri(attributeURI)
@@ -355,7 +375,11 @@ async def get_attribute_entity_relationship(attributeURI: str):
     return relationships
 
 
-@app.put("/v1/attribute/{attributeURI:path}/entity/", dependencies=[Depends(get_auth)])
+@app.put(
+    "/v1/attribute/{attributeURI:path}/entity/",
+    dependencies=[Depends(get_auth)],
+    include_in_schema=False,
+)
 async def create_attribute_entity_relationship(
     attributeURI: HttpUrl, request: List[str]
 ):
@@ -376,21 +400,29 @@ async def create_attribute_entity_relationship(
 
 
 @app.delete(
-    "/v1/entity/{entityId}/attribute/{attributeURI:path}",
-    status_code=204,
+    "/entitlements/{entityId}",
+    tags=["Entitlements"],
+    status_code=NO_CONTENT,
     dependencies=[Depends(get_auth)],
 )
-async def delete_attribute_entity_relationship(entityId: str, attributeURI: HttpUrl):
-    attribute = parse_attribute_uri(attributeURI)
-    statement = table_entity_attribute.delete().where(
-        and_(
-            table_entity_attribute.c.entity_id == entityId,
-            table_entity_attribute.c.namespace == attribute["namespace"],
-            table_entity_attribute.c.name == attribute["name"],
-            table_entity_attribute.c.value == attribute["value"],
+async def remove_entitlement_from_entity(
+    entityId: str,
+    request: Annotated[
+        List[str],
+        Field(max_length=2000, exclusiveMaximum=2000),
+    ],
+):
+    for entitlement in request:
+        attribute = parse_attribute_uri(entitlement)
+        statement = table_entity_attribute.delete().where(
+            and_(
+                table_entity_attribute.c.entity_id == entityId,
+                table_entity_attribute.c.namespace == attribute["namespace"],
+                table_entity_attribute.c.name == attribute["name"],
+                table_entity_attribute.c.value == attribute["value"],
+            )
         )
-    )
-    await database.execute(statement)
+        await database.execute(statement)
 
 
 if __name__ == "__main__":
