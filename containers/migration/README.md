@@ -21,6 +21,14 @@ psql \
    --port=5432 \
    --username=postgres \
    --dbname=postgres \
+   --command='create database tdf_database;'
+#   myPostgresPassword
+
+psql \
+   --host=localhost \
+   --port=5432 \
+   --username=postgres \
+   --dbname=tdf_database \
    --file=containers/migration/schema.sql
 
 #   myPostgresPassword

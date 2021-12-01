@@ -168,6 +168,7 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title="openTDF",
         version="1.0.0",
+        license_info={"name": "MIT"},
         routes=app.routes,
         tags=tags_metadata,
     )
@@ -193,13 +194,13 @@ class AuthorityUrl(AnyUrl):
 
 class AttributeDefinition(BaseModel):
     authority: AuthorityUrl
-    name: Annotated[str, Field(max_length=2000, exclusiveMaximum=2000)]
+    name: Annotated[str, Field(max_length=2000)]
     order: Annotated[
         List[str],
-        Field(max_length=2000, exclusiveMaximum=2000),
+        Field(max_length=2000),
     ]
     rule: RuleEnum
-    state: Annotated[Optional[str], Field(max_length=64, exclusiveMaximum=64)]
+    state: Annotated[Optional[str], Field(max_length=64)]
 
     class Config:
         schema_extra = {

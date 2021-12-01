@@ -5,13 +5,12 @@ import re
 import sys
 from enum import Enum
 from http.client import NO_CONTENT
-from typing import Dict
-from typing import List, Optional, Annotated
+from typing import Dict, List, Optional, Annotated
 
 import databases as databases
 import sqlalchemy
 import uritools
-from fastapi import FastAPI, Request, Depends, Body
+from fastapi import FastAPI, Request, Depends
 from fastapi import Security, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -64,6 +63,7 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title="openTDF",
         version="1.0.0",
+        license_info={"name": "MIT"},
         routes=app.routes,
         tags=tags_metadata,
     )
@@ -263,18 +263,27 @@ async def read_relationship():
     # dependencies=[Depends(get_auth)], FIXME
 )
 async def read_entitlements():
-    query = (
-        table_entity_attribute.select()
-    )  # .where(entity_attribute.c.userid == request.userId)
+    query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)
     result = await database.fetch_all(query)
-    claimsobject: List[Entitlements] = []
+    # must be ordered by entity_id
+    entitlements: List[Entitlements] = []
+    previous_entity_id: str = ""
+    previous_attributes: List[str] = []
     for row in result:
-        claimsobject.append(
-            Entitlements(
-                attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
-            )
+        entity_id: str = row.get(table_entity_attribute.c.entity_id)
+        if not previous_entity_id:
+            previous_entity_id = entity_id
+        if previous_entity_id != entity_id:
+            entitlements.append({previous_entity_id: previous_attributes})
+            previous_entity_id = entity_id
+            previous_attributes = []
+        # add subject attributes
+        previous_attributes.append(
+            f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
         )
-    return claimsobject
+    # add last
+    entitlements.append({previous_entity_id: previous_attributes})
+    return entitlements
 
 
 def parse_attribute_uri(attribute_uri):
@@ -322,7 +331,7 @@ async def read_entity_attribute_relationship(entityId: str):
 @app.post(
     "/entitlements/{entityId}",
     tags=["Entitlements"],
-    # dependencies=[Depends(get_auth)]
+    # dependencies=[Depends(get_auth)] FIXME
 )
 async def add_entitlements_to_entity(
     entityId: str,
@@ -403,7 +412,7 @@ async def create_attribute_entity_relationship(
     "/entitlements/{entityId}",
     tags=["Entitlements"],
     status_code=NO_CONTENT,
-    dependencies=[Depends(get_auth)],
+    # dependencies=[Depends(get_auth)], FIXME
 )
 async def remove_entitlement_from_entity(
     entityId: str,
