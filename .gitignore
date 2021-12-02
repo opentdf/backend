@@ -21,7 +21,7 @@ __pycache__
 **/.idea/
 /build/
 /build-temp/
-/access/.idea/
+/kas/.idea/
 coverage-reports
 .coverage
 
@@ -40,7 +40,7 @@ kubeconfig
 !/containers/eas/src/util/keys/keys_for_tests/*
 !/containers/eas/src/services/test_files/key_stash/*
 # KAS requires checked-in test certs, allow them
-!/containers/access/kas_core/tdf3_kas_core/util/keys/keys_for_tests/*
+!/containers/kas/kas_core/tdf3_kas_core/util/keys/keys_for_tests/*
 
 # Helm
 /.helm/

@@ -42,9 +42,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: "🐍 KAS Core Pytest"
-        run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.9" scripts/monotest containers/access/kas_core
+        run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.9" scripts/monotest containers/kas/kas_core
       - name: "🐍 KAS App Pytest"
-        run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.9" scripts/monotest containers/access/kas_app
+        run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.9" scripts/monotest containers/kas/kas_app
 
   build-base:
     runs-on: ubuntu-latest
@@ -74,10 +74,10 @@ jobs:
     strategy:
       matrix:
         repo:
-          - access
-          - attributes
-          - entitlements
-          - storage
+          - attribute-authority
+          - entitlement
+          - kas
+          - keycloak-bootstrap
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2

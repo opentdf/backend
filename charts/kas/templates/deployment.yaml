@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "access.name" . }}
+  name: {{ include "kas.name" . }}
   labels:
-    {{- include "access.labels" . | nindent 4 }}
+    {{- include "kas.labels" . | nindent 4 }}
 spec:
 {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
 {{- end }}
   selector:
     matchLabels:
-      {{- include "access.selectorLabels" . | nindent 6 }}
+      {{- include "kas.selectorLabels" . | nindent 6 }}
   template:
     metadata:
     {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       labels:
-        {{- include "access.selectorLabels" . | nindent 8 }}
+        {{- include "kas.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "access.serviceAccountName" . }}
+      serviceAccountName: {{ include "kas.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -53,7 +53,7 @@ spec:
           - secretRef:
               name: etheria-secrets
           - configMapRef:
-              name: access-cm
+              name: kas-cm
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       restartPolicy: Always

@@ -14,9 +14,9 @@ eas:
       - eas-dryrun.virtrunetes.com
       secretName: eas-tls
   endpoints:
-    kasDefaultUrl: https://access-dryrun.virtrunetes.com
+    kasDefaultUrl: https://kas-dryrun.virtrunetes.com
 
-access:
+kas:
   replicaCount: 1
   ingress:
     annotations:
@@ -24,13 +24,13 @@ access:
       kubernetes.io/ingress.class: nginx
     enabled: true
     hosts:
-    - host: access-dryrun.virtrunetes.com
+    - host: kas-dryrun.virtrunetes.com
       paths:
       - /
     tls:
     - hosts:
-      - access-dryrun.virtrunetes.com
-      secretName: access-tls
+      - kas-dryrun.virtrunetes.com
+      secretName: kas-tls
   endpoints:
     easHost: https://eas-dryrun.virtrunetes.com
 
@@ -44,13 +44,13 @@ keycloak-bootstrap:
     name: virtru/tdf-keycloak-bootstrap:0.2.1
     pullPolicy: Always
 
-attributes:
+attribute-authority:
   image:
-    name: virtru/tdf-attributes-service
+    name: virtru/tdf-attribute-authority-service
 
-entitlements:
+entitlement:
   image:
-    name: virtru/tdf-entitlements-service
+    name: virtru/tdf-entitlement-service
 
 tdf-storage:
   image:

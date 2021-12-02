@@ -3,9 +3,9 @@
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "access.fullname" . }}
+  name: {{ include "kas.fullname" . }}
 spec:
   maxUnavailable: {{ .Values.maxUnavailable }}
   selector:
-    {{- include "access.selectorLabels" . | nindent 4 }}
+    {{- include "kas.selectorLabels" . | nindent 4 }}
 {{- end }}

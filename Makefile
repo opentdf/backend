@@ -15,7 +15,7 @@ python-base: docker-compose.build.yml $(shell find containers/python_base)
 
 clean-cluster:
 	helm uninstall attribute-provider
-	helm uninstall access
+	helm uninstall kas
 	helm uninstall keycloak
 	helm uninstall keycloak-bootstrap
 	kubectl delete secret etheria-secrets

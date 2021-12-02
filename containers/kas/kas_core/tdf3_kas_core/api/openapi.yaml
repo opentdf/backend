@@ -62,8 +62,8 @@ paths:
       deprecated: true
       description: |
         This endpoint provides a public key for the private key that the
-        key access service has internally. The public key is used to wrap
-        object keys in openTDF files.
+        kas has internally. The public key is used to wrap object keys in
+        the TDF3 or NanoTDF files.
       operationId: tdf3_kas_core.web.public_key.get
       parameters:
         - name: algorithm

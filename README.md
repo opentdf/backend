@@ -7,10 +7,10 @@ This repository is for a reference implementation of the [openTDF REST Services]
 
 We store several services combined in a single git repository for ease of development. Thse include:
 
-- [Key Access Service](containers/access/kas_core/)
+- [Key Access Service](containers/kas/kas_core/)
 - Authorization Services
-  - [Attributes](containers/attributes/)
-  - [Entitlements](containers/entitlements)
+  - [Attributes](containers/attribute-authority/)
+  - [Entitlements](containers/entitlement)
   - [Keycloak Claims Mapper](containers/keycloak-protocol-mapper)
 - Tools and shared libraries
 - Helm charts for deploying to kubernetes
@@ -79,7 +79,7 @@ This means you can fetch any resource built from your PR branch by appending you
 
 For instance, if Argo generated a shortSha of `b616e2f`, to fetch the KAS chart for that branch, you would run
 
-`helm pull virtru/access --version 0.4.4-rc-$(git rev-parse --short HEAD) --devel`
+`helm pull virtru/kas --version 0.4.4-rc-$(git rev-parse --short HEAD) --devel`
 
 Or, if you wanted to install all of Etheria, you could fetch the top-level chart (which will have all subcharts and images updated to the current PR branch's SHA)
 
@@ -165,10 +165,10 @@ export/scripts/genkeys-if-needed
 kubectl create secret generic etheria-secrets \
     "--from-file=EAS_PRIVATE_KEY=export/certs/eas-private.pem" \
     "--from-file=EAS_CERTIFICATE=export/certs/eas-public.pem" \
-    "--from-file=KAS_EC_SECP256R1_CERTIFICATE=export/certs/access-ec-secp256r1-public.pem" \
-    "--from-file=KAS_CERTIFICATE=export/certs/access-public.pem" \
-    "--from-file=KAS_EC_SECP256R1_PRIVATE_KEY=export/certs/access-ec-secp256r1-private.pem" \
-    "--from-file=KAS_PRIVATE_KEY=export/certs/access-private.pem" \
+    "--from-file=KAS_EC_SECP256R1_CERTIFICATE=export/certs/kas-ec-secp256r1-public.pem" \
+    "--from-file=KAS_CERTIFICATE=export/certs/kas-public.pem" \
+    "--from-file=KAS_EC_SECP256R1_PRIVATE_KEY=export/certs/kas-ec-secp256r1-private.pem" \
+    "--from-file=KAS_PRIVATE_KEY=export/certs/kas-private.pem" \
     "--from-file=ca-cert.pem=export/certs/ca.crt" || e "create etheria-secrets failed"
 ```
 
@@ -177,8 +177,8 @@ We will also need to generate and use a custom postgres password.
 ```sh
 POSTGRES_PW=$(openssl rand -base64 40)
 sed -i '' "s/myPostgresPassword/${POSTGRES_PW}/" export/deployment/values-postgresql-tdf.yaml
-kubectl create secret generic attributes-secrets --from-literal=POSTGRES_PASSWORD="${POSTGRES_PW}"
-kubectl create secret generic entitlements-secrets --from-literal=POSTGRES_PASSWORD="${POSTGRES_PW}"
+kubectl create secret generic attribute-authority-secrets --from-literal=POSTGRES_PASSWORD="${POSTGRES_PW}"
+kubectl create secret generic entitlement-secrets --from-literal=POSTGRES_PASSWORD="${POSTGRES_PW}"
 ```
 
 > TODO: Move keycloak creds into secrets.
@@ -304,9 +304,9 @@ In a detached state logs can be accessed via [docker-compose logs](https://docs.
 Example:
 
 ```
-> docker-compose logs access
-Attaching to access
-access        | Some log here
+> docker-compose logs kas
+Attaching to kas
+kas        | Some log here
 ```
 
 ## Deployment

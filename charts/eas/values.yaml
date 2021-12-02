@@ -82,7 +82,7 @@ maxUnavailable: 1
 
 endpoints:
   # todo fix the next line, helper or whatever
-  kasDefaultUrl: https://access/
+  kasDefaultUrl: https://kas/
 
 livenessProbe:
 readinessProbe:

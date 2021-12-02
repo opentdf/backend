@@ -6,8 +6,8 @@ from sqlalchemy import pool
 
 from alembic import context
 import os, sys
-import attributes.main as service_atribute_authority
-import entitlements.main as entitlements
+import attribute-authority.main as service_atribute_authority
+import entitlement.main as entitlement
 import service_entity.main as service_entity
 import service_entity_object.main as service_entity_object
 
@@ -37,7 +37,7 @@ fileConfig(config.config_file_name)
 # target_metadata = mymodel.Base.metadata
 target_metadata = [
     service_atribute_authority.metadata,
-    entitlements.metadata,
+    entitlement.metadata,
     service_entity.metadata,
     service_entity_object.metadata,
 ]

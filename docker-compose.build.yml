@@ -24,11 +24,11 @@ services:
       dockerfile: Dockerfile
     image: virtru/tdf-entity-attribute-service:${ETHERIA_TAG:-virtrulocal}
 
-  access:
+  kas:
     build:
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ./containers/access
+      context: ./containers/kas
       dockerfile: Dockerfile
     image: virtru/tdf-key-access-service:${ETHERIA_TAG:-virtrulocal}
 
@@ -60,21 +60,21 @@ services:
       dockerfile: Dockerfile
     image: virtru/tdf-keycloak-bootstrap:${ETHERIA_TAG:-virtrulocal}
 
-  attributes:
+  attribute-authority:
     build:
-      context: ./containers/attributes
+      context: ./containers/attribute-authority
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
       dockerfile: Dockerfile
-    image: virtru/tdf-attributes-service:${ETHERIA_TAG:-virtrulocal}
+    image: virtru/tdf-attribute-authority-service:${ETHERIA_TAG:-virtrulocal}
 
-  entitlements:
+  entitlement:
     build:
-      context: ./containers/entitlements
+      context: ./containers/entitlement
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
       dockerfile: Dockerfile
-    image: virtru/tdf-entitlements-service:${ETHERIA_TAG:-virtrulocal}
+    image: virtru/tdf-entitlement-service:${ETHERIA_TAG:-virtrulocal}
 
   remote_payload:
     build:

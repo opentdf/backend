@@ -262,7 +262,7 @@ def createTestClientTDFAttributes(keycloak_admin):
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
 def createTestClientTDFEntitlements(keycloak_admin):
-    client_id = "tdf-entitlements"
+    client_id = "tdf-entitlement"
     base_url = os.getenv("ENTITLEMENT_HOST", "http://localhost:4030")
     logger.debug("Creating client %s configured for browser auth flow", client_id)
     keycloak_admin.create_client(

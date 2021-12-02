@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "access.name" . }}-cm
+  name: {{ include "kas.name" . }}-cm
   labels:
-    app.kubernetes.io/name: {{ include "access.name" . }}-cm
-    helm.sh/chart: {{ include "access.chart" . }}
+    app.kubernetes.io/name: {{ include "kas.name" . }}-cm
+    helm.sh/chart: {{ include "kas.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/part-of: access
+    app.kubernetes.io/part-of: kas
 data:
   EAS_HOST: {{ .Values.endpoints.easHost }}
   FLASK_DEBUG: "True"

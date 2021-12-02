@@ -30,7 +30,7 @@ services:
       - FLASK_DEBUG=True
       - GUNICORN_WORKERS=1
       - JSON_LOGGER=False
-      - KAS_DEFAULT_URL=https://etheria.local:4443/access
+      - KAS_DEFAULT_URL=https://etheria.local:4443/kas
       - LOGLEVEL=DEBUG
       - MONOLOG_LEVEL
       - POSTGRES_HOST=postgres
@@ -52,24 +52,24 @@ services:
         max-size: "10m"
     volumes:
       - key-store:/certs/
-  access:
+  kas:
     build:
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ./containers/access
+      context: ./containers/kas
       dockerfile: Dockerfile
     command: ["/kas_app/scripts/entrypoint"]
     depends_on:
       - genkeys
-    entrypoint: ["/scripts/wait-for-file", "/certs/access-ec.crt", "/certs/ca.crt", "/certs/bob_5678-ec.crt", "--"]
+    entrypoint: ["/scripts/wait-for-file", "/certs/kas-ec.crt", "/certs/ca.crt", "/certs/bob_5678-ec.crt", "--"]
     environment:
       - EAS_HOST=https://etheria.local/eas/
       - FLASK_DEBUG=True
       - GUNICORN_WORKERS=1
       - JSON_LOGGER=False
       - CA_CERT_PATH=/certs/ca.crt
-      - CLIENT_CERT_PATH=/certs/access-ec.crt
-      - CLIENT_KEY_PATH=/certs/access-ec.key
+      - CLIENT_CERT_PATH=/certs/kas-ec.crt
+      - CLIENT_KEY_PATH=/certs/kas-ec.key
       - LOGLEVEL=DEBUG
       - MONOLOG_LEVEL
       - KAS_UID=909
@@ -88,7 +88,7 @@ services:
     environment:
       - EAS_ENTITY_ID_HEADER=X-Forwarded-Entity-Id
       - EAS_URL=http://eas:4010
-      - KAS_URL=http://access:8000
+      - KAS_URL=http://kas:8000
       - NGINX_HOST=etheria.local
       - SET_PKI_MODE=on
       - MONOLOG_LEVEL
