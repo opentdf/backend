@@ -1,12 +1,12 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "kas.fullname" . -}}
+{{- $fullName := include "accessess.fullname" . -}}
 {{- $servicePort := .Values.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Chart.Name }}
   labels:
-    {{- include "kas.labels" . | nindent 4 }}
+    {{- include "accessess.labels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}

@@ -80,7 +80,7 @@ if [[ $LOAD_IMAGES ]]; then
   monolog INFO "Caching locally-built development Etheria images in dev cluster"
   # Cache locally-built `latest` images, bypassing registry.
   # If this fails, try running 'docker-compose build' in the repo root
-  for s in entity-attribute-service key-access-service entitlement-service storage-service attribute-authority-service; do
+  for s in entity-attribute-service key-access-service entitlements-service storage-service attributes-service; do
     maybe_load virtru/tdf-$s:${ETHERIA_TAG}
   done
 else
@@ -100,8 +100,8 @@ if [[ $LOAD_SECRETS ]]; then
     "--from-file=KAS_PRIVATE_KEY=${CERTS_ROOT}/kas-private.pem" \
     "--from-file=ca-cert.pem=${CERTS_ROOT}/ca.crt" || e "create etheria-secrets failed"
 
-  kubectl create secret generic attribute-authority-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword || e "create aa secrets failed"
-  kubectl create secret generic entitlement-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword || e "create ea secrets failed"
+  kubectl create secret generic attributes-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword || e "create aa secrets failed"
+  kubectl create secret generic entitlements-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword || e "create ea secrets failed"
   kubectl create secret generic tdf-storage-secrets \
     --from-literal=AWS_ACCESS_KEY_ID=myAccessKeyId \
     --from-literal=AWS_SECRET_ACCESS_KEY=mySecretAccessKey || e "create tdf-storage-secrets failed"

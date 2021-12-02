@@ -31,7 +31,7 @@ services:
       - GUNICORN_PORT=4010
       - GUNICORN_WORKERS=1
       - JSON_LOGGER=False
-      - KAS_DEFAULT_URL=https://etheria.local:4443/kas
+      - KAS_DEFAULT_URL=https://etheria.local:4443/access
       - LOGLEVEL=DEBUG
       - MONOLOG_LEVEL
       - POSTGRES_HOST=postgres
@@ -52,13 +52,13 @@ services:
         max-size: "10m"
     volumes:
       - key-store:/certs/
-  kas:
+  access:
     build:
       args:
         - ALPINE_VERSION=${ALPINE_VERSION:-3.13}
         - LEGACY_NANOTDF_IV=1
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ./containers/kas
+      context: ./containers/access
       dockerfile: Dockerfile
     depends_on:
       - genkeys
@@ -83,7 +83,7 @@ services:
   etheria.local:
     depends_on:
       - eas
-      - kas
+      - access
     entrypoint:
       [
         "/scripts/wait-for-file",
@@ -106,7 +106,7 @@ services:
       ]
     environment:
       - EAS_URL=http://eas:4010
-      - KAS_URL=http://kas:8000
+      - KAS_URL=http://access:8000
       - NGINX_HOST=etheria.local
       - MONOLOG_LEVEL
     expose:
@@ -116,7 +116,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -k https://etheria.local/eas/ && curl -k https://etheria.local/kas/",
+          "curl -k https://etheria.local/eas/ && curl -k https://etheria.local/access/",
         ]
       interval: 10s
       start_period: 10s

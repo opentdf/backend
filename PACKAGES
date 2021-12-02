@@ -1,6 +1,6 @@
 # Lists all packages to build; used by scripts/monotest, among others
 
 containers/eas
-containers/kas/kas_app
-containers/kas/kas_core
+containers/access/kas_app
+containers/access/kas_core
 containers/nanotdf

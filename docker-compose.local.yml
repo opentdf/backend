@@ -17,7 +17,7 @@ services:
       - GUNICORN_PORT=4010
       - GUNICORN_WORKERS=1
       - JSON_LOGGER=False
-      - KAS_DEFAULT_URL=https://etheria.local:4443/kas
+      - KAS_DEFAULT_URL=https://etheria.local:4443/access
       - KAS_EC_SECP256R1_CERTIFICATE
       - KAS_CERTIFICATE
       - LOGLEVEL=DEBUG
@@ -38,13 +38,13 @@ services:
       options:
         max-file: "5"
         max-size: "10m"
-  kas:
+  access:
     build:
       args:
         - ALPINE_VERSION=${ALPINE_VERSION:-3.13}
         - LEGACY_NANOTDF_IV=1
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ./containers/kas
+      context: ./containers/access
       dockerfile: Dockerfile
     environment:
       - EAS_HOST=https://etheria.local/eas/
@@ -71,12 +71,12 @@ services:
   etheria.local:
     depends_on:
       - eas
-      - kas
+      - access
     entrypoint:
       - "/entrypoint.sh"
     environment:
       - EAS_URL=http://eas:4010
-      - KAS_URL=http://kas:8000
+      - KAS_URL=http://access:8000
       - NGINX_HOST=etheria.local
       - MONOLOG_LEVEL
     hostname: etheria.local

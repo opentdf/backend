@@ -2,8 +2,8 @@ dependencies:
 - name: attribute-provider
   repository: file://../attribute_provider
   version: 0.0.4
-- name: kas
-  repository: file://../kas
+- name: access
+  repository: file://../access
   version: 1.0.0
 - name: eas
   repository: file://../eas
@@ -11,11 +11,11 @@ dependencies:
 - name: keycloak-bootstrap
   repository: file://../keycloak_bootstrap
   version: 0.1.6
-- name: attribute-authority
+- name: attributes
   repository: file://../attribute_authority
   version: 1.0.0
-- name: entitlement
-  repository: file://../entitlement
+- name: entitlements
+  repository: file://../entitlements
   version: 1.0.0
 - name: tdf-storage
   repository: file://../remote_payload

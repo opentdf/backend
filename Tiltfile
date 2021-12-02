@@ -13,23 +13,23 @@ k8s_yaml(
         from_file=[
             "EAS_PRIVATE_KEY=certs/eas-private.pem",
             "EAS_CERTIFICATE=certs/eas-public.pem",
-            "KAS_EC_SECP256R1_CERTIFICATE=certs/kas-ec-secp256r1-public.pem",
-            "KAS_CERTIFICATE=certs/kas-public.pem",
-            "KAS_EC_SECP256R1_PRIVATE_KEY=certs/kas-ec-secp256r1-private.pem",
-            "KAS_PRIVATE_KEY=certs/kas-private.pem",
+            "KAS_EC_SECP256R1_CERTIFICATE=certs/access-ec-secp256r1-public.pem",
+            "KAS_CERTIFICATE=certs/access-public.pem",
+            "KAS_EC_SECP256R1_PRIVATE_KEY=certs/access-ec-secp256r1-private.pem",
+            "KAS_PRIVATE_KEY=certs/access-private.pem",
             "ca-cert.pem=certs/ca.crt",
         ],
     )
 )
 k8s_yaml(
     secret_yaml_generic(
-        "attribute-authority-secrets",
+        "attributes-secrets",
         from_literal="POSTGRES_PASSWORD=myPostgresPassword",
     )
 )
 k8s_yaml(
     secret_yaml_generic(
-        "entitlement-secrets", from_literal=["POSTGRES_PASSWORD=myPostgresPassword"]
+        "entitlements-secrets", from_literal=["POSTGRES_PASSWORD=myPostgresPassword"]
     )
 )
 k8s_yaml(
@@ -49,11 +49,11 @@ docker_build("virtru/tdf-keycloak-bootstrap", "containers/keycloak-bootstrap")
 docker_build("virtru/tdf-keycloak", "containers/keycloak-protocol-mapper")
 docker_build("virtru/tdf-abacus-web", "containers/abacus")
 docker_build(
-    "virtru/tdf-attribute-authority-service", "containers/attribute-authority"
+    "virtru/tdf-attributes-service", "containers/attributes"
 )
-docker_build("virtru/tdf-entitlement-service", "containers/entitlement")
+docker_build("virtru/tdf-entitlements-service", "containers/entitlements")
 docker_build("virtru/tdf-entity-attribute-service", "containers/eas")
-docker_build("virtru/tdf-key-access-service", "containers/kas")
+docker_build("virtru/tdf-key-access-service", "containers/access")
 docker_build("virtru/tdf-storage-service", "containers/service_remote_payload")
 
 # remote resources
@@ -71,19 +71,19 @@ helm_remote(
 k8s_yaml(
     helm(
         "charts/attribute_authority",
-        "attribute-authority",
+        "attributes",
         values=["deployments/docker-desktop/attribute_authority-values.yaml"],
     )
 )
 k8s_yaml(
     helm(
-        "charts/entitlement",
-        "entitlement",
-        values=["deployments/docker-desktop/entitlement-values.yaml"],
+        "charts/entitlements",
+        "entitlements",
+        values=["deployments/docker-desktop/entitlements-values.yaml"],
     )
 )
 k8s_yaml(
-    helm("charts/kas", "kas", values=["deployments/docker-desktop/kas-values.yaml"])
+    helm("charts/access", "access", values=["deployments/docker-desktop/access-values.yaml"])
 )
 # TODO this service requires actual S3 secrets
 # TODO or use https://github.com/localstack/localstack
@@ -92,5 +92,5 @@ k8s_yaml(
 # k8s_yaml(helm('charts/eas', 'eas', values=['deployments/docker-desktop/eas-values.yaml']))
 
 # resource dependencies
-k8s_resource("attribute-authority", resource_deps=["tdf-postgresql"])
-k8s_resource("entitlement", resource_deps=["tdf-postgresql"])
+k8s_resource("attributes", resource_deps=["tdf-postgresql"])
+k8s_resource("entitlements", resource_deps=["tdf-postgresql"])

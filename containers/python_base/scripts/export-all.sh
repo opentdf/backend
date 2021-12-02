@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Generate `tdf3-export.zip` containing:
-#   * tdf3-services.zip: a zip file of this project's main branch
-#   * docker images of kas and eas
+# Generate `opentdf-export.zip` containing:
+#   * opentdf-backend.zip: a zip file of this project's main branch
+#   * docker images of backend services
 #   * Javascript and Python library binary-ish things from npm and pypi
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
@@ -16,15 +16,22 @@ fi
 mkdir -p build/export
 
 # EXPORT SERVICES SOURCE AS ZIP FILE
-if ! git archive --format zip --output build/export/tdf3-services.zip master; then
-  monolog ERROR "Failed to create etheria archive, tdf3-service.zip"
+if ! git archive --format zip --output build/export/opentdf-backend.zip master; then
+  monolog ERROR "Failed to create source archive, opentdf-backend.zip"
   exit 1
 fi
 
 # BUILD KAS AND AS DOCKER IMAGES
-EAS_VERSION=$(<eas/VERSION)
-KAS_VERSION=$(<kas_app/VERSION)
-# GET LATEST FROM opentdf/frontend
+# - access
+# - attributes
+# - entitlements
+# - storage
+ACCESS_VERSION=$(<containers/access/kas_app/VERSION)
+ATTRIBUTES_VERSION=$(<containers/attributes/VERSION)
+ENTITLEMENTS_VERSION=$(<containers/entitlements/VERSION)
+STORAGE_VERSION=$(<containers/storage/VERSION)
+
+# FIXME GET LATEST FROM opentdf/frontend
 ABACUS_VERSION="0.3.0"
 
 export EAS_VERSION

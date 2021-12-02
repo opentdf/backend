@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "kas.name" . }}-test-connection"
+  name: "{{ include "access.name" . }}-test-connection"
   labels:
-    {{- include "kas.labels" . | nindent 4 }}
+    {{- include "access.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": test-success
 spec:
@@ -11,5 +11,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "kas.name" . }}:{{ .Values.service.port }}']
+      args: ['{{ include "access.name" . }}:{{ .Values.service.port }}']
   restartPolicy: Never

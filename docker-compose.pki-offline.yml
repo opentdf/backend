@@ -14,7 +14,7 @@ services:
       - EAS_USERS_JSON=${EAS_USERS_JSON:-/eas_app/config/users-pki.json}
       - FLASK_DEBUG=True
       - GUNICORN_WORKERS=1
-      - KAS_DEFAULT_URL=https://etheria.local:4443/kas
+      - KAS_DEFAULT_URL=https://etheria.local:4443/access
       - KAS_EC_SECP256R1_CERTIFICATE
       - LOGLEVEL=DEBUG
       - MONOLOG_LEVEL
@@ -35,17 +35,17 @@ services:
     volumes:
       - ./certs/eas-private.pem:/certs/eas-private.pem
       - ./certs/eas-public.pem:/certs/eas-public.pem
-      - ./certs/kas-ec-secp256r1-public.pem:/certs/kas-ec-secp256r1-public.pem
-      - ./certs/kas-public.pem:/certs/kas-public.pem
-  kas:
+      - ./certs/access-ec-secp256r1-public.pem:/certs/access-ec-secp256r1-public.pem
+      - ./certs/access-public.pem:/certs/access-public.pem
+  access:
     image: virtru/tdf-key-access-service:0.2.1
     environment:
       - EAS_HOST=https://etheria.local/eas/
       - FLASK_DEBUG=True
       - GUNICORN_WORKERS=1
       - CA_CERT_PATH=/certs/ca.crt
-      - CLIENT_CERT_PATH=/certs/kas-ec.crt
-      - CLIENT_KEY_PATH=/certs/kas-ec.key
+      - CLIENT_CERT_PATH=/certs/access-ec.crt
+      - CLIENT_KEY_PATH=/certs/access-ec.key
       - LOGLEVEL=DEBUG
       - MONOLOG_LEVEL
       - KAS_UID=909
@@ -62,12 +62,12 @@ services:
   etheria.local:
     depends_on:
       - eas
-      - kas
+      - access
     entrypoint: ["/entrypoint.sh"]
     environment:
       - EAS_ENTITY_ID_HEADER=X-Forwarded-Entity-Id
       - EAS_URL=http://eas:4010
-      - KAS_URL=http://kas:8000
+      - KAS_URL=http://access:8000
       - NGINX_HOST=etheria.local
       - ABACUS_URL=
       - SET_PKI_MODE=on

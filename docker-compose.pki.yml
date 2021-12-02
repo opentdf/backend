@@ -20,7 +20,7 @@ services:
       - FLASK_DEBUG=True
       - GUNICORN_WORKERS=1
       - JSON_LOGGER=False
-      - KAS_DEFAULT_URL=https://etheria.local:4443/kas
+      - KAS_DEFAULT_URL=https://etheria.local:4443/access
       - KAS_CERTIFICATE
       - KAS_EC_SECP256R1_CERTIFICATE
       - LOGLEVEL=DEBUG
@@ -39,13 +39,13 @@ services:
       options:
         max-file: "5"
         max-size: "10m"
-  kas:
+  access:
     build:
       args:
         - ALPINE_VERSION=${ALPINE_VERSION:-3.13}
         - PY_VERSION=${PY_VERSION:-3.9}
       context: .
-      dockerfile: kas.Dockerfile
+      dockerfile: access.Dockerfile
     environment:
       - EAS_HOST=https://etheria.local/eas/
       - EAS_CERTIFICATE
@@ -53,8 +53,8 @@ services:
       - GUNICORN_WORKERS=1
       - JSON_LOGGER=False
       - CA_CERT_PATH=/certs/ca.crt
-      - CLIENT_CERT_PATH=/certs/kas-ec.crt
-      - CLIENT_KEY_PATH=/certs/kas-ec.key
+      - CLIENT_CERT_PATH=/certs/access-ec.crt
+      - CLIENT_KEY_PATH=/certs/access-ec.key
       - KAS_CERTIFICATE
       - KAS_EC_SECP256R1_CERTIFICATE
       - KAS_EC_SECP256R1_PRIVATE_KEY
@@ -76,12 +76,12 @@ services:
   etheria.local:
     depends_on:
       - eas
-      - kas
+      - access
     entrypoint: ["/entrypoint.sh"]
     environment:
       - EAS_ENTITY_ID_HEADER=X-Forwarded-Entity-Id
       - EAS_URL=http://eas:4010
-      - KAS_URL=http://kas:8000
+      - KAS_URL=http://access:8000
       - ABACUS_URL=
       - NGINX_HOST=etheria.local
       - SET_PKI_MODE=on

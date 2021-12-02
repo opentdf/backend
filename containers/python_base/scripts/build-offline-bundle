@@ -54,7 +54,7 @@ if ! docker build \
 fi
 
 to_save=()
-for x in entity-attribute-service key-access-service abacus-web claim-test-webservice keycloak keycloak attribute-authority-service entitlement-service storage-service; do
+for x in entity-attribute-service key-access-service abacus-web claim-test-webservice keycloak keycloak attributes-service entitlements-service storage-service; do
   to_save+=( "virtru/tdf-${x}:${ETHERIA_TAG}" )
 done
 

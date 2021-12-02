@@ -1,4 +1,4 @@
-# Default values for kas.
+# Default values for access.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -15,7 +15,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 labels:
-  app: "kas"
+  app: "access"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -49,7 +49,7 @@ ingress:
   hosts:
   - host: etheria.local
     paths:
-    - /kas
+    - /access
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
