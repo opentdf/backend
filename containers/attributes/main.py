@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 from enum import Enum
-from http.client import NO_CONTENT
+from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED
 from pprint import pprint
 from typing import Optional, List, Annotated
 
@@ -327,7 +327,8 @@ async def create_attributes_definitions(request: AttributeDefinition):
             is_duplicated = check_duplicates(request.order)
             if is_duplicated:
                 raise HTTPException(
-                    status_code=400, detail="Duplicated items when Rule is Hierarchy"
+                    status_code=BAD_REQUEST,
+                    detail="Duplicated items when Rule is Hierarchy",
                 )
         namespace_id = result.get(table_authority.c.id)
         # insert
@@ -341,9 +342,11 @@ async def create_attributes_definitions(request: AttributeDefinition):
         try:
             await database.execute(query)
         except UniqueViolationError as e:
-            raise HTTPException(status_code=400, detail=f"duplicate: {str(e)}") from e
+            raise HTTPException(
+                status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
+            ) from e
     else:
-        raise HTTPException(status_code=400, detail=f"namespace not found")
+        raise HTTPException(status_code=BAD_REQUEST, detail=f"namespace not found")
     return request
 
 
@@ -367,7 +370,8 @@ async def update_attribute(request: AttributeDefinition):
         is_duplicated = check_duplicates(request.order)
         if is_duplicated:
             raise HTTPException(
-                status_code=400, detail="Duplicated items when Rule is Hierarchy"
+                status_code=BAD_REQUEST,
+                detail="Duplicated items when Rule is Hierarchy",
             )
 
     query = table_attribute.update().values(
@@ -381,8 +385,8 @@ async def update_attribute(request: AttributeDefinition):
 @app.delete(
     "/definitions/attributes",
     tags=["Attributes Definitions"],
-    response_model=None,
-    dependencies=[Depends(get_auth)],
+    status_code=ACCEPTED,
+    # dependencies=[Depends(get_auth)],
 )
 async def delete_attributes_definitions(request: AttributeDefinition):
     statement = table_attribute.delete().where(
@@ -394,7 +398,7 @@ async def delete_attributes_definitions(request: AttributeDefinition):
         )
     )
     await database.execute(statement)
-    return NO_CONTENT
+    return {}
 
 
 #
@@ -419,7 +423,9 @@ async def create_authorities(request: AuthorityDefinition):
     try:
         await database.execute(query)
     except UniqueViolationError as e:
-        raise HTTPException(status_code=400, detail=f"duplicate: {str(e)}") from e
+        raise HTTPException(
+            status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
+        ) from e
     # select all
     query = table_authority.select()
     result = await database.fetch_all(query)

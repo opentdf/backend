@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from enum import Enum
-from http.client import NO_CONTENT
+from http.client import NO_CONTENT, ACCEPTED, BAD_REQUEST
 from typing import Dict, List, Optional, Annotated
 
 import databases as databases
@@ -260,7 +260,7 @@ async def read_relationship():
     "/entitlements",
     tags=["Entitlements"],
     response_model=List[Entitlements],
-    # dependencies=[Depends(get_auth)], FIXME
+    dependencies=[Depends(get_auth)],
 )
 async def read_entitlements():
     query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)
@@ -282,12 +282,13 @@ async def read_entitlements():
             f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
         )
     # add last
-    entitlements.append({previous_entity_id: previous_attributes})
+    if previous_entity_id:
+        entitlements.append({previous_entity_id: previous_attributes})
     return entitlements
 
 
 def parse_attribute_uri(attribute_uri):
-    # FIXME harden, unit test
+    # harden, unit test
     logger.debug(attribute_uri)
     uri = uritools.urisplit(attribute_uri)
     logger.debug(uri)
@@ -329,9 +330,7 @@ async def read_entity_attribute_relationship(entityId: str):
 
 
 @app.post(
-    "/entitlements/{entityId}",
-    tags=["Entitlements"],
-    # dependencies=[Depends(get_auth)] FIXME
+    "/entitlements/{entityId}", tags=["Entitlements"], dependencies=[Depends(get_auth)]
 )
 async def add_entitlements_to_entity(
     entityId: str,
@@ -411,8 +410,8 @@ async def create_attribute_entity_relationship(
 @app.delete(
     "/entitlements/{entityId}",
     tags=["Entitlements"],
-    status_code=NO_CONTENT,
-    # dependencies=[Depends(get_auth)], FIXME
+    status_code=ACCEPTED,
+    dependencies=[Depends(get_auth)],
 )
 async def remove_entitlement_from_entity(
     entityId: str,
@@ -421,8 +420,15 @@ async def remove_entitlement_from_entity(
         Field(max_length=2000, exclusiveMaximum=2000),
     ],
 ):
-    for entitlement in request:
-        attribute = parse_attribute_uri(entitlement)
+    for item in request:
+        try:
+            attribute = parse_attribute_uri(item)
+        except IndexError as e:
+            raise HTTPException(
+                status_code=BAD_REQUEST, detail=f"invalid: {str(e)}"
+            ) from e
+        logger.debug(entityId)
+        logger.debug(attribute)
         statement = table_entity_attribute.delete().where(
             and_(
                 table_entity_attribute.c.entity_id == entityId,
@@ -432,6 +438,7 @@ async def remove_entitlement_from_entity(
             )
         )
         await database.execute(statement)
+    return {}
 
 
 if __name__ == "__main__":
