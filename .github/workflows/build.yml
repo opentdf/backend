@@ -50,9 +50,9 @@ jobs:
 
   build-base:
     runs-on: ubuntu-latest
-    needs:
-      - unittest
-      - helm-lint-test
+    # needs:
+    #   - unittest
+    #   - helm-lint-test
     steps:
       - uses: actions/checkout@v2
       - name: Set up Docker Buildx
