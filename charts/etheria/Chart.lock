@@ -20,5 +20,5 @@ dependencies:
 - name: tdf-storage
   repository: file://../remote_payload
   version: 1.0.0
-digest: sha256:9db3200f6371594fd6ee07acd8a9c65b3d978d3489c1357485ff600fbf842ede
-generated: "2021-11-29T16:50:48.47893-05:00"
+digest: sha256:6e3bc9162061b155969748860555c1597b14c91605a233cf64ec2518e70db064
+generated: "2021-12-02T11:39:31.04369-05:00"
