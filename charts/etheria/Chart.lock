@@ -11,8 +11,8 @@ dependencies:
 - name: keycloak-bootstrap
   repository: file://../keycloak_bootstrap
   version: 0.1.6
-- name: atttributes
-  repository: file://../atttributes
+- name: attributes
+  repository: file://../attributes
   version: 1.0.0
 - name: entitlement
   repository: file://../entitlement

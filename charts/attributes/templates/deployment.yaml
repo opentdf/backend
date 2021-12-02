@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "atttributes.fullname" . }}
+  name: {{ include "attributes.fullname" . }}
   labels:
-    {{- include "atttributes.labels" . | nindent 4 }}
+    {{- include "attributes.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "atttributes.selectorLabels" . | nindent 6 }}
+      {{- include "attributes.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "atttributes.selectorLabels" . | nindent 8 }}
+        {{- include "attributes.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "atttributes.serviceAccountName" . }}
+      serviceAccountName: {{ include "attributes.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -35,9 +35,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
           - secretRef:
-              name: atttributes-secrets
+              name: attributes-secrets
           - configMapRef:
-              name: atttributes-cm
+              name: attributes-cm
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

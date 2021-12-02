@@ -13,7 +13,7 @@ COPY alembic.ini .
 COPY containers/migration/entrypoint.sh .
 COPY containers/migration/ migration/
 RUN mkdir -p /tool/migration/versions
-COPY containers/atttributes/ atttributes/
+COPY containers/attributes/ attributes/
 COPY containers/entitlement/ entitlement/
 COPY containers/service_entity/ service_entity/
 COPY containers/service_entity_object/ service_entity_object/

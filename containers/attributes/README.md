@@ -26,18 +26,18 @@ pipenv run python3 main.py > openapi.json
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag virtru/tdf-atttributes-service:0.2.0 atttributes
+docker build --no-cache --tag virtru/tdf-attributes-service:0.2.0 attributes
 ```
 
 ### secrets
 ```shell
-kubectl create secret generic atttributes-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword
+kubectl create secret generic attributes-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword
 ```
 
 ### helm
 ```shell
 # from project root
-helm upgrade --install atttributes ./charts/atttributes --debug
+helm upgrade --install attributes ./charts/attributes --debug
 ```
 
 ### ingress

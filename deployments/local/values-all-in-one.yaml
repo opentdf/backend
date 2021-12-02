@@ -53,9 +53,9 @@ keycloak-bootstrap:
     name: virtru/tdf-keycloak-bootstrap:virtrulocal
     pullPolicy: Never
 
-atttributes:
+attributes:
   image:
-    name: virtru/tdf-atttributes-service:virtrulocal
+    name: virtru/tdf-attributes-service:virtrulocal
     pullPolicy: Never
   postgres:
     host: my-tdfdb-postgresql.default.svc.cluster.local

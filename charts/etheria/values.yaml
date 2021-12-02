@@ -44,9 +44,9 @@ keycloak-bootstrap:
     name: virtru/tdf-keycloak-bootstrap:0.2.1
     pullPolicy: Always
 
-atttributes:
+attributes:
   image:
-    name: virtru/tdf-atttributes-service
+    name: virtru/tdf-attributes-service
 
 entitlement:
   image:

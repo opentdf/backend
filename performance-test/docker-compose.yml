@@ -38,7 +38,7 @@ services:
     build:
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ../containers/atttributes
+      context: ../containers/attributes
     depends_on:
       - statsd
       - migration
