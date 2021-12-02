@@ -14,7 +14,7 @@ COPY containers/migration/entrypoint.sh .
 COPY containers/migration/ migration/
 RUN mkdir -p /tool/migration/versions
 COPY containers/attributes/ attributes/
-COPY containers/entitlement/ entitlement/
+COPY containers/entitlements/ entitlements/
 COPY containers/service_entity/ service_entity/
 COPY containers/service_entity_object/ service_entity_object/
 # Postgres

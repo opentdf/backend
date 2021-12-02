@@ -15,8 +15,8 @@ dependencies:
 - name: attributes
   repository: file://../attributes
   version: '^1.0.0'
-- name: entitlement
-  repository: file://../entitlement
+- name: entitlements
+  repository: file://../entitlements
   version: '^1.0.0'
 - name: tdf-storage
   repository: file://../remote_payload

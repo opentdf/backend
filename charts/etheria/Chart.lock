@@ -14,11 +14,11 @@ dependencies:
 - name: attributes
   repository: file://../attributes
   version: 1.0.0
-- name: entitlement
-  repository: file://../entitlement
+- name: entitlements
+  repository: file://../entitlements
   version: 1.0.0
 - name: tdf-storage
   repository: file://../remote_payload
   version: 1.0.0
-digest: sha256:6e3bc9162061b155969748860555c1597b14c91605a233cf64ec2518e70db064
-generated: "2021-12-02T11:39:31.04369-05:00"
+digest: sha256:7b87f2ec574effc57cca6164f8a7573485731dd638a533a160105102fddcafed
+generated: "2021-12-02T13:48:07.363297-05:00"

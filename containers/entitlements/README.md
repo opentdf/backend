@@ -26,18 +26,18 @@ pipenv run python3 main.py > openapi.json
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag virtru/tdf-entitlement-service:0.2.0 entitlement
+docker build --no-cache --tag virtru/tdf-entitlements-service:0.2.0 entitlements
 ```
 
 ### secrets
 ```shell
-kubectl create secret generic entitlement-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword
+kubectl create secret generic entitlements-secrets --from-literal=POSTGRES_PASSWORD=myPostgresPassword
 ```
 
 ### helm
 ```shell
 # from project root
-helm upgrade --install entitlement ./charts/entitlement --debug
+helm upgrade --install entitlements ./charts/entitlements --debug
 ```
 
 ## design

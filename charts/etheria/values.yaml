@@ -48,9 +48,9 @@ attributes:
   image:
     name: virtru/tdf-attributes-service
 
-entitlement:
+entitlements:
   image:
-    name: virtru/tdf-entitlement-service
+    name: virtru/tdf-entitlements-service
 
 tdf-storage:
   image:

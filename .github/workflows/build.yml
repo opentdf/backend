@@ -75,7 +75,7 @@ jobs:
       matrix:
         repo:
           - attributes
-          - entitlement
+          - entitlements
           - kas
           - keycloak-bootstrap
     steps:

@@ -68,13 +68,13 @@ services:
       dockerfile: Dockerfile
     image: virtru/tdf-attributes-service:${ETHERIA_TAG:-virtrulocal}
 
-  entitlement:
+  entitlements:
     build:
-      context: ./containers/entitlement
+      context: ./containers/entitlements
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
       dockerfile: Dockerfile
-    image: virtru/tdf-entitlement-service:${ETHERIA_TAG:-virtrulocal}
+    image: virtru/tdf-entitlements-service:${ETHERIA_TAG:-virtrulocal}
 
   remote_payload:
     build:

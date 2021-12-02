@@ -63,9 +63,9 @@ attributes:
     user: postgres
     schema: tdf_attribute
 
-entitlement:
+entitlements:
   image:
-    name: virtru/tdf-entitlement-service:virtrulocal
+    name: virtru/tdf-entitlements-service:virtrulocal
     pullPolicy: Never
   postgres:
     host: my-tdfdb-postgresql.default.svc.cluster.local

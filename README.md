@@ -10,7 +10,7 @@ We store several services combined in a single git repository for ease of develo
 - [Key Access Service](containers/kas/kas_core/)
 - Authorization Services
   - [Attributes](containers/attributes/)
-  - [Entitlements](containers/entitlement)
+  - [Entitlements](containers/entitlements)
   - [Keycloak Claims Mapper](containers/keycloak-protocol-mapper)
 - Tools and shared libraries
 - Helm charts for deploying to kubernetes
@@ -178,7 +178,7 @@ We will also need to generate and use a custom postgres password.
 POSTGRES_PW=$(openssl rand -base64 40)
 sed -i '' "s/myPostgresPassword/${POSTGRES_PW}/" export/deployment/values-postgresql-tdf.yaml
 kubectl create secret generic attributes-secrets --from-literal=POSTGRES_PASSWORD="${POSTGRES_PW}"
-kubectl create secret generic entitlement-secrets --from-literal=POSTGRES_PASSWORD="${POSTGRES_PW}"
+kubectl create secret generic entitlements-secrets --from-literal=POSTGRES_PASSWORD="${POSTGRES_PW}"
 ```
 
 > TODO: Move keycloak creds into secrets.

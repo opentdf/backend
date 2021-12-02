@@ -29,7 +29,7 @@ k8s_yaml(
 )
 k8s_yaml(
     secret_yaml_generic(
-        "entitlement-secrets", from_literal=["POSTGRES_PASSWORD=myPostgresPassword"]
+        "entitlements-secrets", from_literal=["POSTGRES_PASSWORD=myPostgresPassword"]
     )
 )
 k8s_yaml(
@@ -51,7 +51,7 @@ docker_build("virtru/tdf-abacus-web", "containers/abacus")
 docker_build(
     "virtru/tdf-attributes-service", "containers/attributes"
 )
-docker_build("virtru/tdf-entitlement-service", "containers/entitlement")
+docker_build("virtru/tdf-entitlements-service", "containers/entitlements")
 docker_build("virtru/tdf-entity-attribute-service", "containers/eas")
 docker_build("virtru/tdf-key-access-service", "containers/kas")
 docker_build("virtru/tdf-storage-service", "containers/service_remote_payload")
@@ -77,9 +77,9 @@ k8s_yaml(
 )
 k8s_yaml(
     helm(
-        "charts/entitlement",
-        "entitlement",
-        values=["deployments/docker-desktop/entitlement-values.yaml"],
+        "charts/entitlements",
+        "entitlements",
+        values=["deployments/docker-desktop/entitlements-values.yaml"],
     )
 )
 k8s_yaml(
@@ -93,4 +93,4 @@ k8s_yaml(
 
 # resource dependencies
 k8s_resource("attributes", resource_deps=["tdf-postgresql"])
-k8s_resource("entitlement", resource_deps=["tdf-postgresql"])
+k8s_resource("entitlements", resource_deps=["tdf-postgresql"])
