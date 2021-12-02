@@ -1,4 +1,4 @@
-# Default values for attribute-authority.
+# Default values for atttributes.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   pullPolicy: IfNotPresent
   # value used in https://github.com/virtru/argocd/blob/main/kubernetes/k8s-mgmt/argo-events/etheria/sensor.yaml
-  name: virtru/tdf-attribute-authority-service:3.4.1-n000.he52adfd4
+  name: virtru/tdf-atttributes-service:3.4.1-n000.he52adfd4
 
 imagePullSecrets: []
 nameOverride: ""

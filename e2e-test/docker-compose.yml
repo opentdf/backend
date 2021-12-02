@@ -34,11 +34,11 @@ services:
       timeout: "2s"
       start_period: "5s"
       retries: 1
-  attribute-authority:
+  atttributes:
     build:
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
-      context: ../containers/attribute-authority
+      context: ../containers/atttributes
     depends_on:
       - migration
     environment:
@@ -113,10 +113,10 @@ services:
       dockerfile: Dockerfile
     command: ["gunicorn", "--config", "gunicorn.conf.py", "wsgi:app"]
     depends_on:
-      - attribute-authority
+      - atttributes
       - eas
     environment:
-      - EAS_HOST=http://attribute-authority:4020
+      - EAS_HOST=http://atttributes:4020
       - EAS_CERTIFICATE
       - FLASK_DEBUG=True
       - FLASK_TESTING=True
@@ -150,13 +150,13 @@ services:
     depends_on:
       - eas
       - kas
-      - attribute-authority
+      - atttributes
       - entitlement
       - entity
     environment:
       - KAS_HOST=http://kas:8000
       - ENTITY_OBJECT_HOST=http://eas:4010
-      - ATTRIBUTE_AUTHORITY_HOST=http://attribute-authority:4020
+      - ATTRIBUTE_AUTHORITY_HOST=http://atttributes:4020
       - ENTITLEMENT_HOST=http://entitlement:4030
       - ENTITY_HOST=http://entity:4040
   postgres:

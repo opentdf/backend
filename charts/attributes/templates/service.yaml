@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "attribute-authority.fullname" . }}
+  name: {{ include "atttributes.fullname" . }}
   labels:
-    {{- include "attribute-authority.labels" . | nindent 4 }}
+    {{- include "atttributes.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "attribute-authority.selectorLabels" . | nindent 4 }}
+    {{- include "atttributes.selectorLabels" . | nindent 4 }}

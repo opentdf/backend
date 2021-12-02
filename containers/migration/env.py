@@ -6,7 +6,7 @@ from sqlalchemy import pool
 
 from alembic import context
 import os, sys
-import attribute-authority.main as service_atribute_authority
+import atttributes.main as service_atribute_authority
 import entitlement.main as entitlement
 import service_entity.main as service_entity
 import service_entity_object.main as service_entity_object

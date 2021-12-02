@@ -60,13 +60,13 @@ services:
       dockerfile: Dockerfile
     image: virtru/tdf-keycloak-bootstrap:${ETHERIA_TAG:-virtrulocal}
 
-  attribute-authority:
+  atttributes:
     build:
-      context: ./containers/attribute-authority
+      context: ./containers/atttributes
       args:
         - PY_VERSION=${PY_VERSION:-3.9}
       dockerfile: Dockerfile
-    image: virtru/tdf-attribute-authority-service:${ETHERIA_TAG:-virtrulocal}
+    image: virtru/tdf-atttributes-service:${ETHERIA_TAG:-virtrulocal}
 
   entitlement:
     build:

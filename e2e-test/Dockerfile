@@ -22,7 +22,7 @@ RUN pip3 install --no-cache-dir tdf3sdk${PY_OSS_VERSION}
 # Use local or remote endpoint
 ENV KAS_HOST http://kas:8000
 ENV ENTITY_OBJECT_HOST http://eas:4010
-ENV ATTRIBUTE_AUTHORITY_HOST http://attribute-authority:4020
+ENV ATTRIBUTE_AUTHORITY_HOST http://atttributes:4020
 ENV ENTITLEMENT_HOST http://entitlement:4030
 ENV ENTITY_HOST http://entity:4040
 CMD /scripts/wait-for-service "${ENTITY_OBJECT_HOST}" \

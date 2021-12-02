@@ -23,7 +23,7 @@ k8s_yaml(
 )
 k8s_yaml(
     secret_yaml_generic(
-        "attribute-authority-secrets",
+        "atttributes-secrets",
         from_literal="POSTGRES_PASSWORD=myPostgresPassword",
     )
 )
@@ -49,7 +49,7 @@ docker_build("virtru/tdf-keycloak-bootstrap", "containers/keycloak-bootstrap")
 docker_build("virtru/tdf-keycloak", "containers/keycloak-protocol-mapper")
 docker_build("virtru/tdf-abacus-web", "containers/abacus")
 docker_build(
-    "virtru/tdf-attribute-authority-service", "containers/attribute-authority"
+    "virtru/tdf-atttributes-service", "containers/atttributes"
 )
 docker_build("virtru/tdf-entitlement-service", "containers/entitlement")
 docker_build("virtru/tdf-entity-attribute-service", "containers/eas")
@@ -70,9 +70,9 @@ helm_remote(
 # usage https://docs.tilt.dev/helm.html#helm-options
 k8s_yaml(
     helm(
-        "charts/attribute_authority",
-        "attribute-authority",
-        values=["deployments/docker-desktop/attribute_authority-values.yaml"],
+        "charts/atttributes",
+        "atttributes",
+        values=["deployments/docker-desktop/atttributes-values.yaml"],
     )
 )
 k8s_yaml(
@@ -92,5 +92,5 @@ k8s_yaml(
 # k8s_yaml(helm('charts/eas', 'eas', values=['deployments/docker-desktop/eas-values.yaml']))
 
 # resource dependencies
-k8s_resource("attribute-authority", resource_deps=["tdf-postgresql"])
+k8s_resource("atttributes", resource_deps=["tdf-postgresql"])
 k8s_resource("entitlement", resource_deps=["tdf-postgresql"])
