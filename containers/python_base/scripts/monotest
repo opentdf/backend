@@ -3,13 +3,13 @@
 #
 # Examples:
 #  Run unit tests for eas app:
-#   tools/monotest eas
+#   scripts/monotest eas
 #  Run unit tests for all apps:
-#   tools/monotest all
+#   scripts/monotest all
 #  Run unit tests for all apps with coverage:
-#   tools/monotest all cov
+#   scripts/monotest all cov
 #
-# Usage: tools/monotest <app> <cov | watch>
+# Usage: scripts/monotest <app> <cov | watch>
 
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 PROJECT_ROOT="$(git rev-parse --show-toplevel)"

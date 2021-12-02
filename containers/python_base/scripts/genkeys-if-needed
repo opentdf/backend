@@ -28,15 +28,15 @@ else
   mkdir -p certs
   ENV_FILE="$(pwd)/certs/tmp-$(date "+%Y-%m-%d-%H.%M.%S").env"
   echo >"$ENV_FILE"
-  if tools/genkey-reverse-proxy --env-file "$ENV_FILE" "$ETHERIA_HOSTNAME" &&
-    tools/genkey-apps --env-file "$ENV_FILE" --easuid "$EAS_UID" --kasuid "$KAS_UID" &&
-    tools/genkey-client --uid "$CLIENT_UID" --subj /CN=Alice_1234 --file-basename Alice_1234 &&
-    tools/genkey-client --uid "$CLIENT_UID" --subj /CN=Charlie_1234 --file-basename Charlie_1234 &&
-    tools/genkey-client --uid "$CLIENT_UID" --subj /CN=bob_5678 --file-basename bob_5678 &&
-    tools/genkey-client --uid "$KAS_UID" --alg ec --subj /CN=kas --file-basename kas-ec &&
-    tools/genkey-client --uid "$CLIENT_UID" --alg ec --subj /CN=Alice_1234 --file-basename Alice_1234-ec &&
-    tools/genkey-client --uid "$CLIENT_UID" --alg ec --subj /CN=Charlie_1234 --file-basename Charlie_1234-ec &&
-    tools/genkey-client --uid "$CLIENT_UID" --alg ec --subj /CN=bob_5678 --file-basename bob_5678-ec; then
+  if scripts/genkey-reverse-proxy --env-file "$ENV_FILE" "$ETHERIA_HOSTNAME" &&
+    scripts/genkey-apps --env-file "$ENV_FILE" --easuid "$EAS_UID" --kasuid "$KAS_UID" &&
+    scripts/genkey-client --uid "$CLIENT_UID" --subj /CN=Alice_1234 --file-basename Alice_1234 &&
+    scripts/genkey-client --uid "$CLIENT_UID" --subj /CN=Charlie_1234 --file-basename Charlie_1234 &&
+    scripts/genkey-client --uid "$CLIENT_UID" --subj /CN=bob_5678 --file-basename bob_5678 &&
+    scripts/genkey-client --uid "$KAS_UID" --alg ec --subj /CN=kas --file-basename kas-ec &&
+    scripts/genkey-client --uid "$CLIENT_UID" --alg ec --subj /CN=Alice_1234 --file-basename Alice_1234-ec &&
+    scripts/genkey-client --uid "$CLIENT_UID" --alg ec --subj /CN=Charlie_1234 --file-basename Charlie_1234-ec &&
+    scripts/genkey-client --uid "$CLIENT_UID" --alg ec --subj /CN=bob_5678 --file-basename bob_5678-ec; then
     echo "KAS_CLIENT_CERTIFICATE=\"$(cat "$CERTS_DIR/kas-ec.crt")\"" >>"$ENV_FILE"
     echo "KAS_CLIENT_PRIVATE_KEY=\"$(cat "$CERTS_DIR/kas-ec.key")\"" >>"$ENV_FILE"
     mv "$ENV_FILE" "$CERTS_DIR/.env"

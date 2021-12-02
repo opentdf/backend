@@ -12,7 +12,7 @@ WORKDIR /test/
 COPY e2e-test/requirements.txt ./
 RUN pip3 install --no-cache-dir --requirement requirements.txt
 # tool files
-COPY containers/python_base/tools /tools
+COPY containers/python_base/scripts /scripts
 # test files
 COPY e2e-test/*.py ./
 COPY e2e-test/resources/ resources/
@@ -25,9 +25,9 @@ ENV ENTITY_OBJECT_HOST http://eas:4010
 ENV ATTRIBUTE_AUTHORITY_HOST http://attribute-authority:4020
 ENV ENTITLEMENT_HOST http://entitlement:4030
 ENV ENTITY_HOST http://entity:4040
-CMD /tools/wait-for-service "${ENTITY_OBJECT_HOST}" \
-    && /tools/wait-for-service "${KAS_HOST}" \
-    && /tools/wait-for-service "${ATTRIBUTE_AUTHORITY_HOST}" \
-    && /tools/wait-for-service "${ENTITY_HOST}" \
-    && /tools/wait-for-service "${ENTITLEMENT_HOST}" \
+CMD /scripts/wait-for-service "${ENTITY_OBJECT_HOST}" \
+    && /scripts/wait-for-service "${KAS_HOST}" \
+    && /scripts/wait-for-service "${ATTRIBUTE_AUTHORITY_HOST}" \
+    && /scripts/wait-for-service "${ENTITY_HOST}" \
+    && /scripts/wait-for-service "${ENTITLEMENT_HOST}" \
     && python3 run_test.py --size 60 --step 20

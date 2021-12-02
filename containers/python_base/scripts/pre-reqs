@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Installs pre-requisites for local containers
 #
-# Usage: tools/pre-req [apps]
+# Usage: scripts/pre-req [apps]
 #
 # Examples:
 #   Install conventional list of pre-reqs for your platform, if needed
-#     tools/pre-reqs
+#     scripts/pre-reqs
 #   Install specific of pre-reqs for your platform
-#     tools/pre-reqs kind helm kuttl kubectl
+#     scripts/pre-reqs kind helm kuttl kubectl
 #
 
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"

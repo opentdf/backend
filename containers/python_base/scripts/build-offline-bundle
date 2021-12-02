@@ -134,9 +134,9 @@ if ! sed -i '' "s/:virtrulocal/:$ETHERIA_TAG/" "build/export/deployment/values-a
   exit 1
 fi
 
-# Include tools for helping with things
-if ! rsync -lmr --safe-links --executability --force tools/* build/export/tools; then
-  monolog ERROR "Unable to update tools folder"
+# Include scriptsts for helping with things
+if ! rsync -lmr --safe-links --executability --force scriptsts/* build/exporscriptsipts; then
+  monolog ERROR "Unable to update scriptsts folder"
   exit 1
 fi
 

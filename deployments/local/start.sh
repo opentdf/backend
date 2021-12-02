@@ -7,7 +7,7 @@ CERTS_ROOT="${CERTS_ROOT:-$PROJECT_ROOT/containers/python_base/certs}"
 CHART_ROOT="${CHART_ROOT:-$PROJECT_ROOT/charts}"
 DEPLOYMENT_DIR="${DEPLOYMENT_DIR:-$PROJECT_ROOT/deployments/local}"
 EXPORT_ROOT="${EXPORT_ROOT:-$PROJECT_ROOT/build/export}"
-TOOLS_ROOT="${TOOLS_ROOT:-$PROJECT_ROOT/containers/python_base/tools}"
+TOOLS_ROOT="${TOOLS_ROOT:-$PROJECT_ROOT/containers/python_base/scripts}"
 export PATH="$TOOLS_ROOT:$PATH"
 
 e() {

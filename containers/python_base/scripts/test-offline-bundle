@@ -42,7 +42,7 @@ EXPORT_ROOT="$(cd export >/dev/null && pwd)"
 CERTS_ROOT="${EXPORT_ROOT}/certs"
 CHART_ROOT="${EXPORT_ROOT}/charts"
 DEPLOYMENT_DIR="${EXPORT_ROOT}/deployment"
-TOOLS_ROOT="${EXPORT_ROOT}/tools"
+TOOLS_ROOT="${EXPORT_ROOT}/scripts"
 
 export EXPORT_ROOT
 export CERTS_ROOT

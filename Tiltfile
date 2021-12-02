@@ -45,7 +45,7 @@ k8s_yaml(
 # builds
 docker_build("virtru/tdf-claim-test-webservice", "containers/attribute_provider")
 docker_build("virtru/tdf-python-base", "containers/python_base")
-docker_build("virtru/tdf-keycloak-bootstrap", "containers/keycloak_bootstrap")
+docker_build("virtru/tdf-keycloak-bootstrap", "containers/keycloak-bootstrap")
 docker_build("virtru/tdf-keycloak", "containers/keycloak-protocol-mapper")
 docker_build("virtru/tdf-abacus-web", "containers/abacus")
 docker_build(
