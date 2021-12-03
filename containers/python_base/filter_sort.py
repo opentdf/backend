@@ -45,7 +45,7 @@ def get_sorter_by_args(model, args: list):
     return sorters
 
 
-def get_results(model, db: Session, filter_args: dict = {}, sort_args: list = []):
+def get_query(model, db: Session, filter_args: dict = {}, sort_args: list = []):
     filters = get_filter_by_args(model, filter_args)
     sorters = get_sorter_by_args(model, sort_args)
-    return db.query(model).filter(*filters).order_by(*sorters).all()
+    return db.query(model).filter(*filters).order_by(*sorters)

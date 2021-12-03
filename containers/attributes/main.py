@@ -11,7 +11,7 @@ import databases as databases
 import sqlalchemy
 from asyncpg import UniqueViolationError
 from fastapi import Depends
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi import Security, status
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2AuthorizationCodeBearer
@@ -22,6 +22,9 @@ from pydantic import Json
 from pydantic import ValidationError, AnyUrl
 from pydantic.main import BaseModel
 from sqlalchemy import and_
+from sqlalchemy.orm import Session, sessionmaker, declarative_base
+
+from containers.python_base import Pagination, get_query
 
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL)
@@ -130,9 +133,20 @@ table_attribute = sqlalchemy.Table(
     sqlalchemy.Column("values", sqlalchemy.ARRAY(sqlalchemy.TEXT)),
 )
 
-engine = sqlalchemy.create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = sqlalchemy.create_engine(DATABASE_URL)
+dbase = sessionmaker(bind=engine)
+
+
+def get_db() -> Session:
+    session = dbase()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+class AttributeSchema(declarative_base()):
+    __table__ = table_attribute
 
 
 # middleware
@@ -255,20 +269,43 @@ oidc_scheme = OpenIdConnect(
 
 
 @app.get("/attributes", tags=["Attributes"], response_model=List[AnyUrl])
-async def read_attributes():
+async def read_attributes(
+    authority: Optional[AuthorityUrl] = None,
+    name: Optional[str] = None,
+    order: Optional[str] = None,
+    offset: int = 1,
+    limit: int = 100,
+    sort: Optional[str] = Query(
+        "",
+        regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
+    ),
+    db: Session = Depends(get_db),
+    pager: Pagination = Depends(Pagination),
+):
+    filter_args = {}
+    if authority:
+        filter_args["state"] = authority
+    if name:
+        filter_args["name"] = name
+    if order:
+        filter_args["values"] = order
+
+    sort_args = sort.split(",") if sort else []
+
+    query = get_query(AttributeSchema, db, filter_args, sort_args)
+    logger.debug(query)
+    results = query.all()
     error = None
     authorities = await read_authorities()
-    query = table_attribute.select()
-    result = await database.fetch_all(query)
     attributes: List[AnyUrl] = []
-    for row in result:
-        for value in row.get("order"):
+    for row in results:
+        for value in row.values:
             try:
                 attributes.append(
                     AnyUrl(
                         scheme=f"{authorities[0]}",
-                        host=f"{authorities[row.get(table_attribute.c.namespace_id) - 1]}",
-                        url=f"{authorities[row.get(table_attribute.c.namespace_id) - 1]}/attr/{row.get(table_attribute.c.name)}/value/{value}",
+                        host=f"{authorities[row.namespace_id - 1]}",
+                        url=f"{authorities[row.namespace_id - 1]}/attr/{row.name}/value/{value}",
                     )
                 )
             except ValidationError as e:
@@ -278,7 +315,7 @@ async def read_attributes():
         raise HTTPException(
             status_code=422, detail=f"attribute error: {str(error)}"
         ) from error
-    return attributes
+    return pager.paginate(attributes)
 
 
 #
@@ -335,7 +372,7 @@ async def create_attributes_definitions(request: AttributeDefinition):
         query = table_attribute.insert().values(
             name=request.name,
             namespace_id=namespace_id,
-            order=request.order,
+            values=request.order,
             state=request.state,
             rule=request.rule,
         )
@@ -356,7 +393,7 @@ async def create_attributes_definitions(request: AttributeDefinition):
     response_model=AttributeDefinition,
     dependencies=[Depends(get_auth)],
 )
-async def update_attribute(request: AttributeDefinition):
+async def update_attribute_definition(request: AttributeDefinition):
     # update
     query = table_authority.select().where(table_authority.c.name == request.authority)
     result = await database.fetch_one(query)
@@ -386,7 +423,7 @@ async def update_attribute(request: AttributeDefinition):
     "/definitions/attributes",
     tags=["Attributes Definitions"],
     status_code=ACCEPTED,
-    # dependencies=[Depends(get_auth)],
+    dependencies=[Depends(get_auth)],
 )
 async def delete_attributes_definitions(request: AttributeDefinition):
     statement = table_attribute.delete().where(
@@ -416,7 +453,7 @@ async def read_authorities():
     return authorities
 
 
-@app.post("/authorities", tags=["Authorities"])  # , dependencies=[Depends(get_auth)])
+@app.post("/authorities", tags=["Authorities"], dependencies=[Depends(get_auth)])
 async def create_authorities(request: AuthorityDefinition):
     # insert
     query = table_authority.insert().values(name=request.authority)
