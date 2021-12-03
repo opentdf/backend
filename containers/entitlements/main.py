@@ -10,17 +10,20 @@ from typing import Dict, List, Optional, Annotated
 import databases as databases
 import sqlalchemy
 import uritools
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, Query
 from fastapi import Security, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from keycloak import KeycloakOpenID
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings, Field, AnyUrl
 from pydantic import HttpUrl, validator
 from pydantic import Json
 from pydantic.main import BaseModel
 from sqlalchemy import and_
+from sqlalchemy.orm import Session, sessionmaker, declarative_base
+
+from containers.python_base import Pagination, get_query
 
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.INFO)
@@ -147,9 +150,20 @@ table_entity_attribute = sqlalchemy.Table(
     sqlalchemy.Column("value", sqlalchemy.VARCHAR),
 )
 
-engine = sqlalchemy.create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = sqlalchemy.create_engine(DATABASE_URL)
+dbase = sessionmaker(bind=engine)
+
+
+def get_db() -> Session:
+    session = dbase()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+class EntityAttributeSchema(declarative_base()):
+    __table__ = table_entity_attribute
 
 
 @app.middleware("http")
@@ -177,6 +191,10 @@ async def read_semver():
 class ProbeType(str, Enum):
     liveness = "liveness"
     readiness = "readiness"
+
+
+class AuthorityUrl(AnyUrl):
+    max_length = 2000
 
 
 @app.get("/healthz", status_code=NO_CONTENT, include_in_schema=False)
@@ -262,15 +280,41 @@ async def read_relationship():
     response_model=List[Entitlements],
     dependencies=[Depends(get_auth)],
 )
-async def read_entitlements():
-    query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)
-    result = await database.fetch_all(query)
+async def read_entitlements(
+    authority: Optional[AuthorityUrl] = None,
+    name: Optional[str] = None,
+    order: Optional[str] = None,
+    offset: int = 1,
+    limit: int = 100,
+    sort: Optional[str] = Query(
+        "",
+        regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
+    ),
+    db: Session = Depends(get_db),
+    pager: Pagination = Depends(Pagination),
+):
+    filter_args = {}
+    if authority:
+        # TODO lookup authority (namespace_id) and get id
+        filter_args["namespace_id"] = authority
+    if name:
+        filter_args["name"] = name
+    if order:
+        filter_args["values"] = order
+
+    sort_args = sort.split(",") if sort else []
+
+    query = get_query(EntityAttributeSchema, db, filter_args, sort_args)
+    logger.debug(query)
+    results = query.all()
+    # query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)
+    # result = await database.fetch_all(query)
     # must be ordered by entity_id
     entitlements: List[Entitlements] = []
     previous_entity_id: str = ""
     previous_attributes: List[str] = []
-    for row in result:
-        entity_id: str = row.get(table_entity_attribute.c.entity_id)
+    for row in results:
+        entity_id: str = row.entity_id
         if not previous_entity_id:
             previous_entity_id = entity_id
         if previous_entity_id != entity_id:
@@ -278,13 +322,11 @@ async def read_entitlements():
             previous_entity_id = entity_id
             previous_attributes = []
         # add subject attributes
-        previous_attributes.append(
-            f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
-        )
+        previous_attributes.append(f"{row.namespace}/attr/{row.name}/value/{row.value}")
     # add last
     if previous_entity_id:
         entitlements.append({previous_entity_id: previous_attributes})
-    return entitlements
+    return pager.paginate(entitlements)
 
 
 def parse_attribute_uri(attribute_uri):

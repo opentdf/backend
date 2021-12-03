@@ -13,6 +13,7 @@ export POSTGRES_USER=tdf_entitlement_manager
 export POSTGRES_PASSWORD=myPostgresPassword
 export POSTGRES_DATABASE=tdf_database
 export POSTGRES_SCHEMA=tdf_entitlement
+export SERVER_LOG_LEVEL=DEBUG
 ```
 
 ### Start Server

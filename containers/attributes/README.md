@@ -13,6 +13,7 @@ export POSTGRES_USER=tdf_attribute_manager
 export POSTGRES_PASSWORD=myPostgresPassword
 export POSTGRES_DATABASE=postgres
 export POSTGRES_SCHEMA=tdf_attribute
+export SERVER_LOG_LEVEL=DEBUG
 ```
 
 ### Start Server
