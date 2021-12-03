@@ -284,7 +284,8 @@ async def read_attributes(
 ):
     filter_args = {}
     if authority:
-        filter_args["state"] = authority
+        # TODO lookup authority (namespace_id) and get id
+        filter_args["namespace_id"] = authority
     if name:
         filter_args["name"] = name
     if order:
@@ -296,6 +297,7 @@ async def read_attributes(
     logger.debug(query)
     results = query.all()
     error = None
+    #  TODO map authority (namespace_id) to id
     authorities = await read_authorities()
     attributes: List[AnyUrl] = []
     for row in results:
@@ -303,7 +305,7 @@ async def read_attributes(
             try:
                 attributes.append(
                     AnyUrl(
-                        scheme=f"{authorities[0]}",
+                        scheme=f"{authorities[row.namespace_id - 1]}",
                         host=f"{authorities[row.namespace_id - 1]}",
                         url=f"{authorities[row.namespace_id - 1]}/attr/{row.name}/value/{value}",
                     )
@@ -329,24 +331,50 @@ async def read_attributes(
     response_model=List[AttributeDefinition],
     dependencies=[Depends(get_auth)],
 )
-async def read_attributes_definitions():
-    query = table_attribute.select()
-    result = await database.fetch_all(query)
+async def read_attributes_definitions(
+    authority: Optional[AuthorityUrl] = None,
+    name: Optional[str] = None,
+    order: Optional[str] = None,
+    offset: int = 1,
+    limit: int = 100,
+    sort: Optional[str] = Query(
+        "",
+        regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
+    ),
+    db: Session = Depends(get_db),
+    pager: Pagination = Depends(Pagination),
+):
+    filter_args = {}
+    if authority:
+        # TODO lookup authority (namespace_id) and get id
+        filter_args["namespace_id"] = authority
+    if name:
+        filter_args["name"] = name
+    if order:
+        filter_args["values"] = order
+
+    sort_args = sort.split(",") if sort else []
+
+    query = get_query(AttributeSchema, db, filter_args, sort_args)
+    logger.debug(query)
+    results = query.all()
+    #  TODO map authority (namespace_id) to id
+    authorities = await read_authorities()
     attributes: List[AttributeDefinition] = []
-    for row in result:
+    for row in results:
         try:
             attributes.append(
                 AttributeDefinition(
-                    authority=row.get(table_attribute.c.namespace_id),
-                    name=row.get(table_attribute.c.name),
-                    order=row.get("order"),
-                    rule=row.get(table_attribute.c.rule),
-                    state=row.get(table_attribute.c.state),
+                    authority=authorities[row.namespace_id - 1],
+                    name=row.name,
+                    order=row.values,
+                    rule=row.rule,
+                    state=row.state,
                 )
             )
         except ValidationError as e:
             logging.error(e)
-    return attributes
+    return pager.paginate(attributes)
 
 
 @app.post(
