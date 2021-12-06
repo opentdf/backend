@@ -21,8 +21,8 @@ export SERVER_LOG_LEVEL=DEBUG
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade pip
-python3 -m pip install --requirement requirements.txt
-python3 -m uvicorn main:app --reload --port 4030
+python3 -m pip install --requirement containers/entitlements/requirements.txt
+python3 -m uvicorn containers.entitlements.main:app --reload --port 4030
 ```
 
 ### Extract OpenAPI
@@ -30,8 +30,9 @@ python3 -m uvicorn main:app --reload --port 4030
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade pip
-python3 -m pip install --requirement requirements.txt
-python3 main.py > openapi.json
+python3 -m pip install --requirement containers/entitlements/requirements.txt
+cd containers
+python3 -m entitlements > openapi.json
 ```
 
 ### View API
