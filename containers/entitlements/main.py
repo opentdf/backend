@@ -284,8 +284,6 @@ async def read_entitlements(
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
     order: Optional[str] = None,
-    offset: int = 1,
-    limit: int = 100,
     sort: Optional[str] = Query(
         "",
         regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
