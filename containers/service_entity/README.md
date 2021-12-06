@@ -26,7 +26,7 @@ pipenv run python3 main.py > openapi.json
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag virtru/tdf-entity-service:0.2.0 service_entity
+docker build --no-cache --tag opentdf/entity-service:0.2.0 service_entity
 ```
 
 ### secrets

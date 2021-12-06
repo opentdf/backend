@@ -2,7 +2,7 @@
 version: "3.8"
 services:
   eas:
-    image: virtru/tdf-entity-attribute-service:0.3.0
+    image: opentdf/entity-attribute-service:0.3.0
     depends_on:
       - postgres
     environment:
@@ -38,7 +38,7 @@ services:
       - ./certs/kas-ec-secp256r1-public.pem:/certs/kas-ec-secp256r1-public.pem
       - ./certs/kas-public.pem:/certs/kas-public.pem
   kas:
-    image: virtru/tdf-key-access-service:0.2.1
+    image: opentdf/kas:0.2.1
     environment:
       - EAS_HOST=https://etheria.local/eas/
       - FLASK_DEBUG=True

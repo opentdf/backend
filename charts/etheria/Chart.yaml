@@ -19,7 +19,7 @@ dependencies:
   repository: file://../entitlements
   version: '^1.0.0'
 - name: tdf-storage
-  repository: file://../remote_payload
+  repository: file://../storage
   version: '^1.0.0'
 description: Virtru Open Source Helm Chart
 name: etheria

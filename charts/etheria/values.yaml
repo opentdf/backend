@@ -36,22 +36,22 @@ kas:
 
 attribute-provider:
   image:
-    name: virtru/tdf-claim-test-webservice:0.1.1
+    name: opentdf/claim-test-webservice:0.1.1
   port: 5000
 
 keycloak-bootstrap:
   image:
-    name: virtru/tdf-keycloak-bootstrap:0.2.1
+    name: opentdf/keycloak-bootstrap:0.2.1
     pullPolicy: Always
 
 attributes:
   image:
-    name: virtru/tdf-attributes-service
+    name: opentdf/attributes
 
 entitlements:
   image:
-    name: virtru/tdf-entitlements-service
+    name: opentdf/entitlements
 
 tdf-storage:
   image:
-    name: virtru/tdf-storage-service
+    name: opentdf/storage

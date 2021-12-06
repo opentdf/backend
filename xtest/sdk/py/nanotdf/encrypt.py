@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from tdf3sdk import NanoTDFClient, LogLevel
+from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
 
 logger = logging.getLogger("xtest")
 logging.basicConfig()
@@ -48,11 +48,20 @@ def encrypt_file(source, target, owner, eas, attrs):
     logger.info(
         "Source: %s, Target: %s, owner: %s, eas: %s", source, target, owner, eas
     )
-    nanotdf_client = NanoTDFClient(eas_url=eas, user=owner)
+    oidc_creds = OIDCCredentials()
+    oidc_creds.set_client_credentials(
+        client_id="tdf-client",
+        client_secret="123-456",
+        organization_name="tdf",
+        oidc_endpoint=OIDC_ENDPOINT,
+    )
 
+    nano_tdf_client = NanoTDFClient(oidc_credentials=oidc_creds, kas_url=KAS_URL)
     nanotdf_client.enable_console_logging(LogLevel.Info)
-    logger.info("Encrypting with data attributes: %s", attrs)
-    nanotdf_client.encrypt_file(source, target)
+
+    logger.info("Encrypting with data attributes: [%s] as file: [%s]", attrs, target)
+    nano_tdf_client.with_data_attributes(attrs)
+    nano_tdf_client.encrypt_file(source, target)
 
 
 if __name__ == "__main__":

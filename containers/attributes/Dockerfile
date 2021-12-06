@@ -4,7 +4,7 @@ ARG PY_VERSION=3.10
 ARG ALPINE_VERSION=3.15
 
 # stage - build
-FROM virtru/tdf-python-base:${PY_VERSION} AS build
+FROM opentdf/python-base:${PY_VERSION} AS build
 WORKDIR /build
 # Install application dependencies
 COPY attributes/requirements.txt .

@@ -31,7 +31,7 @@ export EAS_VERSION
 export KAS_VERSION
 export ABACUS_VERSION
 
-docker save -o build/export/docker-image-abacus.tar virtru/tdf-abacus-web:"${ABACUS_VERSION}"
+docker save -o build/export/docker-image-abacus.tar opentdf/abacus:"${ABACUS_VERSION}"
 
 if ! docker-compose -f docker-compose.yml up --build -d; then
   monolog ERROR "Failed to create docker images"

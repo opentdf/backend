@@ -43,18 +43,14 @@ k8s_yaml(
 )
 
 # builds
-docker_build("virtru/tdf-claim-test-webservice", "containers/attribute_provider")
-docker_build("virtru/tdf-python-base", "containers/python_base")
-docker_build("virtru/tdf-keycloak-bootstrap", "containers/keycloak-bootstrap")
-docker_build("virtru/tdf-keycloak", "containers/keycloak-protocol-mapper")
-docker_build("virtru/tdf-abacus-web", "containers/abacus")
-docker_build(
-    "virtru/tdf-attributes-service", "containers/attributes"
-)
-docker_build("virtru/tdf-entitlements-service", "containers/entitlements")
-docker_build("virtru/tdf-entity-attribute-service", "containers/eas")
-docker_build("virtru/tdf-key-access-service", "containers/kas")
-docker_build("virtru/tdf-storage-service", "containers/service_remote_payload")
+docker_build("opentdf/python-base", "containers/python_base")
+docker_build("opentdf/keycloak-bootstrap", "containers/keycloak-bootstrap")
+docker_build("opentdf/keycloak", "containers/keycloak-protocol-mapper")
+docker_build("opentdf/attributess", "containers/attributes")
+docker_build("opentdf/claims", "containers/eas")
+docker_build("opentdf/entitlements", "containers/entitlements")
+docker_build("opentdf/kas", "containers/kas")
+docker_build("opentdf/storage", "containers/storage")
 
 # remote resources
 # usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
@@ -87,7 +83,7 @@ k8s_yaml(
 )
 # TODO this service requires actual S3 secrets
 # TODO or use https://github.com/localstack/localstack
-# k8s_yaml(helm('charts/remote_payload', 'remote-payload', values=['deployments/docker-desktop/remote_payload-values.yaml']))
+# k8s_yaml(helm('charts/storage', 'storage', values=['deployments/docker-desktop/storage-values.yaml']))
 # deprecated
 # k8s_yaml(helm('charts/eas', 'eas', values=['deployments/docker-desktop/eas-values.yaml']))
 

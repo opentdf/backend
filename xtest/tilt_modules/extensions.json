@@ -1,0 +1,24 @@
+{
+  "Extensions": [
+    {
+      "Name": "secret",
+      "ExtensionRegistry": "https://github.com/tilt-dev/tilt-extensions",
+      "TimeFetched": "2021-12-08T09:21:45.403608-05:00"
+    },
+    {
+      "Name": "helm_remote",
+      "ExtensionRegistry": "https://github.com/tilt-dev/tilt-extensions",
+      "TimeFetched": "2021-12-08T09:21:46.376676-05:00"
+    },
+    {
+      "Name": "global_vars",
+      "ExtensionRegistry": "https://github.com/tilt-dev/tilt-extensions",
+      "TimeFetched": "2021-12-08T09:21:47.50188-05:00"
+    },
+    {
+      "Name": "dotenv",
+      "ExtensionRegistry": "https://github.com/tilt-dev/tilt-extensions",
+      "TimeFetched": "2021-12-08T16:52:30.510739-05:00"
+    }
+  ]
+}

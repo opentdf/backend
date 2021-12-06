@@ -1,5 +1,5 @@
 image:
-  repository: virtru/tdf-keycloak
+  repository: opentdf/keycloak
   tag: 0.3.5
   pullPolicy: Always
 imagePullSecrets:

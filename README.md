@@ -149,7 +149,7 @@ These images must be made available to your cluster's registry. One way to do th
 
 ```sh
 docker load export/*.tar
-docker images --format="{{json .Repository }}"  | sort | uniq | tr -d '"'| grep ^virtru/tdf | while read name; do docker push $name; done
+docker images --format="{{json .Repository }}"  | sort | uniq | tr -d '"'| grep ^opentdf/ | while read name; do docker push $name; done
 ```
 
 ### Configuring the backend
