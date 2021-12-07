@@ -1,5 +1,5 @@
 IMAGE=virtru/tdf-keycloak
-VERSION=15.0.2
+VERSION=15.0.2-virtru-r6
 
 all: build
 
