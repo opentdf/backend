@@ -3,9 +3,14 @@ import logging
 import os
 import re
 import sys
+import base64
+import requests
 from enum import Enum
 from http.client import NO_CONTENT
 from typing import List, Optional
+from urllib.parse import urlparse
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 import databases as databases
 import sqlalchemy
@@ -18,7 +23,6 @@ from keycloak import KeycloakOpenID
 from pydantic import HttpUrl, validator
 from pydantic import Json
 from pydantic.main import BaseModel
-from pydantic import BaseSettings
 from sqlalchemy import and_
 
 logging.basicConfig(
@@ -34,12 +38,7 @@ swagger_ui_init_oauth = {
     "scopes": ["email"],
 }
 
-class Settings(BaseSettings):
-    openapi_url: str = "/openapi.json"
-
-settings = Settings()
-
-app = FastAPI(swagger_ui_init_oauth=swagger_ui_init_oauth, debug=True, openapi_url=settings.openapi_url)
+app = FastAPI(swagger_ui_init_oauth=swagger_ui_init_oauth, debug=True)
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,20 +64,80 @@ keycloak_openid = KeycloakOpenID(
     verify=True,
 )
 
+def get_retryable_request():
+    retry_strategy = Retry(total=3, backoff_factor=1)
 
-async def get_idp_public_key():
-    return (
-        "-----BEGIN PUBLIC KEY-----\n"
-        f"{keycloak_openid.public_key()}"
-        "\n-----END PUBLIC KEY-----"
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+    return http
+
+# Given a realm ID, request that realm's public key from Keycloak's endpoint
+#
+# If anything fails, raise an exception
+#
+# TODO Consider replacing the endpoint here with the OIDC JWKS endpoint
+# Keycloak exposes: `/auth/realms/{realm-name}/.well-known/openid-configuration`
+# This is a low priority though since it doesn't save us from having to get the
+# realmId first and so is a largely cosmetic difference
+async def get_idp_public_key(realmId):
+    url = f"{os.getenv('OIDC_SERVER_URL')}realms/{realmId}"
+
+    http = get_retryable_request()
+
+    response = http.get(
+        url, headers={"Content-Type": "application/json"}, timeout=5  # seconds
     )
 
+    if not response.ok:
+        logger.warning("No public key found for Keycloak realm %s", realmId)
+        raise KeyNotFoundError(
+            f"Failed to download Keycloak public key: [{response.text}]"
+        )
+
+    try:
+        resp_json = response.json()
+    except:
+        logger.warning(
+            f"Could not parse response from Keycloak pubkey endpoint: {response}"
+        )
+        raise
+
+    keycloak_public_key = f"""-----BEGIN PUBLIC KEY-----
+{resp_json['public_key']}
+-----END PUBLIC KEY-----"""
+
+    logger.debug("Keycloak public key for realm %s: [%s]", realmId, keycloak_public_key)
+    return keycloak_public_key
+
+# Looks as `iss` header field of token - if this is a Keycloak-issued token,
+# `iss` will have a value like 'https://<KEYCLOAK_SERVER>/auth/realms/<REALMID>
+# so we can parse the URL parts to obtain the realm this token was issued from.
+# Once we know that, we know where to get a pubkey to validate it.
+#
+# `urlparse` should be safe to use as a parser, and if the result is
+# an invalid realm name, no validation key will be fetched, which simply will result
+# in an access denied
+def try_extract_realm(unverified_jwt):
+    issuer_url = unverified_jwt["iss"]
+    # Split the issuer URL once, from the right, on /,
+    # then get the last element of the result - this will be
+    # the realm name for a keycloak-issued token.
+    return urlparse(issuer_url).path.rsplit("/", 1)[-1]
 
 async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
     try:
+        unverified_decode = keycloak_openid.decode_token(
+            token,
+            key='',
+            options={"verify_signature": False, "verify_aud": True, "exp": True},
+        )
+
         return keycloak_openid.decode_token(
             token,
-            key=await get_idp_public_key(),
+            key=await get_idp_public_key(try_extract_realm(unverified_decode)),
             options={"verify_signature": True, "verify_aud": True, "exp": True},
         )
     except Exception as e:
@@ -87,6 +146,20 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
             detail=str(e),  # "Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+async def get_attributes_for_entity(entityId: str):
+    query = table_entity_attribute.select().where(
+        table_entity_attribute.c.entity_id == entityId
+    )
+    result = await database.fetch_all(query)
+    attrObjects: List[AttributeObject] = []
+    for row in result:
+        attrObjects.append(
+            AttributeObject(
+                attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
+            )
+        )
+    return attrObjects
 
 
 # database
@@ -170,8 +243,21 @@ class EntityAttributeRelationship(BaseModel):
             }
         }
 
+# https://github.com/virtru/tdf-spec/blob/2198db5605ce9d5af05be0eb331cc85dfb6383df/schema/AttributeObject.md
+class ClaimsRequest(BaseModel):
+    primary_entity_id: str
+    secondary_entity_ids: List[str]
+    entity_signing_pk: str
 
-class ClaimsObject(BaseModel):
+    class Config:
+        schema_extra = {
+            "example": {
+                "attribute": "https://eas.local/attr/ClassificationUS/value/Unclassified",
+            }
+        }
+
+# https://github.com/virtru/tdf-spec/blob/2198db5605ce9d5af05be0eb331cc85dfb6383df/schema/AttributeObject.md
+class AttributeObject(BaseModel):
     attribute: HttpUrl
 
     class Config:
@@ -181,6 +267,31 @@ class ClaimsObject(BaseModel):
             }
         }
 
+
+# https://github.com/virtru/tdf-spec/blob/2198db5605ce9d5af05be0eb331cc85dfb6383df/schema/ClaimsObject.md
+class SubjectObject(BaseModel):
+    subject_identifier: str
+    subject_attributes: List[AttributeObject]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "attribute": "https://eas.local/attr/ClassificationUS/value/Unclassified",
+            }
+        }
+
+
+# https://github.com/virtru/tdf-spec/blob/2198db5605ce9d5af05be0eb331cc85dfb6383df/schema/ClaimsObject.md
+class ClaimsObject(BaseModel):
+    subjects: List[SubjectObject]
+    client_public_signing_key: str
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "attribute": "https://eas.local/attr/ClassificationUS/value/Unclassified",
+            }
+        }
 
 @app.get(
     "/v1/entity/attribute",
@@ -204,25 +315,42 @@ async def read_relationship():
     return relationships
 
 
-@app.get(
+# This accepts a list of subjects and returns a valid ClaimsObject
+# TODO right now Keycloak itself needs to call this during auth flows to get claims
+# so it doesn't make sense to protect this fetch endpoint with JWT auth
+# Revisit, and secure in some other way (mTLS)
+@app.post(
     "/v1/entity/claimsobject",
-    response_model=List[ClaimsObject],
-    dependencies=[Depends(get_auth)],
+    response_model=ClaimsObject
 )
-async def read_relationship():
-    query = (
-        table_entity_attribute.select()
-    )  # .where(entity_attribute.c.userid == request.userId)
-    result = await database.fetch_all(query)
-    claimsobject: List[ClaimsObject] = []
-    for row in result:
-        claimsobject.append(
-            ClaimsObject(
-                attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
-            )
-        )
-    return claimsobject
+async def read_relationship(req: ClaimsRequest):
+    logger.debug("UNPARSED KEY: %s", req.entity_signing_pk)
+    parsed_pk = parse_pk(req.entity_signing_pk)
+    logger.debug("PARSED KEY: %s", parsed_pk)
+    claimsObj = ClaimsObject(subjects=[], client_public_signing_key=parsed_pk)
+    # Get attributes for primary entity
+    primary_attrs = await get_attributes_for_entity(req.primary_entity_id)
+    logger.debug(f"Fetched attrs {primary_attrs} for primary entity {req.primary_entity_id}")
+    primary = SubjectObject(subject_identifier=req.primary_entity_id, subject_attributes=primary_attrs)
+    claimsObj.subjects.append(primary)
 
+    # Get attributes for any secondary entities
+    for secondarySubID in req.secondary_entity_ids:
+        secondary_attrs = await get_attributes_for_entity(secondarySubID)
+        logger.debug(f"Fetched attrs {secondary_attrs} for primary entity {secondarySubID}")
+        subObj = SubjectObject(subject_identifier=secondarySubID, subject_attributes=secondary_attrs)
+        claimsObj.subjects.append(subObj)
+
+    return claimsObj
+
+def parse_pk(raw_pk):
+    # Unfortunately, not all base64 implementations pad base64
+    # strings in the way that Python expects (dependent on the length)
+    # - fortunately, we can easily add the padding ourselves here if
+    # it's needed.
+    # See: https://gist.github.com/perrygeo/ee7c65bb1541ff6ac770
+    clientKey = f"{raw_pk}{'=' * ((4 - len(raw_pk) % 4) % 4)}"
+    return base64.b64decode(clientKey).decode("ascii")
 
 def parse_attribute_uri(attribute_uri):
     # FIXME harden, unit test
