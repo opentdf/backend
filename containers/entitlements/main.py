@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Annotated
 import databases as databases
 import sqlalchemy
 import uritools
-from fastapi import FastAPI, Request, Depends, Query
+from fastapi import FastAPI, Request, Depends, Query, Path, Body
 from fastapi import Security, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -256,6 +256,25 @@ class Entitlements(BaseModel):
     response_model=List[EntityAttributeRelationship],
     dependencies=[Depends(get_auth)],
     include_in_schema=False,
+    responses = {
+          200: {
+            "content": {
+              "application/json": {
+                "example": [
+                        {
+                            "attribute": "https://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
+                            "entityId": "tdf-client",
+                            "state": "active"
+                        },
+                        {
+                            "attribute": "https://opentdf.io/attr/ClassificationUS/value/Unclassified",
+                            "entityId": "tdf-client",
+                            "state": "active"
+                        }]
+              }
+            }
+          }
+        },
 )
 async def read_relationship():
     query = (
@@ -279,6 +298,22 @@ async def read_relationship():
     tags=["Entitlements"],
     response_model=List[Entitlements],
     dependencies=[Depends(get_auth)],
+    responses = {
+          200: {
+            "content": {
+              "application/json": {
+                "example": {
+                "123e4567-e89b-12d3-a456-426614174000": [
+                    "https://opentdf.io/attr/SecurityClearance/value/Unclassified",
+                    "https://opentdf.io/attr/OperationalRole/value/Manager",
+                    "https://opentdf.io/attr/OperationGroup/value/HR",
+                 ],
+                }
+              }
+            }
+          }
+        },
+
 )
 async def read_entitlements(
     authority: Optional[AuthorityUrl] = None,
@@ -353,8 +388,27 @@ def parse_attribute_uri(attribute_uri):
     "/v1/entity/{entityId}/attribute",
     dependencies=[Depends(get_auth)],
     include_in_schema=False,
+    responses = {
+          200: {
+            "content": {
+              "application/json": {
+                "example": [
+                        {
+                            "attribute": "https://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
+                            "entityId": "tdf-client",
+                            "state": "active"
+                        },
+                        {
+                            "attribute": "https://opentdf.io/attr/ClassificationUS/value/Unclassified",
+                            "entityId": "tdf-client",
+                            "state": "active"
+                        }]
+              }
+            }
+          }
+        }
 )
-async def read_entity_attribute_relationship(entityId: str):
+async def read_entity_attribute_relationship(entityId: str = Path(..., example = "tdf-client",),):
     query = table_entity_attribute.select().where(
         table_entity_attribute.c.entity_id == entityId
     )
@@ -372,14 +426,20 @@ async def read_entity_attribute_relationship(entityId: str):
 
 
 @app.post(
-    "/entitlements/{entityId}", tags=["Entitlements"], dependencies=[Depends(get_auth)]
+    "/entitlements/{entityId}", tags=["Entitlements"], dependencies=[Depends(get_auth)],
+    responses = {
+    200:  {"content":{ "application/json": { "example": ["https://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
+                 "https://opentdf.io/attr/ClassificationUS/value/Unclassified"] } }}},
 )
 async def add_entitlements_to_entity(
-    entityId: str,
+    entityId: str = Path(..., example = "tdf-client",),
     request: Annotated[
         List[str],
         Field(max_length=2000, exclusiveMaximum=2000),
-    ],
+    ] = Body(
+        ...,
+        example = ["https://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
+                 "https://opentdf.io/attr/ClassificationUS/value/Unclassified"]),
 ):
     rows = []
     for attribute_uri in request:
@@ -454,13 +514,18 @@ async def create_attribute_entity_relationship(
     tags=["Entitlements"],
     status_code=ACCEPTED,
     dependencies=[Depends(get_auth)],
+    responses={
+    202:  {"description": "No Content", "content":{ "application/json": { "example": {"detail": "Item deleted"} } }}},
 )
 async def remove_entitlement_from_entity(
-    entityId: str,
+    entityId: str = Path(..., example = "tdf-client",),
     request: Annotated[
         List[str],
         Field(max_length=2000, exclusiveMaximum=2000),
-    ],
+    ] = Body(
+        ...,
+        example=["https://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
+                 "https://opentdf.io/attr/ClassificationUS/value/Unclassified"]),
 ):
     for item in request:
         try:

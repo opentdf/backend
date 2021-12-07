@@ -1,1 +1,239 @@
-{"openapi": "3.0.2", "info": {"title": "openTDF", "license": {"name": "MIT"}, "version": "1.0.0", "x-logo": {"url": "https://inxmad4bw31barrx17wec71c-wpengine.netdna-ssl.com/wp-content/uploads/2018/12/o_efa1e48d0db5ebc8-4.png"}}, "paths": {"/entitlements": {"get": {"tags": ["Entitlements"], "summary": "Read Entitlements", "operationId": "read_entitlements_entitlements_get", "responses": {"200": {"description": "Successful Response", "content": {"application/json": {"schema": {"title": "Response Read Entitlements Entitlements Get", "type": "array", "items": {"$ref": "#/components/schemas/Entitlements"}}}}}}, "security": [{"OAuth2AuthorizationCodeBearer": []}]}}, "/entitlements/{entityId}": {"post": {"tags": ["Entitlements"], "summary": "Add Entitlements To Entity", "operationId": "add_entitlements_to_entity_entitlements__entityId__post", "parameters": [{"required": true, "schema": {"title": "Entityid", "type": "string"}, "name": "entityId", "in": "path"}], "requestBody": {"content": {"application/json": {"schema": {"title": "Request", "type": "array", "items": {"type": "string"}}}}, "required": true}, "responses": {"200": {"description": "Successful Response", "content": {"application/json": {"schema": {}}}}, "422": {"description": "Validation Error", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/HTTPValidationError"}}}}}, "security": [{"OAuth2AuthorizationCodeBearer": []}]}, "delete": {"tags": ["Entitlements"], "summary": "Remove Entitlement From Entity", "operationId": "remove_entitlement_from_entity_entitlements__entityId__delete", "parameters": [{"required": true, "schema": {"title": "Entityid", "type": "string"}, "name": "entityId", "in": "path"}], "requestBody": {"content": {"application/json": {"schema": {"title": "Request", "type": "array", "items": {"type": "string"}}}}, "required": true}, "responses": {"202": {"description": "Successful Response", "content": {"application/json": {"schema": {}}}}, "422": {"description": "Validation Error", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/HTTPValidationError"}}}}}, "security": [{"OAuth2AuthorizationCodeBearer": []}]}}}, "components": {"schemas": {"Entitlements": {"title": "Entitlements", "type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}, "example": {"123e4567-e89b-12d3-a456-426614174000": ["https://opentdf.io/attr/SecurityClearance/value/Unclassified", "https://opentdf.io/attr/OperationalRole/value/Manager", "https://opentdf.io/attr/OperationGroup/value/HR"]}}, "HTTPValidationError": {"title": "HTTPValidationError", "type": "object", "properties": {"detail": {"title": "Detail", "type": "array", "items": {"$ref": "#/components/schemas/ValidationError"}}}}, "ValidationError": {"title": "ValidationError", "required": ["loc", "msg", "type"], "type": "object", "properties": {"loc": {"title": "Location", "type": "array", "items": {"type": "string"}}, "msg": {"title": "Message", "type": "string"}, "type": {"title": "Error Type", "type": "string"}}}}, "securitySchemes": {"OAuth2AuthorizationCodeBearer": {"type": "oauth2", "flows": {"authorizationCode": {"scopes": {}, "authorizationUrl": "", "tokenUrl": ""}}}}}, "tags": [{"name": "Entitlements", "description": "Operations to manage entitlements entitled to entities."}]}
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "openTDF",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "1.0.0",
+    "x-logo": {
+      "url": "https://inxmad4bw31barrx17wec71c-wpengine.netdna-ssl.com/wp-content/uploads/2018/12/o_efa1e48d0db5ebc8-4.png"
+    }
+  },
+  "paths": {
+    "/entitlements": {
+      "get": {
+        "tags": [
+          "Entitlements"
+        ],
+        "summary": "Read Entitlements",
+        "operationId": "read_entitlements_entitlements_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Read Entitlements Entitlements Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Entitlements"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2AuthorizationCodeBearer": []
+          }
+        ]
+      }
+    },
+    "/entitlements/{entityId}": {
+      "post": {
+        "tags": [
+          "Entitlements"
+        ],
+        "summary": "Add Entitlements To Entity",
+        "operationId": "add_entitlements_to_entity_entitlements__entityId__post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Entityid",
+              "type": "string"
+            },
+            "name": "entityId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Request",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2AuthorizationCodeBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Entitlements"
+        ],
+        "summary": "Remove Entitlement From Entity",
+        "operationId": "remove_entitlement_from_entity_entitlements__entityId__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Entityid",
+              "type": "string"
+            },
+            "name": "entityId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Request",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2AuthorizationCodeBearer": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Entitlements": {
+        "title": "Entitlements",
+        "type": "object",
+        "additionalProperties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "123e4567-e89b-12d3-a456-426614174000": [
+            "https://opentdf.io/attr/SecurityClearance/value/Unclassified",
+            "https://opentdf.io/attr/OperationalRole/value/Manager",
+            "https://opentdf.io/attr/OperationGroup/value/HR"
+          ]
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "OAuth2AuthorizationCodeBearer": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "scopes": {},
+            "authorizationUrl": "",
+            "tokenUrl": ""
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Entitlements",
+      "description": "Operations to manage entitlements entitled to entities."
+    }
+  ]
+}
