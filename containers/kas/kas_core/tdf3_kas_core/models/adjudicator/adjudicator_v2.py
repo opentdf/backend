@@ -42,7 +42,7 @@ class AdjudicatorV2(object):
         # Check to see if this claimset fails the dissem tests.
         self._check_dissem(policy.dissem, claims.user_id)
         # Then check the attributes
-        self._check_attributes(policy.data_attributes, claims.subject_attributes)
+        self._check_attributes(policy.data_attributes, claims)
         # Passed all the tests, The subject who was issued this claimset is Worthy!
         return True
 
