@@ -15,6 +15,8 @@ keycloak:
   passwordUsers: testuser@virtru.com,user1,user2
   npeClients: null
 istioTerminationHack: false
+attribute:
+  hostname: http://opentdf-attribute
 entitlement:
   hostname: http://opentdf-entitlement
   clientId: dcr-test
