@@ -1,15 +1,19 @@
 # NOTE - The version is also needed in the site-packages COPY command below
-ARG PY_VERSION=3.9
-ARG ALPINE_VERSION=3.13
+# context must be parent folder
+ARG PY_VERSION=3.10
+ARG ALPINE_VERSION=3.15
 
 # stage - build
 FROM virtru/tdf-python-base:${PY_VERSION} AS build
 WORKDIR /build
 # Install application dependencies
-COPY requirements.txt .
+COPY attributes/requirements.txt .
 RUN pip3 install --no-cache-dir --requirement requirements.txt
 # Install application into WORKDIR
-COPY main.py .
+COPY __init__.py .
+COPY __init__.py containers/
+COPY python_base/*.py containers/python_base/
+COPY attributes/*.py containers/attributes/
 # Compile application
 RUN python3 -m compileall .
 
@@ -26,6 +30,9 @@ COPY --from=build --chown=root:root /build/ .
 # NOTE - the python version needs to be specified in the following COPY command:
 COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
+RUN ls -lt
+RUN ls -lt containers
+RUN ls -lt containers/python_base
 
 # Server
 ENV SERVER_ROOT_PATH "/"
@@ -58,4 +65,5 @@ ENTRYPOINT python3 -m uvicorn \
     --no-use-colors \
     --no-server-header \
     --log-level error \
-    main:app
+    --app-dir ./containers \
+    attributes.main:app

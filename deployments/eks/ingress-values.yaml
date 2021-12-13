@@ -1,0 +1,17 @@
+replicaCount: 1
+
+ingress:
+  enabled: true
+  servicePort: https
+  hosts:
+    - paths:
+        - /
+  annotations:
+    #     https://kubernetes-sigs.github.io/aws-load-balancer-controller/v1.1/guide/controller/config/
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-port: "80"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:318258757195:certificate/af572114-7835-44d3-bb5c-dfc7bf6bf6f1
+    external-dns.alpha.kubernetes.io/hostname: opentdf.us

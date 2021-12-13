@@ -23,7 +23,8 @@ from pydantic.main import BaseModel
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-from containers.python_base import Pagination, get_query
+from containers.python_base.filter_sort import get_query
+from containers.python_base.pagination import Pagination
 
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.INFO)
@@ -278,7 +279,7 @@ async def read_relationship():
     "/entitlements",
     tags=["Entitlements"],
     response_model=List[Entitlements],
-    dependencies=[Depends(get_auth)],
+    # dependencies=[Depends(get_auth)],
 )
 async def read_entitlements(
     authority: Optional[AuthorityUrl] = None,
@@ -370,7 +371,8 @@ async def read_entity_attribute_relationship(entityId: str):
 
 
 @app.post(
-    "/entitlements/{entityId}", tags=["Entitlements"], dependencies=[Depends(get_auth)]
+    "/entitlements/{entityId}",
+    tags=["Entitlements"],  # , dependencies=[Depends(get_auth)]
 )
 async def add_entitlements_to_entity(
     entityId: str,
@@ -451,7 +453,7 @@ async def create_attribute_entity_relationship(
     "/entitlements/{entityId}",
     tags=["Entitlements"],
     status_code=ACCEPTED,
-    dependencies=[Depends(get_auth)],
+    # dependencies=[Depends(get_auth)],
 )
 async def remove_entitlement_from_entity(
     entityId: str,
