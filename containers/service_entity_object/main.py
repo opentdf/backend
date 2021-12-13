@@ -131,7 +131,7 @@ async def shutdown():
 
 @app.get("/", include_in_schema=False)
 async def read_semver():
-    return {"Hello": "World"}
+    return {"Hello": "claims"}
 
 
 class ProbeType(str, Enum):

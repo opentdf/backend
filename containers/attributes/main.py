@@ -24,8 +24,8 @@ from pydantic.main import BaseModel
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-from containers.python_base.filter_sort import get_query
-from containers.python_base.pagination import Pagination
+from python_base.filter_sort import get_query
+from python_base.pagination import Pagination
 
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL)
@@ -245,7 +245,7 @@ async def shutdown():
 
 @app.get("/", include_in_schema=False)
 async def read_semver():
-    return {"Hello": "World"}
+    return {"Hello": "attributes"}
 
 
 class ProbeType(str, Enum):

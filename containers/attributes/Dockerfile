@@ -11,9 +11,8 @@ COPY attributes/requirements.txt .
 RUN pip3 install --no-cache-dir --requirement requirements.txt
 # Install application into WORKDIR
 COPY __init__.py .
-COPY __init__.py containers/
-COPY python_base/*.py containers/python_base/
-COPY attributes/*.py containers/attributes/
+COPY python_base/*.py python_base/
+COPY attributes/*.py attributes/
 # Compile application
 RUN python3 -m compileall .
 
@@ -31,8 +30,7 @@ COPY --from=build --chown=root:root /build/ .
 COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
 RUN ls -lt
-RUN ls -lt containers
-RUN ls -lt containers/python_base
+RUN ls -lt python_base
 
 # Server
 ENV SERVER_ROOT_PATH "/"
