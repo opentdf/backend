@@ -1,6 +1,6 @@
 # NOTE - The version is also needed in the site-packages COPY command below
-ARG PY_VERSION=3.9
-ARG ALPINE_VERSION=3.13
+ARG PY_VERSION=3.10
+ARG ALPINE_VERSION=3.15
 
 # stage - build
 FROM opentdf/python-base:${PY_VERSION} AS build

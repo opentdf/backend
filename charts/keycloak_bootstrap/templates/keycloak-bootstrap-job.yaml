@@ -56,10 +56,10 @@ spec:
             - name: ENTITLEMENT_PASSWORD
               value: {{ .Values.entitlement.password }}
           volumeMounts:
-            - name: entitlements-volume
+            - name: entitlements-config-volume
               mountPath: /etc/virtru-config
       volumes:
-        - name: entitlements-volume
+        - name: entitlements-config-volume
           configMap:
             name: {{ .Values.name }}-cm
       restartPolicy: Never

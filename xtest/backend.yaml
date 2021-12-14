@@ -1,10 +1,10 @@
 ---
-#  .d8b.  d888888b d888888b d8888b. d888888b d8888b. db    db d888888b d88888b 
-# d8' `8b `~~88~~' `~~88~~' 88  `8D   `88'   88  `8D 88    88 `~~88~~' 88'     
-# 88ooo88    88       88    88oobY'    88    88oooY' 88    88    88    88ooooo 
-# 88~~~88    88       88    88`8b      88    88~~~b. 88    88    88    88~~~~~ 
-# 88   88    88       88    88 `88.   .88.   88   8D 88b  d88    88    88.     
-# YP   YP    YP       YP    88   YD Y888888P Y8888P' ~Y8888P'    YP    Y88888P 
+#  .d8b.  d888888b d888888b d8888b. d888888b d8888b. db    db d888888b d88888b
+# d8' `8b `~~88~~' `~~88~~' 88  `8D   `88'   88  `8D 88    88 `~~88~~' 88'
+# 88ooo88    88       88    88oobY'    88    88oooY' 88    88    88    88ooooo
+# 88~~~88    88       88    88`8b      88    88~~~b. 88    88    88    88~~~~~
+# 88   88    88       88    88 `88.   .88.   88   8D 88b  d88    88    88.
+# YP   YP    YP       YP    88   YD Y888888P Y8888P' ~Y8888P'    YP    Y88888P
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -34,10 +34,10 @@ metadata:
   name: opentdf-attributes
 spec:
   ports:
-  - name: http
-    port: 4020
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 4020
+      protocol: TCP
+      targetPort: http
   selector:
     app.kubernetes.io/instance: opentdf
     app.kubernetes.io/name: attributes
@@ -57,16 +57,16 @@ metadata:
   name: opentdf-attributes
 spec:
   rules:
-  - host: localhost
-    http:
-      paths:
-      - backend:
-          service:
-            name: opentdf-attributes
-            port:
-              number: 4020
-        path: /attributes(/|$)(.*)
-        pathType: Prefix
+    - host: localhost
+      http:
+        paths:
+          - backend:
+              service:
+                name: opentdf-attributes
+                port:
+                  number: 4020
+            path: /attributes(/|$)(.*)
+            pathType: Prefix
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -94,40 +94,40 @@ spec:
         app.kubernetes.io/name: attributes
     spec:
       containers:
-      - envFrom:
-        - secretRef:
-            name: attributes-secrets
-        - configMapRef:
-            name: attributes-cm
-        image: opentdf/attributes
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz?probe=liveness
-            port: 4020
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: attributes
-        ports:
-        - containerPort: 4020
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz?probe=readiness
-            port: 4020
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources: {}
-        securityContext: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - envFrom:
+            - secretRef:
+                name: attributes-secrets
+            - configMapRef:
+                name: attributes-cm
+          image: opentdf/attributes
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz?probe=liveness
+              port: 4020
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: attributes
+          ports:
+            - containerPort: 4020
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz?probe=readiness
+              port: 4020
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          securityContext: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -136,12 +136,12 @@ spec:
       serviceAccountName: opentdf-attributes
       terminationGracePeriodSeconds: 30
 ---
-#  .o88b. db       .d8b.  d888888b .88b  d88. 
-# d8P  Y8 88      d8' `8b   `88'   88'YbdP`88 
-# 8P      88      88ooo88    88    88  88  88 
-# 8b      88      88~~~88    88    88  88  88 
-# Y8b  d8 88booo. 88   88   .88.   88  88  88 
-#  `Y88P' Y88888P YP   YP Y888888P YP  YP  YP 
+#  .o88b. db       .d8b.  d888888b .88b  d88.
+# d8P  Y8 88      d8' `8b   `88'   88'YbdP`88
+# 8P      88      88ooo88    88    88  88  88
+# 8b      88      88~~~88    88    88  88  88
+# Y8b  d8 88booo. 88   88   .88.   88  88  88
+#  `Y88P' Y88888P YP   YP Y888888P YP  YP  YP
 
 apiVersion: v1
 kind: ConfigMap
@@ -163,10 +163,10 @@ metadata:
   name: opentdf-claims
 spec:
   ports:
-  - name: http
-    port: 5000
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 5000
+      protocol: TCP
+      targetPort: http
   selector:
     app.kubernetes.io/instance: opentdf
     app.kubernetes.io/name: claims
@@ -181,16 +181,16 @@ metadata:
   name: opentdf-claims
 spec:
   rules:
-  - host: localhost
-    http:
-      paths:
-      - backend:
-          service:
-            name: opentdf-claims
-            port:
-              number: 5000
-        path: /claims(/|$)(.*)
-        pathType: Prefix
+    - host: localhost
+      http:
+        paths:
+          - backend:
+              service:
+                name: opentdf-claims
+                port:
+                  number: 5000
+            path: /claims(/|$)(.*)
+            pathType: Prefix
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -216,22 +216,22 @@ spec:
         app.kubernetes.io/name: claims
     spec:
       containers:
-      - envFrom:
-        - secretRef:
-            name: claims-secrets
-        - configMapRef:
-            name: claims-cm
-        image: opentdf/claims
-        imagePullPolicy: IfNotPresent
-        name: claims
-        ports:
-        - containerPort: 5000
-          name: http
-          protocol: TCP
-        resources: {}
-        securityContext: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - envFrom:
+            - secretRef:
+                name: claims-secrets
+            - configMapRef:
+                name: claims-cm
+          image: opentdf/claims
+          imagePullPolicy: IfNotPresent
+          name: claims
+          ports:
+            - containerPort: 5000
+              name: http
+              protocol: TCP
+          resources: {}
+          securityContext: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -245,12 +245,12 @@ kind: ServiceAccount
 metadata:
   name: opentdf-claims
 ---
-# d88888b d8b   db d888888b d888888b d888888b db      d88888b .88b  d88. d88888b 
-# 88'     888o  88 `~~88~~'   `88'   `~~88~~' 88      88'     88'YbdP`88 88'     
-# 88ooooo 88V8o 88    88       88       88    88      88ooooo 88  88  88 88ooooo 
-# 88~~~~~ 88 V8o88    88       88       88    88      88~~~~~ 88  88  88 88~~~~~ 
-# 88.     88  V888    88      .88.      88    88booo. 88.     88  88  88 88.     
-# Y88888P VP   V8P    YP    Y888888P    YP    Y88888P Y88888P YP  YP  YP Y88888P 
+#    d88888b d8b   db d888888b d888888b d888888b db      d88888b .88b  d88. d88888b d8b   db d888888b .d8888.
+#    88'     888o  88 `~~88~~'   `88'   `~~88~~' 88      88'     88'YbdP`88 88'     888o  88 `~~88~~' 88'  YP
+#    88ooooo 88V8o 88    88       88       88    88      88ooooo 88  88  88 88ooooo 88V8o 88    88    `8bo.
+#    88~~~~~ 88 V8o88    88       88       88    88      88~~~~~ 88  88  88 88~~~~~ 88 V8o88    88      `Y8b.
+#    88.     88  V888    88      .88.      88    88booo. 88.     88  88  88 88.     88  V888    88    db   8D
+#    Y88888P VP   V8P    YP    Y888888P    YP    Y88888P Y88888P YP  YP  YP Y88888P VP   V8P    YP    `8888Y'
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -280,10 +280,10 @@ metadata:
   name: opentdf-entitlements
 spec:
   ports:
-  - name: http
-    port: 4030
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 4030
+      protocol: TCP
+      targetPort: http
   selector:
     app.kubernetes.io/instance: opentdf
     app.kubernetes.io/name: entitlements
@@ -298,16 +298,16 @@ metadata:
   name: opentdf-entitlements
 spec:
   rules:
-  - host: localhost
-    http:
-      paths:
-      - backend:
-          service:
-            name: opentdf-entitlements
-            port:
-              number: 4030
-        path: /entitlements(/|$)(.*)
-        pathType: Prefix
+    - host: localhost
+      http:
+        paths:
+          - backend:
+              service:
+                name: opentdf-entitlements
+                port:
+                  number: 4030
+            path: /entitlements(/|$)(.*)
+            pathType: Prefix
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -339,40 +339,40 @@ spec:
         tilt.dev/pod-template-hash: 41e0e42a19da9ccfc30a
     spec:
       containers:
-      - envFrom:
-        - secretRef:
-            name: entitlements-secrets
-        - configMapRef:
-            name: entitlements-cm
-        image: opentdf/entitlements
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz?probe=liveness
-            port: 4030
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: entitlements
-        ports:
-        - containerPort: 4030
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz?probe=readiness
-            port: 4030
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        resources: {}
-        securityContext: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - envFrom:
+            - secretRef:
+                name: entitlements-secrets
+            - configMapRef:
+                name: entitlements-cm
+          image: opentdf/entitlements
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz?probe=liveness
+              port: 4030
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: entitlements
+          ports:
+            - containerPort: 4030
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz?probe=readiness
+              port: 4030
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          securityContext: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -386,12 +386,12 @@ kind: ServiceAccount
 metadata:
   name: opentdf-entitlements
 ---
-#  .d8b.   .o88b.  .o88b. d88888b .d8888. .d8888. 
-# d8' `8b d8P  Y8 d8P  Y8 88'     88'  YP 88'  YP 
-# 88ooo88 8P      8P      88ooooo `8bo.   `8bo.   
-# 88~~~88 8b      8b      88~~~~~   `Y8b.   `Y8b. 
-# 88   88 Y8b  d8 Y8b  d8 88.     db   8D db   8D 
-# YP   YP  `Y88P'  `Y88P' Y88888P `8888Y' `8888Y' 
+#  .d8b.   .o88b.  .o88b. d88888b .d8888. .d8888.
+# d8' `8b d8P  Y8 d8P  Y8 88'     88'  YP 88'  YP
+# 88ooo88 8P      8P      88ooooo `8bo.   `8bo.
+# 88~~~88 8b      8b      88~~~~~   `Y8b.   `Y8b.
+# 88   88 Y8b  d8 Y8b  d8 88.     db   8D db   8D
+# YP   YP  `Y88P'  `Y88P' Y88888P `8888Y' `8888Y'
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -415,10 +415,10 @@ metadata:
   name: opentdf-kas
 spec:
   ports:
-  - name: http
-    port: 8000
-    protocol: TCP
-    targetPort: http
+    - name: http
+      port: 8000
+      protocol: TCP
+      targetPort: http
   selector:
     app.kubernetes.io/instance: opentdf
     app.kubernetes.io/name: kas
@@ -433,16 +433,16 @@ metadata:
   name: opentdf-kas
 spec:
   rules:
-  - host: localhost
-    http:
-      paths:
-      - backend:
-          service:
-            name: opentdf-kas
-            port:
-              number: 8000
-        path: /kas(/|$)(.*)
-        pathType: Prefix
+    - host: localhost
+      http:
+        paths:
+          - backend:
+              service:
+                name: opentdf-kas
+                port:
+                  number: 8000
+            path: /kas(/|$)(.*)
+            pathType: Prefix
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -471,38 +471,38 @@ spec:
         app.kubernetes.io/name: kas
     spec:
       containers:
-      - envFrom:
-        - secretRef:
-            name: kas-secrets
-        - configMapRef:
-            name: kas-cm
-        image: opentdf/kas
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz?probe=liveness
-            port: 8000
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: kas
-        ports:
-        - containerPort: 8000
-          name: http
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /healthz?probe=readiness
-            port: 8000
-            scheme: HTTP
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - envFrom:
+            - secretRef:
+                name: kas-secrets
+            - configMapRef:
+                name: kas-cm
+          image: opentdf/kas
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz?probe=liveness
+              port: 8000
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: kas
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz?probe=readiness
+              port: 8000
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -515,6 +515,12 @@ kind: ServiceAccount
 metadata:
   name: opentdf-kas
 ---
+#    d8888b.  .d88b.   .d88b.  d888888b .d8888. d888888b d8888b.  .d8b.  d8888b.
+#    88  `8D .8P  Y8. .8P  Y8. `~~88~~' 88'  YP `~~88~~' 88  `8D d8' `8b 88  `8D
+#    88oooY' 88    88 88    88    88    `8bo.      88    88oobY' 88ooo88 88oodD'
+#    88~~~b. 88    88 88    88    88      `Y8b.    88    88`8b   88~~~88 88~~~
+#    88   8D `8b  d8' `8b  d8'    88    db   8D    88    88 `88. 88   88 88
+#    Y8888P'  `Y88P'   `Y88P'     YP    `8888Y'    YP    88   YD YP   YP 88
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -543,6 +549,56 @@ spec:
               value: http://opentdf-attributes
             - name: ENTITLEMENT_HOST
               value: http://opentdf-entitlements
+          volumeMounts:
+            - name: bootstrap-keycloak-config-volume
+              mountPath: /etc/virtru-config
+      volumes:
+        - name: bootstrap-keycloak-config-volume
+          configMap:
+            name: bootstrap-keycloak-cm
       restartPolicy: Never
   backoffLimit: 6
-
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bootstrap-keycloak-cm
+data:
+  entitlements.yaml: |-
+    tdf-user:
+      subject_attributes:
+        - attribute: https://example.com/attr/Classification/value/C
+        - attribute: https://example.com/attr/COI/value/PRX
+    tdf-client:
+      subject_attributes:
+        - attribute: https://example.com/attr/Classification/value/S
+        - attribute: https://example.com/attr/COI/value/PRX
+        - attribute: https://example.com/attr/Env/value/CleanRoom
+    user1:
+      subject_attributes:
+        - attribute: https://.com/attr/Classification/value/S
+        - attribute: https://.com/attr/COI/value/PRX
+    browsertest:
+      subject_attributes:
+        - attribute: https://.com/attr/Classification/value/C
+        - attribute: https://.com/attr/COI/value/PRA
+    service-account-tdf-client:
+      subject_attributes:
+        - attribute: https://.com/attr/Classification/value/C
+        - attribute: https://.com/attr/COI/value/PRB
+    bob_1234:
+      subject_attributes:
+        - attribute: https://.com/attr/Classification/value/C
+        - attribute: https://.com/attr/COI/value/PRC
+    alice_1234:
+      subject_attributes:
+        - attribute: https://.com/attr/Classification/value/C
+        - attribute: https://.com/attr/COI/value/PRD
+    client_x509:
+      subject_attributes:
+        - attribute: https://.com/attr/Classification/value/S
+        - attribute: https://.com/attr/COI/value/PRX
+    dcr-test:
+      subject_attributes:
+        - attribute: https://.com/attr/Classification/value/C
+        - attribute: https://.com/attr/COI/value/PRF
