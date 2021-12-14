@@ -49,12 +49,12 @@ export class OceanGrid extends React.PureComponent {
       <>&nbsp;</>,
     ];
     COL_INDICATORS.forEach(indicator => {
-      headerColumns.push(indicator);
+      headerColumns.push(<strong>{indicator}</strong>);
     });
 
     const rows = [headerColumns];
     ROW_INDICATORS.forEach(indicator => {
-      const row = [indicator];
+      const row = [<strong>{indicator}</strong>];
       // First row is the indicator row.
       const gridRowIndex = rows.length - 1;
       grid[gridRowIndex].forEach(gridCell => {
@@ -65,11 +65,13 @@ export class OceanGrid extends React.PureComponent {
 
     return (
       <InlineTable>
-        {rows.map((row, rowIdx) => (
-          <tr key={rowIdx}>
-            {row.map((cell, cellIdx) => <td key={cellIdx} align="center" valign="center">{cell}</td>)}
-          </tr>
-        ))}
+        <tbody>
+          {rows.map((row, rowIdx) => (
+            <tr key={rowIdx}>
+              {row.map((cell, cellIdx) => <td key={cellIdx} align="center" valign="center">{cell}</td>)}
+            </tr>
+          ))}
+        </tbody>
       </InlineTable>
     );
   }
