@@ -539,6 +539,8 @@ spec:
               value: keycloakadmin
             - name: keycloak_admin_password
               value: mykeycloakpassword
+            - name: passwordUsers
+              value: testuser@virtru.com,user1,user2
             - name: CLIENT_ID
               value: tdf-client
             - name: CLIENT_SECRET
@@ -549,6 +551,12 @@ spec:
               value: http://opentdf-attributes
             - name: ENTITLEMENT_HOST
               value: http://opentdf-entitlements
+            - name: ENTITLEMENT_CLIENT_ID
+              value: tdf-client
+            - name: ENTITLEMENT_USERNAME
+              value: keycloakadmin
+            - name: ENTITLEMENT_PASSWORD
+              value: mykeycloakpassword
           volumeMounts:
             - name: bootstrap-keycloak-config-volume
               mountPath: /etc/virtru-config

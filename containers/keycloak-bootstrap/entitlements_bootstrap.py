@@ -93,7 +93,7 @@ def insertEntitlementAttrsForRealm(keycloak_admin, realm, keycloak_auth_url, ent
 
     keycloak_openid = KeycloakOpenID(server_url=keycloak_auth_url,
                     client_id=entitlement_clientid,
-                    realm_name="tdf") #Entitlements endpoint always uses `tdf` realm client creds
+                    realm_name=realm) #Entitlements endpoint always uses `tdf` realm client creds
     authToken = keycloak_openid.token(entitlement_username, entitlement_password)
 
     insertAttrsForUsers(keycloak_admin, entitlement_host, entity_attrmap, authToken['access_token'])
