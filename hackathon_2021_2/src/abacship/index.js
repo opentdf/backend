@@ -110,9 +110,9 @@ const CenteredDiv = styled.div`
   text-align: center;
 `;
 
-const CELL_TYPES = [CELL_TYPE_OCEAN, CELL_TYPE_PLAYER_ONE, CELL_TYPE_PLAYER_TWO, CELL_TYPE_UNKNOWN];
-function randomCellType() {
-  return CELL_TYPES[Math.floor(Math.random() * CELL_TYPES.length)];
+const REVEALED_CELL_TYPES = [CELL_TYPE_OCEAN, CELL_TYPE_PLAYER_ONE, CELL_TYPE_PLAYER_TWO];
+function randomRevealedCell() {
+  return REVEALED_CELL_TYPES[Math.floor(Math.random() * REVEALED_CELL_TYPES.length)];
 }
 
 export default class ABACShip extends React.Component {
@@ -126,11 +126,11 @@ export default class ABACShip extends React.Component {
   }
 
   async getMyGrid() {
-    return ROW_INDICATORS.map(() => COL_INDICATORS.map(() => randomCellType()));
+    return ROW_INDICATORS.map(() => COL_INDICATORS.map(() => CELL_TYPE_UNKNOWN));
   }
 
   async getOpponentGrid() {
-    return ROW_INDICATORS.map(() => COL_INDICATORS.map(() => randomCellType()));
+    return ROW_INDICATORS.map(() => COL_INDICATORS.map(() => CELL_TYPE_UNKNOWN));
   }
 
   async componentDidMount() {
@@ -141,22 +141,19 @@ export default class ABACShip extends React.Component {
   }
 
   onMyCellClicked = (rowIdx, colIdx) => {
+    const { myGrid } = this.state;
+    if (myGrid[rowIdx][colIdx] !== CELL_TYPE_UNKNOWN) {
+      // This cell is already revealed. Ignore this.
+      return;
+    }
+
     const newGridRows = [];
-    this.state.myGrid.forEach((oldRow, oldRowIdx) => {
+    myGrid.forEach((oldRow, oldRowIdx) => {
       const newGridRow = [];
       oldRow.forEach((oldCell, oldColIdx) => {
         if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
-          if (oldCell === CELL_TYPE_OCEAN) {
-            newGridRow.push(CELL_TYPE_PLAYER_ONE);
-          } else if (oldCell === CELL_TYPE_PLAYER_ONE) {
-            newGridRow.push(CELL_TYPE_PLAYER_TWO);
-          } else if (oldCell === CELL_TYPE_PLAYER_TWO) {
-            newGridRow.push(CELL_TYPE_UNKNOWN);
-          } else if (oldCell === CELL_TYPE_UNKNOWN) {
-            newGridRow.push(CELL_TYPE_OCEAN);
-          } else {
-            throw new Error(`Unknown cell type: ${oldCell}`);
-          }
+          // This is the cell we are revealing.
+          newGridRow.push(randomRevealedCell());
         } else {
           newGridRow.push(oldCell);
         }
@@ -169,22 +166,19 @@ export default class ABACShip extends React.Component {
   };
 
   onOpponentCellClicked = (rowIdx, colIdx) => {
+    const { opponentGrid } = this.state;
+    if (opponentGrid[rowIdx][colIdx] !== CELL_TYPE_UNKNOWN) {
+      // This cell is already revealed. Ignore this.
+      return;
+    }
+
     const newGridRows = [];
-    this.state.opponentGrid.forEach((oldRow, oldRowIdx) => {
+    opponentGrid.forEach((oldRow, oldRowIdx) => {
       const newGridRow = [];
       oldRow.forEach((oldCell, oldColIdx) => {
         if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
-          if (oldCell === CELL_TYPE_OCEAN) {
-            newGridRow.push(CELL_TYPE_PLAYER_ONE);
-          } else if (oldCell === CELL_TYPE_PLAYER_ONE) {
-            newGridRow.push(CELL_TYPE_PLAYER_TWO);
-          } else if (oldCell === CELL_TYPE_PLAYER_TWO) {
-            newGridRow.push(CELL_TYPE_UNKNOWN);
-          } else if (oldCell === CELL_TYPE_UNKNOWN) {
-            newGridRow.push(CELL_TYPE_OCEAN);
-          } else {
-            throw new Error(`Unknown cell type: ${oldCell}`);
-          }
+          // This is the cell we are revealing.
+          newGridRow.push(randomRevealedCell());
         } else {
           newGridRow.push(oldCell);
         }
