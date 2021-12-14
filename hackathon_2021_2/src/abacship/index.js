@@ -50,6 +50,15 @@ const SquareTd = styled.td`
 `;
 
 export class OceanGrid extends React.PureComponent {
+  onCellClicked(rowIdx, colIdx) {
+    if (rowIdx < 0 || colIdx < 0) {
+      // An indicator was clicked. Ignore it.
+      return;
+    }
+
+    this.props.onCellClicked(rowIdx, colIdx);
+  }
+
   render() {
     const { grid } = this.props;
 
@@ -77,7 +86,16 @@ export class OceanGrid extends React.PureComponent {
         <tbody>
           {rows.map((row, rowIdx) => (
             <tr key={rowIdx}>
-              {row.map((cell, cellIdx) => <SquareTd key={cellIdx} align="center" valign="center">{cell}</SquareTd>)}
+              {row.map((cell, colIdx) => (
+                <SquareTd
+                  key={colIdx}
+                  align="center"
+                  valign="center"
+                  onClick={() => this.onCellClicked(rowIdx - 1, colIdx - 1)}
+                >
+                  {cell}
+                </SquareTd>
+              ))}
             </tr>
           ))}
         </tbody>
@@ -122,6 +140,62 @@ export default class ABACShip extends React.Component {
     this.setState(stateUpdate);
   }
 
+  onMyCellClicked = (rowIdx, colIdx) => {
+    const newGridRows = [];
+    this.state.myGrid.forEach((oldRow, oldRowIdx) => {
+      const newGridRow = [];
+      oldRow.forEach((oldCell, oldColIdx) => {
+        if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
+          if (oldCell === CELL_TYPE_OCEAN) {
+            newGridRow.push(CELL_TYPE_PLAYER_ONE);
+          } else if (oldCell === CELL_TYPE_PLAYER_ONE) {
+            newGridRow.push(CELL_TYPE_PLAYER_TWO);
+          } else if (oldCell === CELL_TYPE_PLAYER_TWO) {
+            newGridRow.push(CELL_TYPE_UNKNOWN);
+          } else if (oldCell === CELL_TYPE_UNKNOWN) {
+            newGridRow.push(CELL_TYPE_OCEAN);
+          } else {
+            throw new Error(`Unknown cell type: ${oldCell}`);
+          }
+        } else {
+          newGridRow.push(oldCell);
+        }
+      });
+      newGridRows.push(newGridRow);
+    });
+    this.setState({
+      myGrid: newGridRows,
+    });
+  };
+
+  onOpponentCellClicked = (rowIdx, colIdx) => {
+    const newGridRows = [];
+    this.state.opponentGrid.forEach((oldRow, oldRowIdx) => {
+      const newGridRow = [];
+      oldRow.forEach((oldCell, oldColIdx) => {
+        if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
+          if (oldCell === CELL_TYPE_OCEAN) {
+            newGridRow.push(CELL_TYPE_PLAYER_ONE);
+          } else if (oldCell === CELL_TYPE_PLAYER_ONE) {
+            newGridRow.push(CELL_TYPE_PLAYER_TWO);
+          } else if (oldCell === CELL_TYPE_PLAYER_TWO) {
+            newGridRow.push(CELL_TYPE_UNKNOWN);
+          } else if (oldCell === CELL_TYPE_UNKNOWN) {
+            newGridRow.push(CELL_TYPE_OCEAN);
+          } else {
+            throw new Error(`Unknown cell type: ${oldCell}`);
+          }
+        } else {
+          newGridRow.push(oldCell);
+        }
+      });
+      newGridRows.push(newGridRow);
+    });
+    this.setState({
+      opponentGrid: newGridRows,
+    });
+  };
+
   render() {
     const { myGrid, opponentGrid } = this.state;
 
@@ -133,10 +207,10 @@ export default class ABACShip extends React.Component {
       <CenteredDiv>
         <img alt="ABACShip" src={`${IMAGE_BASE}/abacship.jpg`} />
         <CenteredDiv>
-          <OceanGrid grid={myGrid} />
+          <OceanGrid grid={myGrid} onCellClicked={this.onMyCellClicked} />
         </CenteredDiv>
         <CenteredDiv>
-          <OceanGrid grid={opponentGrid} />
+          <OceanGrid grid={opponentGrid} onCellClicked={this.onOpponentCellClicked} />
         </CenteredDiv>
       </CenteredDiv>
     );
