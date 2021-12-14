@@ -81,21 +81,43 @@ const CenteredDiv = styled.div`
   text-align: center;
 `;
 
+const CELL_TYPES = [CELL_TYPE_OCEAN, CELL_TYPE_PLAYER_ONE, CELL_TYPE_PLAYER_TWO, CELL_TYPE_UNKNOWN];
+function randomCellType() {
+  return CELL_TYPES[Math.floor(Math.random() * CELL_TYPES.length)];
+}
+
 export default class ABACShip extends React.Component {
   constructor(props) {
     super(props);
 
-    const cellTypes = [CELL_TYPE_OCEAN, CELL_TYPE_PLAYER_ONE, CELL_TYPE_PLAYER_TWO, CELL_TYPE_UNKNOWN];
-    const randomCellType = () => cellTypes[Math.floor(Math.random() * cellTypes.length)];
-
     this.state = {
-      myGrid: ROW_INDICATORS.map(() => COL_INDICATORS.map(() => randomCellType())),
-      opponentGrid: ROW_INDICATORS.map(() => COL_INDICATORS.map(() => randomCellType())),
+      myGrid: null,
+      opponentGrid: null,
     };
+  }
+
+  async getMyGrid() {
+    return ROW_INDICATORS.map(() => COL_INDICATORS.map(() => randomCellType()));
+  }
+
+  async getOpponentGrid() {
+    return ROW_INDICATORS.map(() => COL_INDICATORS.map(() => randomCellType()));
+  }
+
+  async componentDidMount() {
+    const stateUpdate = {};
+    stateUpdate.myGrid = await this.getMyGrid();
+    stateUpdate.opponentGrid = await this.getOpponentGrid();
+    this.setState(stateUpdate);
   }
 
   render() {
     const { myGrid, opponentGrid } = this.state;
+
+    if (myGrid === null || opponentGrid === null) {
+      return null;
+    }
+
     return (
       <CenteredDiv>
         <img alt="ABACShip" src={`${IMAGE_BASE}/abacship.jpg`} />
