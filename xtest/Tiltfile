@@ -100,8 +100,8 @@ docker_build(
     build_args = {"PY_VERSION":"3.9"},
     context = "../containers/kas",
     live_update = [
-        sync("../containers/claims", "/app"),
-        run("cd /app && pip install -r requirements.txt", trigger = "../containers/claims/requirements.txt"),
+        sync("../containers/kas", "/app"),
+        run("cd /app && pip install -r requirements.txt", trigger = "../containers/kas/requirements.txt"),
     ],
 )
 

@@ -254,7 +254,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             Map<String, Object> requestEntity = new HashMap<>();
             requestEntity.put("userId", token.getSubject());
             requestEntity.put("algorithm", "ec:secp256r1");
-            requestEntity.put("publicKey", clientPK);
+            requestEntity.put("signerPublicKey", clientPK);
             logger.info("Request: " + requestEntity);
 
             // Build parameters

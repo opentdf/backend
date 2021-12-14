@@ -13,9 +13,9 @@ data:
   OIDC_AUTHORIZATION_URL: http://localhost:65432/keycloak/auth/realms/tdf/protocol/openid-connect/auth
   OIDC_CLIENT_ID: tdf-attributes
   OIDC_CLIENT_SECRET: myclientsecret
-  OIDC_CONFIGURATION_URL: http://opentdf-keycloak/auth/realms/tdf/.well-known/openid-configuration
+  OIDC_CONFIGURATION_URL: http://keycloak/auth/realms/tdf/.well-known/openid-configuration
   OIDC_REALM: tdf
-  OIDC_SERVER_URL: http://opentdf-keycloak/auth/
+  OIDC_SERVER_URL: http://keycloak/auth/
   OIDC_TOKEN_URL: http://localhost:65432/keycloak/auth/realms/tdf/protocol/openid-connect/token
   POSTGRES_DATABASE: tdf_database
   POSTGRES_HOST: opentdf-postgresql
@@ -148,6 +148,7 @@ kind: ConfigMap
 metadata:
   name: claims-cm
 data:
+  KAS_DEFAULT_URL: http://opentdf-kas
   POSTGRES_DATABASE: tdf_database
   POSTGRES_HOST: opentdf-postgresql
   POSTGRES_SCHEMA: tdf_entitlement
@@ -258,9 +259,9 @@ data:
   OIDC_AUTHORIZATION_URL: http://localhost:65432/keycloak/auth/realms/tdf/protocol/openid-connect/auth
   OIDC_CLIENT_ID: tdf-entitlements
   OIDC_CLIENT_SECRET: myclientsecret
-  OIDC_CONFIGURATION_URL: http://opentdf-keycloak/auth/realms/tdf/.well-known/openid-configuration
+  OIDC_CONFIGURATION_URL: http://keycloak/auth/realms/tdf/.well-known/openid-configuration
   OIDC_REALM: tdf
-  OIDC_SERVER_URL: http://opentdf-keycloak/auth/
+  OIDC_SERVER_URL: http://keycloak/auth/
   OIDC_TOKEN_URL: http://localhost:65432/keycloak/auth/realms/tdf/protocol/openid-connect/token
   POSTGRES_DATABASE: tdf_database
   POSTGRES_HOST: opentdf-postgresql
@@ -399,9 +400,9 @@ data:
   EAS_HOST: http://opentdf-attributes:4020
   FLASK_DEBUG: "False"
   GUNICORN_WORKERS: "2"
-  KEYCLOAK_HOST: http://opentdf-keycloak
+  KEYCLOAK_HOST: http://keycloak
   LOGLEVEL: INFO
-  OIDC_PUBKEY_ENDPOINT: http://opentdf-keycloak
+  OIDC_PUBKEY_ENDPOINT: http://keycloak
   STATSD_HOST: opentdf-statsd
   USE_KEYCLOAK: "1"
 ---
@@ -465,7 +466,6 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app.kubernetes.io/instance: opentdf
         app.kubernetes.io/name: kas

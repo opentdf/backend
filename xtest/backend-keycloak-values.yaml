@@ -1,5 +1,4 @@
 #  https://artifacthub.io/packages/helm/bitnami/keycloak
-
 # Chart documentation:
 # https://github.com/bitnami/charts/tree/master/bitnami/keycloak/#installing-the-chart
 
@@ -24,7 +23,7 @@ extraEnvVars:
   - name: KEYCLOAK_PASSWORD
     value: mykeycloakpassword
   - name: ATTRIBUTE_PROVIDER_URL
-    value: http://opentdf-claims:5000/v1/entity_object
+    value: http://opentdf-claims:5000/v1/claims
   - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
     value: "true"
   - name: KEYCLOAK_FRONTEND_URL

@@ -117,9 +117,12 @@ def authorized_v2(public_key, auth_token):
 
     try:
         decoded = jwt.decode(
-            auth_token, public_key, audience=audience, algorithms=algorithms, leeway=leeway
         )
     except Exception as e:
-        logger.warning("Unverifiable claims [%s]", decoded)
+        pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        logger.warning("Unverifiable claims [%s] found in [%s], public_key=[%s]", decoded, auth_token, pem)
         raise UnauthorizedError("Not authorized") from e
     return decoded

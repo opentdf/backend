@@ -128,7 +128,7 @@ public class AttributeOIDCProtocolMapperTest {
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
         assertEquals(5, echoedClaimValue.keySet().size(), "4 entries");
-        assertEquals("12345", echoedClaimValue.get("publicKey"));
+        assertEquals("12345", echoedClaimValue.get("signerPublicKey"));
         assertEquals("xxx-yyy", echoedClaimValue.get("userId"));
         // assertEquals("alice@test.org", echoedClaimValue.get("username"));
         // assertTrue(echoedClaimValue.get("token") instanceof Map);
@@ -147,7 +147,7 @@ public class AttributeOIDCProtocolMapperTest {
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
         assertEquals(5, echoedClaimValue.keySet().size(), "4 entries");
-        assertEquals("12345", echoedClaimValue.get("publicKey"));
+        assertEquals("12345", echoedClaimValue.get("signerPublicKey"));
         assertEquals("xxx-yyy", echoedClaimValue.get("userId"));
         // assertEquals("alice@test.org", echoedClaimValue.get("username"));
         // assertTrue(echoedClaimValue.get("token") instanceof Map);

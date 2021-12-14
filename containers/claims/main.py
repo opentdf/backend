@@ -1,11 +1,10 @@
-import datetime
 import json
 import logging
 import os
 import sys
 from enum import Enum
 from http.client import NO_CONTENT
-from typing import Optional
+from typing import List, Optional
 
 import databases as databases
 import jwt
@@ -58,11 +57,11 @@ async def add_response_headers(request: Request, call_next):
     return response
 
 
-class EntityObjectRequest(BaseModel):
+class ClaimsRequest(BaseModel):
     algorithm: Optional[str] = None
-    publicKey: str
+    publicKey: Optional[str] = ""
     signerPublicKey: Optional[str] = ""
-    userId: str
+    userId: Optional[str]
 
     class Config:
         schema_extra = {
@@ -74,29 +73,31 @@ class EntityObjectRequest(BaseModel):
         }
 
 
-class EntityObject(BaseModel):
-    publicKey: str
-    signerPublicKey: Optional[str] = ""
-    userId: str
+class Attribute(BaseModel):
+    attribute: str
+    displayName: Optional[str]
+    isDefault: Optional[bool]
+    kasUrl: Optional[str]
+    pubKey: Optional[str]
+
+class Claims(BaseModel):
+    public_key: Optional[str]
+    client_public_signing_key: Optional[str] = ""
+    entity_id: Optional[str]
     cert: Optional[str] = None
-    exp: Optional[float]
-    aliases: Optional[list] = []
-    attributes: list
+    subject_attributes: List[Attribute]
+    tdf_spec_version: Optional[str]
 
     class Config:
         schema_extra = {
             "example": {
                 "aliases": ["string"],
-                "attributes": [
-                    {
-                        "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-                    }
+                "subject_attributes": [
+                    {"attribute": "https://example.com/attr/Classification/value/S", "displayName": "classification"}
                 ],
-                "cert": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-                "exp": 1611387008.338341,
-                "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Q9axUqaxEfhOO2+0Xw+\nswa5Rb2RV0xeTX3GC9DeORv9Ip49oNy+RXvaMsdNKspPWYZZEswrz2+ftwcQOSU+\nefRCbGIwbSl8QBfKV9nGLlVmpDydcAIajc7YvWjQnDTEpHcJdo9y7/oogG7YcEmq\nS3NtVJXCmbc4DyrZpc2BmZD4y9417fSiNjTTYY3Fc19lQz07hxDQLgMT21N4N0Fz\nmD6EkiEpG5sdpDT/NIuGjFnJEPfqIs6TnPaX2y1OZ2/JzC+mldJFZuEqJZ/6qq/e\nYlp04nWrSnXhPpTuxNZ5J0GcPbpcFgdT8173qmm5m5jAjiFCr735lH7USl15H2fW\nTwIDAQAB\n-----END PUBLIC KEY-----\n",
-                "schemaVersion": "1.1.0",
-                "userId": "Charlie_1234",
+                "client_public_signing_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy18Efi6+3vSELpbK58gC\nA9vJxZtoRHR604yi707h6nzTsTSNUg5mNzt/nWswWzloIWCgA7EPNpJy9lYn4h1Z\n6LhxEgf0wFcaux0/C19dC6WRPd6 ... XzNO4J38CoFz/\nwwIDAQAB\n-----END PUBLIC KEY-----",
+                "tdf_spec_version:": "x.y.z",
+                "entity_id": "Charlie_1234"
             }
         }
 
@@ -149,8 +150,8 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
         await database.execute("SELECT 1")
 
 
-@app.post("/v1/entity_object", response_model=EntityObject)
-async def create_entity_object(eo_request: EntityObjectRequest, request: Request):
+@app.post("/v1/claims", response_model=Claims, response_model_exclude_unset=True)
+async def create_entity_object(eo_request: ClaimsRequest, request: Request):
     logger.warn("eo_request [%s]", eo_request)
 
     # validate
@@ -180,8 +181,9 @@ async def create_entity_object(eo_request: EntityObjectRequest, request: Request
     )
     result = await database.fetch_all(query)
     for row in result:
+        uri = f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
         attributes.append(
-            f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
+            Attribute(attribute=uri)
         )
     # performance hotspot
     # - cache jwt if no expiration, no expire = 99 years
@@ -191,79 +193,15 @@ async def create_entity_object(eo_request: EntityObjectRequest, request: Request
         kas_certificate_pem = kas_ec_certificate_pem
     else:
         kas_certificate_pem = kas_rsa_certificate_pem
-    jwt_attributes = [
-        to_jwt(
-            f'{os.getenv("KAS_DEFAULT_URL")}/attr/default/value/default',
-            kas_certificate_pem,
-            True,
-        )
-    ]
-    for attribute in attributes:
-        jwt_attributes.append(to_jwt(attribute, kas_certificate_pem))
-    eo = EntityObject(
-        userId=eo_request.userId,
-        exp=exp_env_to_time(),
-        publicKey=eo_request.publicKey,
-        signerPublicKey=eo_request.signerPublicKey,
-        attributes=jwt_attributes,
+    attributes.append(
+        Attribute(attribute=f'{os.getenv("KAS_DEFAULT_URL")}/attr/default/value/default', isDefault=True, pubKey=kas_certificate_pem,kasUrl=os.getenv("KAS_DEFAULT_URL"))
     )
-    eo.cert = jwt.encode(eo.dict(), private_key, "RS256")
-    return eo
-
-
-def to_jwt(attribute: str, kas_certificate_pem: str, default: bool = False):
-    """Export a jwt form."""
-    raw = {
-        "attribute": attribute,
-        "isDefault": default,
-        "displayName": "",
-        "pubKey": kas_certificate_pem,
-        "kasUrl": os.getenv("KAS_DEFAULT_URL"),
-        "exp": exp_env_to_time(),
-    }
-    return {"jwt": jwt.encode(raw, private_key, "RS256")}
-
-
-def exp_env_to_time():
-    value = os.getenv("EAS_ENTITY_EXPIRATION")
-    if value:
-        env_value = {"exp_days": int(value)}
-        exptime = {
-            "exp_days": "days",
-            "exp_hours": "hours",
-            "exp_mins": "minutes",
-            "exp_sec": "seconds",
-        }
-        key, value = next(iter(env_value.items()))
-        if key not in exptime:
-            raise Error(
-                "Undefined value in EAS_ENTITY_EXPIRATION variable. Use exp_days, exp_hrs, exp_min or exp_sec"
-            )
-        if value <= 0:
-            raise Error(
-                "Value in EAS_ENTITY_EXPIRATION variable is negative or equal 0. Use positive number"
-            )
-        kwargs = {exptime[key]: value}
-        now = datetime.datetime.now()
-        delta = datetime.timedelta(**kwargs)
-        return (now + delta).timestamp()
-
-
-class Error(Exception):
-    """The base class for custom expressions, including standard problem details message used for errors.
-    From https://tools.ietf.org/html/draft-ietf-appsawg-http-problem-00.
-    Not all fields are implemented."""
-
-    def __init__(self, message: str = None, title: str = "Problem", status: int = 500):
-        # Human-readable summary of problem
-        self.title = title
-        # Detail: An human readable explanation specific to this occurrence of the problem.
-        self.message = message
-        # http status code
-        self.status = status
-
-    def to_raw(self):
-        return {"title": self.title, "detail": self.message, "status": self.status}
+    return Claims(
+        entity_id=eo_request.userId or None,
+        public_key=eo_request.publicKey or None,
+        client_public_signing_key=eo_request.signerPublicKey or None,
+        subject_attributes=attributes,
+    )
 
 
 if __name__ == "__main__":
