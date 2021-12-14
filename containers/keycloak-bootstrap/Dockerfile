@@ -11,11 +11,13 @@ ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 WORKDIR /project
 COPY bootstrap.py /project/bootstrap.py
+COPY keycloak_bootstrap.py /project/keycloak_bootstrap.py
+COPY entitlements_bootstrap.py /project/entitlements_bootstrap.py
 COPY Makefile /project/Makefile
 COPY Pipfile /project/Pipfile
 COPY Pipfile.lock /project/Pipfile.lock
 COPY .pylintrc /project/.pylintrc
-COPY test_bootstrap.py /project/test_bootstrap.py
+COPY test_kc_bootstrap.py /project/test_kc_bootstrap.py
 
 RUN apk --no-cache --virtual build-dependencies add \
     make && \
