@@ -11,6 +11,7 @@ const CELL_TYPE_PLAYER_TWO = 2;
 const CELL_TYPE_UNKNOWN = 3;
 
 
+const AUDIO_BASE = "/src/abacship/audio";
 const IMAGE_BASE = "/src/abacship/images";
 
 const BlockImage = styled.img`
@@ -133,6 +134,16 @@ function randomRevealedCell() {
   return REVEALED_CELL_TYPES[Math.floor(Math.random() * REVEALED_CELL_TYPES.length)];
 }
 
+function getAudioForCell(cell) {
+  if (cell === CELL_TYPE_OCEAN) {
+    return new Audio(`${AUDIO_BASE}/splash.mp3`);
+  }
+  if (cell === CELL_TYPE_PLAYER_ONE || cell === CELL_TYPE_PLAYER_TWO) {
+    return new Audio(`${AUDIO_BASE}/explosion.mp3`);
+  }
+  return null;
+}
+
 export default class ABACShip extends React.Component {
   constructor(props) {
     super(props);
@@ -171,7 +182,12 @@ export default class ABACShip extends React.Component {
       oldRow.forEach((oldCell, oldColIdx) => {
         if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
           // This is the cell we are revealing.
-          newGridRow.push(randomRevealedCell());
+          const cell = randomRevealedCell();
+          const audioForCell = getAudioForCell(cell);
+          if (audioForCell !== null) {
+            audioForCell.play();
+          }
+          newGridRow.push(cell);
         } else {
           newGridRow.push(oldCell);
         }
@@ -196,7 +212,12 @@ export default class ABACShip extends React.Component {
       oldRow.forEach((oldCell, oldColIdx) => {
         if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
           // This is the cell we are revealing.
-          newGridRow.push(randomRevealedCell());
+          const cell = randomRevealedCell();
+          const audioForCell = getAudioForCell(cell);
+          if (audioForCell !== null) {
+            audioForCell.play();
+          }
+          newGridRow.push(cell);
         } else {
           newGridRow.push(oldCell);
         }
