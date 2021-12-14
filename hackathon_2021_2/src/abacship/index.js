@@ -1,6 +1,6 @@
 
 import React from 'react';
-
+import styled from 'styled-components';
 
 const ROW_INDICATORS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 const COL_INDICATORS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
@@ -36,6 +36,10 @@ class OceanCell extends React.PureComponent {
 }
 
 
+const InlineTable = styled.table`
+  display: inline-table;
+`;
+
 export class OceanGrid extends React.PureComponent {
   render() {
     const { grid } = this.props;
@@ -60,17 +64,22 @@ export class OceanGrid extends React.PureComponent {
     });
 
     return (
-      <table>
+      <InlineTable>
         {rows.map((row, rowIdx) => (
           <tr key={rowIdx}>
             {row.map((cell, cellIdx) => <td key={cellIdx} align="center" valign="center">{cell}</td>)}
           </tr>
         ))}
-      </table>
+      </InlineTable>
     );
   }
 }
 
+
+
+const CenteredDiv = styled.div`
+  text-align: center;
+`;
 
 export default class ABACShip extends React.Component {
   constructor(props) {
@@ -88,14 +97,15 @@ export default class ABACShip extends React.Component {
   render() {
     const { myGrid, opponentGrid } = this.state;
     return (
-      <div>
-        <div>
+      <CenteredDiv>
+        <img alt="ABACShip" src={`${IMAGE_BASE}/abacship.jpg`} />
+        <CenteredDiv>
           <OceanGrid grid={myGrid} />
-        </div>
-        <div>
+        </CenteredDiv>
+        <CenteredDiv>
           <OceanGrid grid={opponentGrid} />
-        </div>
-      </div>
+        </CenteredDiv>
+      </CenteredDiv>
     );
   }
 }
