@@ -13,21 +13,25 @@ const CELL_TYPE_UNKNOWN = 3;
 
 const IMAGE_BASE = "/src/abacship/images";
 
+const BlockImage = styled.img`
+  display: block;
+`;
+
 class OceanCell extends React.PureComponent {
   render() {
     const { type } = this.props;
     switch (type) {
       case CELL_TYPE_OCEAN:
-        return <img alt="Ocean" src={`${IMAGE_BASE}/ocean.jpg`} />
+        return <BlockImage alt="Ocean" src={`${IMAGE_BASE}/ocean.jpg`} />
 
       case CELL_TYPE_PLAYER_ONE:
-        return <img alt="Player One" src={`${IMAGE_BASE}/player-one.jpg`} />
+        return <BlockImage alt="Player One" src={`${IMAGE_BASE}/player-one.jpg`} />
 
       case CELL_TYPE_PLAYER_TWO:
-        return <img alt="Player Two" src={`${IMAGE_BASE}/player-two.jpg`} />
+        return <BlockImage alt="Player Two" src={`${IMAGE_BASE}/player-two.jpg`} />
 
       case CELL_TYPE_UNKNOWN:
-        return <img alt="Unknown" src={`${IMAGE_BASE}/unknown.jpg`} />
+        return <BlockImage alt="Unknown" src={`${IMAGE_BASE}/unknown.jpg`} />
 
       default:
         throw new Error(`Unknown cell type: ${type}`);
@@ -38,6 +42,11 @@ class OceanCell extends React.PureComponent {
 
 const InlineTable = styled.table`
   display: inline-table;
+`;
+
+const SquareTd = styled.td`
+  height: 50px;
+  width: 50px;
 `;
 
 export class OceanGrid extends React.PureComponent {
@@ -64,11 +73,11 @@ export class OceanGrid extends React.PureComponent {
     });
 
     return (
-      <InlineTable>
+      <InlineTable cellSpacing="0" cellPadding="0">
         <tbody>
           {rows.map((row, rowIdx) => (
             <tr key={rowIdx}>
-              {row.map((cell, cellIdx) => <td key={cellIdx} align="center" valign="center">{cell}</td>)}
+              {row.map((cell, cellIdx) => <SquareTd key={cellIdx} align="center" valign="center">{cell}</SquareTd>)}
             </tr>
           ))}
         </tbody>
