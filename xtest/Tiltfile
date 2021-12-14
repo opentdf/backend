@@ -83,7 +83,7 @@ k8s_yaml(
 #                                                                  
 
 docker_build(
-    "opentdf/python-base:3.9",
+    "opentdf/python-base:{}".format(PY_VERSION),
     "../containers/python_base",
     build_args = {"ALPINE_VERSION": ALPINE_VERSION, "PY_VERSION":PY_VERSION},
 )

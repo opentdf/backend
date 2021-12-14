@@ -1,4 +1,4 @@
-ARG PY_VERSION=3.9
+ARG PY_VERSION=3.10
 
 # stage - build
 FROM opentdf/python-base:${PY_VERSION} AS build
