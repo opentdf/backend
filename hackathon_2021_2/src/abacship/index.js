@@ -20,22 +20,16 @@ const BlockImage = styled.img`
 class OceanCell extends React.PureComponent {
   render() {
     const { type } = this.props;
-    switch (type) {
-      case CELL_TYPE_OCEAN:
-        return <BlockImage alt="Ocean" src={`${IMAGE_BASE}/ocean.jpg`} />
-
-      case CELL_TYPE_PLAYER_ONE:
-        return <BlockImage alt="Player One" src={`${IMAGE_BASE}/player-one.jpg`} />
-
-      case CELL_TYPE_PLAYER_TWO:
-        return <BlockImage alt="Player Two" src={`${IMAGE_BASE}/player-two.jpg`} />
-
-      case CELL_TYPE_UNKNOWN:
-        return <BlockImage alt="Unknown" src={`${IMAGE_BASE}/unknown.jpg`} />
-
-      default:
-        throw new Error(`Unknown cell type: ${type}`);
-    }
+    // Return a group of images to facilitate CSS transitions.
+    // Only the actual image for the cell value should be displayed at a time.
+    return (
+      <>
+        <BlockImage alt="Unknown" src={`${IMAGE_BASE}/unknown.jpg`} className={type === CELL_TYPE_UNKNOWN ? "unknown-value" : "unknown-value unknown-value-hidden"} />
+        <BlockImage alt="Ocean" src={`${IMAGE_BASE}/ocean.jpg`} className={type === CELL_TYPE_OCEAN ? "actual-value" : "actual-value-hidden"} />
+        <BlockImage alt="Player One" src={`${IMAGE_BASE}/player-one.jpg`} className={type === CELL_TYPE_PLAYER_ONE ? "actual-value" : "actual-value-hidden"} />
+        <BlockImage alt="Player Two" src={`${IMAGE_BASE}/player-two.jpg`} className={type === CELL_TYPE_PLAYER_TWO ? "actual-value" : "actual-value-hidden"} />
+      </>
+    );
   }
 }
 
@@ -47,6 +41,26 @@ const InlineTable = styled.table`
 const SquareTd = styled.td`
   height: 50px;
   width: 50px;
+`;
+
+const SquareTdDiv = styled.div`
+  width: 100%;
+  height: 100%;
+  transition: transform 1s;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  position: relative;
+`;
+
+const SquareTdDivFlip = styled.div`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  line-height: 50px;
+  text-align: center;
+  font-weight: bold;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 `;
 
 export class OceanGrid extends React.PureComponent {
@@ -93,7 +107,11 @@ export class OceanGrid extends React.PureComponent {
                   valign="center"
                   onClick={() => this.onCellClicked(rowIdx - 1, colIdx - 1)}
                 >
-                  {cell}
+                  <SquareTdDiv className={`index${colIdx}-${rowIdx} ${rowIdx > 0 && colIdx > 0 && grid[rowIdx-1][colIdx-1] !== CELL_TYPE_UNKNOWN ? 'revealed' : 'unrevealed'}`}>
+                  <SquareTdDivFlip className="inner_box" >
+                    {cell}
+                    </SquareTdDivFlip>
+                  </SquareTdDiv>
                 </SquareTd>
               ))}
             </tr>

@@ -3,6 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <title>ABACShips</title>
+  <style>
+.unknown-value {
+    opacity: 1;
+    display: block;
+}
+
+.revealed {
+  transform: rotateY(360deg);
+
+}
+
+.actual-value-hidden,.unknown-value-hidden {
+    opacity: 0;
+    display: none!important;
+}
+
+.actual-value {
+    opacity: 1;
+    transform: rotateY(180deg);
+}
+      </style>
 </head>
 <body>
   <div id="react-root"></div>
