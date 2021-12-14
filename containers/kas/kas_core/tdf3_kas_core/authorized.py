@@ -6,6 +6,7 @@ import os
 import re
 
 from datetime import datetime, timedelta
+from cryptography.hazmat.primitives import serialization
 
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import JWTError
@@ -117,6 +118,7 @@ def authorized_v2(public_key, auth_token):
 
     try:
         decoded = jwt.decode(
+            auth_token, public_key, audience=audience, algorithms=["RS256", "ES256", "ES384", "ES512"], leeway=leeway
         )
     except Exception as e:
         pem = public_key.public_bytes(
