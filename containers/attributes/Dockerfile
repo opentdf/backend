@@ -30,12 +30,9 @@ COPY --from=build --chown=root:root /build/ .
 # NOTE - the python version needs to be specified in the following COPY command:
 COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
-RUN ls -lt
-RUN ls -lt containers
-RUN ls -lt containers/python_base
 
 # Server
-ENV SERVER_ROOT_PATH "/"
+ENV SERVER_ROOT_PATH "/attributes"
 ENV SERVER_PORT "4020"
 ENV SERVER_PUBLIC_NAME ""
 ENV SERVER_LOG_LEVEL "INFO"
@@ -55,7 +52,7 @@ ENV OIDC_SERVER_URL ""
 ENV OIDC_AUTHORIZATION_URL ""
 ENV OIDC_TOKEN_URL ""
 ENV OIDC_CONFIGURATION_URL ""
-# Disable OpenAPI
+# Disable OpenAPI or root_path/openapi.json
 ENV OPENAPI_URL ""
 
 ENTRYPOINT python3 -m uvicorn \

@@ -1,26 +1,18 @@
-# Default values for attributes.
+# Default values for abacus.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-rootPath: /
-openapiPath: /openapi.json
-publicName: "Attributes"
-corsOrigins: "localhost"
-logLevel: DEBUG
-
-postgres:
-  host: localhost
-  port: 5432
-  user: tdf_attribute_manager
-#  value from kubernetes secrets
-  password: ""
-  database: tdf_database
-  schema: tdf_attribute
+attributes:
+  serverUrl: ""
+oidc:
+  serverUrl: ""
+  clientId: ""
+  realm: ""
 
 replicaCount: 1
 
 image:
-  repository: virtru/tdf-attribute-authority-service
+  repository: opentdf/abacus
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -53,7 +45,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 4020
+  port: 80
 
 ingress:
   enabled: false

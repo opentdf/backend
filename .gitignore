@@ -44,3 +44,5 @@ kubeconfig
 
 # Helm
 /.helm/
+/deployments/eks/.helm/
+/deployments/eks/tilt_modules/
