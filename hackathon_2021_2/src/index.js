@@ -2,4 +2,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-ReactDOM.render(<span>Hi</span>, document.getElementById("react-root"));
+import ABACShip from './abacship';
+
+ReactDOM.render(<ABACShip />, document.getElementById("react-root"));
