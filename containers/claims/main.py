@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import os
 import sys
 from enum import Enum
@@ -15,6 +16,8 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
 app = FastAPI()
+
+logger = logging.getLogger(__package__)
 
 # application
 ENTITY_ID_HEADER = os.getenv("ENTITY_ID_HEADER")
@@ -49,6 +52,7 @@ engine = sqlalchemy.create_engine(
 
 @app.middleware("http")
 async def add_response_headers(request: Request, call_next):
+    logger.info(f"REQUEST_METHOD {request.method} {request.url}")
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
@@ -147,6 +151,8 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
 
 @app.post("/v1/entity_object", response_model=EntityObject)
 async def create_entity_object(eo_request: EntityObjectRequest, request: Request):
+    logger.warn("eo_request [%s]", eo_request)
+
     # validate
     if ENTITY_ID_HEADER and ENTITY_ID_HEADER not in request.headers:
         raise HTTPException(

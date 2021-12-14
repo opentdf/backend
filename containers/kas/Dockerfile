@@ -84,4 +84,4 @@ ENV STATSD_PORT "8125"
 EXPOSE 8000
 
 # Start green unicorn. It reads the environment variables set above.
-ENTRYPOINT gunicorn --statsd-host "${STATSD_HOST}:${STATSD_PORT}" --statsd-prefix "service.kas" --config "gunicorn.conf.py" --bind ":8000" wsgi:app
+ENTRYPOINT gunicorn --statsd-host "${STATSD_HOST}:${STATSD_PORT}" --limit-request-field_size 65535 --statsd-prefix "service.kas" --config "gunicorn.conf.py" --bind ":8000" wsgi:app

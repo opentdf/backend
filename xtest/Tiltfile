@@ -84,24 +84,33 @@ docker_build(
     build_args = {"ALPINE_VERSION": "3.13", "PY_VERSION":"3.9"},
 )
 
-for microservice in ["claims", "kas"]:
-  image_name = "opentdf/" + microservice
-  context = "../containers/" + microservice
-  docker_build(
-      image_name,
-      build_args = {"PY_VERSION":"3.9"},
-      context = context,
-      live_update = [
-          sync(context, "/app"),
-          run("cd /app && pip install -r requirements.txt", trigger = context + "/requirements.txt"),
-      ],
-  )
+docker_build(
+    "opentdf/claims",
+    build_args = {"PY_VERSION":"3.9"},
+    container_args = ["--reload"],
+    context = "../containers/claims",
+    live_update = [
+        sync("../containers/claims", "/app"),
+        run("cd /app && pip install -r requirements.txt", trigger = "../containers/claims/requirements.txt"),
+    ],
+)
+
+docker_build(
+    "opentdf/kas",
+    build_args = {"PY_VERSION":"3.9"},
+    context = "../containers/kas",
+    live_update = [
+        sync("../containers/claims", "/app"),
+        run("cd /app && pip install -r requirements.txt", trigger = "../containers/claims/requirements.txt"),
+    ],
+)
 
 for microservice in ["attributes", "entitlements"]:
   image_name = "opentdf/" + microservice
   docker_build(
       image_name,
       build_args = {"PY_VERSION":"3.9"},
+      container_args = ["--reload"],
       context = "../containers",
       dockerfile = "../containers/" + microservice + "/Dockerfile",
       live_update = [
@@ -139,12 +148,17 @@ k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql"])
 k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
 k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
 
+
+# We need to have big headers for the huge bearer tokens we pass around
+# https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
 helm_remote(
     "ingress-nginx",
     repo_name="xtest-ingress-nginx",
     repo_url="https://kubernetes.github.io/ingress-nginx",
+    set=["controller.config.large-client-header-buffers=20 32k"],
     version="4.0.1",
 )
+
 helm_remote(
     "keycloak",
     repo_name="xtest-bitnami",
