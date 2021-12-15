@@ -1,0 +1,39 @@
+abacus:
+  attributes:
+    serverUrl: ""
+  oidc:
+    serverUrl: ""
+    clientId: ""
+    realm: ""
+
+attributes:
+  rootPath: /attributes
+  publicName: "Attributes"
+  logLevel: DEBUG
+  postgres:
+    host: localhost
+    port: 5432
+    user: tdf_attribute_manager
+  #  value from kubernetes secrets
+    password: ""
+    database: tdf_database
+    schema: tdf_attribute
+  oidc:
+    clientId: tdf-attributes
+    clientSecret: ""
+    realm: master
+#    trailing / is required
+    serverUrl: http://keycloak/auth/
+    configurationUrl: http://opentdf-keycloak/auth/realms/tdf/.well-known/openid-configuration
+    authorizationUrl: https://keycloak.opentdf.us/keycloak/auth/realms/tdf/protocol/openid-connect/auth
+    tokenUrl: https://keycloak.opentdf.us/keycloak/auth/realms/tdf/protocol/openid-connect/token
+  ingress:
+    enabled: true
+    hosts:
+      - host: opentdf.us
+        paths:
+          - path: /attributes(/|$)(.*)
+            pathType: Prefix
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/rewrite-target: /$2

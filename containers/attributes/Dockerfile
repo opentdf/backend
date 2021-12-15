@@ -1,15 +1,19 @@
 # NOTE - The version is also needed in the site-packages COPY command below
-ARG PY_VERSION=3.9
-ARG ALPINE_VERSION=3.13
+# context must be parent folder
+ARG PY_VERSION=3.10
+ARG ALPINE_VERSION=3.15
 
 # stage - build
 FROM virtru/tdf-python-base:${PY_VERSION} AS build
 WORKDIR /build
 # Install application dependencies
-COPY requirements.txt .
+COPY attributes/requirements.txt .
 RUN pip3 install --no-cache-dir --requirement requirements.txt
 # Install application into WORKDIR
-COPY main.py .
+COPY __init__.py .
+COPY __init__.py containers/
+COPY python_base/*.py containers/python_base/
+COPY attributes/*.py containers/attributes/
 # Compile application
 RUN python3 -m compileall .
 
@@ -28,7 +32,7 @@ COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-pack
 # add any new deployable directories and files from the build stage here
 
 # Server
-ENV SERVER_ROOT_PATH "/"
+ENV SERVER_ROOT_PATH ""
 ENV SERVER_PORT "4020"
 ENV SERVER_PUBLIC_NAME ""
 ENV SERVER_LOG_LEVEL "INFO"
@@ -48,7 +52,7 @@ ENV OIDC_SERVER_URL ""
 ENV OIDC_AUTHORIZATION_URL ""
 ENV OIDC_TOKEN_URL ""
 ENV OIDC_CONFIGURATION_URL ""
-# Disable OpenAPI
+# Disable OpenAPI or root_path/openapi.json
 ENV OPENAPI_URL ""
 
 ENTRYPOINT python3 -m uvicorn \
@@ -57,5 +61,6 @@ ENTRYPOINT python3 -m uvicorn \
     --root-path ${SERVER_ROOT_PATH} \
     --no-use-colors \
     --no-server-header \
-    --log-level error \
-    main:app
+    --log-level ${SERVER_LOG_LEVEL} \
+    --app-dir ./containers \
+    attributes.main:app
