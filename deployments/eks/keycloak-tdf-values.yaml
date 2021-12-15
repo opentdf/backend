@@ -23,7 +23,7 @@ extraEnvVars:
     value: keycloakadmin
   - name: KEYCLOAK_PASSWORD
     value: mykeycloakpassword
-  - name: ATTRIBUTE_PROVIDER_URL
+  - name: CLAIMS_URL
     value: http://opentdf-claims:4010/v1/claims_object
   - name: KEYCLOAK_EXTRA_ARGS
     value: "-Dkeycloak.frontendUrl=https://keycloak.opentdf.us/auth -Dkeycloak.adminUrl=https://keycloak.opentdf.us/auth"

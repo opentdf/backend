@@ -1,6 +1,0 @@
-name: 'attribute-provider'
-image:
-  name: opentdf/claim-test-webservice:0.2.4
-port: 5000
-
-replicaCount: 1

@@ -69,7 +69,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
                 ProviderConfigProperty.BOOLEAN_TYPE, "false"));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Attribute Provider URL",
-                "Full URL of the remote attribute provider service endpoint. Overrides the \"ATTRIBUTE_PROVIDER_URL\" environment variable setting",
+                "Full URL of the remote attribute provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
                 ProviderConfigProperty.STRING_TYPE, null));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_PARAMETERS, "Parameters",
@@ -241,7 +241,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
         RegisterBuiltin.register(instance);
         instance.registerProvider(ResteasyJackson2Provider.class);
-        final String url = mappingModel.getConfig().get(REMOTE_URL) == null ? System.getenv("ATTRIBUTE_PROVIDER_URL"): mappingModel.getConfig().get(REMOTE_URL);
+        final String url = mappingModel.getConfig().get(REMOTE_URL) == null ? System.getenv("CLAIMS_URL"): mappingModel.getConfig().get(REMOTE_URL);
         logger.info("Request attributes for subject: [" + token.getSubject() + "] within [" + token + "]");
         CloseableHttpResponse response = null;
         try {

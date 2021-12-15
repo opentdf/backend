@@ -24,14 +24,6 @@ services:
       dockerfile: Dockerfile
     image: opentdf/kas:${SERVICE_IMAGE_TAG:-virtrulocal}
 
-  attribute_provider:
-    build:
-      context: ./containers/attribute_provider
-      args:
-        - PY_VERSION=${PY_VERSION:-3.9}
-      dockerfile: Dockerfile
-    image: opentdf/claim-test-webservice:${SERVICE_IMAGE_TAG:-virtrulocal}
-
   keycloak:
     build:
       context: ./containers/keycloak-protocol-mapper

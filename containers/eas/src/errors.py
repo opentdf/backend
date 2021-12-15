@@ -61,7 +61,6 @@ class AlreadyExistsError(Error):  # noqa: D204
 
 class AttributeExistsError(AlreadyExistsError):  # noqa: D204
     """Raise when attribute already exists."""
-
     pass
 
 

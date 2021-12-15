@@ -92,7 +92,7 @@ public class AttributeOIDCProtocolMapperTest {
         commonSetup("12345", false, false);
         Assertions.assertThrows(JsonRemoteClaimException.class, () ->
                 assertTransformAccessToken_WithPKHeader(), " Error when accessing remote claim - Configured URL: "
-                + System.getenv("ATTRIBUTE_PROVIDER_URL"));
+                + System.getenv("CLAIMS_URL"));
     }
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "env")
