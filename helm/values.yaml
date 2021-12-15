@@ -1,3 +1,11 @@
+abacus:
+  attributes:
+    serverUrl: ""
+  oidc:
+    serverUrl: ""
+    clientId: ""
+    realm: ""
+
 attributes:
   rootPath: /attributes
   publicName: "Attributes"

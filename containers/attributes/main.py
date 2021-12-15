@@ -28,7 +28,7 @@ from containers.python_base.filter_sort import get_query
 from containers.python_base.pagination import Pagination
 
 logging.basicConfig(
-    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL)
+    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL).upper()
 )
 logger = logging.getLogger(__package__)
 
@@ -43,12 +43,15 @@ swagger_ui_init_oauth = {
 
 class Settings(BaseSettings):
     openapi_url: str = "/openapi.json"
+    base_path: str = os.getenv("SERVER_ROOT_PATH", "")
 
 
 settings = Settings()
 
 app = FastAPI(
     debug=True,
+    root_path=os.getenv("SERVER_ROOT_PATH", ""),
+    servers=[{"url": settings.base_path}],
     swagger_ui_init_oauth=swagger_ui_init_oauth,
     openapi_url=settings.openapi_url,
 )

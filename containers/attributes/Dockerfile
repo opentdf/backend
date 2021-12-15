@@ -32,7 +32,7 @@ COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-pack
 # add any new deployable directories and files from the build stage here
 
 # Server
-ENV SERVER_ROOT_PATH "/attributes"
+ENV SERVER_ROOT_PATH ""
 ENV SERVER_PORT "4020"
 ENV SERVER_PUBLIC_NAME ""
 ENV SERVER_LOG_LEVEL "INFO"
@@ -61,6 +61,6 @@ ENTRYPOINT python3 -m uvicorn \
     --root-path ${SERVER_ROOT_PATH} \
     --no-use-colors \
     --no-server-header \
-    --log-level error \
+    --log-level ${SERVER_LOG_LEVEL} \
     --app-dir ./containers \
     attributes.main:app

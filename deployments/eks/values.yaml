@@ -5,7 +5,7 @@ global:
 
 abacus:
   attributes:
-    serverUrl: ""
+    serverUrl: https://opentdf.us/v2/attributes
   oidc:
 #    serverUrl: https://keycloak.opentdf.us/auth/
     serverUrl: https://etheria-pflynn.com/keycloak/auth/
@@ -22,11 +22,11 @@ abacus:
       kubernetes.io/ingress.class: nginx
 
 attributes:
-  rootPath: /attributes
+  rootPath: /v2/attributes
   publicName: "Attributes"
   openapiPath: /openapi.json
   corsOrigins: "opentdf.us"
-  logLevel: DEBUG
+  logLevel: debug
   postgres:
     host: opentdf-postgresql
     port: 5432
@@ -39,8 +39,8 @@ attributes:
     clientSecret:
     realm: tdf
     #    trailing / is required
-    serverUrl: https://etheria-pflynn.com/auth/
-    configurationUrl: https://etheria-pflynn.com/auth/realms/tdf/.well-known/openid-configuration
+    serverUrl: https://etheria-pflynn.com/keycloak/auth/
+    configurationUrl: https://etheria-pflynn.com/keycloak/auth/realms/tdf/.well-known/openid-configuration
     authorizationUrl: https://etheria-pflynn.com/keycloak/auth/realms/tdf/protocol/openid-connect/auth
     tokenUrl: https://etheria-pflynn.com/keycloak/auth/realms/tdf/protocol/openid-connect/token
   ingress:
@@ -48,7 +48,7 @@ attributes:
     hosts:
       - host: opentdf.us
         paths:
-          - path: /attributes(/|$)(.*)
+          - path: /v2/attributes(/|$)(.*)
             pathType: Prefix
     annotations:
       kubernetes.io/ingress.class: nginx

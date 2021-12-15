@@ -1,0 +1,15 @@
+replicaCount: 1
+
+ingress:
+  enabled: true
+  hosts:
+    - host: opentdf.us
+      paths:
+        - /v2/echo
+  annotations:
+    kubernetes.io/ingress.class: nginx
+
+application:
+  logs:
+    ignore:
+      ping: true
