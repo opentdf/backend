@@ -2,6 +2,9 @@
 import React from 'react';
 import styled from 'styled-components';
 
+import getTDFData from './tdfs.js';
+
+
 const ROW_INDICATORS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 const COL_INDICATORS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
@@ -130,8 +133,17 @@ const CenteredDiv = styled.div`
 `;
 
 const REVEALED_CELL_TYPES = [CELL_TYPE_OCEAN, CELL_TYPE_PLAYER_ONE, CELL_TYPE_PLAYER_TWO];
-function randomRevealedCell() {
+function randomRevealedCell(rowIdx, colIdx) {
   return REVEALED_CELL_TYPES[Math.floor(Math.random() * REVEALED_CELL_TYPES.length)];
+}
+
+function revealCell(rowIdx, colIdx) {
+  //window.alert("rowIdx" + rowIdx + " colIdx=" + colIdx)
+  window.alert("getTDFData(r,c)=" + getTDFData(rowIdx,colIdx))
+  if (getTDFData(rowIdx, colIdx) === "ocean") return CELL_TYPE_OCEAN;
+  if (getTDFData(rowIdx, colIdx) === "ship1") return CELL_TYPE_PLAYER_ONE;
+  if (getTDFData(rowIdx, colIdx) === "ship2") return CELL_TYPE_PLAYER_TWO;
+  return CELL_TYPE_PLAYER_TWO;
 }
 
 function getAudioForCell(cell) {
@@ -182,7 +194,7 @@ export default class ABACShip extends React.Component {
       oldRow.forEach((oldCell, oldColIdx) => {
         if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
           // This is the cell we are revealing.
-          const cell = randomRevealedCell();
+          const cell = revealCell(rowIdx, colIdx);
           const audioForCell = getAudioForCell(cell);
           if (audioForCell !== null) {
             audioForCell.play();
@@ -212,7 +224,7 @@ export default class ABACShip extends React.Component {
       oldRow.forEach((oldCell, oldColIdx) => {
         if (rowIdx === oldRowIdx && colIdx === oldColIdx) {
           // This is the cell we are revealing.
-          const cell = randomRevealedCell();
+          const cell = revealCell(rowIdx, colIdx);
           const audioForCell = getAudioForCell(cell);
           if (audioForCell !== null) {
             audioForCell.play();
