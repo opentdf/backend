@@ -8,6 +8,7 @@ logging.basicConfig()
 logger = logging.getLogger("keycloak_bootstrap")
 logger.setLevel(logging.DEBUG)
 
+
 def main():
     logger.info("Running Keycloak bootstrap")
     kc_bootstrap()

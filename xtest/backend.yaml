@@ -548,15 +548,15 @@ spec:
             - name: realm
               value: tdf
             - name: ATTRIBUTE_AUTHORITY_HOST
-              value: http://opentdf-attributes
+              value: http://opentdf-attributes:4020
             - name: ENTITLEMENT_HOST
-              value: http://opentdf-entitlements
+              value: http://opentdf-entitlements:4030
             - name: ENTITLEMENT_CLIENT_ID
-              value: tdf-client
+              value: dcr-test
             - name: ENTITLEMENT_USERNAME
-              value: keycloakadmin
+              value: user1
             - name: ENTITLEMENT_PASSWORD
-              value: mykeycloakpassword
+              value: testuser123
           volumeMounts:
             - name: bootstrap-keycloak-config-volume
               mountPath: /etc/virtru-config
@@ -574,39 +574,30 @@ metadata:
 data:
   entitlements.yaml: |-
     tdf-user:
-      subject_attributes:
-        - attribute: https://example.com/attr/Classification/value/C
-        - attribute: https://example.com/attr/COI/value/PRX
+      - https://example.com/attr/Classification/value/C
+      - https://example.com/attr/COI/value/PRX
     tdf-client:
-      subject_attributes:
-        - attribute: https://example.com/attr/Classification/value/S
-        - attribute: https://example.com/attr/COI/value/PRX
-        - attribute: https://example.com/attr/Env/value/CleanRoom
+      - https://example.com/attr/Classification/value/S
+      - https://example.com/attr/COI/value/PRX
+      - https://example.com/attr/Env/value/CleanRoom
     user1:
-      subject_attributes:
-        - attribute: https://.com/attr/Classification/value/S
-        - attribute: https://.com/attr/COI/value/PRX
+      - https://example.com/attr/Classification/value/S
+      - https://example.com/attr/COI/value/PRX
     browsertest:
-      subject_attributes:
-        - attribute: https://.com/attr/Classification/value/C
-        - attribute: https://.com/attr/COI/value/PRA
+      - https://example.com/attr/Classification/value/C
+      - https://example.com/attr/COI/value/PRA
     service-account-tdf-client:
-      subject_attributes:
-        - attribute: https://.com/attr/Classification/value/C
-        - attribute: https://.com/attr/COI/value/PRB
+      - https://example.com/attr/Classification/value/C
+      - https://example.com/attr/COI/value/PRB
     bob_1234:
-      subject_attributes:
-        - attribute: https://.com/attr/Classification/value/C
-        - attribute: https://.com/attr/COI/value/PRC
+      - https://example.com/attr/Classification/value/C
+      - https://example.com/attr/COI/value/PRC
     alice_1234:
-      subject_attributes:
-        - attribute: https://.com/attr/Classification/value/C
-        - attribute: https://.com/attr/COI/value/PRD
+      - https://example.com/attr/Classification/value/C
+      - https://example.com/attr/COI/value/PRD
     client_x509:
-      subject_attributes:
-        - attribute: https://.com/attr/Classification/value/S
-        - attribute: https://.com/attr/COI/value/PRX
+      - https://example.com/attr/Classification/value/S
+      - https://example.com/attr/COI/value/PRX
     dcr-test:
-      subject_attributes:
-        - attribute: https://.com/attr/Classification/value/C
-        - attribute: https://.com/attr/COI/value/PRF
+      - https://example.com/attr/Classification/value/C
+      - https://example.com/attr/COI/value/PRF
