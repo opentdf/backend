@@ -3,7 +3,7 @@ ARG PY_VERSION=3.9
 ARG ALPINE_VERSION=3.13
 
 # stage - build
-FROM virtru/tdf-python-base:${PY_VERSION} AS build
+FROM opentdf/python-base:${PY_VERSION} AS build
 WORKDIR /build
 # Install application dependencies
 COPY Pipfile .
@@ -48,5 +48,5 @@ ENV POSTGRES_PASSWORD ""
 ENV POSTGRES_DATABASE ""
 ENV POSTGRES_SCHEMA "tdf_entitlement"
 
-EXPOSE 4010
-ENTRYPOINT python3 -m uvicorn --host 0.0.0.0 --port 4010 main:app
+EXPOSE 5000
+ENTRYPOINT python3 -m uvicorn --host 0.0.0.0 --port 5000 main:app

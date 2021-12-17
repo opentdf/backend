@@ -1,4 +1,4 @@
-# Default values for service_entity_object.
+# Default values for claims.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -6,8 +6,7 @@ replicaCount: 1
 
 image:
   pullPolicy: IfNotPresent
-  # value used in https://github.com/virtru/argocd/blob/main/kubernetes/k8s-mgmt/argo-events/etheria/sensor.yaml
-  repository: virtru/tdf-entity-object-service
+  repository: opentdf/claims
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 

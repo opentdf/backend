@@ -1,10 +1,11 @@
 # Context: opentdf/backend/containers
 # NOTE - The version is also needed in the site-packages COPY command below
+# Context: opentdf/backend/containers
 ARG PY_VERSION=3.9
 ARG ALPINE_VERSION=3.13
 
 # stage - build
-FROM virtru/tdf-python-base:${PY_VERSION} AS build
+FROM opentdf/python-base:${PY_VERSION} AS build
 WORKDIR /build
 # Install application dependencies
 COPY entitlements/requirements.txt .
@@ -38,7 +39,7 @@ ENV SERVER_CORS_ORIGINS ""
 # Postgres
 ENV POSTGRES_HOST ""
 ENV POSTGRES_PORT "5432"
-ENV POSTGRES_USER "tdf_entitlement_manager"
+ENV POSTGRES_USER "tdf_entitlements"
 ENV POSTGRES_PASSWORD ""
 ENV POSTGRES_DATABASE "tdf_database"
 ENV POSTGRES_SCHEMA "tdf_entitlement"
