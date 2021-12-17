@@ -6,7 +6,6 @@
 # is built before the other images are - the `build_all.sh` script will do this for you.
 version: "3.8"
 services:
-
   python-base:
     image: virtru/tdf-python-base:${PY_VERSION:-3.9}
     build:
