@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "service_entity_object.fullname" . }}
+  name: {{ include "claims.fullname" . }}
   labels:
-    {{- include "service_entity_object.labels" . | nindent 4 }}
+    {{- include "claims.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "service_entity_object.selectorLabels" . | nindent 6 }}
+      {{- include "claims.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "service_entity_object.selectorLabels" . | nindent 8 }}
+        {{- include "claims.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "service_entity_object.serviceAccountName" . }}
+      serviceAccountName: {{ include "claims.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -35,9 +35,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
           - secretRef:
-              name: entity-object-secrets
+              name: claims-secrets
           - configMapRef:
-              name: entity-object-cm
+              name: claims-cm
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

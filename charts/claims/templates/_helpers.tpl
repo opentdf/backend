@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "service_entity_object.name" -}}
+{{- define "claims.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "service_entity_object.fullname" -}}
+{{- define "claims.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "service_entity_object.chart" -}}
+{{- define "claims.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "service_entity_object.labels" -}}
-helm.sh/chart: {{ include "service_entity_object.chart" . }}
-{{ include "service_entity_object.selectorLabels" . }}
+{{- define "claims.labels" -}}
+helm.sh/chart: {{ include "claims.chart" . }}
+{{ include "claims.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "service_entity_object.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "service_entity_object.name" . }}
+{{- define "claims.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "claims.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "service_entity_object.serviceAccountName" -}}
+{{- define "claims.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "service_entity_object.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "claims.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
