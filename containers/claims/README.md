@@ -53,12 +53,12 @@ docker run --rm -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=myPo
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag virtru/tdf-entity-object-service:0.2.0 service_entity_object
+docker build --no-cache --tag opentdf/claims:0.2.0 claims
 ```
 
 ### secrets
 ```shell
-kubectl create secret generic entity-object-secrets \
+kubectl create secret generic claims-secrets \
   --from-literal=POSTGRES_PASSWORD=myPostgresPassword \
   --from-file=EAS_PRIVATE_KEY=certs/eas-private.pem \
   --from-file=KAS_CERTIFICATE=certs/kas-public.pem \
@@ -68,5 +68,5 @@ kubectl create secret generic entity-object-secrets \
 ### helm
 ```shell
 # from project root
-helm upgrade --install entity-object ./charts/service_entity_object --debug
+helm upgrade --install claims ./charts/claims --debug
 ```

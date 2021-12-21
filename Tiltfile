@@ -48,16 +48,14 @@ k8s_yaml(
 # builds
 docker_build("opentdf/python-base", context = "containers/python_base",
     build_args = {"ALPINE_VERSION": ALPINE_VERSION, "PY_VERSION": PY_VERSION})
-docker_build("opentdf/keycloak-bootstrap", context = "containers/keycloak-bootstrap",
-    build_args = {"PY_VERSION": PY_VERSION})
 docker_build("opentdf/keycloak", context = "containers/keycloak-protocol-mapper", build_args = {"MAVEN_VERSION": "3.8.4", "JDK_VERSION":"11", "KEYCLOAK_VERSION":"15.0.2"})
-docker_build("opentdf/attributess", context = "../containers",
-      dockerfile = "../containers/attributess/Dockerfile",
+docker_build("opentdf/attributes", context = "./containers",
+      dockerfile = "./containers/attributes/Dockerfile",
     build_args = {"PY_VERSION": PY_VERSION})
 docker_build("opentdf/claims", context = "containers/claims",
     build_args = {"PY_VERSION": PY_VERSION})
-docker_build("opentdf/entitlements", context = "../containers",
-      dockerfile = "../containers/entitlements/Dockerfile",
+docker_build("opentdf/entitlements", context = "./containers",
+      dockerfile = "./containers/entitlements/Dockerfile",
     build_args = {"PY_VERSION": PY_VERSION})
 docker_build("opentdf/kas", context = "containers/kas",
     build_args = {"PY_VERSION": PY_VERSION})
@@ -102,3 +100,8 @@ k8s_yaml(
 # resource dependencies
 k8s_resource("attributes", resource_deps=["tdf-postgresql"])
 k8s_resource("entitlements", resource_deps=["tdf-postgresql"])
+
+
+# TODO: Add a bootstrap job
+# docker_build("opentdf/keycloak-bootstrap", context = "containers/keycloak-bootstrap",
+#     build_args = {"PY_VERSION": PY_VERSION})

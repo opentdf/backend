@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "service_remote_payload.name" . }}-cm
+  name: {{ include "storage.name" . }}-cm
 data:
   BUCKET: {{ .Values.s3Bucket }}
   AWS_DEFAULT_REGION: {{ .Values.s3BucketRegion }}

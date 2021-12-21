@@ -30,8 +30,8 @@ pipenv run python3 main.py > openapi.json
 ### image
 ```shell
 # from project root
-TAG=`python3 -c "import service_remote_payload;print(service_remote_payload.__version__)"`
-docker build --no-cache --tag virtru/tdf-storage-service:${TAG} service_remote_payload
+TAG=`python3 -c "import storage;print(storage.__version__)"`
+docker build --no-cache --tag opentdf/storage:${TAG} storage
 ```
 
 ### secrets
@@ -45,7 +45,7 @@ kubectl create secret generic tdf-storage-secrets \
 ### helm
 ```shell
 # from project root
-helm upgrade --install --values deployments/local/values-tdf-storage-service.yaml tdf-storage-service ./charts/service_remote_payload --debug
+helm upgrade --install --values deployments/local/values-tdf-storage-service.yaml tdf-storage-service ./charts/storage --debug
 ```
 Then follow the `NOTES:`
 

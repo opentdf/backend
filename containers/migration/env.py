@@ -8,6 +8,7 @@ from alembic import context
 import os, sys
 import attributes.main as service_atribute_authority
 import entitlements.main as entitlements
+import service_entity.main as service_entity
 import claims.main as claims
 
 
@@ -37,6 +38,7 @@ fileConfig(config.config_file_name)
 target_metadata = [
     service_atribute_authority.metadata,
     entitlements.metadata,
+    service_entity.metadata,
     claims.metadata,
 ]
 

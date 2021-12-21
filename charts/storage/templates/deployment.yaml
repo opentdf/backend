@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "service_remote_payload.fullname" . }}
+  name: {{ include "storage.fullname" . }}
   labels:
-    {{- include "service_remote_payload.labels" . | nindent 4 }}
+    {{- include "storage.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "service_remote_payload.selectorLabels" . | nindent 6 }}
+      {{- include "storage.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "service_remote_payload.selectorLabels" . | nindent 8 }}
+        {{- include "storage.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "service_remote_payload.serviceAccountName" . }}
+      serviceAccountName: {{ include "storage.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -35,9 +35,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - secretRef:
-                name: {{ include "service_remote_payload.name" . }}-secrets
+                name: {{ include "storage.name" . }}-secrets
             - configMapRef:
-                name: {{ include "service_remote_payload.name" . }}-cm
+                name: {{ include "storage.name" . }}-cm
           ports:
             - name: http
               containerPort: 4050
