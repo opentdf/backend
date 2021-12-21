@@ -165,8 +165,6 @@ helm_remote(
     version="10.9.5",
 )
 
-k8s_resource('bootstrap-keycloak', resource_deps=['keycloak'])
-
 #     o8o                                                              
 #     `"'                                                              
 #    oooo  ooo. .oo.    .oooooooo oooo d8b  .ooooo.   .oooo.o  .oooo.o 
@@ -207,3 +205,5 @@ docker_build(
     "../containers/keycloak-bootstrap",
     build_args = {"ALPINE_VERSION": ALPINE_VERSION, "PY_VERSION":PY_VERSION},
 )
+
+k8s_resource('bootstrap-keycloak', resource_deps=['keycloak', 'opentdf-entitlements'])
