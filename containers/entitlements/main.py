@@ -279,10 +279,11 @@ async def read_relationship():
     "/entitlements",
     tags=["Entitlements"],
     response_model=List[Entitlements],
-    # dependencies=[Depends(get_auth)],
+    dependencies=[Depends(get_auth)],
 )
 async def read_entitlements(
     authority: Optional[AuthorityUrl] = None,
+    entityId: Optional[str] = None,
     name: Optional[str] = None,
     order: Optional[str] = None,
     sort: Optional[str] = Query(
@@ -296,6 +297,8 @@ async def read_entitlements(
     if authority:
         # TODO lookup authority (namespace_id) and get id
         filter_args["namespace_id"] = authority
+    if entityId:
+        filter_args["entity_id"] = entityId
     if name:
         filter_args["name"] = name
     if order:
@@ -371,8 +374,7 @@ async def read_entity_attribute_relationship(entityId: str):
 
 
 @app.post(
-    "/entitlements/{entityId}",
-    tags=["Entitlements"],  # , dependencies=[Depends(get_auth)]
+    "/entitlements/{entityId}", tags=["Entitlements"], dependencies=[Depends(get_auth)]
 )
 async def add_entitlements_to_entity(
     entityId: str,
@@ -453,7 +455,7 @@ async def create_attribute_entity_relationship(
     "/entitlements/{entityId}",
     tags=["Entitlements"],
     status_code=ACCEPTED,
-    # dependencies=[Depends(get_auth)],
+    dependencies=[Depends(get_auth)],
 )
 async def remove_entitlement_from_entity(
     entityId: str,

@@ -4,6 +4,8 @@
 
 attributes:
   serverUrl: ""
+entitlements:
+  serverUrl: ""
 oidc:
   serverUrl: ""
   clientId: ""

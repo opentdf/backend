@@ -6,6 +6,8 @@ global:
 abacus:
   attributes:
     serverUrl: https://opentdf.us/v2/attributes
+  entitlements:
+    serverUrl: https://opentdf.us/v2/entitlements
   oidc:
     serverUrl: https://keycloak.opentdf.us/auth/
     clientId: opentdf-us-abacus
