@@ -10,6 +10,8 @@ COPY requirements.txt .
 RUN pip3 install --no-cache-dir --requirement requirements.txt
 # Install application into WORKDIR
 COPY main.py .
+COPY __init__.py .
+COPY tests ./tests
 # Compile application
 RUN python3 -m compileall .
 
