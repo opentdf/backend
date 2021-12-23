@@ -10,14 +10,12 @@ allow_k8s_contexts('arn:aws:eks:us-west-2:318258757195:cluster/opentdf')
 # namespace
 k8s_yaml(namespace_yaml('ingress-nginx'))
 k8s_yaml(namespace_yaml('opentdf'))
-#k8s_yaml(namespace_yaml('keycloak'))
 
 # helm remote resources
 # https://kubernetes.github.io/ingress-nginx/deploy/
 helm_remote('ingress-nginx', namespace='ingress-nginx', repo_url='https://kubernetes.github.io/ingress-nginx', values=['ingress-values.yaml'])
 helm_remote('postgresql', repo_url='https://charts.bitnami.com/bitnami', release_name='opentdf', namespace='opentdf', values=['tdf-postgresql-values.yaml'])
 helm_remote('statsd', repo_url='https://keyporttech.github.io/helm-charts', release_name='opentdf', namespace='opentdf')
-#helm_remote('keycloak', version='5.1.1', repo_url='https://charts.bitnami.com/bitnami', namespace='keycloak', values=['keycloak-tdf-values.yaml'])
 
 # https://github.com/Ealenn/Echo-Server
 helm_remote('echo-server', release_name='opentdf', repo_url='https://ealenn.github.io/charts', values=['echo-values.yaml'])
@@ -27,6 +25,8 @@ update_settings(suppress_unused_image_warnings=["virtru/opentdf-base"])
 docker_build('virtru/tdf-python-base', '../../containers/python_base')
 # rename to opentdf/attributes
 docker_build('virtru/tdf-attribute-authority-service', '../../containers', dockerfile = '../../containers/attributes/Dockerfile')
+docker_build('virtru/tdf-entitlement-service', '../../containers', dockerfile = '../../containers/entitlements/Dockerfile')
+
 
 # helm charts
 # usage https://docs.tilt.dev/helm.html#helm-options

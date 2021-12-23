@@ -13,6 +13,7 @@ from asyncpg import UniqueViolationError
 from fastapi import Depends
 from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi import Security, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.security import OpenIdConnect
@@ -37,7 +38,7 @@ swagger_ui_init_oauth = {
     "clientId": os.getenv("OIDC_CLIENT_ID"),
     "realm": os.getenv("OIDC_REALM"),
     "appName": os.getenv("SERVER_PUBLIC_NAME"),
-    "scopes": ["email"],
+    "scopes": [os.getenv("OIDC_SCOPES")],
 }
 
 
@@ -54,6 +55,14 @@ app = FastAPI(
     servers=[{"url": settings.base_path}],
     swagger_ui_init_oauth=swagger_ui_init_oauth,
     openapi_url=settings.openapi_url,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=(os.environ.get("SERVER_CORS_ORIGINS", "").split(",")),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 oauth2_scheme = OAuth2AuthorizationCodeBearer(

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "attributes.name" . }}-cm
+  name: {{ include "entitlements.name" . }}-cm
 data:
   OPENAPI_URL: {{ .Values.openapiPath }}
   SERVER_ROOT_PATH: {{ .Values.rootPath }}

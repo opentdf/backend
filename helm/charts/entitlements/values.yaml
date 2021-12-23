@@ -1,24 +1,24 @@
-# Default values for attributes.
+# Default values for entitlements.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 rootPath: /
 openapiPath: /openapi.json
-publicName: "Attributes"
+publicName: "Entitlements"
 corsOrigins: "http://localhost:3000"
 logLevel: DEBUG
 
 postgres:
   host: localhost
   port: 5432
-  user: tdf_attribute_manager
+  user: tdf_entitlement_manager
 #  value from kubernetes secrets
   password: ""
   database: tdf_database
-  schema: tdf_attribute
+  schema: tdf_entitlement
 
 oidc:
-  clientId: tdf-attributes
+  clientId: tdf-entitlements
   clientSecret: ""
   realm: master
   scopes: ""
@@ -28,10 +28,11 @@ oidc:
   authorizationUrl: https://keycloak.opentdf.us/keycloak/auth/realms/tdf/protocol/openid-connect/auth
   tokenUrl: https://keycloak.opentdf.us/keycloak/auth/realms/tdf/protocol/openid-connect/token
 
+
 replicaCount: 1
 
 image:
-  repository: virtru/tdf-attribute-authority-service
+  repository: virtru/tdf-entitlement-service
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -64,7 +65,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 4020
+  port: 4030
 
 ingress:
   enabled: false

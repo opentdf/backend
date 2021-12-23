@@ -22,6 +22,7 @@ attributes:
     clientId: tdf-attributes
     clientSecret: ""
     realm: master
+    scopes: ""
 #    trailing / is required
     serverUrl: http://keycloak/auth/
     configurationUrl: http://opentdf-keycloak/auth/realms/tdf/.well-known/openid-configuration

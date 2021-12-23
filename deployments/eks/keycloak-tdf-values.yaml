@@ -1,24 +1,13 @@
 image:
   repository: virtru/keycloak-h3-poc
   tag: 0.4.1
-#  image:
-#    repository: virtru/tdf-keycloak
-#    tag: "6459f0baabe470fccef0f69aa66a1f48036bac61"
+
 ##  https://artifacthub.io/packages/helm/bitnami/keycloak
 auth:
   createAdminUser: true
   adminUser: technoking
   adminPassword: mykeycloakpassword
-#  postgresql:
-#    enabled: false
-#    postgresqlUsername: postgres
-#    postgresqlPassword: mydbapassword
-#    postgresqlDatabase: keycloak_database
-#  externalDatabase:
-#    host: opentdf-postgresql
-#    user: postgres
-#    password: postgres
-#    database: keycloak_database
+
 extraEnvVars:
   - name: KEYCLOAK_LOG_LEVEL
     value: DEBUG
@@ -30,6 +19,7 @@ extraEnvVars:
     value: http://opentdf-attributes:4020/attributes
   - name: KEYCLOAK_EXTRA_ARGS
     value: "-Dkeycloak.frontendUrl=https://keycloak.opentdf.us/auth -Dkeycloak.adminUrl=https://keycloak.opentdf.us/auth"
+
 ingress:
   enabled: true
   annotations:
