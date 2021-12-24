@@ -379,6 +379,9 @@ async def add_entitlements_to_entity(
         Field(max_length=2000, exclusiveMaximum=2000),
     ],
 ):
+    return await add_entitlements_to_entity_crud(entityId, request)
+
+async def add_entitlements_to_entity_crud(entityId, request):
     rows = []
     for attribute_uri in request:
         attribute = parse_attribute_uri(attribute_uri)
@@ -393,7 +396,6 @@ async def add_entitlements_to_entity(
     query = table_entity_attribute.insert(rows)
     await database.execute(query)
     return request
-
 
 @app.get(
     "/v1/attribute/{attributeURI:path}/entity/",
@@ -460,6 +462,10 @@ async def remove_entitlement_from_entity(
         Field(max_length=2000, exclusiveMaximum=2000),
     ],
 ):
+
+    return await remove_entitlement_from_entity_crud(entityId, request)
+
+async def remove_entitlement_from_entity_crud(entityId, request):
     for item in request:
         try:
             attribute = parse_attribute_uri(item)
@@ -479,7 +485,6 @@ async def remove_entitlement_from_entity(
         )
         await database.execute(statement)
     return {}
-
 
 if __name__ == "__main__":
     print(json.dumps(app.openapi()), file=sys.stdout)
