@@ -33,6 +33,24 @@ def test_create_authorities(test_app, monkeypatch):
     assert response.json() == test_response
 
 # Test Attribute Definitions
+def test_read_attributes(test_app, monkeypatch):
+    test_data = [
+      "http://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
+      "http://opentdf.io/attr/IntellectualProperty/value/Proprietary",
+      "http://opentdf.io/attr/Top/value/V1",
+      "http://opentdf.io/attr/Top/value/V2"
+    ]
+    async def mock_read_attributes_crud(schema, db, filter, sort):
+        return test_data
+
+    monkeypatch.setattr(main, "read_attributes_crud", mock_read_attributes_crud)
+
+    response = test_app.get("/attributes")
+    assert response.status_code == 200
+    assert response.json() == test_data
+    print(response.headers)
+    assert response.headers['x-total-count'] == str(4)
+
 def test_create_attributes_definitions(test_app, monkeypatch):
     test_payload = {
       "authority": "https://opentdf.io",

@@ -302,9 +302,15 @@ async def read_entitlements(
 
     sort_args = sort.split(",") if sort else []
 
-    query = get_query(EntityAttributeSchema, db, filter_args, sort_args)
-    logger.debug(query)
-    results = query.all()
+    results = await read_entitlements_crud(EntityAttributeSchema, db, filter_args, sort_args)
+    
+    return pager.paginate(results)
+
+
+async def read_entitlements_crud(schema, db, filter_args, sort_args):
+    results = get_query(schema, db, filter_args, sort_args)
+    # logger.debug(query)
+    # results = query.all()
     # query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)
     # result = await database.fetch_all(query)
     # must be ordered by entity_id
@@ -324,8 +330,8 @@ async def read_entitlements(
     # add last
     if previous_entity_id:
         entitlements.append({previous_entity_id: previous_attributes})
-    return pager.paginate(entitlements)
 
+    return entitlements
 
 def parse_attribute_uri(attribute_uri):
     # harden, unit test

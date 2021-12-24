@@ -291,8 +291,14 @@ async def read_attributes(
 
     sort_args = sort.split(",") if sort else []
 
-    results = get_query(AttributeSchema, db, filter_args, sort_args)
+    results = await read_attributes_crud(AttributeSchema, db, filter_args, sort_args)
 
+    return pager.paginate(results)
+
+async def read_attributes_crud(schema, db, filter_args, sort_args):
+    results = get_query(schema, db, filter_args, sort_args)
+    # logger.debug(query)
+    # results = query.all()
     error = None
     #  TODO map authority (namespace_id) to id
     authorities = await read_authorities()
@@ -314,7 +320,7 @@ async def read_attributes(
         raise HTTPException(
             status_code=422, detail=f"attribute error: {str(error)}"
         ) from error
-    return pager.paginate(attributes)
+    return attributes
 
 
 #
