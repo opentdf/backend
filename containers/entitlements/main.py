@@ -285,10 +285,10 @@ async def read_entitlements(
     authority: Optional[AuthorityUrl] = None,
     entityId: Optional[str] = None,
     name: Optional[str] = None,
-    order: Optional[str] = None,
+    value: Optional[str] = None,
     sort: Optional[str] = Query(
         "",
-        regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
+        regex="^(-*((id)|(state)|(rule)|(name)|(value)),)*-*((id)|(state)|(rule)|(name)|(value))$",
     ),
     db: Session = Depends(get_db),
     pager: Pagination = Depends(Pagination),
@@ -296,13 +296,13 @@ async def read_entitlements(
     filter_args = {}
     if authority:
         # TODO lookup authority (namespace_id) and get id
-        filter_args["namespace_id"] = authority
+        filter_args["namespace"] = authority
     if entityId:
         filter_args["entity_id"] = entityId
     if name:
         filter_args["name"] = name
-    if order:
-        filter_args["values"] = order
+    if value:
+        filter_args["value"] = value
 
     sort_args = sort.split(",") if sort else []
 

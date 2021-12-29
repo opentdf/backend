@@ -57,7 +57,7 @@ ENV OIDC_CONFIGURATION_URL ""
 # Disable OpenAPI
 ENV OPENAPI_URL ""
 
-ENTRYPOINT python3 -m uvicorn \
+ENTRYPOINT env && python3 -m uvicorn \
     --host 0.0.0.0 \
     --port ${SERVER_PORT} \
     --root-path ${SERVER_ROOT_PATH} \
