@@ -13,3 +13,7 @@ dependencies:
     version: 0.1.0
   - name: entitlements
     version: 0.1.0
+  - name: claims
+    version: 0.1.0
+  - name: access
+    version: 0.1.0

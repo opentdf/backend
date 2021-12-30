@@ -26,6 +26,7 @@ docker_build('virtru/tdf-python-base', '../../containers/python_base')
 # rename to opentdf/attributes
 docker_build('virtru/tdf-attribute-authority-service', '../../containers', dockerfile = '../../containers/attributes/Dockerfile')
 docker_build('virtru/tdf-entitlement-service', '../../containers', dockerfile = '../../containers/entitlements/Dockerfile')
+docker_build('virtru/tdf-entity-object-service', '../../containers', dockerfile = '../../containers/claims/Dockerfile')
 
 
 # helm charts
@@ -34,3 +35,4 @@ k8s_yaml(helm('../../helm', 'opentdf', namespace='opentdf', values=['values.yaml
 
 # port forward
 k8s_resource('opentdf-postgresql', port_forwards='15432')
+k8s_resource('opentdf-claims', port_forwards='5000')
