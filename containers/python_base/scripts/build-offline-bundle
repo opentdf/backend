@@ -40,7 +40,7 @@ if ! make all-containers; then
   exit 1
 fi
 
-// TODO: Add abacus back!
+# TODO: Add abacus back!
 monolog TRACE "Building abacus container with tag [${SERVICE_IMAGE_TAG}]"
 if ! docker build \
         --target server \
