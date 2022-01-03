@@ -114,6 +114,7 @@ async def get_idp_public_key():
 
 DISABLE_ENTITLEMENTS_AUTH = os.getenv("DISABLE_ENTITLEMENTS_AUTH")
 
+
 async def get_auth(token: str = Security(oauth2_scheme)) -> Json | None:
     if DISABLE_ENTITLEMENTS_AUTH:
         return None
@@ -354,7 +355,9 @@ def parse_attribute_uri(attribute_uri):
     "/v1/entity/{entityId}/attribute",
     include_in_schema=False,
 )
-async def read_entity_attribute_relationship(entityId: str, auth_token=Depends(get_auth)):
+async def read_entity_attribute_relationship(
+    entityId: str, auth_token=Depends(get_auth)
+):
     query = table_entity_attribute.select().where(
         table_entity_attribute.c.entity_id == entityId
     )
@@ -372,7 +375,8 @@ async def read_entity_attribute_relationship(entityId: str, auth_token=Depends(g
 
 
 @app.post(
-    "/entitlements/{entityId}", tags=["Entitlements"],
+    "/entitlements/{entityId}",
+    tags=["Entitlements"],
 )
 async def add_entitlements_to_entity(
     entityId: str,
@@ -402,7 +406,9 @@ async def add_entitlements_to_entity(
     "/v1/attribute/{attributeURI:path}/entity/",
     include_in_schema=False,
 )
-async def get_attribute_entity_relationship(attributeURI: str, auth_token=Depends(get_auth)):
+async def get_attribute_entity_relationship(
+    attributeURI: str, auth_token=Depends(get_auth)
+):
     logger.debug(attributeURI)
     attribute = parse_attribute_uri(attributeURI)
     query = table_entity_attribute.select().where(
