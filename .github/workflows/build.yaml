@@ -59,7 +59,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./containers/python_base
-          tags: opentdf/tdf-python-base:3.9
+          tags: opentdf/python-base:3.9
           outputs: type=docker,dest=/tmp/tdf-python-base.tar
       - name: Upload artifact
         uses: actions/upload-artifact@v2
