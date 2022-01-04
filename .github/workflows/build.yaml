@@ -1,4 +1,6 @@
 name: Build Backend
+env:
+  registry: ${{ env.REGISTRY }}
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -59,7 +61,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./containers/python_base
-          tags: opentdf/python-base:3.9
+          tags: ${{ env.REGISTRY }}/opentdf/python-base:3.9
           outputs: type=docker,dest=/tmp/tdf-python-base.tar
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -70,6 +72,9 @@ jobs:
   build-and-publish-isolated:
     needs:
       - build-base
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -83,7 +88,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: opentdf/${{ matrix.repo }}
+          images: ${{ env.REGISTRY }}/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -92,7 +97,7 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifact
@@ -115,6 +120,9 @@ jobs:
   build-and-publish-with-shared-base:
     needs:
       - build-base
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -127,7 +135,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: opentdf/${{ matrix.repo }}
+          images: ${{ env.REGISTRY }}/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -136,7 +144,7 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifact
@@ -160,13 +168,16 @@ jobs:
 
   custom-keycloak-image:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v2
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: opentdf/keycloak
+          images: ${{ env.REGISTRY }}/opentdf/keycloak
           tags: |
             type=ref,event=branch
             type=sha
@@ -175,7 +186,7 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
