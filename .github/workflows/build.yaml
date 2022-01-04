@@ -1,6 +1,4 @@
 name: Build Backend
-env:
-  registry: ghcr.io
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -61,7 +59,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./containers/python_base
-          tags: ${{ env.REGISTRY }}/opentdf/python-base:3.9
+          tags: ghcr.io/opentdf/python-base:3.9
           outputs: type=docker,dest=/tmp/tdf-python-base.tar
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -88,7 +86,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY }}/opentdf/${{ matrix.repo }}
+          images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -97,7 +95,7 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifact
@@ -135,7 +133,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY }}/opentdf/${{ matrix.repo }}
+          images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -144,7 +142,7 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifact
@@ -177,7 +175,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ${{ env.REGISTRY }}/opentdf/keycloak
+          images: ghcr.io/opentdf/keycloak
           tags: |
             type=ref,event=branch
             type=sha
@@ -186,7 +184,7 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
