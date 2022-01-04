@@ -58,6 +58,10 @@ jobs:
       - name: Build and export
         uses: docker/build-push-action@v2
         with:
+          build-args: |-
+            ALPINE_VERSION=3.15
+            CONTAINER_REGISTRY=ghcr.io
+            PY_VERSION=3.10
           context: ./containers/python_base
           tags: ghcr.io/opentdf/python-base:3.9
           outputs: type=docker,dest=/tmp/tdf-python-base.tar
@@ -110,6 +114,10 @@ jobs:
       - name: publish
         uses: docker/build-push-action@v2
         with:
+          build-args: |-
+            ALPINE_VERSION=3.15
+            CONTAINER_REGISTRY=ghcr.io
+            PY_VERSION=3.10
           context: ./containers/${{ matrix.repo }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -157,6 +165,10 @@ jobs:
       - name: publish
         uses: docker/build-push-action@v2
         with:
+          build-args: |-
+            ALPINE_VERSION=3.15
+            CONTAINER_REGISTRY=ghcr.io
+            PY_VERSION=3.10
           context: ./containers
           file: ./containers/${{ matrix.repo }}/Dockerfile
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
@@ -190,6 +202,10 @@ jobs:
       - name: publish
         uses: docker/build-push-action@v2
         with:
+          build-args: |-
+            MAVEN_VERSION=3.8.4
+            JDK_VERSION=11
+            KEYCLOAK_VERSION=15.0.2
           context: ./containers/keycloak-protocol-mapper
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
