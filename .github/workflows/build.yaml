@@ -1,6 +1,6 @@
 name: Build Backend
 env:
-  registry: ${{ env.REGISTRY }}
+  registry: ghcr.io
 on:
   pull_request:
     types: [opened, synchronize, reopened]
