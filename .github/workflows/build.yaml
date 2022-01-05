@@ -90,7 +90,7 @@ jobs:
           context: ./containers/python_base
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
+          push: true
 
   build-and-publish-isolated:
     needs:
