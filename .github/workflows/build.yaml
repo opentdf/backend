@@ -53,6 +53,15 @@ jobs:
       - helm-lint-test
     steps:
       - uses: actions/checkout@v2
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/opentdf/python-base
+          tags: |
+            type=ref,event=branch
+            type=sha
+            3.10
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Build and export
@@ -63,8 +72,10 @@ jobs:
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
           context: ./containers/python_base
-          tags: ghcr.io/opentdf/python-base:3.10
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           outputs: type=docker,dest=/tmp/tdf-python-base.tar
+          push: true
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
