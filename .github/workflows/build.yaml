@@ -51,6 +51,9 @@ jobs:
     needs:
       - unittest
       - helm-lint-test
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v2
       - name: Docker meta
