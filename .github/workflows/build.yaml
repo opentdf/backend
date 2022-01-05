@@ -56,38 +56,20 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: ghcr.io/opentdf/python-base
           tags: |
-            type=ref,event=branch
-            type=sha
             3.10
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Build and export
-        uses: docker/build-push-action@v2
-        with:
-          build-args: |-
-            ALPINE_VERSION=3.15
-            CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.10
-          context: ./containers/python_base
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=docker,dest=/tmp/tdf-python-base.tar
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: tdf-python-base
-          path: /tmp/tdf-python-base.tar
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         uses: docker/build-push-action@v2
@@ -132,15 +114,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: tdf-python-base
-          path: /tmp
-      - name: Load image
-        run: |-
-          docker load --input /tmp/tdf-python-base.tar
-          docker image ls -a
       - name: publish
         uses: docker/build-push-action@v2
         with:
@@ -183,15 +156,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: tdf-python-base
-          path: /tmp
-      - name: Load image
-        run: |-
-          docker load --input /tmp/tdf-python-base.tar
-          docker image ls -a
       - name: publish
         uses: docker/build-push-action@v2
         with:
