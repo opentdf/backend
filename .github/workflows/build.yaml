@@ -80,6 +80,17 @@ jobs:
         with:
           name: tdf-python-base
           path: /tmp/tdf-python-base.tar
+      - name: Publish
+        uses: docker/build-push-action@v2
+        with:
+          build-args: |-
+            ALPINE_VERSION=3.15
+            CONTAINER_REGISTRY=ghcr.io
+            PY_VERSION=3.10
+          context: ./containers/python_base
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
 
   build-and-publish-isolated:
     needs:
