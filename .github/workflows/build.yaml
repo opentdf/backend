@@ -80,6 +80,12 @@ jobs:
         with:
           name: tdf-python-base
           path: /tmp/tdf-python-base.tar
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         uses: docker/build-push-action@v2
         with:
