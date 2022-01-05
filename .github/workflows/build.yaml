@@ -75,7 +75,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=docker,dest=/tmp/tdf-python-base.tar
-          push: true
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
