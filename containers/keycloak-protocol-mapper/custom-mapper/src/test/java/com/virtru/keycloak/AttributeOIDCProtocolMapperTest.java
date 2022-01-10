@@ -113,7 +113,7 @@ public class AttributeOIDCProtocolMapperTest {
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
         assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
-        assertEquals("12345", echoedClaimValue.get("entity_signing_pk"));
+        assertEquals("12345", echoedClaimValue.get("signerPublicKey"));
         assertEquals("1234-4567-8901", echoedClaimValue.get("primary_entity_id"));
     }
 
@@ -129,7 +129,7 @@ public class AttributeOIDCProtocolMapperTest {
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
         assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
-        assertEquals("12345", echoedClaimValue.get("entity_signing_pk"));
+        assertEquals("12345", echoedClaimValue.get("signerPublicKey"));
         assertEquals("1234-4567-8901", echoedClaimValue.get("primary_entity_id"));
     }
 
