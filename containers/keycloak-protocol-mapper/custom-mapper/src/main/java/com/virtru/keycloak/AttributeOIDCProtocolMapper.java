@@ -56,7 +56,6 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
      */
     private final static String REMOTE_AUTHORIZATION_ATTR = "remote-authorizations";
 
-
     static {
         OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, AttributeOIDCProtocolMapper.class);
         OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
