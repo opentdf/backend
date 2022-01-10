@@ -65,7 +65,7 @@ docker_build(CONTAINER_REGISTRY + "/opentdf/storage", context = "containers/stor
 
 # remote resources
 # usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
-helm_remote("keycloak", repo_url="https://codecentric.github.io/helm-charts")
+helm_remote("keycloak", repo_url="https://charts.bitnami.com/bitnami")
 helm_remote(
     "postgresql",
     repo_url="https://charts.bitnami.com/bitnami",
