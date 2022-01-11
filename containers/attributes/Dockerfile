@@ -1,17 +1,23 @@
+# Context: opentdf/backend/containers
 # NOTE - The version is also needed in the site-packages COPY command below
+# context must be parent folder
 ARG PY_VERSION=3.9
 ARG ALPINE_VERSION=3.13
+ARG CONTAINER_REGISTRY=docker.io
+ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 
 # stage - build
-FROM virtru/tdf-python-base:${PY_VERSION} AS build
+FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 WORKDIR /build
 # Install application dependencies
-COPY requirements.txt .
+COPY attributes/requirements.txt .
 RUN pip3 install --no-cache-dir --requirement requirements.txt
 # Install application into WORKDIR
-COPY main.py .
-COPY __init__.py .
-COPY tests ./tests
+
+COPY python_base/*.py python_base/
+COPY attributes/*.py attributes/
+COPY attributes/tests attributes/tests
+
 # Compile application
 RUN python3 -m compileall .
 
@@ -60,4 +66,4 @@ ENTRYPOINT python3 -m uvicorn \
     --no-use-colors \
     --no-server-header \
     --log-level error \
-    main:app
+    attributes.main:app
