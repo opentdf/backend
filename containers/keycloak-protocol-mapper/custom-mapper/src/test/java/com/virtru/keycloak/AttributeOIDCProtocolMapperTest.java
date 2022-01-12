@@ -33,6 +33,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.UserModel;
 import org.keycloak.models.session.PersistentAuthenticatedClientSessionAdapter;
 import org.keycloak.models.session.PersistentClientSessionModel;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
@@ -72,6 +73,8 @@ public class AttributeOIDCProtocolMapperTest {
     KeycloakContext keycloakContext;
     @Mock
     HttpHeaders httpHeaders;
+    @Mock
+    UserModel userModel;
 
     AttributeOIDCProtocolMapper attributeOIDCProtocolMapper;
 
@@ -191,8 +194,10 @@ public class AttributeOIDCProtocolMapperTest {
         when(keycloakSession.getContext()).thenReturn(keycloakContext);
         when(keycloakContext.getRequestHeaders()).thenReturn(httpHeaders);
 
+        when(userModel.getId()).thenReturn("1234-4567-8901");
+        when(userSessionModel.getUser()).thenReturn(userModel);
+        
         if (pkHeader != null) {
-            when(userSessionModel.getLoginUsername()).thenReturn("alice@test.org");
             List<String> pkHeaders = Collections.singletonList(pkHeader);
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
