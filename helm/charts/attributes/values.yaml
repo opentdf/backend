@@ -31,7 +31,7 @@ oidc:
 replicaCount: 1
 
 image:
-  repository: virtru/tdf-attribute-authority-service
+  repository: opentdf/attributes
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

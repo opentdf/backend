@@ -509,6 +509,32 @@ async def create_authorities(request: AuthorityDefinition):
     return namespaces
 
 
+# Used by KAS
+@app.post(
+    "/v1/attrName", response_model=List[AttributeDefinition], include_in_schema=False
+)
+async def read_attribute():
+    # return all for now body: List[HttpUrl]
+    query = table_attribute.select()
+    result = await database.fetch_all(query)
+    attributes: List[AttributeDefinition] = []
+    for row in result:
+        try:
+            attributes.append(
+                AttributeDefinition(
+                    authorityNamespace=row.get(table_attribute.c.namespace_id),
+                    name=row.get(table_attribute.c.name),
+                    order=row.get("values"),
+                    values=row.get("values"),
+                    rule=row.get(table_attribute.c.rule),
+                    state=row.get(table_attribute.c.state),
+                )
+            )
+        except ValidationError as e:
+            logging.error(e)
+    return attributes
+
+
 # Check for duplicated items when rule is Hierarchy
 def check_duplicates(hierarchy_list):
     if len(hierarchy_list) == len(set(hierarchy_list)):

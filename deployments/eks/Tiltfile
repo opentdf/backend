@@ -4,6 +4,10 @@
 load('ext://helm_remote', 'helm_remote')
 load('ext://namespace', 'namespace_yaml')
 
+# settings
+settings = read_json('tilt_option.json', default={})
+default_registry(settings.get('default_registry', 'public.ecr.aws/l1j0c5i1'))
+
 # EKS cluster allowed
 allow_k8s_contexts('arn:aws:eks:us-west-2:318258757195:cluster/opentdf')
 
@@ -24,9 +28,9 @@ helm_remote('echo-server', release_name='opentdf', repo_url='https://ealenn.gith
 update_settings(suppress_unused_image_warnings=["virtru/opentdf-base"])
 docker_build('virtru/tdf-python-base', '../../containers/python_base')
 # rename to opentdf/attributes
-docker_build('virtru/tdf-attribute-authority-service', '../../containers', dockerfile = '../../containers/attributes/Dockerfile')
-docker_build('virtru/tdf-entitlement-service', '../../containers', dockerfile = '../../containers/entitlements/Dockerfile')
-docker_build('virtru/tdf-entity-object-service', '../../containers', dockerfile = '../../containers/claims/Dockerfile')
+docker_build('opentdf/attributes', '../../containers', dockerfile = '../../containers/attributes/Dockerfile')
+docker_build('opentdf/entitlements', '../../containers', dockerfile = '../../containers/entitlements/Dockerfile')
+docker_build('opentdf/claims', '../../containers', dockerfile = '../../containers/claims/Dockerfile')
 
 
 # helm charts

@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 import os
@@ -16,9 +15,6 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-logging.basicConfig(
-    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL).upper()
-)
 logger = logging.getLogger(__package__)
 
 # application
@@ -151,16 +147,6 @@ class ProbeType(str, Enum):
     readiness = "readiness"
 
 
-def parse_pk(raw_pk: str) -> bytes:
-    # Unfortunately, not all base64 implementations pad base64
-    # strings in the way that Python expects (dependent on the length)
-    # - fortunately, we can easily add the padding ourselves here if
-    # it's needed.
-    # See: https://gist.github.com/perrygeo/ee7c65bb1541ff6ac770
-    clientKey = f"{raw_pk}{'=' * ((4 - len(raw_pk) % 4) % 4)}"
-    return base64.b64decode(clientKey)
-
-
 @app.get("/healthz", status_code=NO_CONTENT, include_in_schema=False)
 async def read_liveness(probe: ProbeType = ProbeType.liveness):
     if probe == ProbeType.readiness:
@@ -169,8 +155,7 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
 
 @app.post("/v1/claims", response_model=Claims, response_model_exclude_unset=True)
 async def create_entity_object(eo_request: ClaimsRequest, request: Request):
-    logger.warn("eo_request [%s]", eo_request)
-
+    logger.warn("/v1/claims POST [%s]", eo_request)
     # validate
     if ENTITY_ID_HEADER and ENTITY_ID_HEADER not in request.headers:
         raise HTTPException(
@@ -183,18 +168,22 @@ async def create_entity_object(eo_request: ClaimsRequest, request: Request):
         )
     try:
         if eo_request.publicKey:
-            serialization.load_pem_public_key(parse_pk(eo_request.publicKey))
+            serialization.load_pem_public_key(str.encode(eo_request.publicKey))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"publicKey: {str(e)}") from e
     try:
         if eo_request.signerPublicKey:
-            serialization.load_pem_public_key(parse_pk(eo_request.signerPublicKey))
+            serialization.load_pem_public_key(str.encode(eo_request.signerPublicKey))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"signerPublicKey: {str(e)}") from e
     attributes = []
+    # FIXME workaround for using preferred_username with service-account- prepended
+    entity_id = eo_request.userId
+    if "service-account-" in entity_id:
+        entity_id = entity_id.replace("service-account-", "")
     # select
     query = table_entity_attribute.select().where(
-        table_entity_attribute.c.entity_id == eo_request.userId
+        table_entity_attribute.c.entity_id == entity_id
     )
     result = await database.fetch_all(query)
     for row in result:
@@ -204,18 +193,6 @@ async def create_entity_object(eo_request: ClaimsRequest, request: Request):
     # - cache jwt if no expiration, no expire = 99 years
     # - async await jwt operations
     # default attribute
-    if eo_request.algorithm == "ec:secp521r1":
-        kas_certificate_pem = kas_ec_certificate_pem
-    else:
-        kas_certificate_pem = kas_rsa_certificate_pem
-    attributes.append(
-        Attribute(
-            attribute=f'{os.getenv("KAS_DEFAULT_URL")}/attr/default/value/default',
-            isDefault=True,
-            pubKey=kas_certificate_pem,
-            kasUrl=os.getenv("KAS_DEFAULT_URL"),
-        )
-    )
     return Claims(
         entity_id=eo_request.userId or None,
         public_key=eo_request.publicKey or None,

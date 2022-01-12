@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   pullPolicy: IfNotPresent
-  name: virtru/tdf-attribute-authority-service
+  name: opentdf/attributes
 
 imagePullSecrets: []
 nameOverride: ""

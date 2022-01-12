@@ -47,7 +47,7 @@ ENV POSTGRES_SCHEMA "tdf_entitlement"
 # Disable OpenAPI
 ENV OPENAPI_URL ""
 
-ENTRYPOINT env & python3 -m uvicorn \
+ENTRYPOINT python3 -m uvicorn \
     --host 0.0.0.0 \
     --port ${SERVER_PORT} \
     --root-path ${SERVER_ROOT_PATH} \

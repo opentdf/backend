@@ -32,7 +32,7 @@ oidc:
 replicaCount: 1
 
 image:
-  repository: virtru/tdf-entitlement-service
+  repository: opentdf/entitlements
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""

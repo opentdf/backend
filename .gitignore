@@ -46,3 +46,4 @@ kubeconfig
 /.helm/
 /deployments/eks/.helm/
 /deployments/eks/tilt_modules/
+/deployments/eks/tilt_option.json

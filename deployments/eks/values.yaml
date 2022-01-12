@@ -39,11 +39,12 @@ attributes:
     clientId: opentdf-us-attributes
     clientSecret:
     realm: opentdf-realm
+    scopes: "profile"
     #    trailing / is required
     serverUrl: https://keycloak.opentdf.us/auth/
-    configurationUrl: https://keycloak.opentdf.us/auth/realms/tdf/.well-known/openid-configuration
-    authorizationUrl: https://keycloak.opentdf.us/auth/realms/tdf/protocol/openid-connect/auth
-    tokenUrl: https://keycloak.opentdf.us/auth/realms/tdf/protocol/openid-connect/token
+    configurationUrl: https://keycloak.opentdf.us/auth/realms/opentdf-realm/.well-known/openid-configuration
+    authorizationUrl: https://keycloak.opentdf.us/auth/realms/opentdf-realm/protocol/openid-connect/auth
+    tokenUrl: https://keycloak.opentdf.us/auth/realms/opentdf-realm/protocol/openid-connect/token
   ingress:
     enabled: true
     hosts:
@@ -72,11 +73,12 @@ entitlements:
     clientId: opentdf-us-entitlements
     clientSecret:
     realm: opentdf-realm
+    scopes: "profile"
     #    trailing / is required
     serverUrl: https://keycloak.opentdf.us/auth/
-    configurationUrl: https://keycloak.opentdf.us/auth/realms/tdf/.well-known/openid-configuration
-    authorizationUrl: https://keycloak.opentdf.us/auth/realms/tdf/protocol/openid-connect/auth
-    tokenUrl: https://keycloak.opentdf.us/auth/realms/tdf/protocol/openid-connect/token
+    configurationUrl: https://keycloak.opentdf.us/auth/realms/opentdf-realm/.well-known/openid-configuration
+    authorizationUrl: https://keycloak.opentdf.us/auth/realms/opentdf-realm/protocol/openid-connect/auth
+    tokenUrl: https://keycloak.opentdf.us/auth/realms/opentdf-realm/protocol/openid-connect/token
   ingress:
     enabled: true
     hosts:
