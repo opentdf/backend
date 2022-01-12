@@ -480,6 +480,7 @@ async def remove_entitlement_from_entity(
 
 async def remove_entitlement_from_entity_crud(entityId, request):
     attribute_conjunctions = []
+
     for item in request:
         try:
             attribute = parse_attribute_uri(item)
@@ -493,9 +494,11 @@ async def remove_entitlement_from_entity_crud(entityId, request):
                                            table_entity_attribute.c.name == attribute["name"],
                                            table_entity_attribute.c.value == attribute["value"]))
 
+
     await database.execute(table_entity_attribute.delete().where(
             and_(table_entity_attribute.c.entity_id == entityId, or_(*attribute_conjunctions))))
     return {}
 
+  
 if __name__ == "__main__":
     print(json.dumps(app.openapi()), file=sys.stdout)
