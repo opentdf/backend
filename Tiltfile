@@ -11,6 +11,8 @@ PY_VERSION = "3.9"
 CONTAINER_REGISTRY = "ghcr.io"
 
 # secrets
+local("./scripts/genkeys-if-needed", dir=local_path())
+
 k8s_yaml(
     secret_yaml_generic(
         "etheria-secrets",

@@ -73,6 +73,9 @@ jobs:
       run: |-
         cd tests/integration
         tilt ci
+    - name: tilt-ci-root
+      run: |-
+        tilt ci
 
 
   build-base:
