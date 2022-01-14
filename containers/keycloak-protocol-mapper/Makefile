@@ -1,5 +1,5 @@
 IMAGE=opentdf/keycloak
-VERSION=15.0.3
+VERSION=15.0.2
 
 all: build
 
