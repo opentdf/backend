@@ -1,7 +1,8 @@
 image:
-  registry: ghcr.io
+#  ghcr.io == GitHub packages
+  registry: docker.io
   repository: opentdf/keycloak
-  tag: virtrulocal
+  tag: head
   pullPolicy: Never
 imagePullSecrets:
   - name: virtru-regcred

@@ -8,7 +8,8 @@ load("ext://helm_remote", "helm_remote")
 
 ALPINE_VERSION = "3.13"
 PY_VERSION = "3.9"
-CONTAINER_REGISTRY = "ghcr.io"
+# ghcr.io == GitHub packages
+CONTAINER_REGISTRY = "docker.io" # Docker Hub
 
 # secrets
 local("./scripts/genkeys-if-needed")
