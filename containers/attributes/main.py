@@ -308,9 +308,10 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
                             url=f"{authorities[row.namespace_id - 1]}/attr/{row.name}/value/{value}",
                         )
                     )
-                except ValidationError as e:
-                    logging.error(e)
-                    error = e
+    except ValidationError as e:
+        logging.error(e)
+        error = e
+        
     if error and not attributes:
         raise HTTPException(
             status_code=422, detail=f"attribute error: {str(error)}"
