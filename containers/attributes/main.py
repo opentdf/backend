@@ -10,16 +10,11 @@ from typing import Optional, List, Annotated
 import databases as databases
 import sqlalchemy
 from asyncpg import UniqueViolationError
-from fastapi import Depends
-from fastapi import FastAPI, Request, HTTPException, Query
-from fastapi import Security, status
+from fastapi import FastAPI, Body, Depends, HTTPException, Request, Query, Security, status
 from fastapi.openapi.utils import get_openapi
-from fastapi.security import OAuth2AuthorizationCodeBearer
-from fastapi.security import OpenIdConnect
+from fastapi.security import OAuth2AuthorizationCodeBearer, OpenIdConnect
 from keycloak import KeycloakOpenID
-from pydantic import BaseSettings, Field
-from pydantic import Json
-from pydantic import ValidationError, AnyUrl
+from pydantic import AnyUrl, BaseSettings, Field, Json, ValidationError
 from pydantic.main import BaseModel
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
@@ -161,9 +156,8 @@ async def add_response_headers(request: Request, call_next):
 tags_metadata = [
     {
         "name": "Attributes",
-        "description": "Operations to view data attributes."
-        + "TDF protocol supports ABAC (Attribute Based Access Control)."
-        + "This allows TDF protocol to implement policy driven and highly scalable access control mechanism.",
+        "description": """Operations to view data attributes. TDF protocol supports ABAC (Attribute Based Access Control). 
+        This allows TDF protocol to implement policy driven and highly scalable access control mechanism.""",
     },
     {
         "name": "Authorities",
@@ -268,7 +262,14 @@ oidc_scheme = OpenIdConnect(
 #
 
 
-@app.get("/attributes", tags=["Attributes"], response_model=List[AnyUrl])
+@app.get("/attributes",
+         tags=["Attributes"],
+         response_model=List[AnyUrl],
+         responses={
+             200: {"content": {
+                 "application/json": {"example": ["https://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
+                                                  "https://opentdf.io/attr/ClassificationUS/value/Unclassified"]}}}}
+         )
 async def read_attributes(
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
@@ -291,31 +292,38 @@ async def read_attributes(
 
     sort_args = sort.split(",") if sort else []
 
-    query = get_query(AttributeSchema, db, filter_args, sort_args)
-    logger.debug(query)
-    results = query.all()
+    results = await read_attributes_crud(AttributeSchema, db, filter_args, sort_args)
+
+    return pager.paginate(results)
+
+async def read_attributes_crud(schema, db, filter_args, sort_args):
+    results = get_query(schema, db, filter_args, sort_args)
+    # logger.debug(query)
+    # results = query.all()
     error = None
     #  TODO map authority (namespace_id) to id
     authorities = await read_authorities()
     attributes: List[AnyUrl] = []
-    for row in results:
-        for value in row.values:
-            try:
+
+    try:
+        for row in results:
+            for value in row.values:
                 attributes.append(
-                    AnyUrl(
-                        scheme=f"{authorities[row.namespace_id - 1]}",
-                        host=f"{authorities[row.namespace_id - 1]}",
-                        url=f"{authorities[row.namespace_id - 1]}/attr/{row.name}/value/{value}",
+                        AnyUrl(
+                            scheme=f"{authorities[row.namespace_id - 1]}",
+                            host=f"{authorities[row.namespace_id - 1]}",
+                            url=f"{authorities[row.namespace_id - 1]}/attr/{row.name}/value/{value}",
+                        )
                     )
-                )
-            except ValidationError as e:
-                logging.error(e)
-                error = e
+    except ValidationError as e:
+        logging.error(e)
+        error = e
+        
     if error and not attributes:
         raise HTTPException(
             status_code=422, detail=f"attribute error: {str(error)}"
         ) from error
-    return pager.paginate(attributes)
+    return attributes
 
 
 #
@@ -328,6 +336,25 @@ async def read_attributes(
     tags=["Attributes Definitions"],
     response_model=List[AttributeDefinition],
     dependencies=[Depends(get_auth)],
+    responses = {
+        200: {
+            "content": {
+                "application/json": {
+                    "example": [
+                        {"authority": "https://opentdf.io",
+                         "name": "IntellectualProperty",
+                         "rule": "hierarchy",
+                         "state": "published",
+                         "order": [
+                             "TradeSecret",
+                             "Proprietary",
+                             "BusinessSensitive",
+                             "Open"
+                         ]}]
+                }
+            }
+        }
+    }
 )
 async def read_attributes_definitions(
     authority: Optional[AuthorityUrl] = None,
@@ -351,9 +378,8 @@ async def read_attributes_definitions(
 
     sort_args = sort.split(",") if sort else []
 
-    query = get_query(AttributeSchema, db, filter_args, sort_args)
-    logger.debug(query)
-    results = query.all()
+    results = get_query(AttributeSchema, db, filter_args, sort_args)
+
     #  TODO map authority (namespace_id) to id
     authorities = await read_authorities()
     attributes: List[AttributeDefinition] = []
@@ -378,8 +404,43 @@ async def read_attributes_definitions(
     tags=["Attributes Definitions"],
     response_model=AttributeDefinition,
     dependencies=[Depends(get_auth)],
+    responses = {
+        200: {
+            "content": {
+                "application/json": {
+                    "example":
+                        {"authority": "https://opentdf.io",
+                         "name": "IntellectualProperty",
+                         "rule": "hierarchy",
+                         "state": "published",
+                         "order": [
+                             "TradeSecret",
+                             "Proprietary",
+                             "BusinessSensitive",
+                             "Open"
+                         ]}
+                }
+            }
+        }
+    }
 )
-async def create_attributes_definitions(request: AttributeDefinition):
+async def create_attributes_definitions(
+        request: AttributeDefinition = Body(...,
+        example = {
+            "authority": "https://opentdf.io",
+            "name": "IntellectualProperty",
+            "rule": "hierarchy",
+            "state": "published",
+            "order": [
+                "TradeSecret",
+                "Proprietary",
+                "BusinessSensitive",
+                "Open"
+            ]},)
+):
+    return await create_attributes_definitions_crud(request)
+
+async def create_attributes_definitions_crud(request):
     # lookup
     query = table_authority.select().where(table_authority.c.name == request.authority)
     result = await database.fetch_one(query)
@@ -416,8 +477,43 @@ async def create_attributes_definitions(request: AttributeDefinition):
     tags=["Attributes Definitions"],
     response_model=AttributeDefinition,
     dependencies=[Depends(get_auth)],
+    responses = {
+        200: {
+            "content": {
+                "application/json": {
+                    "example":
+                        {"authority": "https://opentdf.io",
+                         "name": "IntellectualProperty",
+                         "rule": "hierarchy",
+                         "state": "published",
+                         "order": [
+                             "TradeSecret",
+                             "Proprietary",
+                             "BusinessSensitive",
+                             "Open"
+                         ]}
+                }
+            }
+        }
+    }
 )
-async def update_attribute_definition(request: AttributeDefinition):
+async def update_attribute_definition(
+        request: AttributeDefinition = Body(...,
+        example = {
+            "authority": "https://opentdf.io",
+            "name": "IntellectualProperty",
+            "rule": "hierarchy",
+            "state": "published",
+            "order": [
+                "TradeSecret",
+                "Proprietary",
+                "BusinessSensitive",
+                "Open"
+            ]},)
+):
+    return await update_attribute_definition_crud(request)
+
+async def update_attribute_definition_crud(request):
     # update
     query = table_authority.select().where(table_authority.c.name == request.authority)
     result = await database.fetch_one(query)
@@ -440,16 +536,31 @@ async def update_attribute_definition(request: AttributeDefinition):
     )
 
     await database.execute(query)
-    return request
-
 
 @app.delete(
     "/definitions/attributes",
     tags=["Attributes Definitions"],
     status_code=ACCEPTED,
     dependencies=[Depends(get_auth)],
+    responses = {202:  {"description": "No Content", "content":{ "application/json": { "example": {"detail": "Item deleted"} } }}},
 )
-async def delete_attributes_definitions(request: AttributeDefinition):
+async def delete_attributes_definitions(
+        request: AttributeDefinition = Body(...,
+        example = {
+            "authority": "https://opentdf.io",
+            "name": "IntellectualProperty",
+            "rule": "hierarchy",
+            "state": "published",
+            "order": [
+                "TradeSecret",
+                "Proprietary",
+                "BusinessSensitive",
+                "Open"
+            ]},)
+):
+    return await delete_attributes_definitions_crud(request)
+
+async def delete_attributes_definitions_crud(request):
     statement = table_attribute.delete().where(
         and_(
             table_attribute.c.authority == request.authority,
@@ -461,14 +572,27 @@ async def delete_attributes_definitions(request: AttributeDefinition):
     await database.execute(statement)
     return {}
 
-
 #
 # Authorities
 #
 
-
-@app.get("/authorities", tags=["Authorities"], dependencies=[Depends(get_auth)])
+@app.get("/authorities",
+         tags=["Authorities"],
+         dependencies=[Depends(get_auth)],
+         responses={
+             200: {
+                 "content": {
+                     "application/json": {
+                         "example": ["https://opentdf.io"]
+                     }
+                 }
+             }
+         }
+)
 async def read_authorities():
+    return await read_authorities_crud()
+
+async def read_authorities_crud():
     query = table_authority.select()
     result = await database.fetch_all(query)
     authorities = []
@@ -477,8 +601,27 @@ async def read_authorities():
     return authorities
 
 
-@app.post("/authorities", tags=["Authorities"], dependencies=[Depends(get_auth)])
-async def create_authorities(request: AuthorityDefinition):
+@app.post("/authorities",
+          tags=["Authorities"],
+          dependencies=[Depends(get_auth)],
+          responses={
+              200: {
+                  "content": {
+                      "application/json": {
+                          "example": ["https://opentdf.io"]
+                      }
+                  }
+              }
+          }
+)
+async def create_authorities(
+        request: AuthorityDefinition = Body(...,
+        example = {
+            "authority": "https://opentdf.io"})
+):
+    return await create_authorities_crud(request)
+
+async def create_authorities_crud(request):
     # insert
     query = table_authority.insert().values(name=request.authority)
     try:
@@ -494,7 +637,6 @@ async def create_authorities(request: AuthorityDefinition):
     for row in result:
         namespaces.append(f"{row.get(table_authority.c.name)}")
     return namespaces
-
 
 # Check for duplicated items when rule is Hierarchy
 def check_duplicates(hierarchy_list):

@@ -380,21 +380,21 @@ keycloak_initialize() {
     else
         cp "${KEYCLOAK_CONF_DIR}/${KEYCLOAK_DEFAULT_CONF_FILE}" "${KEYCLOAK_CONF_DIR}/${KEYCLOAK_CONF_FILE}"
 
+        # Configure settings using jboss-cli.sh
+        keycloak_configure_database
+        if is_boolean_yes "$KEYCLOAK_CREATE_ADMIN_USER"; then
+            debug_execute add-user-keycloak.sh -u "$KEYCLOAK_ADMIN_USER" -p "$KEYCLOAK_ADMIN_PASSWORD"
+        fi
+        ! is_empty_value "$KEYCLOAK_JGROUPS_DISCOVERY_PROTOCOL" && keycloak_configure_jgroups
+        keycloak_configure_cache
+        keycloak_configure_auth_cache
+        debug_execute add-user.sh -u "$KEYCLOAK_MANAGEMENT_USER" -p "$KEYCLOAK_MANAGEMENT_PASSWORD"
+        is_boolean_yes "$KEYCLOAK_ENABLE_STATISTICS" && keycloak_configure_statistics
+        is_boolean_yes "$KEYCLOAK_ENABLE_TLS" && keycloak_configure_tls
+        keycloak_configure_loglevel
+        keycloak_configure_proxy
+        keycloak_configure_node_identifier
     fi
-    # Configure settings using jboss-cli.sh
-    keycloak_configure_database
-    if is_boolean_yes "$KEYCLOAK_CREATE_ADMIN_USER"; then
-        debug_execute add-user-keycloak.sh -u "$KEYCLOAK_ADMIN_USER" -p "$KEYCLOAK_ADMIN_PASSWORD"
-    fi
-    ! is_empty_value "$KEYCLOAK_JGROUPS_DISCOVERY_PROTOCOL" && keycloak_configure_jgroups
-    keycloak_configure_cache
-    keycloak_configure_auth_cache
-    debug_execute add-user.sh -u "$KEYCLOAK_MANAGEMENT_USER" -p "$KEYCLOAK_MANAGEMENT_PASSWORD"
-    is_boolean_yes "$KEYCLOAK_ENABLE_STATISTICS" && keycloak_configure_statistics
-    is_boolean_yes "$KEYCLOAK_ENABLE_TLS" && keycloak_configure_tls
-    keycloak_configure_loglevel
-    keycloak_configure_proxy
-    keycloak_configure_node_identifier
 
     debug "Ensuring expected directories/files exist..."
     for dir in "$KEYCLOAK_LOG_DIR" "$KEYCLOAK_TMP_DIR" "$KEYCLOAK_DATA_DIR" "$KEYCLOAK_CONF_DIR" "$KEYCLOAK_DEPLOYMENTS_DIR" "$KEYCLOAK_DOMAIN_TMP_DIR"; do
