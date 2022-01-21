@@ -6,7 +6,7 @@
 load("ext://secret", "secret_yaml_generic")
 load("ext://helm_remote", "helm_remote")
 
-ALPINE_VERSION = "3.13"
+ALPINE_VERSION = "3.15"
 PY_VERSION = "3.9"
 # ghcr.io == GitHub packages
 CONTAINER_REGISTRY = "docker.io" # Docker Hub

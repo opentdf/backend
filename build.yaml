@@ -10,7 +10,7 @@ services:
     image: opentdf/python-base:${PY_VERSION:-3.9}
     build:
       args:
-        - ALPINE_VERSION=${ALPINE_VERSION:-3.13}
+        - ALPINE_VERSION=${ALPINE_VERSION:-3.15}
         - PY_VERSION=${PY_VERSION:-3.9}
       context: ./containers/python_base
       dockerfile: Dockerfile
