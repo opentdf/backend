@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session, sessionmaker, declarative_base
 from python_base import Pagination, get_query
 
 logging.basicConfig(
-    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL)
+    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL).upper()
 )
 logger = logging.getLogger(__package__)
 
