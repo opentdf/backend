@@ -1,5 +1,14 @@
-from sqlalchemy import ARRAY, func
+import logging
+import os
+import sys
+
+from sqlalchemy import ARRAY, func, Integer
 from sqlalchemy.orm import Session
+
+logging.basicConfig(
+    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL).upper()
+)
+logger = logging.getLogger(__package__)
 
 
 def get_filter_by_args(model, dict_args: dict):
@@ -24,7 +33,10 @@ def get_filter_by_args(model, dict_args: dict):
             key = key.replace("__eq", "")
             filters.append(getattr(model, key) == value)
         else:
-            if isinstance(getattr(model, key).type, ARRAY):
+            if isinstance(getattr(model, key).type, Integer):
+                key = key.replace("__eq", "")
+                filters.append(getattr(model, key) == value)
+            elif isinstance(getattr(model, key).type, ARRAY):
                 filters.append(
                     func.array_to_string(getattr(model, key), ",").ilike(
                         "%{}%".format(value)
@@ -48,4 +60,6 @@ def get_sorter_by_args(model, args: list):
 def get_query(model, db: Session, filter_args: dict = {}, sort_args: list = []):
     filters = get_filter_by_args(model, filter_args)
     sorters = get_sorter_by_args(model, sort_args)
+    # logger.debug(filters)
+    # logger.debug(sorters)
     return db.query(model).filter(*filters).order_by(*sorters)
