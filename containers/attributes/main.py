@@ -324,7 +324,6 @@ async def read_attributes(
         filter_args["values"] = order
 
     sort_args = sort.split(",") if sort else []
-    logger.debug(filter_args)
     results = await read_attributes_crud(AttributeSchema, db, filter_args, sort_args)
 
     return pager.paginate(results)
@@ -338,7 +337,6 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
 
     try:
         for row in results:
-            logger.debug(row)
             for value in row.values:
                 attributes.append(
                     AnyUrl(

@@ -58,8 +58,8 @@ def get_sorter_by_args(model, args: list):
 
 
 def get_query(model, db: Session, filter_args: dict = {}, sort_args: list = []):
+    logger.debug("Filtering by [%s]", filter_args)
+    logger.debug("Sorting by [%s]", sort_args)
     filters = get_filter_by_args(model, filter_args)
     sorters = get_sorter_by_args(model, sort_args)
-    # logger.debug(filters)
-    # logger.debug(sorters)
     return db.query(model).filter(*filters).order_by(*sorters)
