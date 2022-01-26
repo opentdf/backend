@@ -305,22 +305,26 @@ async def read_attributes(
     order: Optional[str] = None,
     sort: Optional[str] = Query(
         "",
-        regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
+        regex="^(-*((state)|(rule)|(name)|(values)),)*-*((state)|(rule)|(name)|(values))$",
     ),
     db: Session = Depends(get_db),
     pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
-        # TODO lookup authority (namespace_id) and get id
-        filter_args["namespace_id"] = authority
+        # logger.debug(authority)
+        # lookup authority by value and get id (namespace_id)
+        authorities = await read_authorities_crud()
+        filter_args["namespace_id"] = list(authorities.keys())[
+            list(authorities.values()).index(authority)
+        ]
     if name:
         filter_args["name"] = name
     if order:
         filter_args["values"] = order
 
     sort_args = sort.split(",") if sort else []
-
+    logger.debug(filter_args)
     results = await read_attributes_crud(AttributeSchema, db, filter_args, sort_args)
 
     return pager.paginate(results)
@@ -328,15 +332,13 @@ async def read_attributes(
 
 async def read_attributes_crud(schema, db, filter_args, sort_args):
     results = get_query(schema, db, filter_args, sort_args)
-    # logger.debug(query)
-    # results = query.all()
     error = None
-    #  TODO map authority (namespace_id) to id
-    authorities = await read_authorities()
+    authorities = await read_authorities_crud()
     attributes: List[AnyUrl] = []
 
     try:
         for row in results:
+            logger.debug(row)
             for value in row.values:
                 attributes.append(
                     AnyUrl(
@@ -402,8 +404,11 @@ async def read_attributes_definitions(
 ):
     filter_args = {}
     if authority:
-        # TODO lookup authority (namespace_id) and get id
-        filter_args["namespace_id"] = authority
+        # lookup authority by value and get id (namespace_id)
+        authorities = await read_authorities_crud()
+        filter_args["namespace_id"] = list(authorities.keys())[
+            list(authorities.values()).index(authority)
+        ]
     if name:
         filter_args["name"] = name
     if order:
