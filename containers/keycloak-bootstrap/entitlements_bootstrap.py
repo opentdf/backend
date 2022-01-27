@@ -1,7 +1,7 @@
 import os
 import logging
 import requests
-import yaml
+import json
 from keycloak import KeycloakAdmin, KeycloakOpenID
 
 
@@ -137,8 +137,8 @@ def entitlements_bootstrap():
 
     # Contains a map of `entities` to attributes we want to preload
     # Entities can be clients or users, doesn't matter
-    with open("/etc/virtru-config/entitlements.yaml") as f:
-        entity_attrmap = yaml.safe_load(f)
+    with open("/etc/virtru-config/entitlements.json") as f:
+        entity_attrmap = json.loads(f)
 
     insertEntitlementAttrsForRealm(
         keycloak_admin_tdf, "tdf", keycloak_auth_url, entity_attrmap

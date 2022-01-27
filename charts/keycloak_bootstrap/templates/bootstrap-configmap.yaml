@@ -10,12 +10,10 @@ data:
   entitlements.json: |
     {
       {{- range $k, $v := $.Values.entitlement.preloadedClaims }}
-      {{ if ne $k 0 }},{{ end }}"{{ $v.id }}": {
-        "subject_attributes":[
+      {{ if ne $k 0 }},{{ end }}"{{ $v.id }}": [
         {{- range $attr, $attrvalue := $v.attributes }}
-        {{ if ne $attr 0 }},{{ end }}{"attribute": "{{ $attrvalue }}"}
+        {{ if ne $attr 0 }},{{ end }}"{{ $attrvalue }}"
         {{- end }}
-        ]
-      }
+      ]
       {{- end }}
     }
