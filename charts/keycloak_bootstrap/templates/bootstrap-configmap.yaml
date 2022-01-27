@@ -7,13 +7,4 @@ metadata:
     release: "{{ $.Release.Name }}"
     heritage: "{{ $.Release.Service }}"
 data:
-  entitlements.json: |
-    {
-      {{- range $k, $v := $.Values.entitlement.preloadedClaims }}
-      {{ if ne $k 0 }},{{ end }}"{{ $v.id }}": [
-        {{- range $attr, $attrvalue := $v.attributes }}
-        {{ if ne $attr 0 }},{{ end }}"{{ $attrvalue }}"
-        {{- end }}
-      ]
-      {{- end }}
-    }
+  entitlements.yaml: {{ .Values.entitlement.preloadedClaims }}
