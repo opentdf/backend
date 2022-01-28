@@ -7,4 +7,5 @@ metadata:
     release: "{{ $.Release.Name }}"
     heritage: "{{ $.Release.Service }}"
 data:
-  entitlements.yaml: {{ .Values.entitlement.preloadedClaims }}
+  entitlements.yaml: |-
+{{ toYaml .Values.entitlement.preloadedClaims | indent 4 }}

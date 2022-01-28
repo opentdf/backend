@@ -61,7 +61,7 @@ spec:
       volumes:
         - name: entitlements-config-volume
           configMap:
-            name: {{ .Values.name }}-cm
+            name: {{ include "keycloak-bootstrap.fullname" . }}-cm
       restartPolicy: Never
       {{ if .Values.image.pullSecret }}
       imagePullSecrets:
