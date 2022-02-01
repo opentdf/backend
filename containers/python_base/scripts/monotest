@@ -58,6 +58,7 @@ _single_pytest() {
 
   rm -rf .venv
   python3 -m venv .venv
+  # shellcheck source=/dev/null
   source .venv/bin/activate
   pip3 install --upgrade pip pytest
 
