@@ -173,7 +173,6 @@ k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
 k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql"])
 k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
 k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
-k8s_resource("opentdf-abacus", resource_deps=["opentdf-attributes"])
 
 
 helm_remote(
@@ -249,4 +248,4 @@ docker_build(
 )
 
 k8s_yaml("xtest.yaml")
-k8s_resource("opentdf-xtest", resource_deps=["bootstrap-keycloak", "keycloak"])
+k8s_resource("opentdf-xtest", resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"])
