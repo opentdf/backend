@@ -1,9 +1,6 @@
 # requirements.txt
 -r ../python_base/requirements.txt
 -i https://pypi.org/simple
-anyio==3.3.4; python_full_version >= '3.6.2'
-asgiref==3.4.1; python_version >= '3.6'
-asyncpg==0.25.0
 click==8.0.3; python_version >= '3.6'
 databases[postgresql]==0.5.5
 fastapi==0.73.0
@@ -23,3 +20,4 @@ uvicorn[standard]==0.17.1
 watchgod==0.7
 websockets==10.1
 python-keycloak==0.26.1
+uritools==3.0.2

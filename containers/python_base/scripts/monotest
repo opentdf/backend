@@ -60,7 +60,7 @@ _single_pytest() {
   python3 -m venv .venv
   # shellcheck source=/dev/null
   source .venv/bin/activate
-  pip3 install --upgrade pip pytest
+  pip3 install --upgrade pip pytest coverage
 
   # shellcheck source=/dev/null
   [ -f "scripts/test.env" ] && . scripts/test.env
