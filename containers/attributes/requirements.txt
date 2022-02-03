@@ -1,2 +1,3 @@
 # requirements.txt
 -r ../python_base/requirements.txt
+python-keycloak==0.26.1

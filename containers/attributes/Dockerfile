@@ -17,7 +17,6 @@ RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
 # Install application into WORKDIR
 COPY python_base/*.py python_base/
 COPY attributes/*.py attributes/
-COPY attributes/tests attributes/tests
 
 # Compile application
 RUN python3 -m compileall attributes/
@@ -36,7 +35,7 @@ COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-pack
 ENV SERVER_ROOT_PATH "/"
 ENV SERVER_PORT "4020"
 ENV SERVER_PUBLIC_NAME ""
-ENV SERVER_LOG_LEVEL "INFO"
+ENV SERVER_LOG_LEVEL "info"
 # Postgres
 ENV POSTGRES_HOST ""
 ENV POSTGRES_PORT "5432"
@@ -62,5 +61,5 @@ ENTRYPOINT python3 -m uvicorn \
     --root-path ${SERVER_ROOT_PATH} \
     --no-use-colors \
     --no-server-header \
-    --log-level error \
+    --log-level ${SERVER_LOG_LEVEL} \
     attributes.main:app
