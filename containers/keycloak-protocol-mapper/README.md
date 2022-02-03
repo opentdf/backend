@@ -2,11 +2,11 @@
 
 Keycloak is our Identity Provider (IdP) software.
 
-We build a custom image off of the Bitnami [Keycloak image](https://github.com/bitnami/bitnami-docker-keycloak) and [Keycloak Helm chart](https://github.com/bitnami/charts/tree/master/bitnami/keycloak)
+We build a custom image off of the Bitnami [Keycloak image](https://github.com/bitnami/bitnami-docker-keycloak) and [Keycloak Helm chart](https://github.com/bitnami/charts/tree/master/bitnami/keycloak) - it is identical to the Bitnami image, just built for both `arm64` and `amd64` - Bitnami currently just builds for `amd64`
 
-The custom image simply contains a custom openTDF claims mapper JAR file, copied into a folder in the Keycloak image.
+The custom openTDF Keycloak image that builds on that simply contains a custom openTDF claims mapper JAR file, copied into a folder in the Keycloak image.
 
-We can stop building a custom Bitnami image if we PR a fix to their repo to build both `arm64` and `amd64` images,
+We can stop building the custom Bitnami base image if we PR a fix to their repo to build both `arm64` and `amd64` images,
 their tooling supports this and they are doing it for other images, they just aren't doing it for the Keycloak image yet.
 
 ## Build and Setup
@@ -28,8 +28,10 @@ make dockerbuildpush
 ```
 
 ### Build and publish the Bitnami base image (only required for Keycloak version changes)
-> Note that the Bitnami base image `virtru/keycloak-base` should not ever need to be built or published
-> unless we change Keycloak versions, and we can drop it entirely if we make a PR to [Keycloak image](https://github.com/bitnami/bitnami-docker-keycloak) enabling an `arm64` image build in upstream 
+> Note that the Bitnami base image `virtru/keycloak-base` is unchanged from the upstream image, and
+> should not ever need to be built or published unless we change Keycloak versions,
+> and we can drop it entirely if we make a PR to [Keycloak image](https://github.com/bitnami/bitnami-docker-keycloak)
+> enabling an `arm64` image build in upstream in the same manner we do here.
 
 ``` sh
 make bitnami-base-buildpush
