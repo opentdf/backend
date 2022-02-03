@@ -14,12 +14,6 @@ their tooling supports this and they are doing it for other images, they just ar
 All build steps are scripted via [`Makefile`](Makefile)
 Docker image names and version tags are set in [`Makefile`](Makefile).
 
-### Build and publish the Bitnami base image (only required for Keycloak version changes)
-
-``` sh
-make bitnami-base-buildpush
-```
-
 `
 ### Build The openTDF Keycloak On Top Of The Bitnami Base Container Locally
 
@@ -31,6 +25,12 @@ make dockerbuild
 
 ```sh
 make dockerbuildpush
+```
+
+### Build and publish the Bitnami base image (only required for Keycloak version changes)
+
+``` sh
+make bitnami-base-buildpush
 ```
 
 ## For people working on the repo
