@@ -4,7 +4,7 @@ ARG MAVEN_VERSION=3.8.2
 ARG JDK_VERSION=11
 ARG KEYCLOAK_VERSION=15.0.2
 
-FROM maven:${MAVEN_VERSION}-jdk-${JDK_VERSION} as claimsmapperbuildd
+FROM maven:${MAVEN_VERSION}-jdk-${JDK_VERSION} as claimsmapperbuild
 
 COPY custom-mapper /usr/src/custom-mapper
 RUN mvn -f  /usr/src/custom-mapper/pom.xml clean package
