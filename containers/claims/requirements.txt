@@ -4,5 +4,4 @@
 psycopg2-binary==2.9.3
 python-dotenv==0.19.2
 python-keycloak==0.26.1
-sniffio==1.2.0; python_version >= '3.5'
 typing-extensions==4.0.1; python_version >= '3.6'
