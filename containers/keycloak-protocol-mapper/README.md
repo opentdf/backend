@@ -28,6 +28,8 @@ make dockerbuildpush
 ```
 
 ### Build and publish the Bitnami base image (only required for Keycloak version changes)
+> Note that the Bitnami base image `virtru/keycloak-base` should not ever need to be built or published
+> unless we change Keycloak versions, and we can drop it entirely if we make a PR to [Keycloak image](https://github.com/bitnami/bitnami-docker-keycloak) enabling an `arm64` image build in upstream 
 
 ``` sh
 make bitnami-base-buildpush
