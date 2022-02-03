@@ -1,7 +1,2 @@
 # requirements.txt
 -r ../python_base/requirements.txt
--i https://pypi.org/simple
-psycopg2-binary==2.9.3
-python-dotenv==0.19.2
-typing-extensions==4.0.1; python_version >= '3.6'
-python-keycloak==0.26.1
