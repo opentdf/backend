@@ -64,8 +64,9 @@ jobs:
             helm
             tilt
           # This should be in sync with the minikube-deployed kube version below
-          kubectl: "1.23.1"
+          kubectl: "1.23.3"
           helm: "3.8.0"
+          helmv3: "3.8.0"
           tilt: "0.23.8"
       - run: |
           kubectl version --client
@@ -77,7 +78,7 @@ jobs:
         with:
           minikube-version: 1.25.1
           # This should be in sync with the setup-tools version above
-          kubernetes-version: 1.23.1
+          kubernetes-version: 1.23.3
       - name: Try the cluster!
         run: kubectl get pods -A
       - name: tilt-ci
