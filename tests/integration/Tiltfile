@@ -177,7 +177,7 @@ k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
 
 helm_remote(
     "keycloak",
-    version="15.0.2",
+    version="17.0.1",
     repo_url="https://codecentric.github.io/helm-charts",
     values=["backend-keycloak-values.yaml"],
 )
@@ -204,14 +204,14 @@ helm_remote(
 # TODO should integrate with a service mesh and stop deploying our own ingress
 # We need to have big headers for the huge bearer tokens we pass around
 # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-# helm_remote(
-#     "ingress-nginx",
-#     repo_url="https://kubernetes.github.io/ingress-nginx",
-#     set=["controller.config.large-client-header-buffers=20 32k"],
-#     version="4.0.16",
-# )
+helm_remote(
+    "ingress-nginx",
+    repo_url="https://kubernetes.github.io/ingress-nginx",
+    set=["controller.config.large-client-header-buffers=20 32k"],
+    version="4.0.16",
+)
 
-# k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
+k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
 
 
 #     .o8                               .                .
