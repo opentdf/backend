@@ -1,8 +1,14 @@
 #  configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
-image:
-  debug: true
+global:
+  postgresql:
+    image:
+      repository: bitnami/postgresql
+      tag: 12.7.0
+    postgresqlUsername: postgres
+    postgresqlPassword: postgres
+
 initdbUser: postgres
-initdbPassword: mydbapassword
+initdbPassword: postgres
 initdbScripts:
   init.sql: |
     -- keycloak_database
