@@ -116,6 +116,7 @@ helm_remote(
     "postgresql",
     repo_url="https://charts.bitnami.com/bitnami",
     release_name="tdf",
+    version="10.16.2",
     values=["deployments/docker-desktop/tdf-postgresql-values.yaml"],
 )
 

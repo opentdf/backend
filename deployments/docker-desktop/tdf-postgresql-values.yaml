@@ -15,11 +15,6 @@ initdbScripts:
   init.sql: |
     -- Keycloak DB
     CREATE DATABASE keycloak_database;
-    \connect tdf_database;
-    CREATE ROLE keycloak_admin WITH LOGIN PASSWORD 'bounteous-squirrel-docent';
-    GRANT USAGE ON SCHEMA keycloak_database TO keycloak_admin;
-    GRANT USAGE ON ALL SEQUENCES IN SCHEMA keycloak_database TO keycloak_admin;
-    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA keycloak_database TO keycloak_admin;
 
     -- Attributes used in the Trusted Data Format
 

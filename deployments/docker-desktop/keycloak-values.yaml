@@ -39,8 +39,8 @@ extraEnvFrom: |
 secrets:
   db:
     stringData:
-      DB_USER: keycloak_admin
-      DB_PASSWORD: bounteous-squirrel-docent
+      DB_USER: postgres
+      DB_PASSWORD: postgres
 ingress:
   enabled: true
   annotations:

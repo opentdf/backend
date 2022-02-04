@@ -32,9 +32,9 @@ keycloak-base-buildpush: docker-buildx-armsetup keycloak-repo-clone
 		docker buildx build --platform linux/arm64,linux/amd64 -t ${KEYCLOAK_BASE_IMAGE}:${KEYCLOAK_VERSION} --push .
 
 .PHONY: dockerbuild
-dockerbuild: keycloak-base-buildpush
+dockerbuild:
 	docker build -t ${OTDF_IMAGE}:${OTDF_VERSION} .
 
 .PHONY: dockerbuildpush
-dockerbuildpush: keycloak-base-buildpush
+dockerbuildpush: dockerbuild
 	docker push ${OTDF_IMAGE}:${OTDF_VERSION}
