@@ -108,7 +108,7 @@ docker_build(
 # usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
 helm_remote(
     "keycloak",
-    version="15.0.2",
+    version="17.0.1",
     repo_url="https://codecentric.github.io/helm-charts",
     values=["deployments/docker-desktop/keycloak-values.yaml"],
 )
