@@ -41,8 +41,11 @@ jobs:
           tilt version
       - name: start minikube
         id: minikube
-        uses: medyagh/setup-minikube@latest
+        uses: medyagh/setup-minikube@master
+        with:
+          minikube-version: 1.25.1
       - name: tilt-ci
         run: |-
+          kubectl version
           cd tests/integration
           tilt ci
