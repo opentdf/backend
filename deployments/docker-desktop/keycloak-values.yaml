@@ -2,7 +2,7 @@ image:
 #  ghcr.io == GitHub packages
   registry: docker.io
   repository: opentdf/keycloak
-  tag: 15.0.2-r10
+  tag: head
   pullPolicy: Always
 postgresql:
   enabled: false
