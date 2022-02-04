@@ -177,18 +177,17 @@ k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
 
 helm_remote(
     "keycloak",
-    repo_name="xtest-bitnami",
-    repo_url="https://charts.bitnami.com/bitnami",
+    version="15.0.2",
+    repo_url="https://codecentric.github.io/helm-charts",
     values=["backend-keycloak-values.yaml"],
-    version="5.1.1",
 )
+
 helm_remote(
-    "postgresql",
-    release_name="opentdf",
-    repo_name="xtest-bitnami",
+    "opentdf-postgresql",
     repo_url="https://charts.bitnami.com/bitnami",
+    release_name="opentdf",
+    version="10.16.2",
     values=["backend-postgresql-values.yaml"],
-    version="10.9.5",
 )
 
 #     o8o
