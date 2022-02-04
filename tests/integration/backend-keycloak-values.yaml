@@ -5,12 +5,6 @@ image:
   pullPolicy: Always
 postgresql:
   enabled: false
-service:
-  extraPorts:
-    - name: http-local
-      port: 8080
-      targetPort: http
-      protocol: TCP
 extraEnv: |
   - name: KEYCLOAK_LOG_LEVEL
     value: DEBUG

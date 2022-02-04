@@ -531,7 +531,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: keycloak_hostname
-              value: http://keycloak
+              value: http://keycloak-http
             - name: keycloak_admin_username
               value: keycloakadmin
             - name: keycloak_admin_password
