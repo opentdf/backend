@@ -183,7 +183,7 @@ helm_remote(
 )
 
 helm_remote(
-    "opentdf-postgresql",
+    "postgresql",
     repo_url="https://charts.bitnami.com/bitnami",
     release_name="opentdf",
     version="10.16.2",
