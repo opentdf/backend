@@ -73,7 +73,7 @@ jobs:
           tilt version
       - name: start minikube
         id: minikube
-        uses: medyagh/setup-minikube@master
+        uses: medyagh/setup-minikube@latest
         with:
           minikube-version: 1.25.1
           # This should be in sync with the setup-tools version above
