@@ -1,7 +1,6 @@
 image:
 #  ghcr.io == GitHub packages
-  registry: docker.io
-  repository: opentdf/keycloak
+  repository: ghcr.io/opentdf/keycloak
   tag: head
   pullPolicy: Always
 postgresql:
