@@ -1,6 +1,5 @@
 image:
-  registry: ghcr.io
-  repository: opentdf/keycloak
+  repository: ghcr.io/opentdf/keycloak
   tag: head
   pullPolicy: Always
 postgresql:
