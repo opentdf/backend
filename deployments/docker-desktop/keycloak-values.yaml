@@ -40,7 +40,7 @@ secrets:
   db:
     stringData:
       DB_USER: postgres
-      DB_PASSWORD: postgres
+      DB_PASSWORD: otdf-pgsql-admin
 ingress:
   enabled: true
   annotations:
