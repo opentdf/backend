@@ -187,3 +187,5 @@ k8s_resource("entitlements", resource_deps=["tdf-postgresql"])
 # TODO: Add a bootstrap job
 # docker_build(CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap", context = "containers/keycloak-bootstrap",
 #     build_args = {"PY_VERSION": PY_VERSION})
+
+k8s_custom_deploy("Manual PVC Delete On Teardown", 'echo ""', "kubectl delete pvc --all", "")
