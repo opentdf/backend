@@ -1,7 +1,8 @@
 image:
+  # This is a CI env NOT a local env, so we expect the registry to be ghcr.io
   repository: ghcr.io/opentdf/keycloak
   tag: head
-  pullPolicy: Always
+  pullPolicy: Never # We expect Tilt to cache these
 postgresql:
   enabled: false
 extraEnv: |

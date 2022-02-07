@@ -1,9 +1,8 @@
 image:
-#  ghcr.io == GitHub packages
-  registry: docker.io
+#  This is for local builds - so the image will NOT be tagged with ghcr.io
   repository: opentdf/keycloak
   tag: head
-  pullPolicy: Always
+  pullPolicy: Never # We expect Tilt to cache these
 postgresql:
   enabled: false
 service:
