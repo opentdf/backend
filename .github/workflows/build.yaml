@@ -235,7 +235,7 @@ jobs:
       - name: Checkout upstream Keycloak image repo
         uses: actions/checkout@v2
         with:
-          repository: 'https://github.com/keycloak/keycloak-containers.git'
+          repository: 'keycloak/keycloak-containers'
           ref: ${{ env.KEYCLOAK_BASE_VERSION }}
       - name: Docker metadata
         id: meta
@@ -294,7 +294,7 @@ jobs:
           build-args: |-
             MAVEN_VERSION=3.8.4
             JDK_VERSION=11
-            KEYCLOAK_VERSION=@${{ env.KEYCLOAK_BASE_VERSION }}
+            KEYCLOAK_VERSION=${{ env.KEYCLOAK_BASE_VERSION }}
           context: ./containers/keycloak-protocol-mapper
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
