@@ -188,4 +188,10 @@ k8s_resource("entitlements", resource_deps=["tdf-postgresql"])
 # docker_build(CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap", context = "containers/keycloak-bootstrap",
 #     build_args = {"PY_VERSION": PY_VERSION})
 
-k8s_custom_deploy("Manual PVC Delete On Teardown", 'echo ""', "kubectl delete pvc --all", "")
+# The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
+# This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.
+# Doing a `tilt down && kubectl delete pvc --all` will solve this
+# Tried to automate that teardown postcommand here with Tilt, and it works for everything but `tilt ci` which keeps
+# waiting for the no-op `apply_cmd` to stream logs as a K8S resource.
+# I have not figured out a clean way to run `down commands` with tilt
+#k8s_custom_deploy("Manual PVC Delete On Teardown", 'echo ""', "kubectl delete pvc --all", "")
