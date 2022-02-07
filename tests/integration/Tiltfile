@@ -151,10 +151,10 @@ docker_build(
     "ghcr.io/opentdf/keycloak",
     local_path("containers", "keycloak-protocol-mapper"),
     build_args={
-        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
+        "CONTAINER_REGISTRY": "docker.io",
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
-        "KEYCLOAK_BASE_IMAGE": "virtru/keycloak-multiplat-base", #TODO fix this after going public
+        "KEYCLOAK_BASE_IMAGE": "virtru/keycloak-base", #TODO fix this after going public
         "KEYCLOAK_BASE_VERSION": "15.0.2",
     },
 )
