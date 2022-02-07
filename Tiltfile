@@ -56,7 +56,7 @@ docker_build(
     context="containers/keycloak-protocol-mapper",
     build_args={
         "CONTAINER_REGISTRY": "docker.io",
-        "KEYCLOAK_BASE_IMAGE": "virtru/keycloak-multiplat-base", #TODO fix this after going public
+        "KEYCLOAK_BASE_IMAGE": "virtru/keycloak-base", #TODO fix this after going public
         "KEYCLOAK_BASE_VERSION": "15.0.2",
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
