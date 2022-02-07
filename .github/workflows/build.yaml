@@ -242,6 +242,8 @@ jobs:
         with:
           repository: 'keycloak/keycloak-containers'
           ref: ${{ env.KEYCLOAK_BASE_VERSION }}
+      - name: Set up QEMU (required for crossbuild)
+        uses: docker/setup-qemu-action@v1
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v3
