@@ -19,6 +19,11 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 tmp_dir = "tmp/"
 
+SDK_PATHS = {
+    "py_encrypt":"py/encrypt.py",
+    "py_decrypt":"py/decrypt.py"
+}
+
 KAS_ENDPOINT = os.getenv("KAS_ENDPOINT", "http://host.docker.internal:65432/kas")
 OIDC_ENDPOINT = os.getenv("OIDC_ENDPOINT", "http://host.docker.internal:65432/keycloak")
 ORGANIZATION_NAME = "tdf"
@@ -47,6 +52,36 @@ def decrypt_web(ct_file, rt_file):
     subprocess.check_call(c)
 
 
+def encrypt_py_nano(ct_file, rt_file):
+    encrypt_py(ct_file, rt_file, nano=True)
+
+
+def decrypt_py_nano(ct_file, rt_file):
+    decrypt_py(ct_file, rt_file, nano=True)
+
+
+def encrypt_py(pt_file, ct_file, nano=False):
+    c = ["python3", SDK_PATHS["py_encrypt"], "--kasEndpoint", KAS_ENDPOINT, 
+    "--oidcEndpoint", OIDC_ENDPOINT,
+    "--auth", f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+    "--ctfile", ct_file,
+    "--ptfile", pt_file]
+    if nano: c.append("--nano")
+    logger.info("Invoking subprocess: %s", " ".join(c))
+    subprocess.check_call(c)
+
+
+def decrypt_py(ct_file, rt_file, nano=False):
+    c = ["python3", SDK_PATHS["py_decrypt"], "--kasEndpoint", KAS_ENDPOINT, 
+    "--oidcEndpoint", OIDC_ENDPOINT,
+    "--auth", f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+    "--rtfile", rt_file,
+    "--ctfile", ct_file]
+    if nano: c.append("--nano")
+    logger.info("Invoking subprocess: %s", " ".join(c))
+    subprocess.check_call(c)
+
+
 def setup():
     teardown()
     os.makedirs(tmp_dir)
@@ -67,15 +102,22 @@ def main():
     parser.add_argument("--no-teardown", action="store_true", help="don't delete temp files")
     args = parser.parse_args()
 
-    sdks_to_encrypt = set([encrypt_web])
-    sdks_to_decrypt = set([decrypt_web])
+    tdf3_sdks_to_encrypt = set([encrypt_py])
+    tdf3_sdks_to_decrypt = set([decrypt_py])
+
+    nano_sdks_to_encrypt = set([encrypt_web, encrypt_py_nano])
+    nano_sdks_to_decrypt = set([decrypt_web, decrypt_py_nano])
 
     logger.info("--- main")
     setup()
 
     pt_file = gen_pt(large=args.large)
+    nano_pt_file = pt_file if not args.large else gen_pt()
     try:
-        run_cli_tests(sdks_to_encrypt, sdks_to_decrypt, pt_file)
+        logger.info("TDF3 TESTS:")
+        run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
+        logger.info("NANO TESTS:")
+        run_cli_tests(nano_sdks_to_encrypt, nano_sdks_to_decrypt, pt_file)
     finally:
         if not args.no_teardown:
             teardown()
