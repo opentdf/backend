@@ -14,7 +14,6 @@ their tooling supports this and they are doing it for other images, they just ar
 All build steps are scripted via [`Makefile`](Makefile)
 Docker image names and version tags are set in [`Makefile`](Makefile).
 
-`
 ### Build The openTDF Keycloak On Top Of The Keycloak Base Container Locally
 
 ```sh
@@ -28,6 +27,7 @@ make dockerbuildpush
 ```
 
 ### Build and publish the Keycloak base image (only required for Keycloak version changes)
+
 > Note that the base image `virtru/keycloak-base` is unchanged from the upstream Keycloak image, and
 > should not ever need to be built or published unless we change Keycloak versions,
 > and we can drop it entirely if we make a PR to [Keycloak image](https://github.com/keycloak/keycloak-containers)
