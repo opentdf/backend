@@ -116,6 +116,7 @@ helm_remote(
 )
 helm_remote(
     "postgresql",
+    version="10.16.2",
     repo_url="https://charts.bitnami.com/bitnami",
     release_name="tdf",
     version="10.16.2",
