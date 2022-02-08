@@ -230,7 +230,6 @@ jobs:
     # We're literally building upstream Keycloak as-is
     # and we don't need to rebuild unless there's a major Keycloak version bump
     # so at least skip this for non-main builds
-    # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
     runs-on: ubuntu-latest
     needs:
       - integration-test
@@ -269,7 +268,7 @@ jobs:
           context: ./server
           file: ./server/Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: true
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ghcr.io/opentdf/keycloak-multiarch-base:${{ env.KEYCLOAK_BASE_VERSION }}
 
   custom-keycloak-image:
@@ -307,7 +306,6 @@ jobs:
             KEYCLOAK_BASE_VERSION=${{ env.KEYCLOAK_BASE_VERSION }}
             KEYCLOAK_BASE_IMAGE=${{ env.KEYCLOAK_BASE_IMAGE }}
           context: ./containers/keycloak-protocol-mapper
-          # push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
-          push: true
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
