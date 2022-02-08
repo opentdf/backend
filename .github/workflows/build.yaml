@@ -274,7 +274,7 @@ jobs:
   custom-keycloak-image:
     runs-on: ubuntu-latest
     needs:
-      - integration-test
+      - keycloak-image-base
     permissions:
       contents: read
       packages: write
