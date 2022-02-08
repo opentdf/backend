@@ -11,7 +11,7 @@ endpoints:
 replicaCount: 1
 
 image:
-  repository: virtru/tdf-key-access-service
+  repository: opentdf/kas
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
