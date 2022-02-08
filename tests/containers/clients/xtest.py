@@ -52,20 +52,22 @@ def decrypt_web(ct_file, rt_file):
     subprocess.check_call(c)
 
 
-def encrypt_py_nano(ct_file, rt_file):
-    encrypt_py(ct_file, rt_file, nano=True)
+def encrypt_py_nano(ct_file, rt_file, attributes=None):
+    encrypt_py(ct_file, rt_file, attributes=attributes, nano=True)
 
 
 def decrypt_py_nano(ct_file, rt_file):
     decrypt_py(ct_file, rt_file, nano=True)
 
 
-def encrypt_py(pt_file, ct_file, nano=False):
+def encrypt_py(pt_file, ct_file, nano=False, attributes=None):
     c = ["python3", SDK_PATHS["py_encrypt"], "--kasEndpoint", KAS_ENDPOINT, 
     "--oidcEndpoint", OIDC_ENDPOINT,
     "--auth", f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
     "--ctfile", ct_file,
     "--ptfile", pt_file]
+    if attributes:
+      c += ["--attributes", ",".join(attributes)]
     if nano: c.append("--nano")
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
@@ -117,7 +119,7 @@ def main():
         logger.info("TDF3 TESTS:")
         run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
         logger.info("NANO TESTS:")
-        run_cli_tests(nano_sdks_to_encrypt, nano_sdks_to_decrypt, pt_file)
+        run_cli_tests(nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file)
     finally:
         if not args.no_teardown:
             teardown()
