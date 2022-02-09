@@ -114,7 +114,7 @@ def main():
     setup()
 
     pt_file = gen_pt(large=args.large)
-    nano_pt_file = pt_file if not args.large else gen_pt()
+    nano_pt_file = pt_file if not args.large else gen_pt(large=False)
     try:
         logger.info("TDF3 TESTS:")
         run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)

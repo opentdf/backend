@@ -10,6 +10,7 @@ logger = logging.getLogger("xtest")
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
+
 def decrypt_file(client, oidc_endpoint, kas, client_id, client_secret, org_name, 
 nano, ct_file, rt_file):
     logger.info(
@@ -19,11 +20,10 @@ nano, ct_file, rt_file):
     client.enable_console_logging(LogLevel.Info)
 
     client.decrypt_file(ct_file, rt_file)
-    # logger.info("Decrypting with data attributes: %s", attrs)
     logger.info("Decrypting file ")
 
-def main():
 
+def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--kasEndpoint", help="KAS endpoint")
@@ -52,3 +52,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
