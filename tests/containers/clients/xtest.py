@@ -19,10 +19,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 tmp_dir = "tmp/"
 
-SDK_PATHS = {
-    "py_encrypt":"py/encrypt.py",
-    "py_decrypt":"py/decrypt.py"
-}
+SDK_PATHS = {"py_encrypt": "py/encrypt.py", "py_decrypt": "py/decrypt.py"}
 
 KAS_ENDPOINT = os.getenv("KAS_ENDPOINT", "http://host.docker.internal:65432/kas")
 OIDC_ENDPOINT = os.getenv("OIDC_ENDPOINT", "http://host.docker.internal:65432/keycloak")
@@ -30,24 +27,42 @@ ORGANIZATION_NAME = "tdf"
 CLIENT_ID = "tdf-client"
 CLIENT_SECRET = "123-456"
 
+
 def encrypt_web(ct_file, rt_file, attributes=None):
-    c = ["npx", "@opentdf/cli", "--kasEndpoint", KAS_ENDPOINT, 
-    "--oidcEndpoint", OIDC_ENDPOINT,
-    "--auth", f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
-    "--output", rt_file]
+    c = [
+        "npx",
+        "@opentdf/cli",
+        "--kasEndpoint",
+        KAS_ENDPOINT,
+        "--oidcEndpoint",
+        OIDC_ENDPOINT,
+        "--auth",
+        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        "--output",
+        rt_file,
+    ]
     if attributes:
-      c += ["--attributes", ",".join(attributes)]
+        c += ["--attributes", ",".join(attributes)]
     c += ["encrypt", ct_file]
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
 
 def decrypt_web(ct_file, rt_file):
-    c = ["npx", "@opentdf/cli", "--kasEndpoint", KAS_ENDPOINT, 
-    "--oidcEndpoint", OIDC_ENDPOINT,
-    "--auth", f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
-    "--output", rt_file,
-    "decrypt", ct_file]
+    c = [
+        "npx",
+        "@opentdf/cli",
+        "--kasEndpoint",
+        KAS_ENDPOINT,
+        "--oidcEndpoint",
+        OIDC_ENDPOINT,
+        "--auth",
+        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        "--output",
+        rt_file,
+        "decrypt",
+        ct_file,
+    ]
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
@@ -61,25 +76,45 @@ def decrypt_py_nano(ct_file, rt_file):
 
 
 def encrypt_py(pt_file, ct_file, nano=False, attributes=None):
-    c = ["python3", SDK_PATHS["py_encrypt"], "--kasEndpoint", KAS_ENDPOINT, 
-    "--oidcEndpoint", OIDC_ENDPOINT,
-    "--auth", f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
-    "--ctfile", ct_file,
-    "--ptfile", pt_file]
+    c = [
+        "python3",
+        SDK_PATHS["py_encrypt"],
+        "--kasEndpoint",
+        KAS_ENDPOINT,
+        "--oidcEndpoint",
+        OIDC_ENDPOINT,
+        "--auth",
+        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        "--ctfile",
+        ct_file,
+        "--ptfile",
+        pt_file,
+    ]
     if attributes:
-      c += ["--attributes", ",".join(attributes)]
-    if nano: c.append("--nano")
+        c += ["--attributes", ",".join(attributes)]
+    if nano:
+        c.append("--nano")
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
 
 def decrypt_py(ct_file, rt_file, nano=False):
-    c = ["python3", SDK_PATHS["py_decrypt"], "--kasEndpoint", KAS_ENDPOINT, 
-    "--oidcEndpoint", OIDC_ENDPOINT,
-    "--auth", f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
-    "--rtfile", rt_file,
-    "--ctfile", ct_file]
-    if nano: c.append("--nano")
+    c = [
+        "python3",
+        SDK_PATHS["py_decrypt"],
+        "--kasEndpoint",
+        KAS_ENDPOINT,
+        "--oidcEndpoint",
+        OIDC_ENDPOINT,
+        "--auth",
+        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        "--rtfile",
+        rt_file,
+        "--ctfile",
+        ct_file,
+    ]
+    if nano:
+        c.append("--nano")
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
@@ -99,9 +134,13 @@ def teardown():
 def main():
     parser = argparse.ArgumentParser(description="Cross-test various TDF libraries.")
     parser.add_argument(
-        "--large", help="Use a 5 GiB File; doesn't work with nano sdks", action="store_true"
+        "--large",
+        help="Use a 5 GiB File; doesn't work with nano sdks",
+        action="store_true",
     )
-    parser.add_argument("--no-teardown", action="store_true", help="don't delete temp files")
+    parser.add_argument(
+        "--no-teardown", action="store_true", help="don't delete temp files"
+    )
     args = parser.parse_args()
 
     tdf3_sdks_to_encrypt = set([encrypt_py])
@@ -170,7 +209,6 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
             % (serial, pt, rt)
         )
     logger.info("Test #%s, (%s->%s): Succeeded!", serial, encrypt_sdk, decrypt_sdk)
-
 
 
 def gen_pt(*, large):

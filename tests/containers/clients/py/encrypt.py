@@ -1,8 +1,8 @@
+import argparse
 import json
 import logging
 import os
 import sys
-import argparse
 
 from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
 
@@ -11,11 +11,26 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-def encrypt_file(client, oidc_endpoint, kas, client_id, client_secret, org_name, 
-nano, pt_file, ct_file, attributes):
+def encrypt_file(
+    client,
+    oidc_endpoint,
+    kas,
+    client_id,
+    client_secret,
+    org_name,
+    nano,
+    pt_file,
+    ct_file,
+    attributes,
+):
     logger.info(
         "KAS: %s, OIDC: %s, Client id: %s, Client secret: %s, Org Name: %s, Nano: %s",
-          oidc_endpoint, kas, client_id, client_secret, org_name, str(nano)
+        oidc_endpoint,
+        kas,
+        client_id,
+        client_secret,
+        org_name,
+        str(nano),
     )
     client.enable_console_logging(LogLevel.Info)
 
@@ -44,21 +59,32 @@ def main():
     attributes = args.attributes.split(",") if args.attributes else []
 
     oidc_creds = OIDCCredentials()
-    oidc_creds.set_client_credentials(client_id = auth[1],
-                                    client_secret = auth[2],
-                                    organization_name = auth[0],
-                                    oidc_endpoint = args.oidcEndpoint)
+    oidc_creds.set_client_credentials(
+        client_id=auth[1],
+        client_secret=auth[2],
+        organization_name=auth[0],
+        oidc_endpoint=args.oidcEndpoint,
+    )
 
-    client = NanoTDFClient(oidc_credentials = oidc_creds,
-    kas_url = args.kasEndpoint) if args.nano else TDFClient(oidc_credentials = oidc_creds,
-    kas_url = args.kasEndpoint)
+    client = (
+        NanoTDFClient(oidc_credentials=oidc_creds, kas_url=args.kasEndpoint)
+        if args.nano
+        else TDFClient(oidc_credentials=oidc_creds, kas_url=args.kasEndpoint)
+    )
 
-    encrypt_file(client, args.kasEndpoint, args.oidcEndpoint, auth[1], auth[2],
- auth[0], args.nano, args.ptfile, args.ctfile, attributes)
-
-
+    encrypt_file(
+        client,
+        args.kasEndpoint,
+        args.oidcEndpoint,
+        auth[1],
+        auth[2],
+        auth[0],
+        args.nano,
+        args.ptfile,
+        args.ctfile,
+        attributes,
+    )
 
 
 if __name__ == "__main__":
     main()
-    
