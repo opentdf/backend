@@ -138,7 +138,7 @@ async def create_claims_object(request: ClaimsRequest):
         entity_id=request.userId or None,
         public_key=request.publicKey or None,
         client_public_signing_key=request.signerPublicKey or None,
-        subject_attributes=attributes,
+        entity_attributes=attributes,
     )
 
 
