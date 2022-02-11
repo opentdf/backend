@@ -41,6 +41,10 @@ ingress:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
   path: /keycloak(/|$)(.*)
   hostname: localhost
+  rules:
+    - host: localhost
+      paths:
+        - path: /keycloak(/|$)(.*)
   extraHosts:
     - name: host.docker.internal 
       path: /keycloak(/|$)(.*)
