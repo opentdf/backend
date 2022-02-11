@@ -154,8 +154,8 @@ docker_build(
         "CONTAINER_REGISTRY": "docker.io",
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
-        "KEYCLOAK_BASE_IMAGE": "virtru/keycloak-base", #TODO fix this after going public
-        "KEYCLOAK_BASE_VERSION": "15.0.2",
+        "KEYCLOAK_BASE_IMAGE": "opentdf/keycloak",
+        "KEYCLOAK_BASE_VERSION": "15.0.2-r10",
     },
 )
 
@@ -180,9 +180,10 @@ k8s_yaml(
 k8s_yaml("backend.yaml")
 k8s_yaml("frontend.yaml")
 
-# resource dependencies
+# resource dependencies and port forwards
 k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
-k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql"])
+k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql"], port_forwards='65000:5000')
+k8s_resource("opentdf-postgresql", port_forwards='65421:5421')
 k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
 k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
 

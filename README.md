@@ -55,6 +55,10 @@ This quick start guide is primarily for development and testing the EAS and KAS 
   - On macOS via Homebrew: `brew install tilt-dev/tap/ctlptl`
   - Others see https://github.com/tilt-dev/ctlptl#homebrew-maclinux
 
+- Install [PostgreSQL](https://www.postgresql.org/)
+  - On macOS via Homebrew: `brew install postgresql`
+  - Others see https://www.postgresql.org/download/
+
 ### Alternative Prerequisites install
 ```shell
 # Install pre-requisites (drop what you've already got)
@@ -83,7 +87,6 @@ tilt up
 ```shell
 tilt down
 ctlptl delete cluster kind-opentdf
-helm repo remove keycloak
 ```
 
 > (Optional) Run `octant` -> This will open a browser window giving you an overview of your local cluster.

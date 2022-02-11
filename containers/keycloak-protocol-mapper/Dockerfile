@@ -2,10 +2,11 @@
 # NOTE - The version is also needed in the site-packages COPY command below and should be x.x not x.x.x
 ARG MAVEN_VERSION=3.8.2
 ARG JDK_VERSION=11
-ARG KEYCLOAK_BASE_VERSION=15.0.2
+ARG KEYCLOAK_BASE_VERSION=15.0.2-r10
+#to `ghcr.io/opentdf` but that is not publicly accessible yet.
 ARG CONTAINER_REGISTRY=docker.io
-ARG KEYCLOAK_BASE_IMAGE=virtru/keycloak-base #TODO make this `opentdf/keycloak-multiplat-base` once we go public - we are already publishing this base image
-    #to `ghcr.io/opentdf` but that is not publicly accessible yet.
+#TODO make this `opentdf/keycloak-multiplat-base` once we go public - we are already publishing this base image
+ARG KEYCLOAK_BASE_IMAGE=opentdf/keycloak
 
 FROM maven:${MAVEN_VERSION}-jdk-${JDK_VERSION} as claimsmapperbuild
 
