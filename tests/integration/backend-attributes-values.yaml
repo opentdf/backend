@@ -1,4 +1,4 @@
-logLevel: DEBUG
+logLevel: debug
 publicName: "Attribute Authority"
 serverRootPath: /attributes
 oidc:
