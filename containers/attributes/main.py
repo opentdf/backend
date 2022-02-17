@@ -31,7 +31,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 logging.basicConfig(
-    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", logging.CRITICAL).upper()
+    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
 )
 logger = logging.getLogger(__package__)
 
@@ -302,6 +302,7 @@ oidc_scheme = OpenIdConnect(
 async def read_attributes(
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
+    rule: Optional[str] = None,
     order: Optional[str] = None,
     sort: Optional[str] = Query(
         "",
@@ -320,6 +321,8 @@ async def read_attributes(
         ]
     if name:
         filter_args["name"] = name
+    if rule:
+        filter_args["rule"] = rule
     if order:
         filter_args["values"] = order
 
