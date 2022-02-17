@@ -78,7 +78,6 @@ jobs:
       - run: |
           kustomize version
           tilt version
-      - run: npx playwright install
       - name: start minikube
         id: minikube
         uses: medyagh/setup-minikube@latest
@@ -94,6 +93,7 @@ jobs:
         run: |-
           cd tests/integration
           tilt ci
+          playwright install
 
       - name: Quick check - run/validate local deployment Tiltfile
         run: |-
