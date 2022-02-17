@@ -66,10 +66,12 @@ jobs:
           kubectl: "1.21.1"
           helm: "3.7.2"
           tilt: "0.23.4"
+          node-version: '14'
       - run: |
           kubectl version --client
           kustomize version
           tilt version
+      - run: npm i npx -g
       - name: start minikube
         id: minikube
         uses: medyagh/setup-minikube@latest
