@@ -71,7 +71,7 @@ jobs:
           kubectl version --client
           kustomize version
           tilt version
-      - run: npm i npx -g
+      - run: npx playwright install
       - name: start minikube
         id: minikube
         uses: medyagh/setup-minikube@latest
