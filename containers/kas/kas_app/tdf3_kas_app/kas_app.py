@@ -104,7 +104,6 @@ def app(name):
 
     missing_variables = []
     (
-        eas_certificate,
         kas_private_key,
         kas_certificate,
         kas_ec_secp256r1_certificate,
@@ -112,7 +111,6 @@ def app(name):
     ) = [
         load_key_bytes(e, missing_variables)
         for e in [
-            "EAS_CERTIFICATE",  # This is unused in OIDC mode
             "KAS_PRIVATE_KEY",
             "KAS_CERTIFICATE",
             "KAS_EC_SECP256R1_CERTIFICATE",
@@ -124,7 +122,6 @@ def app(name):
         raise Exception(f"KAS must have variables: {missing_variables}.")
 
     # Configure kas
-    kas.set_key_pem("AA-PUBLIC", "PUBLIC", eas_certificate)
     kas.set_key_pem("KAS-PRIVATE", "PRIVATE", kas_private_key)
     kas.set_key_pem("KAS-PUBLIC", "PUBLIC", kas_certificate)
     kas.set_key_pem("KAS-EC-SECP256R1-PRIVATE", "PRIVATE", kas_ec_secp256r1_private_key)

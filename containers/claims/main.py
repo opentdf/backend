@@ -12,7 +12,9 @@ from fastapi import FastAPI, Request
 from pydantic import BaseModel
 
 app = FastAPI()
-
+logging.basicConfig(
+    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
+)
 logger = logging.getLogger(__package__)
 
 VERSION_SPECIFICATION = "4.2.0"
@@ -90,7 +92,7 @@ class EntityEntitlements(BaseModel):
 class EntitlementsObject(BaseModel):
     client_public_signing_key: Optional[str] = ""
     entity_id: Optional[str]
-    entitlements: List[AttributeDisplay]
+    entitlements: Optional[List[AttributeDisplay]]
     tdf_spec_version: Optional[str]
 
     class Config:
@@ -161,9 +163,9 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
         await database.execute("SELECT 1")
 
 
-@app.post("/v1/claims", response_model=EntitlementsObject, response_model_exclude_unset=True)
+@app.post("/claims", response_model=EntitlementsObject, response_model_exclude_unset=True)
 async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
-    logger.info("/v1/claims POST [%s]", request)
+    logger.info("/claims POST [%s]", request)
     attributes = []
     # select
     query = table_entity_attribute.select().where(
@@ -178,7 +180,6 @@ async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
         client_public_signing_key=request.signerPublicKey or None,
         entity_attributes=attributes,
     )
-    print(eo)
     return eo
 
 if __name__ == "__main__":

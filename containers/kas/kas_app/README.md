@@ -79,8 +79,6 @@ See the [root README](../../README.md) for instructions on generating keys for E
 - KAS_EC_SECP256R1_CERTIFICATE
   - The public key of curve secp256r1, KAS clients can use
    to validate responses.
-- EAS_CERTIFICATE
-  - The public key used to validate responses from EAS.
 
 EAS host is required for EAS to fetch and check the validity of attributes.
 - EAS_HOST

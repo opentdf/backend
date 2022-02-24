@@ -19,7 +19,6 @@ export KEYCLOAK_PUBLIC_KEY="$PROJECT_ROOT/certs/keycloak-public.pem"
 export CA_CERT_PATH="$PROJECT_ROOT/certs/ca.crt"
 
 [ -f "$PROJECT_ROOT/certs/.env" ] && . "$PROJECT_ROOT/certs/.env"
-export EAS_CERTIFICATE
 export KAS_EC_SECP256R1_PRIVATE_KEY
 export KAS_EC_SECP256R1_CERTIFICATE
 export KAS_PRIVATE_KEY
