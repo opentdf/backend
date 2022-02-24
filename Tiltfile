@@ -57,7 +57,7 @@ docker_build(
     build_args={
         "CONTAINER_REGISTRY": "docker.io",
         "KEYCLOAK_BASE_IMAGE": "virtru/keycloak-base", #TODO fix this after going public
-        "KEYCLOAK_BASE_VERSION": "15.0.2",
+        "KEYCLOAK_BASE_VERSION": "16.1.1",
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
     },
@@ -116,6 +116,7 @@ helm_remote(
 )
 helm_remote(
     "postgresql",
+    version="10.16.2",
     repo_url="https://charts.bitnami.com/bitnami",
     release_name="tdf",
     version="10.16.2",
