@@ -193,13 +193,13 @@ This should be left alone, but may be edited as needed for insight into postres,
 
 ## Swagger-UI
 
-KAS and EAS servers support the openapi frontent tool Swagger UI to provide documentation and easier interaction for the REST API.
+The microservices support OpenAPI, and can provide documentation and easier interaction for the REST API.
 Add "/ui" to the base URL of the appropriate server. For example, `http://127.0.0.1:4010/ui/`.
 KAS and EAS each have separate REST APIs that together with the SDK support the full TDF3 process for encryption,
 authorization, and decryption.
 
 Swagger-UI can be disabled through the SWAGGER_UI environment variable. See the configuration sections of the
-README documentation for [KAS](kas_app/README.md) and [EAS](eas/README.md) in this repository.
+README documentation for [KAS](kas/kas_app/README.md) for more detail.
 
 ## Committing Code
 
