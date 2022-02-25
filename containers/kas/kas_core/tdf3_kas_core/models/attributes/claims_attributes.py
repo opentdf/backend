@@ -17,38 +17,38 @@ class ClaimsAttributes(AttributeSet):
     # We're just putting simple structures in lists, we don't need custom classes for that.
     @classmethod
     def create_from_raw(cls, raw_claims_attributes):
-        """Construct a dict of ClaimsAttributes for each subject (keyed by subject ID) from raw data (dict)."""
-        subjects = {}
+        """Construct a dict of ClaimsAttributes for each entity (keyed by entity ID) from raw data (dict)."""
+        entitlements = {}
 
         logger.debug("RAW CLAIMS IS IS: {}".format(raw_claims_attributes))
-        for subject in raw_claims_attributes:
-            subjectname = subject['subject_identifier']
-            subjectattrs = subject['subject_attributes']
-            logger.debug("SUBJECTATTRS IS: {}".format(subjectattrs))
-            subject_attribute_set = cls()
-            for attributeObj in subjectattrs:
+        for entitlement in raw_claims_attributes:
+            entityname = entitlement['entity_identifier']
+            entityattrs = entitlement['entity_attributes']
+            logger.debug("ENTITYATTRS IS: {}".format(entityattrs))
+            entity_attribute_set = cls()
+            for attributeObj in entityattrs:
                 if "attribute" in attributeObj:
                     logger.debug("AttributeOBJ IS: {}".format(attributeObj))
                     logger.debug("AttributeOBJ ATTRIB IS: {}".format(attributeObj['attribute']))
-                    subject_attribute_set.add(AttributeValue(attributeObj['attribute']))
+                    entity_attribute_set.add(AttributeValue(attributeObj['attribute']))
                 elif "url" in attributeObj:
                     logger.warning("DEPRECATED - attribute 'url' should be 'attribute'")
-                    subject_attribute_set.add(AttributeValue(attributeObj['url']))
+                    entity_attribute_set.add(AttributeValue(attributeObj['url']))
                 else:
-                    msg = f"'attribute' field missing = {attribute}"
+                    msg = f"'attribute' field missing = {attributeObj}"
                     logger.error(msg)
                     logger.setLevel(logging.DEBUG)  # dynamically escalate level
                     raise InvalidAttributeError(msg)
-            subjects[subjectname] = subject_attribute_set
+            entitlements[entityname] = entity_attribute_set
 
-        return subjects
+        return entitlements
 
     @classmethod
-    def create_from_list(cls, subject_id, attr_list):
-        """Load subject attributes from a list of raw values and a subject identifier"""
-        subjects = {}
+    def create_from_list(cls, entity_id, attr_list):
+        """Load entity attributes from a list of raw values and a entity identifier"""
+        entities = {}
         ea = cls()
         for attr_value in attr_list:
             ea.add(AttributeValue(attr_value["attribute"]))
-        subjects[subject_id] = ea
-        return subjects
+        entities[entity_id] = ea
+        return entities

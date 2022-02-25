@@ -118,10 +118,10 @@ def test_claims_object():
         "sub":"user@virtru.com",
         "tdf_claims":{
             "client_public_signing_key": CLIENT_SIGNING_PUBLIC_KEY,
-            "subjects":[
+            "entitlements":[
             {
-                "subject_identifier":"clientsubjectId1-14443434-1111343434-asdfdffff",
-                "subject_attributes":[
+                "entity_identifier":"clientsubjectId1-14443434-1111343434-asdfdffff",
+                "entity_attributes":[
                 {
                     "attribute":"https://example.com/attr/Classification/value/S",
                     "displayName":"classification"
@@ -133,8 +133,8 @@ def test_claims_object():
                 ]
             },
             {
-                "subject_identifier":"user@virtru.com",
-                "subject_attributes":[
+                "entity_identifier":"user@virtru.com",
+                "entity_attributes":[
                 {
                     "attribute":"https://example.com/attr/Classification/value/S",
                     "displayName":"classification"

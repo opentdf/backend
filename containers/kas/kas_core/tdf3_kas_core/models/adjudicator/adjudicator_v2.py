@@ -20,13 +20,13 @@ logger = logging.getLogger(__name__)
 class AdjudicatorV2(object):
     """Adjudicator adjudicates.
 
-    All checks to see whether the provided subject claims are sufficient to access the wrapped key split
+    All checks to see whether the provided entity claims are sufficient to access the wrapped key split
     are in this model.
 
-    The basic pattern is that failed checks raise errors.  These are caught
+    The basic pattern is that failed checks raise errors. These are caught
     at the Web layer and converted to messages of the appropriate form.  If
-    the subject claims pass all the tests without raising an error,
-    then the authenticated subject who was issued the claims is assumed to be worthy.
+    the entity claims pass all the tests without raising an error,
+    then the authenticated entity who was issued the claims is assumed to be worthy.
     """
 
     def __init__(self, attribute_policy_cache=None):
@@ -38,24 +38,24 @@ class AdjudicatorV2(object):
     def can_access(self, policy, claims):
 
         # TODO BML changes here
-        """Determine if the presented subject claims are worthy."""
+        """Determine if the presented entity claims are worthy."""
         # Check to see if this claimset fails the dissem tests.
         self._check_dissem(policy.dissem, claims.user_id)
         # Then check the attributes
         self._check_attributes(policy.data_attributes, claims)
-        # Passed all the tests, The subject who was issued this claimset is Worthy!
+        # Passed all the tests, The entity who was issued this claimset is Worthy!
         return True
 
-    def _check_dissem(self, dissem, subject_id):
-        """Test to see if subject is in dissem list.
+    def _check_dissem(self, dissem, entity_id):
+        """Test to see if entity is in dissem list.
 
         If the dissem list is empty then the dissem list is a wildcard
-        and the subject passes by default. If the dissem list has elements
-        the subject must be on the list.
+        and the entity passes by default. If the dissem list has elements
+        the entity must be on the list.
 
         This check is something of a hack we need to excise -
         it short-circuits actual ABAC comparison logic, and it
-        assumes that only one subject is involved in a key release operation -
+        assumes that only one entity is involved in a key release operation -
         which is not a valid assumption.
 
         Additionally, it assumes an empty list is equivalent to valid auth - also a
@@ -64,17 +64,17 @@ class AdjudicatorV2(object):
         Also, we should probably represent the dissem check as Just Another Attribute
 
         However, for backwards compat we're leaving this here, and assuming for now that the
-        OIDC JWT's `preferred_username` field is "the subject" we should be using
+        OIDC JWT's `preferred_username` field is "the entity" we should be using
         in the query.
         """
-        if (dissem.size == 0) | dissem.contains(subject_id):
+        if (dissem.size == 0) | dissem.contains(entity_id):
             return True
         else:
-            logger.debug(f"Subject {subject_id} is not on dissem list {dissem.list}")
-            raise AuthorizationError("Subject is not on dissem list.")
+            logger.debug(f"Entity {entity_id} is not on dissem list {dissem.list}")
+            raise AuthorizationError("Entity is not on dissem list.")
 
     def _check_attributes(self, data_attributes, claims):
-        """Determine if the presented claims (subject attributes)
+        """Determine if the presented claims (entity attributes)
         fulfil the requirements of the data attributes
 
         Both the policy attributes and default rules are used.
@@ -94,22 +94,22 @@ class AdjudicatorV2(object):
             attr_policy = self._attribute_policy_cache.get(namespace)
             rule = attr_policy.rule
 
-            # We may have multiple subjects, each with their own set of
-            # subject attributes.
+            # We may have multiple entities, each with their own set of
+            # entity attributes.
             #
-            # So, pass the entire list of subjects and their attrs to the decision funcs,
+            # So, pass the entire list of entities and their attrs to the decision funcs,
             # and let them resolve them, as how this resolution happens is currently different
             # per decision function: https://docs.google.com/document/d/1LKOD1kT6n3PD211RKVckTarQA7Q6gSUfXYOqy21E1aU/edit?usp=sharing
 
-            # CASE All_OF (ALL OF subjects must have ALL OF the data attributes)
+            # CASE All_OF (ALL OF entities must have ALL OF the data attributes)
             if rule == ALL_OF:
                 all_of_decision(data_values, claims)
 
-            # CASE ANY_OF (ANY OF the subjects can satisfy the data attribute match requirement)
+            # CASE ANY_OF (ANY OF the entities can satisfy the data attribute match requirement)
             if rule == ANY_OF:
                 any_of_decision(data_values, claims)
 
-            # CASE HIERARCHY (Lowest heirerchy value among all subjects is the "heirarchy value", with None always being the lowest)
+            # CASE HIERARCHY (Lowest heirerchy value among all entities is the "heirarchy value", with None always being the lowest)
             if rule == HIERARCHY:
                 hierarchy_decision(
                     data_values, claims, attr_policy.options["order"]

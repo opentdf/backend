@@ -33,7 +33,7 @@ def post_from_keycloak_protocol_mapper_impl(*args, **kwargs):
     #
     # tl;dr sometimes IdPs want the WHOLE claims object from this service, and sometimes they don't.
     tdf_claims_full_attributes = {
-        "subject_attributes": [
+        "entity_attributes": [
             {"attribute": "https://example.com/attr/Classification/value/S"},
             {"attribute": "https://example.com/attr/COI/value/PRX"},
         ]

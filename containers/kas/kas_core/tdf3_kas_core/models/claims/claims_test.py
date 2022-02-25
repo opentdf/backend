@@ -20,7 +20,7 @@ def test_claims_constructor():
     actual = Claims(user_id, public_key, attributes)
     assert actual.user_id == user_id
     assert actual.client_public_signing_key == public_key
-    assert actual.subject_attributes == attributes
+    assert actual.entity_attributes == attributes
 
 
 def test_claims_constructor_bad_id():
@@ -79,10 +79,10 @@ def test_claims_constructor_with_attributes():
 
     assert actual.user_id == user_id
     assert actual.client_public_signing_key == public_key
-    attr1 = actual.subject_attributes[user_id].get(attribute1)
+    attr1 = actual.entity_attributes[user_id].get(attribute1)
     assert attr1.namespace == "https://aa.virtru.com/attr/unique-identifier"
     assert attr1.value == "7b738968-131a-4de9-b4a1-c922f60583e3"
-    attr2 = actual.subject_attributes[user_id].get(attribute2)
+    attr2 = actual.entity_attributes[user_id].get(attribute2)
     assert attr2.namespace == "https://aa.virtru.com/attr/primary-organization"
     assert attr2.value == "7b738968-131a-4de9-b4a1-c922f60583e3"
 
@@ -96,10 +96,10 @@ def make_claims_object():
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo,
             ).decode("ascii"),
-            "subjects":[
+            "entitlements":[
             {
-                "subject_identifier":"clientsubjectId1-14443434-1111343434-asdfdffff",
-                "subject_attributes":[
+                "entity_identifier":"clientsubjectId1-14443434-1111343434-asdfdffff",
+                "entity_attributes":[
                 {
                     "attribute":"https://example.com/attr/Classification/value/S",
                     "displayName":"classification"
@@ -111,8 +111,8 @@ def make_claims_object():
                 ]
             },
             {
-                "subject_identifier":"user@virtru.com",
-                "subject_attributes":[
+                "entity_identifier":"user@virtru.com",
+                "entity_attributes":[
                 {
                     "attribute":"https://example.com/attr/Classification/value/S",
                     "displayName":"classification"

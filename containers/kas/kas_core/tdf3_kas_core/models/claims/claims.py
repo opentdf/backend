@@ -34,24 +34,24 @@ class Claims(object):
             backend=default_backend(),
         )
 
-        # ClaimsAttributes class takes a list of subjects, each with
-        # a list of subject attributes, and builds an object out of them
+        # ClaimsAttributes class takes a list of entitlements, each with
+        # an entity ID and list of entity attributes, and builds an object out of them
         # for Reasons and because We Need A Custom Object Model For Simple Types In Lists, apparently.
         # Why choose a language with a strict type system when you can choose a language with a loose type
         # system and write your own typing enforcement on top of that, I guess.
 
-        subject_attributes = ClaimsAttributes.create_from_raw(
-            claims_cert_obj["subjects"]
+        entity_attributes = ClaimsAttributes.create_from_raw(
+            claims_cert_obj["entitlements"]
         )
         # Pack and ship the instance
-        return cls(user_id, claims_public_key, subject_attributes)
+        return cls(user_id, claims_public_key, entity_attributes)
 
-    def __init__(self, user_id, public_key, claims_subject_attributes=None):
+    def __init__(self, user_id, public_key, claims_entity_attributes=None):
         """Initialize with verified data.
 
         user_id should be a string.
         claims_public_key should be a RSAPublicKey object
-        claims_subject_attributes should be a subject-ID-keyed dict of ClaimsAttributes objects.
+        claims_entity_attributes should be a entity-ID-keyed dict of ClaimsAttributes objects.
         """
 
         # TODO WHY ARE WE WRITING OUR OWN TYPECHECKING LOGIC?
@@ -69,12 +69,12 @@ class Claims(object):
             self._client_public_signing_key = public_key
         else:
             raise ClaimsError("client_public_signing_key is wrong type")
-        if claims_subject_attributes is None:
+        if claims_entity_attributes is None:
             self._attributes = {}
-        elif isinstance(claims_subject_attributes, dict):
-            self._subject_attributes = claims_subject_attributes
+        elif isinstance(claims_entity_attributes, dict):
+            self._entity_attributes = claims_entity_attributes
         else:
-            raise ClaimsError("claims_subject_attributes is wrong type")
+            raise ClaimsError("claims_entity_attributes is wrong type")
 
     @property
     def user_id(self):
@@ -97,12 +97,12 @@ class Claims(object):
         pass
 
     @property
-    def subject_attributes(self):
+    def entity_attributes(self):
         """Produce the claims attributes."""
-        return self._subject_attributes
+        return self._entity_attributes
 
-    @subject_attributes.setter
-    def subject_attributes(self, new_subject_attributes):
+    @entity_attributes.setter
+    def entity_attributes(self, new_entity_attributes):
         # TODO what actual purpose does this serve, we're in a dynamically typed language
         """Block intadvertent changes to the claims attributes."""
         pass

@@ -742,7 +742,7 @@ def upsert_v2(data, context, plugin_runner, key_master):
     )
 
     # Run the plugins
-    messages = plugin_runner.upsert(original_policy, claims.subject_attributes, key_access, context)
+    messages = plugin_runner.upsert(original_policy, claims.entity_attributes, key_access, context)
 
     logger.debug("UPSERTV2 SERVICE FINISH: Upsert Status Messages = [%s]", messages)
 

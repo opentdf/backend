@@ -15,7 +15,7 @@ from tdf3_kas_core.models import HIERARCHY
 
 from tdf3_kas_core.models import Claims
 
-def compose_jwt(primary_subj, subject_bundles):
+def compose_jwt(primary_ent, entity_bundles):
     return {
         "exp": 1638810866,
         "iat": 1638810566,
@@ -62,35 +62,35 @@ def compose_jwt(primary_subj, subject_bundles):
         "sid": "e07edbee-e0ae-4f1d-b5c4-8f4273a58a80",
         "email_verified": "false",
         "tdf_claims": {
-            "subjects": subject_bundles,
+            "entitlements": entity_bundles,
         "client_public_signing_key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwGPf6H2cuq8ZfqwnBlKY\nFi5Jk9fzEuXoeyidKjCHE2WRPx7W7zVjaulrrRKBL1J0PfnFaG1hFZPxnJXaqq5S\nnTfloZA+klgUALNGpklnwWFOUCylT4mq9bjQwt44grdgaXh7qhFjARCtIVz8BxeR\nowXYEd7+WRlgcRRk7FWuCAZYsWgiYoS3J1fWs/z8SMJrB47TtNmHjXqZiTac5mpt\nOyVs4l9ZBfpdT7Arlibi7E3V9H7NeX4sEPMm3lAVR9YHP2EaMvsUXl6XIotrW/VJ\nttMiuXwfOb46Xn9DQEvL/kFgYDx4nM16WPrYZP0T7+CXzuLUUCeP7/sj2xSvWmNZ\nJQIDAQAB\n-----END PUBLIC KEY-----\n"  },
-        "preferred_username": primary_subj
+        "preferred_username": primary_ent
     }
 
-def subject_with_attrs(subj_id, subj_attrs):
+def entity_with_attrs(ent_id, ent_attrs):
     format_attrs = []
 
-    for attr in subj_attrs:
+    for attr in ent_attrs:
         format_attrs.append({"attribute": attr})
 
 
     return {
-        "subject_identifier": subj_id,
-        "subject_attributes": format_attrs
+        "entity_identifier": ent_id,
+        "entity_attributes": format_attrs
       }
 # ========== ALL OF ===================
 
-def test_all_of_decision_succeed_all_subjects_have_all_claims():
-    """All of the subjects have the correct attribute - so AllOf should succeed"""
+def test_all_of_decision_succeed_all_entity_have_all_claims():
+    """All of the entities have the correct attribute - so AllOf should succeed"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://agency1.com/attr/investigations/value/access",
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/Env/value/CleanRoom"
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRX",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -100,7 +100,7 @@ def test_all_of_decision_succeed_all_subjects_have_all_claims():
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/Classification/value/S",
@@ -118,16 +118,16 @@ def test_all_of_decision_succeed_all_subjects_have_all_claims():
 
     assert all_of_decision(data_values, claims) is True
 
-def test_all_of_decision_fail_one_subject_partially_lacking_claims():
-    """2 of the 3 subjects lack AllOf the correct attributes - so AllOf should fail"""
+def test_all_of_decision_fail_one_entity_partially_lacking_claims():
+    """2 of the 3 entities lack AllOf the correct attributes - so AllOf should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://agency1.com/attr/investigations/value/access",
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/Env/value/CleanRoom"
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRX",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -137,7 +137,7 @@ def test_all_of_decision_fail_one_subject_partially_lacking_claims():
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/Classification/value/S",
@@ -157,16 +157,16 @@ def test_all_of_decision_fail_one_subject_partially_lacking_claims():
     with pytest.raises(AuthorizationError):
         all_of_decision(data_values, claims)
 
-def test_all_of_decision_fail_one_subject_lacking_claims():
-    """2 of the 3 subjects completely lack the correct attribute - so AllOf should fail"""
+def test_all_of_decision_fail_one_entity_lacking_claims():
+    """2 of the 3 entity completely lack the correct attribute - so AllOf should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://agency1.com/attr/investigations/value/access",
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/Env/value/CleanRoom"
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRX",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -176,7 +176,7 @@ def test_all_of_decision_fail_one_subject_lacking_claims():
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/Classification/value/S",
@@ -198,14 +198,14 @@ def test_all_of_decision_fail_one_subject_lacking_claims():
 def test_all_of_decision_succeed_empty_data_values():
     """Data value attrs empty - should succeed"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://agency1.com/attr/investigations/value/access",
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/Env/value/CleanRoom"
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRX",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -215,7 +215,7 @@ def test_all_of_decision_succeed_empty_data_values():
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/Classification/value/S",
@@ -231,19 +231,19 @@ def test_all_of_decision_succeed_empty_data_values():
 
     assert all_of_decision(data_values, claims) is True
 
-def test_all_of_decision_fails_empty_subject_values():
-    """Subject entitlements empty - should fail"""
+def test_all_of_decision_fails_empty_entity_values():
+    """Entity entitlements empty - should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    ent1 = entity_with_attrs("bubb", [
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    ent2 = entity_with_attrs("rubb", [
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    ent3 = entity_with_attrs("woowoo", [
     ])
 
-    decodedJwt = compose_jwt("bubb", [sub1, sub2, sub3])
+    decodedJwt = compose_jwt("bubb", [ent1, ent2, ent3])
     agency2ConflictAttr = AttributeValue("https://example.com/attr/conflictReport/value/agency2")
     claims = Claims.load_from_raw_data(decodedJwt)
     data_values = frozenset([agency2ConflictAttr])
@@ -253,18 +253,18 @@ def test_all_of_decision_fails_empty_subject_values():
 
 # ========== ANY OF ===================
 
-def test_any_of_decision_succeed_union_of_subjects_have_all_claims():
-    """The union of attributes provided by the subjects satisfies all data attr requirements - so Anyof should succeed"""
+def test_any_of_decision_succeed_union_of_entities_have_all_claims():
+    """The union of attributes provided by the entities satisfies all data attr requirements - so Anyof should succeed"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/conflictReport/value/agency1",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
@@ -278,17 +278,17 @@ def test_any_of_decision_succeed_union_of_subjects_have_all_claims():
 
     assert any_of_decision(data_values, claims) is True
 
-def test_any_of_decision_succeed_union_of_subjects_have_all_claims():
-    """The union of attributes provided by the subjects satisfies all data attr requirements - so Anyof should succeed"""
+def test_any_of_decision_succeed_union_of_entities_have_all_claims():
+    """The union of attributes provided by the entities satisfies all data attr requirements - so Anyof should succeed"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/conflictReport/value/agency2",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
@@ -302,10 +302,10 @@ def test_any_of_decision_succeed_union_of_subjects_have_all_claims():
 
     assert any_of_decision(data_values, claims) is True
 
-def test_any_of_decision_succeed_union_of_subjects_have_all_claims_disjoint_namespaces():
-    """The union of attributes provided by the subjects satisfies all data attr requirements - so Anyof should succeed"""
+def test_any_of_decision_succeed_union_of_entities_have_all_claims_disjoint_namespaces():
+    """The union of attributes provided by the entities satisfies all data attr requirements - so Anyof should succeed"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRZ",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -315,7 +315,7 @@ def test_any_of_decision_succeed_union_of_subjects_have_all_claims_disjoint_name
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRX",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -325,7 +325,7 @@ def test_any_of_decision_succeed_union_of_subjects_have_all_claims_disjoint_name
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRY",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -343,10 +343,10 @@ def test_any_of_decision_succeed_union_of_subjects_have_all_claims_disjoint_name
 
     assert any_of_decision(data_values, claims) is True
 
-def test_any_of_decision_fail_union_of_subjects_have_missing_claims():
-    """The union of attributes provided by the subjects does not satisfy all data attr requirements - so Anyof should fail"""
+def test_any_of_decision_fail_union_of_entities_have_missing_claims():
+    """The union of attributes provided by the entities does not satisfy all data attr requirements - so Anyof should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRZ",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -356,7 +356,7 @@ def test_any_of_decision_fail_union_of_subjects_have_missing_claims():
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRQ",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -366,7 +366,7 @@ def test_any_of_decision_fail_union_of_subjects_have_missing_claims():
         "https://example.com/attr/conflictReport/value/agency2"
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/Classification/value/S",
         "https://example.com/attr/COI/value/PRY",
         "https://example.com/attr/Env/value/CleanRoom",
@@ -386,16 +386,16 @@ def test_any_of_decision_fail_union_of_subjects_have_missing_claims():
         all_of_decision(data_values, claims)
 
 
-def test_any_of_decision_fail_union_of_subjects_have_no_claims():
-    """Subjects have no claims but data has attributes - so Anyof should fail"""
+def test_any_of_decision_fail_union_of_entities_have_no_claims():
+    """Entities have no claims but data has attributes - so Anyof should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
     ])
 
     PRXattr = AttributeValue("https://example.com/attr/COI/value/PRX")
@@ -408,15 +408,15 @@ def test_any_of_decision_fail_union_of_subjects_have_no_claims():
         all_of_decision(data_values, claims)
 
 def test_any_of_decision_succeed_union_of_data_has_no_attrs():
-    """Subjects have no claims but data has no attributes - so Anyof should succeed"""
+    """Entities have no claims but data has no attributes - so Anyof should succeed"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
     ])
 
     decodedJwt = compose_jwt("bubb", [sub1, sub2, sub3])
@@ -428,19 +428,19 @@ def test_any_of_decision_succeed_union_of_data_has_no_attrs():
 
 # # ========== HIERARCHY ===================
 
-def test_hierarchy_decision_fail_union_of_subject_attrs_not_meet_threshold():
-    """None of the subjects have a high enough rank - so Hierarchy should fail"""
+def test_hierarchy_decision_fail_union_of_entity_attrs_not_meet_threshold():
+    """None of the entites have a high enough rank - so Hierarchy should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/classif/value/U",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/classif/value/C",
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/classif/value/S",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
@@ -458,19 +458,19 @@ def test_hierarchy_decision_fail_union_of_subject_attrs_not_meet_threshold():
     with pytest.raises(AuthorizationError):
         hierarchy_decision(data_values, claims, classif_policy.options["order"])
 
-def test_hierarchy_decision_fail_union_of_subject_attrs_use_lowest_rank():
-    """Some of the subjects have a high enough rank - but the lowest subject rank in the set is what we use to compare, so Hierarchy should fail"""
+def test_hierarchy_decision_fail_union_of_entity_attrs_use_lowest_rank():
+    """Some of the entities have a high enough rank - but the lowest entity rank in the set is what we use to compare, so Hierarchy should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/classif/value/U",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/classif/value/C",
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/classif/value/C",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
@@ -488,19 +488,19 @@ def test_hierarchy_decision_fail_union_of_subject_attrs_use_lowest_rank():
     with pytest.raises(AuthorizationError):
         hierarchy_decision(data_values, claims, classif_policy.options["order"])
 
-def test_hierarchy_decision_succeed_union_of_subject_attrs_use_lowest_rank():
-    """The lowest subject rank in the set meets the rank requirement, so Hierarchy should succeed"""
+def test_hierarchy_decision_succeed_union_of_entity_attrs_use_lowest_rank():
+    """The lowest entity rank in the set meets the rank requirement, so Hierarchy should succeed"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/classif/value/C",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/classif/value/C",
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/classif/value/C",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
@@ -518,19 +518,19 @@ def test_hierarchy_decision_succeed_union_of_subject_attrs_use_lowest_rank():
     assert hierarchy_decision(data_values, claims, classif_policy.options["order"]) is True
 
 
-def test_hierarchy_decision_fail_union_of_subject_attrs_use_wrong_ranks():
-    """Subjects have invalid hierarchy values - so Hierarchy should fail"""
+def test_hierarchy_decision_fail_union_of_entity_attrs_use_wrong_ranks():
+    """Entities have invalid hierarchy values - so Hierarchy should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/classif/value/B",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/classif/value/Q",
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/classif/value/TEP",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
@@ -548,19 +548,19 @@ def test_hierarchy_decision_fail_union_of_subject_attrs_use_wrong_ranks():
     with pytest.raises(AuthorizationError):
         hierarchy_decision(data_values, claims, classif_policy.options["order"])
 
-def test_hierarchy_decision_fail_union_of_subject_attrs_use_wrong_data_ranks():
+def test_hierarchy_decision_fail_union_of_entity_attrs_use_wrong_data_ranks():
     """Data attrib has invalid hierarchy value - so Hierarchy should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/classif/value/C",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/classif/value/C",
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/classif/value/C",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
@@ -578,16 +578,16 @@ def test_hierarchy_decision_fail_union_of_subject_attrs_use_wrong_data_ranks():
     with pytest.raises(AuthorizationError):
         hierarchy_decision(data_values, claims, classif_policy.options["order"])
 
-def test_hierarchy_decision_fail_no_subject_claims():
-    """Subjects lack hierarchy value - so Hierarchy should fail"""
+def test_hierarchy_decision_fail_no_entity_claims():
+    """Entities lack hierarchy value - so Hierarchy should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
     ])
 
     classif_attr = AttributeValue("https://example.com/attr/classif/value/C")
@@ -606,16 +606,16 @@ def test_hierarchy_decision_fail_no_subject_claims():
 def test_hierarchy_decision_fail_no_data_claims():
     """Data entirely lack attribute value - so Hierarchy should fail"""
 
-    sub1 = subject_with_attrs("bubb", [
+    sub1 = entity_with_attrs("bubb", [
         "https://example.com/attr/classif/value/C",
         "https://example.com/attr/conflictReport/value/agency4",
     ])
 
-    sub2 = subject_with_attrs("rubb", [
+    sub2 = entity_with_attrs("rubb", [
         "https://example.com/attr/classif/value/C",
     ])
 
-    sub3 = subject_with_attrs("woowoo", [
+    sub3 = entity_with_attrs("woowoo", [
         "https://example.com/attr/classif/value/C",
         "https://example.com/attr/conflictReport/value/agency4",
     ])

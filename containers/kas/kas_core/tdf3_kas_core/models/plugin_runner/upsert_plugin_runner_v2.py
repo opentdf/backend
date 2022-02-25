@@ -31,7 +31,7 @@ class UpsertPluginRunnerV2(AbstractPluginRunner):
         super(UpsertPluginRunnerV2, self).__init__(plugins, upsert_check, msg)
         logger.debug("=== UpsertPluginRunner constructed")
 
-    def upsert(self, policy, subject_attr_dict, key_access, context):
+    def upsert(self, policy, entity_attr_dict, key_access, context):
         """Call the plugins in order."""
         logger.debug("--- Upsert method starting")
 
@@ -39,7 +39,7 @@ class UpsertPluginRunnerV2(AbstractPluginRunner):
         for plugin in self._plugins:
             logger.debug("Upserting with Plugin %s", plugin)
             message = plugin.upsert(
-                policy=policy, subject_attr_dict=subject_attr_dict, key_access=key_access, context=context
+                policy=policy, entity_attr_dict=entity_attr_dict, key_access=key_access, context=context
             )
             logger.debug("Plugin returned %s", message)
             messages.append(message)
