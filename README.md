@@ -1,4 +1,4 @@
-# Protected Data Format Reference Services · [![CI](https://github.com/opentdf/backend/actions/workflows/build.yml/badge.svg)](https://github.com/opentdf/backend/actions?query=event%3Apush+branch%3Amain)
+# Protected Data Format Reference Services · [![CI](https://github.com/opentdf/backend/actions/workflows/build.yaml/badge.svg)](https://github.com/opentdf/backend/actions/workflows/build.yaml) · [![Code Quality](https://sonarcloud.io/api/project_badges/measure?project=opentdf_backend&metric=alert_status&token=4fff8ae1ff25f2ed30b5705197309bd4affbd9f1)](https://sonarcloud.io/summary/new_code?id=opentdf_backend)
 
 
 This repository is for a reference implementation of the [openTDF REST Services](https://github.com/opentdf/spec), and sufficient tooling and testing to support the development of it.
@@ -20,92 +20,88 @@ We store several services combined in a single git repository for ease of develo
 
 1. The `containers` folder contains individual containerized services in folders, each of which should have a `Dockerfile`
 1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
+1. Integration tests are stored in the `tests` folder. Notably, a useful integration test (x86 only) is available by running `cd tests/integration && tilt ci`
+1. A simple local stack can be pulled up with the latest releases of the images by running `tilt up` from the root. To use the latest mainline branches, edit the `CONTAINER_REGISTRY` to point to `ghcr.io` and [follow github's instructions to log into that repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
 
 ## Quick Start and Development
 
-This quick start guide is primarily for development and testing the EAS and KAS infrastructure. See [Production](#production) for details on running in production.
+This quick start guide is primarily for development and testing the ABAC and KAS infrastructure. See [Production](#production) for details on running in production.
 
-### Tilt
+### Prerequisites
 
-https://tilt.dev
+- Install [Docker](https://www.docker.com/)
+    - see https://docs.docker.com/get-docker/
 
-#### Install
+- Install [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/)
+    - On macOS via Homebrew: `brew install kubectl`
+    - Others see https://kubernetes.io/docs/tasks/tools/
 
-https://docs.tilt.dev/install.html
+- Install a local Kubernetes manager. Options include minikube and kind. I suggest using `ctlptl` (see below) for managing several local clusters.
 
-`brew install tilt-dev/tap/tilt`
+  - minikube
+    - On macOS via Homebrew: `brew install minikube`
+    - Others see https://minikube.sigs.k8s.io/docs/start/
 
-#### Usage
+  - Install [kind](https://kind.sigs.k8s.io/)
+    - On macOS via Homebrew: `brew install kind`
+    - On Linux or WSL2 for Windows: `curl -Lo kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64 && chmod +x kind && sudo mv kind /usr/local/bin/kind`
+    - Others see https://kind.sigs.k8s.io/docs/user/quick-start/#installation
 
-##### Local Quickstart
+- Install [helm](https://helm.sh/)
+    - On macOS via Homebrew: `brew install helm`
+    - Others see https://helm.sh/docs/intro/install/
 
+- Install [Tilt](https://tilt.dev/)
+    - On macOS via Homebrew: `brew install tilt-dev/tap/tilt`
+    - Others see https://docs.tilt.dev/install.html
+
+- Install [ctptl](https://github.com/tilt-dev/ctlptl#readme)
+  - On macOS via Homebrew: `brew install tilt-dev/tap/ctlptl`
+  - Others see https://github.com/tilt-dev/ctlptl#homebrew-maclinux
+
+### Alternative Prerequisites install
 ```shell
 # Install pre-requisites (drop what you've already got)
-./scripts/pre-reqs docker helm tilt kind octant
+./scripts/pre-reqs docker helm tilt kind
+```
 
-# Generate local certs in certs/ directory
+### Generate local certs in certs/ directory
+
+> You may need to manually clean the `certs` folder occasionally
+
+```
 ./scripts/genkeys-if-needed
+```
 
-# Create a local cluster, using e.g. kind
-kind create cluster --name opentdf
+### Create cluster
 
-# start
-tilt up --context kind-opentdf
+```shell
+ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf
+```
 
+### Start cluster
+
+> TODO([PLAT-1599](https://virtru.atlassian.net/browse/PLAT-1599)) Consolidate integration and root tiltfile.
+
+```shell
+tilt up
+```
+ 
 # Hit spacebar to open web UI
 
-# stop and cleanup
+### Cleanup
+
+```shell
 tilt down
+ctlptl delete cluster kind-opentdf
+helm repo remove keycloak
 ```
 
 > (Optional) Run `octant` -> This will open a browser window giving you an overview of your local cluster.
 
-### PR builds
-
-When you open a Github PR, an Argo job will run which will publish all openTDF Backend Service images and Helm charts to Virtru's image/chart
-repos under the git shortSha of your PR branch.
-
-To add the Virtru Helm chart repo (one time step)
-
-``` sh
-helm repo add virtru https://charts.production.virtru.com
-helm repo update
-```
-
-> NOTE: Docker images are tagged with longSha, Helm charts are tagged with shortSha
-> NOTE: You can check the Argo build output to make sure you're using the same SHAs that Argo published.
-
-This means you can fetch any resource built from your PR branch by appending your SHA.
-
-For instance, if Argo generated a shortSha of `b616e2f`, to fetch the KAS chart for that branch, you would run
-
-`helm pull virtru/kas --version 0.4.4-rc-$(git rev-parse --short HEAD) --devel`
-
-Or, if you wanted to install all of the openTDF services, you could fetch the top-level chart (which will have all subcharts and images updated to the current PR branch's SHA)
-
-`helm pull virtru/etheria --version 0.1.1-rc-b616e2f --devel`
-
-### (Deprecated) Local `docker-compose`
-
-If you don't want to fool with `minikube`, you can still stand everything up using `docker-compose` - this is not recommended
-going forward, but it's an option if you want it.
-
-For this mode, we use docker-compose to compose the EAS and KAS services. Part of this process is putting them behind a reverse proxy.
-During this process you will be generating keys for EAS, KAS, the reverse proxy, Certificate Authority (CA), and optionally client certificate.
-
-_Note: This quick start guide is not intended to guide you on using pre-generated keys. Please see [Production]
-
-```sh
-./scripts/genkeys-if-needed
-. certs/.env
-export {EAS,KAS{,_EC_SECP256R1}}_{CERTIFICATE,PRIVATE_KEY}
-docker compose up -e EAS_CERTIFICATE,EAS_PRIVATE_KEY,KAS_CERTIFICATE,KAS_PRIVATE_KEY,KAS_EC_SECP256R1_CERTIFICATE,KAS_EC_SECP256R1_PRIVATE_KEY --build
-```
-
-> Note: OIDC-enabled deployments do not use the flows described below, or docker-compose - they're purely Helm/Minikube based and exclude deprecated services like EAS.
-> Refer to the [OIDC Readme](README-keycloak-idp.md) for instructions on how to deploy Eternia with Keycloak and OIDC.
-
 ## Installation in Isolated Kubernetes Clusters
+
+> TODO([PLAT-1474])(https://virtru.atlassian.net/browse/PLAT-1474)) Update script
 
 If you are working on a kubernetes cluster that does not have access to the Internet,
 the `scripts/build-offline-bundle` script can generate an archive of all backend services.
@@ -195,27 +191,15 @@ Replace the values for `host` and `kasDefaultUrl` with your public domain name.
 
 This should be left alone, but may be edited as needed for insight into postres, or schema upgrades.
 
-### Helm Installation
-
-From the export folder, run:
-
-```sh
-TAG=$(<BUNDLE_TAG)
-helm upgrade --install keycloak charts/keycloak-15.0.1.tgz -f deployment/values-virtru-keycloak.yaml --set image.tag=${TAG}
-helm upgrade --install etheria charts/etheria -f deployment/values-all-in-one.yaml
-```
-
-
-
 ## Swagger-UI
 
-KAS and EAS servers support Swagger UI to provide documentation and easier interaction for the REST API.  
+The microservices support OpenAPI, and can provide documentation and easier interaction for the REST API.
 Add "/ui" to the base URL of the appropriate server. For example, `http://127.0.0.1:4010/ui/`.
 KAS and EAS each have separate REST APIs that together with the SDK support the full TDF3 process for encryption,
 authorization, and decryption.
 
 Swagger-UI can be disabled through the SWAGGER_UI environment variable. See the configuration sections of the
-README documentation for [KAS](kas_app/README.md) and [EAS](eas/README.md) in this repository.
+README documentation for [KAS](kas/kas_app/README.md) for more detail.
 
 ## Committing Code
 
@@ -241,134 +225,43 @@ all the unit tests in a python virtual environment.
 To run all the unit tests in the repo:
 
 ``` shell
-scripts/monotest all
+scripts/monotest
 ```
 
 To run a subset of unit tests (e.g. just the `kas_core` tests from the [kas_core](kas_core) subfolder):
 
 ``` shell
-scripts/monotest kas_core
+scripts/monotest containers/kas/kas_core
 ```
 
-### Cluster tests
 
-Our E2E cluster tests use [kuttl](https://kuttl.dev/docs/cli.html#setup-the-kuttl-kubectl-plugin), and you can run them
-against an instance of these services deployed to a cluster (local minikube, or remote)
+### Security test
 
-1. Install these services to a Kubernetes cluster (using the quickstart method above, for example)
-1. Install [kuttl](https://kuttl.dev/docs/cli.html#setup-the-kuttl-kubectl-plugin)
-1. From the repo root, run `kubectl kuttl test tests/cluster`
-1. For advanced usage and more details, refer to [tests/cluster/README.md](tests/cluster/README.md)
+Once a cluster is running, run `tests/security-test/helm-test.sh`
 
-> The backend's CI is not currently cluster based, and so the kuttl tests are not being run via CI - this should be corrected when the CI is moved to K8S/Argo.
-
-
-#### Security test
-
-Once a cluster is running, run `security-test/helm-test.sh`
 ### Integration Tests
 
-You can run a complete integration test locally using docker compose with the `docker-compose.ci.yml`, or with the `docker-compose.pki-ci.yml` to use the PKI keys you generated earlier. A helper script is available to run both sets of integration tests, `xtest/scripts/test-in-containers`.
-
-To run a local integration test with the test harness running in
-in the host machine, and not in a container, you may do the following:
-
-```sh
-docker-compose -f docker-compose.yml up --build
-cd xtest
-python3 test/runner.py -o Alice_1234 -s local --sdk sdk/py/oss/cli.sh
-```
-
-To test docker-compose using SDK and Python versions, create a .env
-
-```dotenv
-PY_OSS_VERSION===1.1.1
-PY_SDK_VERSION=3.9
-NODE_VERSION=14
-```
-
-### Performance, and End-to-end Tests
-
-```shell script
-docker-compose --env-file certs/.env --file performance-test/docker-compose.yml up --build --exit-code-from performance-test performance-test
-
-docker-compose --env-file certs/.env --file e2e-test/docker-compose.yml up --build --exit-code-from e2e-test e2e-test
-```
-
-## Logs
-
-In development Docker Compose runs in a attached state so logs can be seen from the terminal.
-
-In a detached state logs can be accessed via [docker-compose logs](https://docs.docker.com/compose/reference/logs/)
-
-Example:
-
-```
-> docker-compose logs kas
-Attaching to kas
-kas        | Some log here
-```
+> TODO(PLAT-1619) Add frontend+backend integration test
 
 ## Deployment
 
-TBD - The backend deployment will be done to Kubernetes clusters via Helm chart.
-TBD - for an idea of what's involved in this, including what Helm charts are required, [check the local install script](~/Source/etheria/deployments/local/start.sh)
+Any deployments are controlled by downstream repositories, e.g. internal to Virtru or other integrators.
 
-### (Deprecated) Docker Compose Deployment
+> TODO Reference opentdf.us deployment?
 
-With Docker Compose deployment is [made easy with Docker Swarm](https://docs.docker.com/engine/swarm/stack-deploy/).
-
-### (Deprecated) Configuration
-
-Deployment configuration can be done through `docker-compose.yml` via the environment property.
-
-#### Workers
-
-The number of worker processes for handling requests.
-
-A positive integer generally in the 2-4 x \$(NUM_CORES) range. You'll want to vary this a bit to find the best for your particular application's work load.
-
-By default, the value of the WEB_CONCURRENCY environment variable. If it is not defined, the default is 1.
-
-#### Threads
-
-The number of worker threads for handling requests.
-
-Run each worker with the specified number of threads.
-
-A positive integer generally in the 2-4 x \$(NUM_CORES) range. You'll want to vary this a bit to find the best for your particular application's work load.
-
-If it is not defined, the default is 1.
-
-This setting only affects the Gthread worker type.
-
-#### Profiling
-
-https://gist.github.com/michaeltcoelho/c8bc65e5c3dce0f85312349353bf155a
-
-https://docs.python.org/3/using/cmdline.html#environment-variables
-
-### Advanced Manual setup
-
-It's better to use one of the [above methods](#local-quickstart) for setup, but this explains the step by step details of how
-the above methods work, and is included here for completeness.
-
-#### Generate Keys
-
-**WARNING: By generating new certs you will invalidate existing entity objects.**
-
-##### Quick Start
+# Customizing your local development experience
+#### Quick Start
 
 To assist in quickly starting use the `./scripts/genkeys-if-needed` to build all the keys. The hostname will be assigned `etheria.local`.
 Make sure to add `127.0.0.1           etheria.local` to your `/etc/hosts` or `c:\windows\system32\drivers\etc\hosts`.
 
-Additionally you can set a custom hostname `BACKEND_SERVICES_HOSTNAME=myhost.com ./scripts/genkeys-if-needed`, but you might have to update the docker-compose files.
+Additionally you can set a custom hostname `BACKEND_SERVICES_HOSTNAME=myhost.com ./scripts/genkeys-if-needed`, but you might have to update the Tiltfile and various kubernetes files or helm chart values.
 
 _If you need to customization please see the Advanced Usage guide alongside the Genkey Tools._
 
 1. Decide what your host name will be for the reverse proxy will be (e.g. example.com)
-2. Generate reverse proxy certs `./scripts/genkey-reverse-proxy $HOSTNAME_OF_REVERSE_PROXY`
-3. Generate EAS & KAS certs `./scripts/genkey-apps`
+2. Generate TLS certs for ingress `./scripts/genkey-reverse-proxy $HOSTNAME_OF_REVERSE_PROXY`
+3. Generate service-level certs `./scripts/genkey-apps`
 4. (Optional) Generate client certificates `./scripts/genkey-client` for PKI support
 
 ##### Genkey Tools
@@ -378,35 +271,3 @@ Each genkey script has a brief help which you can access like
 - `./scripts/genkey-apps --help`
 - `./scripts/genkey-client --help`
 - `./scripts/genkey-reverse-proxy --help`
-
-#### Start Services (non-PKI)
-
-1. Update `docker-compose.yml` to use the reverse-proxy CN you defined above rather than `localhost`
-1. Run:
-
-```sh
-. certs/.env
-export {EAS,KAS{,_EC_SECP256R1}}_{CERTIFICATE,PRIVATE_KEY}
-docker compose up -e EAS_CERTIFICATE,EAS_PRIVATE_KEY,KAS_CERTIFICATE,KAS_PRIVATE_KEY,KAS_EC_SECP256R1_CERTIFICATE,KAS_EC_SECP256R1_PRIVATE_KEY --build
-```
-
-_To learn more about [docker-compose see the manual](https://docs.docker.com/compose/reference/up/)._
-
-#### Start Services in PKI mode
-
-If you need support for PKI you can follow these steps.
-There are a few requirements for starting in PKI mode:
-
-1. Must create reverse proxy certificates with a CA
-2. Must create a client certificate signed with CA
-3. (Optional) Install CA and client certificate to OS keychain (_Please search the internet for instructions_)
-
-Requirements (1) and (2) are described in [generate keys](#generate-keys) above.
-
-`docker-compose -f docker-compose.pki.yml up --build`
-
-## Production
-
-_TBD_
-
-[^1]: https://docs.docker.com/compose/reference/logs/

@@ -1,8 +1,10 @@
 # NOTE - This base image is used here, but it should also really be used in other places such as the e2e test
 # NOTE - The version is also needed in the site-packages COPY command below and should be x.x not x.x.x
-ARG PY_VERSION=3.9
+ARG PY_VERSION=3.10
+ARG CONTAINER_REGISTRY=docker.io
+ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 
-FROM virtru/tdf-python-base:${PY_VERSION} AS build
+FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 
 # Establish a working directory in the container for tdf3_kas. This directory
 # does not exist but will be created. All future commands root from here.
@@ -26,11 +28,12 @@ COPY kas_app /kas_app
 COPY kas_core /kas_core
 
 # Compile application
-RUN pipenv install --dev --system --deploy --ignore-pipfile
+RUN pip3 install --no-cache-dir --upgrade pip setuptools pipenv && \
+  pipenv install --dev --system --deploy --ignore-pipfile
 RUN python3 -m compileall .
 
 # stage - production server
-FROM virtru/tdf-python-base:${PY_VERSION} AS production
+FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS production
 ARG PY_VERSION
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
@@ -84,4 +87,4 @@ ENV STATSD_PORT "8125"
 EXPOSE 8000
 
 # Start green unicorn. It reads the environment variables set above.
-ENTRYPOINT gunicorn --statsd-host "${STATSD_HOST}:${STATSD_PORT}" --statsd-prefix "service.kas" --config "gunicorn.conf.py" --bind ":8000" wsgi:app
+ENTRYPOINT gunicorn --statsd-host "${STATSD_HOST}:${STATSD_PORT}" --limit-request-field_size 65535 --statsd-prefix "service.kas" --config "gunicorn.conf.py" --bind ":8000" wsgi:app

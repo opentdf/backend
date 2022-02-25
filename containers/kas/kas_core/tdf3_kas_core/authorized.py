@@ -5,6 +5,7 @@ import logging
 import os
 import re
 
+from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timedelta
 
 from tdf3_kas_core.errors import AuthorizationError
@@ -107,19 +108,13 @@ def authorized(public_key, auth_token):
 
 
 def authorized_v2(public_key, auth_token):
-
     decoded = unsafe_decode_jwt(auth_token)
-
     audience = decoded["aud"]
-
-    unverified_headers = jwt.get_unverified_header(auth_token)
-    algorithms = unverified_headers["alg"]
-
     try:
         decoded = jwt.decode(
-            auth_token, public_key, audience=audience, algorithms=algorithms, leeway=leeway
+            auth_token, public_key, audience=audience, algorithms=["RS256", "ES256", "ES384", "ES512"], leeway=leeway
         )
-    except Exception as e:
-        logger.warning("Unverifiable claims [%s]", decoded)
+    except jwt.exceptions.PyJWTError as e:
+        logger.warning("Unverifiable claims [%s] found in [%s], public_key=[%s]", decoded, auth_token, public_key)
         raise UnauthorizedError("Not authorized") from e
     return decoded

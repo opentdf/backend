@@ -1,6 +1,7 @@
 -- Attributes used in the Trusted Data Format
 
-CREATE DATABASE tdf_database;
+-- run externally, then connect to this database
+-- CREATE DATABASE tdf_database;
 
 -- performs nocase checks
 CREATE COLLATION IF NOT EXISTS NOCASE
@@ -59,7 +60,7 @@ CREATE ROLE tdf_entitlement_manager WITH LOGIN PASSWORD 'myPostgresPassword';
 GRANT USAGE ON SCHEMA tdf_entitlement TO tdf_entitlement_manager;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA tdf_entitlement TO tdf_entitlement_manager;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA tdf_entitlement TO tdf_entitlement_manager;
--- service_entity_object
+-- claims
 CREATE ROLE tdf_entitlement_reader WITH LOGIN PASSWORD 'myPostgresPassword';
 GRANT USAGE ON SCHEMA tdf_entitlement TO tdf_entitlement_reader;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA tdf_entitlement TO tdf_entitlement_reader;

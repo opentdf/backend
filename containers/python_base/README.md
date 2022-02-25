@@ -3,19 +3,17 @@
 ### Base build image
 
 #### Docker Hub
-https://hub.docker.com/repository/docker/virtru/tdf-python-base
-
-#### Buildkite
-https://buildkite.com/virtru/etheria-base
+https://hub.docker.com/repository/docker/opentdf/python-base
 
 #### Local build
 ```shell
-cd service_base
-docker build --tag virtru/tdf-python-base .
+cd containers/python_base
+docker build --tag opentdf/python-base .
 ```
 
-#### Update requirements.txt
+#### Upgrade requirements.txt
 ```shell
-cd service_entity_object
-pipenv lock --keep-outdated --requirements > ../service_base/requirements.txt
+cd containers/python_base
+pip3 install pip-upgrader
+pip-upgrade --skip-package-installation
 ```
