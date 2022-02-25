@@ -3,8 +3,8 @@
 ARG MAVEN_VERSION=3.8.2
 ARG JDK_VERSION=11
 ARG KEYCLOAK_BASE_VERSION=16.1.1
-ARG CONTAINER_REGISTRY=docker.io
-ARG KEYCLOAK_BASE_IMAGE=virtru/keycloak-base #TODO make this `opentdf/keycloak-multiplat-base` once we go public - we are already publishing this base image
+ARG CONTAINER_REGISTRY=ghcr.io
+ARG KEYCLOAK_BASE_IMAGE=opentdf/keycloak-multiplat-base
     #to `ghcr.io/opentdf` but that is not publicly accessible yet.
 
 FROM maven:${MAVEN_VERSION}-jdk-${JDK_VERSION} as claimsmapperbuild
