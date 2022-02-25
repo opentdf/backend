@@ -281,7 +281,7 @@ jobs:
             MAVEN_VERSION=3.8.4
             JDK_VERSION=11
             CONTAINER_REGISTRY=ghcr.io
-            KEYCLOAK_BASE_VERSION=main
+            KEYCLOAK_BASE_VERSION=${{ env.KEYCLOAK_BASE_VERSION }}
             KEYCLOAK_BASE_IMAGE=${{ env.KEYCLOAK_BASE_IMAGE }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
