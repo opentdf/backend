@@ -92,7 +92,7 @@ class EntityEntitlements(BaseModel):
 class EntitlementsObject(BaseModel):
     client_public_signing_key: Optional[str] = ""
     entity_id: Optional[str]
-    entitlements: Optional[List[AttributeDisplay]]
+    entitlements: Optional[List[EntityEntitlements]] = []
     tdf_spec_version: Optional[str]
 
     class Config:
@@ -166,7 +166,7 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
 @app.post("/claims", response_model=EntitlementsObject, response_model_exclude_unset=True)
 async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
     logger.info("/claims POST [%s]", request)
-    attributes = []
+    entity_entitlements = []
     # select
     query = table_entity_attribute.select().where(
         table_entity_attribute.c.entity_id == request.userId
@@ -174,11 +174,11 @@ async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
     result = await database.fetch_all(query)
     for row in result:
         uri = f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
-        attributes.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
+        entity_entitlements.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
     eo = EntitlementsObject(
         public_key=request.publicKey or None,
         client_public_signing_key=request.signerPublicKey or None,
-        entity_attributes=attributes,
+        entitlements=entity_entitlements,
     )
     return eo
 
