@@ -451,7 +451,7 @@ def createAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
     for key in data_direct_grant_flow:
         logger.debug("EXECUTION FLOW KEY")
         logger.debug(key)
-        if key.get('providerId') != 'direct-grant-auth-x509-username':
+        if key.get('providerId') is not None and key.get('providerId') != 'direct-grant-auth-x509-username':
             logger.debug(key.get('providerId'))
             keycloak_admin.delete_authentication_flow_execution(key.get('id'))
     filtered_flow = check_matched({"providerId": provider_name}, flows_execution)
