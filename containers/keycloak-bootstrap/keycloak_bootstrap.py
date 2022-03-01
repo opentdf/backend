@@ -449,6 +449,8 @@ def createAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
     flows_execution = keycloak_admin.get_authentication_flow_executions(flow_name)
     data_direct_grant_flow = keycloak_admin.get_authentication_flow_executions("X509_Direct_Grant")
     for key in data_direct_grant_flow:
+        logger.debug("EXECUTION FLOW KEY")
+        logger.debug(key)
         if key.get('providerId') != 'direct-grant-auth-x509-username':
             keycloak_admin.delete_authentication_flow_execution(key.get('id'))
     filtered_flow = check_matched({"providerId": provider_name}, flows_execution)
@@ -616,7 +618,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
         "X509_Direct_Grant",
         "direct-grant-auth-x509-username",
     )
-    
+
     # X.509 Client Certificate Authentication to a Browser Flow
     # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-browser-flow
     createAuthFlowX509(
