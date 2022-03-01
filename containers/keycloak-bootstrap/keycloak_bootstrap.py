@@ -447,6 +447,10 @@ def createAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
             )
 
     flows_execution = keycloak_admin.get_authentication_flow_executions(flow_name)
+    data_direct_grant_flow = keycloak_admin.get_authentication_flow_executions("X509_Direct_Grant")
+    for key in data_direct_grant_flow:
+        if key.get('providerId') != 'direct-grant-auth-x509-username':
+            keycloak_admin.delete_authentication_flow_execution(key.get('id'))
     filtered_flow = check_matched({"providerId": provider_name}, flows_execution)
     if filtered_flow:
         payload_config = {
@@ -455,11 +459,11 @@ def createAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
                 "x509-cert-auth.canonical-dn-enabled": "false",
                 "x509-cert-auth.mapper-selection.user-attribute-name": "usercertificate",
                 "x509-cert-auth.serialnumber-hex-enabled": "false",
-                "x509-cert-auth.regular-expression": "(.*?)(?:$)",
+                "x509-cert-auth.regular-expression": "CN=(.*?)(?:$),",
                 "x509-cert-auth.mapper-selection": "Username or Email",
                 "x509-cert-auth.crl-relative-path": "crl.pem",
                 "x509-cert-auth.crldp-checking-enabled": "false",
-                "x509-cert-auth.mapping-source-selection": "Subject's e-mail",
+                "x509-cert-auth.mapping-source-selection": "Subject's Common Name",
                 "x509-cert-auth.timestamp-validation-enabled": "true",
             },
         }
