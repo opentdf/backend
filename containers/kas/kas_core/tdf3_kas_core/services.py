@@ -288,7 +288,6 @@ def rewrap_v2(data, context, plugin_runner, key_master):
 
     # entity = Entity(claims.user_id, client_public_key, claims.attributes)
     #
-    # TODO Nano needs to be made to understand ClaimsObjects versus EntityObjects
     if algorithm == "ec:secp256r1":
         return _nano_tdf_rewrap(dataJson, context, plugin_runner, key_master, claims)
     else:
@@ -476,7 +475,7 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
 
-def _nano_tdf_rewrap(data, context, plugin_runner, key_master, entity):
+def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     """
     Handle rewrap request for tdf3 type.
     """
@@ -577,13 +576,13 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, entity):
         attribute_policy_cache.load_config(config)
 
     # Create adjudicator from the attributes from EAS.
-    adjudicator = Adjudicator(attribute_policy_cache)
+    adjudicator = AdjudicatorV2(attribute_policy_cache)
 
-    (policy, res) = plugin_runner.update(original_policy, entity, key_access, context)
+    (policy, res) = plugin_runner.update(original_policy, claims, key_access, context)
 
     # Check to see if the policy will grant the entity access.
     # Raises an informative error if access is denied.
-    allowed = adjudicator.can_access(policy, entity)
+    allowed = adjudicator.can_access(policy, claims)
     if allowed is False:
         m = "Adjudicator returned {} without raising an error".format(allowed)
         logger.error(m)
@@ -591,7 +590,11 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, entity):
         raise AdjudicatorError(m)
 
     # Generate ephemeral rewrap key-pair
-    public_key_bytes = entity.public_key.public_bytes(
+    client_public_key = serialization.load_pem_public_key(
+        str.encode(data["clientPublicKey"]), backend=default_backend()
+    )
+    logger.debug(client_public_key)
+    public_key_bytes = client_public_key.public_bytes(
         serialization.Encoding.X962, serialization.PublicFormat.CompressedPoint
     )
     encryptor = ecc_mode.curve.create_encryptor(public_key_bytes)
