@@ -25,4 +25,4 @@ RUN pip3 install --requirement /wrk/clients/requirements.txt
 WORKDIR /wrk/clients
 RUN npm install
 
-CMD ["python3", "xtest.py"]
+CMD commands.sh
