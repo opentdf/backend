@@ -106,8 +106,8 @@ def get_retryable_request():
 # Keycloak exposes: `/auth/realms/{realm-name}/.well-known/openid-configuration`
 # This is a low priority though since it doesn't save us from having to get the
 # realmId first and so is a largely cosmetic difference
-async def get_idp_public_key(realmId):
-    url = f"{os.getenv('OIDC_SERVER_URL')}realms/{realmId}"
+async def get_idp_public_key(realm_id):
+    url = f"{os.getenv('OIDC_SERVER_URL')}realms/{realm_id}"
 
     http = get_retryable_request()
 
@@ -116,7 +116,7 @@ async def get_idp_public_key(realmId):
     )
 
     if not response.ok:
-        logger.warning("No public key found for Keycloak realm %s", realmId)
+        logger.warning("No public key found for Keycloak realm %s", realm_id)
         raise Exception(
             f"Failed to download Keycloak public key: [{response.text}]"
         )
@@ -133,7 +133,7 @@ async def get_idp_public_key(realmId):
 {resp_json['public_key']}
 -----END PUBLIC KEY-----"""
 
-    logger.debug("Keycloak public key for realm %s: [%s]", realmId, keycloak_public_key)
+    logger.debug("Keycloak public key for realm %s: [%s]", realm_id, keycloak_public_key)
     return keycloak_public_key
 
 # Looks as `iss` header field of token - if this is a Keycloak-issued token,
