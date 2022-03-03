@@ -31,7 +31,7 @@ all_secrets = {
         "KAS_PRIVATE_KEY",
     ]
 }
-all_secrets["POSTGRES_PASSWORD"] = str(local('openssl rand -base64 12')).strip()
+all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
 all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
 
 def only_secrets_named(*items):
