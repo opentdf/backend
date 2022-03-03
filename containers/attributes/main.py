@@ -117,7 +117,7 @@ async def get_idp_public_key(realm_id):
 
     if not response.ok:
         logger.warning("No public key found for Keycloak realm %s", realm_id)
-        raise Exception(
+        raise RuntimeError(
             f"Failed to download Keycloak public key: [{response.text}]"
         )
 
