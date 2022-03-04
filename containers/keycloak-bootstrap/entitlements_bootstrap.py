@@ -71,6 +71,7 @@ def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authTok
                 headers={"Authorization": f"Bearer {authToken}"},
             )
             if response.status_code != 200:
+                logger.error("Got error from entitlements service when attempting to entitle user!")
                 print(response.text)
                 exit(1)
 
@@ -93,12 +94,13 @@ def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, aut
                 headers={"Authorization": f"Bearer {authToken}"},
             )
             if response.status_code != 200:
+                logger.error("Got error from entitlements service when attempting to entitle user!")
                 print(response.text)
                 exit(1)
 
 
 def insertEntitlementAttrsForRealm(
-    keycloak_admin, realm, keycloak_auth_url, entity_attrmap
+    keycloak_admin, target_realm, keycloak_auth_url, entity_attrmap
 ):
     logger.info(f"Inserting attrs for realm: {realm}")
     entitlement_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
@@ -107,7 +109,11 @@ def insertEntitlementAttrsForRealm(
     entitlement_host = os.getenv("ENTITLEMENT_HOST", "http://opentdf-entitlements:4030")
 
     keycloak_openid = KeycloakOpenID(
-        server_url=keycloak_auth_url, client_id=entitlement_clientid, realm_name=realm
+        # NOTE: `realm_name` IS NOT == `target_realm` here
+        # Target realm is the realm you're querying users from keycloak for
+        # `realm_name` is the realm you're using to get a token to talk to entitlements with
+        # They are not the same.
+        server_url=keycloak_auth_url, client_id=entitlement_clientid, realm_name="tdf"
     )  # Entitlements endpoint always uses `tdf` realm client creds
     authToken = keycloak_openid.token(entitlement_username, entitlement_password)
 
@@ -144,16 +150,16 @@ def entitlements_bootstrap():
         keycloak_admin_tdf, "tdf", keycloak_auth_url, entity_attrmap
     )
     # FIXME: Enable PKI realm
-    # keycloak_admin_tdf_pki = KeycloakAdmin(
-    #     server_url=keycloak_auth_url,
-    #     username=username,
-    
-    #     password=password,
-    #     realm_name="tdf-pki",
-    #     user_realm_name="master",
-    # )
-    # insertEntitlementAttrsForRealm(
-    #     keycloak_admin_tdf_pki, "tdf-pki", keycloak_auth_url, entity_attrmap
-    # )
+    keycloak_admin_tdf_pki = KeycloakAdmin(
+        server_url=keycloak_auth_url,
+        username=username,
+
+        password=password,
+        realm_name="tdf-pki",
+        user_realm_name="master",
+    )
+    insertEntitlementAttrsForRealm(
+        keycloak_admin_tdf_pki, "tdf-pki", keycloak_auth_url, entity_attrmap
+    )
 
     return True
