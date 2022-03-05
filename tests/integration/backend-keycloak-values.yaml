@@ -48,3 +48,4 @@ ingress:
       paths:
         - path: /keycloak(/|$)(.*)
           pathType: Prefix
+  tls: null
