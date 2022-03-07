@@ -61,7 +61,9 @@ def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authTok
             continue
         loc = f"{entitlement_host}/entitlements/{user['id']}"
         attrs = user_attr_map[user["username"]]
-        logger.info("Entitling for user: [%s] with [%s] at [%s]", user["username"], attrs, loc)
+        logger.info(
+            "Entitling for user: [%s] with [%s] at [%s]", user["username"], attrs, loc
+        )
         logger.debug("Using auth JWT: [%s]", authToken)
 
         for attr in attrs:
@@ -71,8 +73,11 @@ def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authTok
                 headers={"Authorization": f"Bearer {authToken}"},
             )
             if response.status_code != 200:
-                logger.error("Got error from entitlements service when attempting to entitle user!")
-                print(response.text)
+                logger.error(
+                    "Unexpected code [%s] from entitlements service when attempting to entitle user! [%s]",
+                    response.status_code,
+                    response.text,
+                )
                 exit(1)
 
 
@@ -85,7 +90,9 @@ def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, aut
         clientId = client["clientId"]
         loc = f"{entitlement_host}/entitlements/{client['id']}"
         attrs = client_attr_map[clientId]
-        logger.info("Entitling for client: [%s] with [%s] at [%s]", clientId, attrs, loc)
+        logger.info(
+            "Entitling for client: [%s] with [%s] at [%s]", clientId, attrs, loc
+        )
         logger.debug("Using auth JWT: [%s]", authToken)
         for attr in attrs:
             response = requests.post(
@@ -94,8 +101,11 @@ def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, aut
                 headers={"Authorization": f"Bearer {authToken}"},
             )
             if response.status_code != 200:
-                logger.error("Got error from entitlements service when attempting to entitle user!")
-                print(response.text)
+                logger.error(
+                    "Unexpected code [%s] from entitlements service when attempting to entitle client! [%s]",
+                    response.status_code,
+                    response.text,
+                )
                 exit(1)
 
 
@@ -113,7 +123,9 @@ def insertEntitlementAttrsForRealm(
         # Target realm is the realm you're querying users from keycloak for
         # `realm_name` is the realm you're using to get a token to talk to entitlements with
         # They are not the same.
-        server_url=keycloak_auth_url, client_id=entitlement_clientid, realm_name="tdf"
+        server_url=keycloak_auth_url,
+        client_id=entitlement_clientid,
+        realm_name="tdf",
     )  # Entitlements endpoint always uses `tdf` realm client creds
     authToken = keycloak_openid.token(entitlement_username, entitlement_password)
 
@@ -153,7 +165,6 @@ def entitlements_bootstrap():
     keycloak_admin_tdf_pki = KeycloakAdmin(
         server_url=keycloak_auth_url,
         username=username,
-
         password=password,
         realm_name="tdf-pki",
         user_realm_name="master",
