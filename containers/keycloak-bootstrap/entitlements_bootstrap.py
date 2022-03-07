@@ -112,7 +112,7 @@ def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, aut
 def insertEntitlementAttrsForRealm(
     keycloak_admin, target_realm, keycloak_auth_url, entity_attrmap
 ):
-    logger.info(f"Inserting attrs for realm: {realm}")
+    logger.info("Inserting attrs for realm: [%s]", target_realm)
     entitlement_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
     entitlement_username = os.getenv("ENTITLEMENT_USERNAME")
     entitlement_password = os.getenv("ENTITLEMENT_PASSWORD")
@@ -135,7 +135,7 @@ def insertEntitlementAttrsForRealm(
     insertAttrsForClients(
         keycloak_admin, entitlement_host, entity_attrmap, authToken["access_token"]
     )
-    logger.info(f"Finished inserting attrs for realm: {realm}")
+    logger.info("Finished inserting attrs for realm: [%s]", target_realm)
 
 
 def entitlements_bootstrap():
