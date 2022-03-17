@@ -5,12 +5,12 @@
 load("ext://helm_remote", "helm_remote")
 load("ext://secret", "secret_from_dict", "secret_yaml_generic")
 
-ALPINE_VERSION = "3.15"
-PY_VERSION = "3.10"
+ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.15")
+PY_VERSION = os.environ.get("PY_VERSION", "3.10")
 
 # ghcr.io == GitHub packages. pre-release versions, created from recent green `main` commit
 # docker.io == Docker hub. Manually released versions
-CONTAINER_REGISTRY = "docker.io" # Docker Hub
+CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io") # Docker Hub
 
 def from_dotenv(path, key):
     """Read a variable from a `.env` file"""
