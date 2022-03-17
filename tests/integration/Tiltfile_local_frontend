@@ -154,8 +154,8 @@ docker_build(
         "CONTAINER_REGISTRY": "docker.io",
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
-        "KEYCLOAK_BASE_IMAGE": "virtru/keycloak-base", #TODO fix this after going public
-        "KEYCLOAK_BASE_VERSION": "15.0.2",
+        "KEYCLOAK_BASE_IMAGE": "ghcr.io/opentdf/keycloak-multiarch-base",
+        "KEYCLOAK_BASE_VERSION": "15.1.1",
     },
 )
 
