@@ -74,10 +74,18 @@ docker_build(
     },
 )
 docker_build(
+    CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
+    "containers/keycloak-protocol-mapper/keycloak-containers/server",
+    build_args={
+        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
+    },
+)
+
+docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak",
     context="containers/keycloak-protocol-mapper",
     build_args={
-        "CONTAINER_REGISTRY": "docker.io",
+        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
         "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
         "KEYCLOAK_BASE_VERSION": "15.1.1",
         "MAVEN_VERSION": "3.8.4",

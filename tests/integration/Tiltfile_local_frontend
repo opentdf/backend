@@ -147,6 +147,16 @@ for microservice in ["attributes", "entitlements", "claims"]:
         ],
     )
 
+local("make keycloak-repo-clone", dir=local_path("containers", "keycloak-protocol-mapper"))
+
+docker_build(
+    "ghcr.io/opentdf/keycloak-multiarch-base",
+    local_path("containers", "keycloak-protocol-mapper", "keycloak-containers", "server"),
+    build_args={
+        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
+    },
+)
+
 docker_build(
     "ghcr.io/opentdf/keycloak",
     local_path("containers", "keycloak-protocol-mapper"),

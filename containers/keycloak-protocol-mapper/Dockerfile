@@ -3,7 +3,8 @@
 ARG MAVEN_VERSION=3.8.2
 ARG JDK_VERSION=11
 ARG KEYCLOAK_BASE_VERSION=15.1.1
-ARG KEYCLOAK_BASE_IMAGE=ghcr.io/opentdf/keycloak-multiarch-base
+ARG CONTAINER_REGISTRY=docker.io
+ARG KEYCLOAK_BASE_IMAGE=${CONTAINER_REGISTRY}/opentdf/keycloak-multiarch-base
     #to `ghcr.io/opentdf` but that is not publicly accessible yet.
 
 FROM maven:${MAVEN_VERSION}-jdk-${JDK_VERSION} as claimsmapperbuild
