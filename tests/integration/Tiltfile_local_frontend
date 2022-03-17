@@ -147,11 +147,15 @@ for microservice in ["attributes", "entitlements", "claims"]:
         ],
     )
 
-local("make keycloak-repo-clone", dir=local_path("containers", "keycloak-protocol-mapper"))
+local(
+    "make keycloak-repo-clone", dir=local_path("containers", "keycloak-protocol-mapper")
+)
 
 docker_build(
     "ghcr.io/opentdf/keycloak-multiarch-base",
-    local_path("containers", "keycloak-protocol-mapper", "keycloak-containers", "server"),
+    local_path(
+        "containers", "keycloak-protocol-mapper", "keycloak-containers", "server"
+    ),
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
     },
@@ -255,9 +259,7 @@ docker_build(
 
 k8s_resource(
     "keycloak",
-    links=[
-        link('localhost:65432/auth', 'Keycloak admin console')
-    ],
+    links=[link("localhost:65432/auth", "Keycloak admin console")],
 )
 
 k8s_resource("bootstrap-keycloak", resource_deps=["keycloak", "opentdf-entitlements"])
@@ -278,8 +280,13 @@ docker_build(
 # frontend folder should be next to backend
 docker_build(
     "ghcr.io/opentdf/abacus",
-    local_path("../", "frontend",),
+    local_path(
+        "../",
+        "frontend",
+    ),
 )
 
 k8s_yaml("xtest.yaml")
-k8s_resource("opentdf-xtest", resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"])
+k8s_resource(
+    "opentdf-xtest", resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
+)
