@@ -9,6 +9,5 @@ data:
   POSTGRES_DATABASE: {{ .Values.postgres.database }}
   POSTGRES_SCHEMA: {{ .Values.postgres.schema }}
   KAS_DEFAULT_URL: {{ .Values.truststore.kasURL }}
-{{/*  EAS_PRIVATE_KEY: deployment.envFrom.secretRef.claims-secrets*/}}
 {{/*  KAS_CERTIFICATE: deployment.envFrom.secretRef.claims-secrets*/}}
 {{/*  KAS_EC_SECP256R1_CERTIFICATE: deployment.envFrom.secretRef.claims-secrets*/}}
