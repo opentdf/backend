@@ -8,6 +8,7 @@ image:
   pullPolicy: IfNotPresent
   # The image selector
   name: ghcr.io/opentdf/claims
+
 # JSON passed to the deployment's template.spec.imagePullSecrets
 imagePullSecrets: []
 # Select a specific name for the resource, instead of the default, opentdf-claims
@@ -42,8 +43,12 @@ securityContext: {}
   # runAsUser: 1000
 
 # JSON locating the secret to pull environment variables from
+# Notably, this file should include the following environemnt variable definitions:
+#     POSTGRES_PASSWORD: Password corresponding to postgres.user below
+#     KAS_CERTIFICATE: Public key for Key Access service
+#     KAS_EC_SECP256R1_CERTIFICATE: Public key (EC Mode) for Key Access service
 secretRef:
-  name: claims-secret
+  name: claims-secrets
 
 # Service configuation information.
 service:

@@ -1,12 +1,20 @@
-# Default values for attributes.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
+# Sets the default number of pod replicas in the deployment.
+# Ignored if autoscaling.enabled == true
 replicaCount: 1
 
+# Sets the default loglevel for the application. One of the valid python logging
+# levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: DEBUG
-publicName: "Attribute Authority"
+
+# Name of application. Used during oauth flows, for example when connecting to
+# the OpenAPI endpoint with an OAuth authentication
+serverPublicName: "Attribute Authority"
+
+# Base path for this service. Allows serving multiple services from the same
+# origin, e.g. using an ingress with prefix mapping as suggested below.
 serverRootPath: /attributes
+
+# Additional information for connecting to 
 oidc:
   realm: tdf
   internalHost: http://keycloak/auth
@@ -14,14 +22,21 @@ oidc:
   clientId: tdf-attributes
   clientSecret: myclientsecret
 
+# Configure the container image to use in the deployment.
 image:
+  # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
-  name: opentdf/attributes:main
+  # The image selector
+  name: ghcr.io/opentdf/attributes
 
+# JSON passed to the deployment's template.spec.imagePullSecrets
 imagePullSecrets: []
+# Select a specific name for the resource, instead of the default, opentdf-claims
 nameOverride: ""
+# The fully qualified appname override
 fullnameOverride: ""
 
+# A service account to create
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -29,13 +44,16 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: null
 
+# Values for the deployment spec.template.metadata.annotations field
 podAnnotations: {}
 
+# Values for deployment's spec.template.spec.securityContext
 podSecurityContext: {}
   # fsGroup: 2000
 
+# Values for deployment's spec.template.spec.containers.securityContext
 securityContext: {}
   # capabilities:
   #   drop:
@@ -43,6 +61,12 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+
+# JSON locating the secret to pull environment variables from
+# Notably, this file should include the following environemnt variable definitions:
+#     POSTGRES_PASSWORD: Password corresponding to postgres.user below
+secretRef:
+  name: attributes-secrets
 
 service:
   type: ClusterIP

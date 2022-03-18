@@ -34,8 +34,10 @@ spec:
           image: "{{ .Values.image.name }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
+          {{ if .Values.secretRef -}}
           - secretRef:
-              name: {{ .Values.secretRef.name }}
+              {{- toYaml .Values.secretRef | nindent 14 }}
+          {{- end }}
           - configMapRef:
               name: {{ include "claims.name" . }}-cm
           ports:
