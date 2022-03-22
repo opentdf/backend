@@ -3,7 +3,7 @@ all: dockerbuild
 COMPONENT_NAME=bootstrap
 COMPONENT_NAME_SNAKE=bootstrap
 IMAGE    := opentdf/keycloak-bootstrap
-VERSION  := $(<VERSION)
+VERSION  := $(shell <VERSION)
 VENV_DIR :=.venv
 PIPENV_VENV_IN_PROJECT := enabled
 
