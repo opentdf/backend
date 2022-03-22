@@ -1,5 +1,5 @@
 OTDF_IMAGE=opentdf/keycloak
-OTDF_VERSION:=$(shell <VERSION)
+OTDF_VERSION:=$(shell cat VERSION)
 KEYCLOAK_BASE_VERSION:=$(shell cut -d- -f1 < VERSION)
 KEYCLOAK_BASE_IMAGE=ghcr.io/opentdf/keycloak-multiarch-base
 
