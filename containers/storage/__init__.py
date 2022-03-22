@@ -1,1 +1,2 @@
-__version__ = "0.1.0"
+with open("VERSION", "r") as ver:
+    __version__ = ver.read().rstrip()

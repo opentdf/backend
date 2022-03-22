@@ -1,6 +1,6 @@
 OTDF_IMAGE=opentdf/keycloak
-OTDF_VERSION=15.1.1-r10
-KEYCLOAK_BASE_VERSION=15.1.1
+OTDF_VERSION:=$(<VERSION)
+KEYCLOAK_BASE_VERSION:=$(cut -d- -f1 < VERSION)
 KEYCLOAK_BASE_IMAGE=ghcr.io/opentdf/keycloak-multiarch-base
 
 # Destroy any previously-created buildx context

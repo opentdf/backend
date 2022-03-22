@@ -189,7 +189,7 @@ docker_build(
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
         "KEYCLOAK_BASE_IMAGE": "ghcr.io/opentdf/keycloak-multiarch-base",
-        "KEYCLOAK_BASE_VERSION": "15.1.1",
+        "KEYCLOAK_BASE_VERSION": read_file(local_path("containers", "keycloak-protocol-mapper", "VERSION")).strip(),
     },
 )
 
