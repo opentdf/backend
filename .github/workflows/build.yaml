@@ -10,7 +10,25 @@ on:
     branches:
       - main
 jobs:
-  helm-lint-test:
+  config:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/helmpack/chart-testing:latest
+    outputs:
+      KEYCLOAK_BASE_VERSION: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
+      KEYCLOAK_OTDF_VERSION: ${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Select keycloak base version
+        run: echo '::set-output name=KEYCLOAK_BASE_VERSION::'$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)
+        id: keycloak-base-version
+      - name: Set output modified image version
+        run: echo '::set-output name=KEYCLOAK_OTDF_VERSION::'$(<containers/keycloak-protocol-mapper/VERSION)
+        id: keycloak-otdf-version
+
+  lint:
     runs-on: ubuntu-latest
     container:
       image: quay.io/helmpack/chart-testing:latest
@@ -42,6 +60,7 @@ jobs:
   unittest:
     runs-on: ubuntu-latest
     needs:
+      - lint
       - scriptcheck
     steps:
       - uses: actions/checkout@v2
@@ -103,7 +122,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - unittest
-      - helm-lint-test
+      - lint
       - integration-test
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
@@ -253,16 +272,12 @@ jobs:
     # so at least skip this for non-main builds
     runs-on: ubuntu-latest
     needs:
+      - config
       - integration-test
-    outputs:
-      KEYCLOAK_BASE_VERSION: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Select keycloak base version
-        run: echo '::set-output name=KEYCLOAK_BASE_VERSION::'$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)
-        id: keycloak-base-version
       - name: Checkout upstream Keycloak image repo
         uses: actions/checkout@v2
         with:
@@ -300,14 +315,12 @@ jobs:
   custom-keycloak-image:
     runs-on: ubuntu-latest
     needs:
+      - config
       - keycloak-image-base
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Set output modified image version
-        run: echo '::set-output name=KEYCLOAK_OTDF_VERSION::'$(<containers/keycloak-protocol-mapper/VERSION)
-        id: keycloak-otdf-version
       - uses: actions/checkout@v2
       - name: Docker meta
         id: meta
@@ -317,7 +330,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha
-            type-raw,value=${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}
+            type-raw,value=${{ needs.config.outputs.KEYCLOAK_OTDF_VERSION }}
       - name: Set up QEMU (required for crossbuild)
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -335,8 +348,8 @@ jobs:
             MAVEN_VERSION=3.8.4
             JDK_VERSION=11
             CONTAINER_REGISTRY=ghcr.io
-            KEYCLOAK_BASE_VERSION=${{ needs.keycloak-image-base.outputs.KEYCLOAK_BASE_VERSION }}
-            KEYCLOAK_BASE_IMAGE=${{ env.KEYCLOAK_BASE_IMAGE }}
+            KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
+            KEYCLOAK_BASE_IMAGE=${{ needs.config.outputs.KEYCLOAK_BASE_IMAGE }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
