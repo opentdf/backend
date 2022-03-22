@@ -67,7 +67,7 @@ jobs:
       packages: write
     steps:
       - name: Set output modified image version
-        run: echo '::set-output name=KEYCLOAK_OTDF_VERSION::$(<containers/keycloak-protocol-mapper/VERSION)'
+        run: echo '::set-output name=KEYCLOAK_OTDF_VERSION::'$(<containers/keycloak-protocol-mapper/VERSION)
         id: keycloak-otdf-version
       - uses: actions/checkout@v2
       - name: Docker meta
