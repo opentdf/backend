@@ -43,7 +43,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: 'keycloak/keycloak-containers'
-          ref: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
+          ref: ${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
       - name: Set up QEMU (required for crossbuild)
         uses: docker/setup-qemu-action@v1
       - name: Docker metadata
@@ -54,6 +54,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha
+            type-raw,value=${{ needs.config.outputs.KEYCLOAK_OTDF_VERSION }}
       - name: Set up Docker BuildX
         uses: docker/setup-buildx-action@v1
         with:
@@ -71,7 +72,7 @@ jobs:
           file: ./server/Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
-          tags: ghcr.io/opentdf/keycloak-multiarch-base:${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
+          tags: ${{ steps.meta.outputs.tags }}
 
   custom-keycloak-image:
     runs-on: ubuntu-latest
