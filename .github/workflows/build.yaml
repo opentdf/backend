@@ -50,7 +50,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v3
         with:
-          images: ghcr.io/opentdf/keycloak-multiarch-base
+          images: ${{ env.KEYCLOAK_BASE_IMAGE }}
           tags: |
             type=ref,event=branch
             type=sha
@@ -111,7 +111,7 @@ jobs:
             JDK_VERSION=11
             CONTAINER_REGISTRY=ghcr.io
             KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
-            KEYCLOAK_BASE_IMAGE=${{ needs.config.outputs.KEYCLOAK_BASE_IMAGE }}
+            KEYCLOAK_BASE_IMAGE=${{ env.KEYCLOAK_BASE_IMAGE }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
