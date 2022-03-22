@@ -254,6 +254,8 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - integration-test
+    outputs:
+      KEYCLOAK_BASE_VERSION: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
     permissions:
       contents: read
       packages: write
@@ -333,7 +335,7 @@ jobs:
             MAVEN_VERSION=3.8.4
             JDK_VERSION=11
             CONTAINER_REGISTRY=ghcr.io
-            KEYCLOAK_BASE_VERSION=${{ jobs.keycloak-image-base.steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
+            KEYCLOAK_BASE_VERSION=${{ needs.keycloak-image-base.outputs.KEYCLOAK_BASE_VERSION }}
             KEYCLOAK_BASE_IMAGE=${{ env.KEYCLOAK_BASE_IMAGE }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
