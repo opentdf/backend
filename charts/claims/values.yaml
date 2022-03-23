@@ -49,7 +49,7 @@ securityContext: {}
 #     KAS_CERTIFICATE: Public key for Key Access service
 #     KAS_EC_SECP256R1_CERTIFICATE: Public key (EC Mode) for Key Access service
 secretRef:
-  name: claims-secret
+  name: claims-secrets
 
 # Service configuation information.
 service:
