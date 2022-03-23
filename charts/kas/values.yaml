@@ -108,10 +108,10 @@ endpoints:
 livenessProbe:
   httpGet:
     path: /healthz?probe=liveness
-    port: {{ .Values.service.port | default "http" }}
+    port: http
 
 # Adds a container readinessProbe, if set.
 readinessProbe:
   httpGet:
     path: /healthz?probe=readiness
-    port: {{ .Values.service.port | default "http" }}
+    port: http
