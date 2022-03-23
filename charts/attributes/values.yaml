@@ -64,12 +64,6 @@ secretRef:
 
 # Values for deployment's spec.template.spec.containers.securityContext
 securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 # Service configuation information.
 service:
