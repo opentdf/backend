@@ -10,9 +10,10 @@ image:
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# JSON passed to the deployment's template.spec.imagePullSecrets
+# Secret containing an additional ca-cert.pem file for locally signed TLS certs.
 secretName: "etheria-secrets"
 
+# JSON passed to the deployment's template.spec.imagePullSecrets.
 imagePullSecrets: []
 
 # Select a specific name for the resource, instead of the default, opentdf-claims
