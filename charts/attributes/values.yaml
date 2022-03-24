@@ -53,7 +53,8 @@ serviceAccount:
 podAnnotations: {}
 
 # Values for deployment's spec.template.spec.securityContext
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
 # JSON locating the secret to pull environment variables from

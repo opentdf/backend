@@ -37,11 +37,13 @@ serviceAccount:
 podAnnotations: {}
 
 # Values for deployment's spec.template.spec.securityContext
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
 # Values for deployment's spec.template.spec.containers.securityContext
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -65,7 +67,8 @@ service:
 # Ingress configuration.
 ingress:
   enabled: false
-  annotations: {}
+  annotations:
+    {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:

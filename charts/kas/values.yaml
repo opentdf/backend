@@ -39,12 +39,13 @@ serviceAccount:
 podAnnotations: {}
 
 # Values for deployment's spec.template.spec.securityContext
-podSecurityContext: {}
+podSecurityContext:
+  {}
   # fsGroup: 2000
 
-
 # Values for deployment's spec.template.spec.containers.securityContext
-securityContext: {}
+securityContext:
+  {}
   # capabilities:
   #   drop:
   #   - ALL
@@ -64,9 +65,9 @@ ingress:
   enabled: false
   annotations: {}
   hosts:
-  - host: etheria.local
-    paths:
-    - /kas
+    - host: etheria.local
+      paths:
+        - /kas
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
