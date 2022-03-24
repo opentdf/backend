@@ -1,6 +1,7 @@
 apiVersion: v2
 name: claims
 version: 0.0.1
+kubeVersion: "^1.21"
 description: Provides 'claims' objects as the backend for an openTDF authZ service
 type: application
 maintainers:

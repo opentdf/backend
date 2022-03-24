@@ -1,6 +1,7 @@
 apiVersion: v2
 name: keycloak-bootstrap
 version: 0.4.2
+kubeVersion: "^1.21"
 description: Keycloak Bootstrap Configurator Job
 type: application
 maintainers:

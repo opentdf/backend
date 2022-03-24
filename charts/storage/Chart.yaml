@@ -1,6 +1,7 @@
 apiVersion: v2
 name: storage
 version: 0.0.1
+kubeVersion: "^1.21"
 description: Storage backend for remote content support in openTDF
 type: application
 maintainers:

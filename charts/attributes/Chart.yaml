@@ -1,6 +1,7 @@
 apiVersion: v2
 name: attributes
 version: 0.0.1
+kubeVersion: "^1.21"
 description: openTDF attribute and rule service
 type: application
 maintainers:

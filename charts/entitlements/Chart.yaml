@@ -1,6 +1,7 @@
 apiVersion: v2
 name: entitlements
 version: 0.0.1
+kubeVersion: "^1.21"
 description: A deployed service to configure entity/attribute mappings in an openTDF ABAC system
 type: application
 maintainers:
