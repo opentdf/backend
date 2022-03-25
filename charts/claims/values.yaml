@@ -4,10 +4,11 @@ replicaCount: 1
 
 # Configure the container image to use in the deployment.
 image:
+  # The image selector
+  image: ghcr.io/opentdf/claims
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
-  # The image selector
-  name: ghcr.io/opentdf/claims
+
 # JSON passed to the deployment's template.spec.imagePullSecrets
 imagePullSecrets: []
 
@@ -33,17 +34,10 @@ podAnnotations: {}
 # Values for deployment's spec.template.spec.securityContext
 podSecurityContext:
   {}
-  # fsGroup: 2000
 
 # Values for deployment's spec.template.spec.containers.securityContext
 securityContext:
   {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
 
 # JSON to locate a k8s secret containing environment variables.
 # Notably, this file should include the following environemnt variable definitions:
@@ -68,6 +62,9 @@ service:
 #         pathType:    your-pathtype [default: "ImplementationSpecific"]
 #         serviceName: your-service  [default: service.fullname]
 #         servicePort: service-port  [default: service.port above]
+#  To configure HTTPS mode,
+#    tls:
+#      secretName: your-k8s-secret
 ingress:
   enabled: false
   className: null
@@ -106,10 +103,3 @@ postgres:
   database: tdf_database
   # The entitlement schema
   schema: tdf_entitlement
-keystore:
-  privateKey: ""
-  certificate: ""
-truststore:
-  kasURL: ""
-  kasCertificate: ""
-  kasECSECP256r1Certificate: ""
