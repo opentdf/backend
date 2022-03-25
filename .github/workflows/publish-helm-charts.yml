@@ -1,0 +1,41 @@
+# CONTAINER_REGISTRY=https://ghcr.io
+
+name: publish-helm-charts
+on: workflow_dispatch
+env:
+  HELM_VERSION: 3.8.0
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.x"
+          registry-url: https://npm.pkg.github.com
+      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          setup-tools: |
+            kubectl
+            helm
+            tilt
+          # This should be in sync with the minikube-deployed kube version below
+          kubectl: "1.23.3"
+          helm: "3.8.0"
+          tilt: "0.26.0"
+      - name: Login to GitHub Container Registry
+        run: |-
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.repository_owner }} ghcr.io
+      - name: push
+        run: |
+          cd charts
+          for d in */ ; do
+              if [ -f "$d/Chart.yaml" ]; then
+                echo "Rendering Helm chart $d to validate defaults..."
+                helm push $d/Chart.yaml https://ghcr.io
+              fi
+          done
