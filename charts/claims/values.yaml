@@ -2,6 +2,10 @@
 # Ignored if autoscaling.enabled == true
 replicaCount: 1
 
+# Sets the default loglevel for the application. One of the valid python logging
+# levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
+logLevel: INFO
+
 # Configure the container image to use in the deployment.
 image:
   # The image selector

@@ -414,7 +414,7 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
                     )
                 )
     except ValidationError as e:
-        logging.error(e)
+        logger.error(e)
         error = e
 
     if error and not attributes:
@@ -498,7 +498,7 @@ async def read_attributes_definitions(
                 )
             )
         except ValidationError as e:
-            logging.error(e)
+            logger.error(e)
     return pager.paginate(attributes)
 
 

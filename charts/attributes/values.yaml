@@ -4,7 +4,7 @@ replicaCount: 1
 
 # Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
-logLevel: DEBUG
+logLevel: INFO
 
 # Name of application. Used during oauth flows, for example when connecting to
 # the OpenAPI endpoint with an OAuth authentication

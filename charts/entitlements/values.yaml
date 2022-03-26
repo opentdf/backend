@@ -2,6 +2,10 @@
 # Ignored if autoscaling.enabled == true
 replicaCount: 1
 
+# Sets the default loglevel for the application. One of the valid python logging
+# levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
+logLevel: INFO
+
 # Container image configuration.
 image:
   # The image selector, also called the 'image name' in k8s documentation
