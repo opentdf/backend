@@ -64,6 +64,7 @@ all_secrets = {
 }
 
 all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
+all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
 
 
 def only_secrets_named(*items):
@@ -72,7 +73,14 @@ def only_secrets_named(*items):
 
 k8s_yaml(
     secret_from_dict(
-        "attributes-secrets", inputs=only_secrets_named("POSTGRES_PASSWORD")
+        "attributes-secrets", inputs=only_secrets_named("OIDC_CLIENT_SECRET", "POSTGRES_PASSWORD")
+    )
+)
+
+
+k8s_yaml(
+    secret_from_dict(
+        "bootstrap-secrets", inputs=only_secrets_named("OIDC_CLIENT_SECRET")
     )
 )
 
@@ -93,6 +101,7 @@ k8s_yaml(
         "entitlements-secrets",
         inputs={
             "DISABLE_ENTITLEMENTS_AUTH": "True",
+            "OIDC_CLIENT_SECRET": all_secrets["OIDC_CLIENT_SECRET"],
             "POSTGRES_PASSWORD": all_secrets["POSTGRES_PASSWORD"],
         },
     )

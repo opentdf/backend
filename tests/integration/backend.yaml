@@ -21,7 +21,6 @@ metadata:
 data:
   OIDC_AUTHORIZATION_URL: http://localhost:65432/auth/realms/tdf/protocol/openid-connect/auth
   OIDC_CLIENT_ID: tdf-entitlements
-  OIDC_CLIENT_SECRET: myclientsecret
   OIDC_CONFIGURATION_URL: http://keycloak/auth/realms/tdf/.well-known/openid-configuration
   OIDC_REALM: tdf
   OIDC_SERVER_URL: http://keycloak-http/auth/
