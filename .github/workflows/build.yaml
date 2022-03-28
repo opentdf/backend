@@ -120,6 +120,7 @@ jobs:
 
   publish-helm-charts:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name }} == 'push'
     needs:
       - integration-test
     env:
