@@ -1,7 +1,7 @@
 # CONTAINER_REGISTRY=https://ghcr.io
 
 name: publish-helm-charts
-on: workflow_dispatch
+on: pull_request
 env:
   HELM_VERSION: 3.8.0
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
