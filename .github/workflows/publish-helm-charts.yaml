@@ -29,7 +29,7 @@ jobs:
           tilt: "0.26.0"
       - name: Login to GitHub Container Registry
         run: |-
-          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.repository_owner }} ghcr.io
+          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u ${{ github.repository_owner }}
       - name: push
         run: |
           cd charts
