@@ -38,8 +38,7 @@ jobs:
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Rendering Helm chart $d to validate defaults..."
                 helm package $d
-                echo ${d::-1}-*.tgz
-                ls -lah *.tgz
-                helm push ${d::-1}-*.tgz oci://ghcr.io/${{ github.repository_owner }}/${d::-1}
+                helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/${d::-1}
+                rm *.tgz
               fi
           done
