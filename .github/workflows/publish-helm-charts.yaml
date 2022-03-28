@@ -18,7 +18,7 @@ jobs:
           helm: "3.8.0"
       - name: Login to GitHub Container Registry
         run: |-
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdi
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
       - name: push
         run: |
           cd charts
