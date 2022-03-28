@@ -29,13 +29,15 @@ jobs:
           tilt: "0.26.0"
       - name: Login to GitHub Container Registry
         run: |-
-          echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u ${{ github.repository_owner }}
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u USERNAME --password-stdin
+        # echo ${{ secrets.GITHUB_TOKEN }} | helm registry login -u ${{ github.repository_owner }} ghcr.io
       - name: push
         run: |
           cd charts
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Rendering Helm chart $d to validate defaults..."
-                helm push $d/Chart.yaml https://ghcr.io/${{ github.repository_owner }}/$d
+                helm package $d
+                helm push $d/*.tgz oci://ghcr.io/${{ github.repository_owner }}/$d
               fi
           done
