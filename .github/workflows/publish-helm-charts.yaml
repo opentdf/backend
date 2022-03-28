@@ -39,7 +39,6 @@ jobs:
                 echo "Rendering Helm chart $d to validate defaults..."
                 helm package $d
                 ls -lah *.tgz
-                ls -lah keycloak_bootstrap-*.tgz
                 helm push ${d::-1}-*.tgz oci://ghcr.io/${{ github.repository_owner }}/${d::-1}
               fi
           done
