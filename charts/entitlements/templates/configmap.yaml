@@ -8,3 +8,7 @@ data:
   POSTGRES_SCHEMA: {{ .Values.postgres.schema }}
   POSTGRES_USER: {{ .Values.postgres.user }}
   SERVER_LOG_LEVEL: {{ .Values.logLevel }}
+  SERVER_PUBLIC_NAME: Entitlement
+  SERVER_ROOT_PATH: /entitlements
+  SERVER_PUBLIC_NAME: {{ .Values.serverPublicName }}
+  SERVER_ROOT_PATH: {{ .Values.serverRootPath }}

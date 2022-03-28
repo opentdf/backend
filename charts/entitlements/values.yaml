@@ -6,6 +6,12 @@ replicaCount: 1
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
 
+# Default name for home page, openAPI
+serverPublicName: Entitlement
+
+# Where to expect requests to REST api
+serverRootPath: /
+
 # Container image configuration.
 image:
   # The image selector, also called the 'image name' in k8s documentation

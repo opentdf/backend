@@ -233,6 +233,15 @@ k8s_yaml(
     )
 )
 
+k8s_yaml(
+    helm(
+        "../../charts/entitlements",
+        "opentdf-entitlements",
+        set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements"],
+        values=["backend-entitlements-values.yaml"],
+    )
+)
+
 
 k8s_yaml("backend.yaml")
 k8s_yaml(OPENTDF_ABACUS_YML)
