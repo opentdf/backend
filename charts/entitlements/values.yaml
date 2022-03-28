@@ -43,12 +43,10 @@ serviceAccount:
 podAnnotations: {}
 
 # Values for deployment's spec.template.spec.securityContext
-podSecurityContext:
-  {}
+podSecurityContext: {}
 
 # Values for deployment's spec.template.spec.containers.securityContext
-securityContext:
-  {}
+securityContext: {}
 
 # JSON locating the secret to pull environment variables from
 # Notably, this file should include the following environemnt variable definitions:
@@ -71,13 +69,9 @@ service:
 #         pathType:    your-pathtype [default: "ImplementationSpecific"]
 #         serviceName: your-service  [default: service.fullname]
 #         servicePort: service-port  [default: service.port above]
-#  To configure HTTPS mode,
-#    tls:
-#      secretName: your-k8s-secret
 ingress:
   enabled: false
-  annotations:
-    {}
+  annotations: {}
   className: null
   hosts: []
   tls: null

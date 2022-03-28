@@ -1,6 +1,5 @@
 # Default values for storage.
 
-
 # Sets the default number of pod replicas in the deployment.
 # Ignored if autoscaling.enabled == true
 replicaCount: 1
@@ -75,13 +74,9 @@ service:
 #         pathType:    your-pathtype [default: "ImplementationSpecific"]
 #         serviceName: your-service  [default: service.fullname]
 #         servicePort: service-port  [default: service.port above]
-#  To configure HTTPS mode,
-#    tls:
-#      secretName: your-k8s-secret
 ingress:
   enabled: false
-  annotations:
-    {}
+  annotations: {}
   className: null
   hosts: []
   tls: null
