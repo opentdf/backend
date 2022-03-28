@@ -37,8 +37,7 @@ jobs:
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Rendering Helm chart $d to validate defaults..."
-                cd $d
-                helm package .
+                helm package $d
                 helm push ${d::-1}-*.tgz oci://ghcr.io/${{ github.repository_owner }}/$d
               fi
           done
