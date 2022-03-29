@@ -1,2 +1,2 @@
 requests
-opentdf
+opentdf==0.6.2a1730

@@ -51,6 +51,7 @@ def from_dotenv(path, key):
 
 
 local("./scripts/genkeys-if-needed", dir=local_path())
+local("./gen-keycloak-certs", dir=local_path())
 
 all_secrets = {
     v: from_dotenv(local_path("certs", ".env"), v)
@@ -238,7 +239,7 @@ helm_remote(
     "keycloak",
     version="17.0.1",
     repo_url="https://codecentric.github.io/helm-charts",
-    values=["backend-keycloak-values.yaml"],
+    values=["keycloak-pki-values.yaml"],
 )
 
 helm_remote(
@@ -316,4 +317,11 @@ k8s_yaml("xtest.yaml")
 
 k8s_resource(
     "opentdf-xtest", resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
+)
+
+k8s_resource("ingress-nginx-controller", port_forwards="4566:443")
+local_resource(
+    "pki-test",
+    "python pki-test/client_pki_test.py",
+    resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
 )
