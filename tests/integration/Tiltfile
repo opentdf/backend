@@ -319,7 +319,6 @@ k8s_resource(
     "opentdf-xtest", resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
 )
 
-          pip3 install opentdf==0.6.3a1741
 local_resource("install opentdf", "pip3 install opentdf==0.6.3a1741")
 
 k8s_resource("ingress-nginx-controller", port_forwards="4566:443")
