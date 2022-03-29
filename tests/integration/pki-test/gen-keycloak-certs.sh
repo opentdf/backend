@@ -6,7 +6,7 @@ openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -out ca.crt -subj "
 
 openssl genrsa -out  tls.key 2048
 
-openssl req -new -key  tls.key -out  opentdf.local.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloak-http"
+openssl req -new -key  tls.key -out  keycloak-http.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloak-http"
 
 openssl x509 -req -extfile <(printf "subjectAltName=DNS:keycloak-http") -in keycloak-http.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out tls.crt -days 500 -sha256
 
