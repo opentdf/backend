@@ -25,7 +25,7 @@ extraEnv: |
   - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
     value: "true"
   - name: KEYCLOAK_FRONTEND_URL
-    value: "https://opentdf.local:4566/auth"
+    value: "https://keycloak-http:4566/auth"
   - name: X509_CA_BUNDLE
     value: /etc/x509/https/ca.crt
 extraEnvFrom: |
@@ -41,7 +41,7 @@ ingress:
   servicePort: https
   rules:
     - # Ingress host
-      host: "opentdf.local"
+      host: "keycloak-http"
       # Paths for the host
       paths:
         - path: /
@@ -60,10 +60,10 @@ ingress:
     nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
 
   hosts:
-    - opentdf.local
+    - keycloak-http
   tls:
     - hosts:
-        - "opentdf.local"
+        - "keycloak-http"
       secretName: x509-secret
 
 extraVolumes: |
