@@ -25,6 +25,7 @@ jobs:
           ls -l node_modules
           npm install
           ls -l node_modules
+          pip3 install opentdf==0.6.3a1741
       - uses: yokawasa/action-setup-kube-tools@v0.7.1
         with:
           setup-tools: |
