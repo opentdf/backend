@@ -51,7 +51,7 @@ def from_dotenv(path, key):
 
 
 local("./scripts/genkeys-if-needed", dir=local_path())
-local("./tests/integration/pki-test/gen-keycloak-certs", dir=local_path())
+local("./tests/integration/pki-test/gen-keycloak-certs.sh", dir=local_path())
 
 all_secrets = {
     v: from_dotenv(local_path("certs", ".env"), v)
