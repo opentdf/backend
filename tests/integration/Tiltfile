@@ -100,7 +100,6 @@ k8s_yaml(
     secret_from_dict(
         "entitlements-secrets",
         inputs={
-            "DISABLE_ENTITLEMENTS_AUTH": "True",
             "OIDC_CLIENT_SECRET": all_secrets["OIDC_CLIENT_SECRET"],
             "POSTGRES_PASSWORD": all_secrets["POSTGRES_PASSWORD"],
         },

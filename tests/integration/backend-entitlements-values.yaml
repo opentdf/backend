@@ -1,6 +1,11 @@
 logLevel: DEBUG
 publicName: "Entitlements"
 serverRootPath: /entitlements
+oidc:
+  realm: tdf
+  internalHost: http://keycloak-http/auth
+  externalHost: http://localhost:65432/auth
+  clientId: tdf-entitlement
 
 # TODO: Add to configmap to match attributes oidc config
 # # Configure to enable authorized access to the API, e.g. via
