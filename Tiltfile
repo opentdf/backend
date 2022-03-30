@@ -28,7 +28,7 @@ config.define_string_list("to-edit")
 cfg = config.parse()
 to_edit = cfg.get("to-edit", [])
 
-OPENTDF_ABACUS_YML = "frontend.yaml"
+OPENTDF_ABACUS_YML = "tests/integration/frontend.yaml"
 
 if "opentdf-abacus" in to_edit:
     OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
@@ -36,8 +36,28 @@ if "opentdf-abacus" in to_edit:
     docker_build("opentdf/abacus", "../frontend")
 
 groups = {
-  'all': ['a', 'b', 'c'],
-  'integration-test': ['a', 'b', 'd'],
+    'all': [
+        'keycloak',
+        'kas',
+        'attributes',
+        'claims',
+        'entitlements',
+        'opentdf-postgresql'
+    ],
+    'integration-test': [
+        'keycloak',
+        'keycloak-bootstrap',
+        'ingress-nginx-controller',
+        'ingress-nginx-admission-create',
+        'ingress-nginx-admission-patch',
+        'opentdf-attributes',
+        'opentdf-claims',
+        'opentdf-entitlements',
+        'opentdf-kas',
+        'opentdf-abacus',
+        'opentdf-postgresql',
+        'opentdf-xtest'
+    ],
 }
 
 resources = []
@@ -46,14 +66,14 @@ resources = []
 isCI = False
 
 for arg in cfg.get('to-run', []):
-  if arg in groups:
-    if arg == 'test':
+    if arg == 'integration-test':
         isCI = True
-    resources += groups[arg]
-  else:
-    # also support specifying individual services instead of groups, e.g. `tilt up a b d`
-    resources.append(arg)
-config.set_enabled_resources(resources)
+    if arg in groups:
+        resources += groups[arg]
+    else:
+        # also support specifying individual services instead of groups, e.g. `tilt up a b d`
+        resources.append(arg)
+# config.set_enabled_resources(resources)
 
 
 #                                                      .
@@ -286,34 +306,28 @@ else:
 # remote resources
 # usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
 
+postgres_helm_values = "deployments/docker-desktop/tdf-postgresql-values.yaml"
+keycloak_helm_values = "deployments/docker-desktop/keycloak-values.yaml"
+
 if isCI:
-    helm_remote(
-        "keycloak",
-        version="17.0.1",
-        repo_url="https://codecentric.github.io/helm-charts",
-        values=["tests/integration/backend-keycloak-values.yaml"],
-    )
-    helm_remote(
-        "postgresql",
-        repo_url="https://charts.bitnami.com/bitnami",
-        release_name="opentdf",
-        version="10.16.2",
-        values=["tests/integration/backend-postgresql-values.yaml"],
-    )
-else:
-    helm_remote(
-        "keycloak",
-        version="17.0.1",
-        repo_url="https://codecentric.github.io/helm-charts",
-        values=["deployments/docker-desktop/keycloak-values.yaml"],
-    )
-    helm_remote(
-        "postgresql",
-        repo_url="https://charts.bitnami.com/bitnami",
-        release_name="tdf",
-        version="10.16.2",
-        values=["deployments/docker-desktop/tdf-postgresql-values.yaml"],
-    )
+    postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
+    keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
+
+helm_remote(
+    "postgresql",
+    repo_url="https://charts.bitnami.com/bitnami",
+    release_name="opentdf",
+    version="10.16.2",
+    values=[postgres_helm_values],
+)
+
+helm_remote(
+    "keycloak",
+    version="17.0.1",
+    repo_url="https://codecentric.github.io/helm-charts",
+    values=[keycloak_helm_values],
+)
+
 
 #                                           o8o
 #                                           `"'
@@ -360,7 +374,7 @@ if isCI:
     )
     k8s_yaml(
         helm(
-            "../../charts/keycloak_bootstrap",
+            "charts/keycloak_bootstrap",
             "keycloak-bootstrap",
             set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap"],
             values=["tests/integration/backend-keycloak-bootstrap-values.yaml"],
@@ -448,8 +462,8 @@ if isCI:
     k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
     k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
 else:
-    k8s_resource("attributes", resource_deps=["tdf-postgresql"])
-    k8s_resource("entitlements", resource_deps=["tdf-postgresql"])
+    k8s_resource("attributes", resource_deps=["opentdf-postgresql"])
+    k8s_resource("entitlements", resource_deps=["opentdf-postgresql"])
 
 
 #     o8o
@@ -466,14 +480,14 @@ else:
 # TODO should integrate with a service mesh and stop deploying our own ingress
 # We need to have big headers for the huge bearer tokens we pass around
 # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-if isCI:
-    helm_remote(
-        "ingress-nginx",
-        repo_url="https://kubernetes.github.io/ingress-nginx",
-        set=["controller.config.large-client-header-buffers=20 32k"],
-        version="4.0.16",
-    )
-    k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
+helm_remote(
+    "ingress-nginx",
+    repo_url="https://kubernetes.github.io/ingress-nginx",
+    set=["controller.config.large-client-header-buffers=20 32k"],
+    version="4.0.16",
+)
+
+k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
 
 #     .o8                               .                .
 #    "888                             .o8              .o8
@@ -486,20 +500,24 @@ if isCI:
 #                                                                               o888o
 #
 
-if isCI:
-    docker_build(
-        "ghcr.io/opentdf/keycloak-bootstrap",
-        local_path("containers", "keycloak-bootstrap"),
-        build_args={"ALPINE_VERSION": ALPINE_VERSION, "PY_VERSION": PY_VERSION},
-    )
-    k8s_resource(
-        "keycloak",
-        links=[link("localhost:65432/auth", "Keycloak admin console")],
-    )
-    k8s_resource(
-        "keycloak-bootstrap",
-        resource_deps=["keycloak", "opentdf-entitlements"]
-    )
+docker_build(
+    "ghcr.io/opentdf/keycloak-bootstrap",
+    "./containers/keycloak-bootstrap",
+    build_args={
+        "ALPINE_VERSION": ALPINE_VERSION,
+        "PY_VERSION": PY_VERSION
+    },
+)
+
+k8s_resource(
+    "keycloak",
+    links=[link("localhost:65432/auth", "Keycloak admin console")],
+)
+
+k8s_resource(
+    "keycloak-bootstrap",
+    resource_deps=["keycloak", "opentdf-entitlements"]
+)
 
 #    db    db d888888b d88888b .d8888. d888888b
 #    `8b  d8' `~~88~~' 88'     88'  YP `~~88~~'
@@ -508,19 +526,20 @@ if isCI:
 #    .8P  Y8.    88    88.     db   8D    88
 #    YP    YP    YP    Y88888P `8888Y'    YP
 
-if isCI:
-    docker_build(
-        "opentdf/tests-clients",
-        context="./",
-        dockerfile="./tests/containers/clients/Dockerfile",
-        #todo: (PLAT-1650) Force to x86 mode until we have a python built in arch64
-        platform="linux/amd64",
-    )
-    k8s_yaml("tests/integration/xtest.yaml")
-    k8s_resource(
-        "opentdf-xtest",
-        resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"]
-    )
+docker_build(
+    "opentdf/tests-clients",
+    context="./",
+    dockerfile="./tests/containers/clients/Dockerfile",
+    #todo: (PLAT-1650) Force to x86 mode until we have a python built in arch64
+    platform="linux/amd64",
+)
+
+k8s_yaml("tests/integration/xtest.yaml")
+
+k8s_resource(
+    "opentdf-xtest",
+    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"]
+)
 
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
