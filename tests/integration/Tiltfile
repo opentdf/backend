@@ -323,6 +323,6 @@ k8s_resource(
 k8s_resource("ingress-nginx-controller", port_forwards="4566:443")
 local_resource(
     "pki-test",
-    "python pki-test/client_pki_test.py",
+    "python3 pki-test/client_pki_test.py",
     resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
 )
