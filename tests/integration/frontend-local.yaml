@@ -34,6 +34,8 @@ metadata:
   name: opentdf-abacus-cm
 data:
   ATTRIBUTES_HOST: http://localhost:65432/attributes/
+  ENTITLEMENTS_HOST: http://localhost:65432/entitlements/
+  KAS_HOST: http://localhost:65432/kas/
   KEYCLOAK_CLIENT_ID: dcr-test
   KEYCLOAK_HOST: http://localhost:65432/auth/
   KEYCLOAK_REALM: tdf
