@@ -230,10 +230,10 @@ docker_build(
     context="./containers/keycloak-protocol-mapper",
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-        "MAVEN_VERSION": "3.8.4",
-        "JDK_VERSION": "11",
         "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
         "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
+        "MAVEN_VERSION": "3.8.4",
+        "JDK_VERSION": "11",
     },
 )
 
@@ -286,7 +286,6 @@ else:
                 "PY_VERSION": PY_VERSION,
                 "PYTHON_BASE_IMAGE_SELECTOR": "",
             },
-            container_args=["--reload"],
             context="containers",
             dockerfile="./containers/" + microservice + "/Dockerfile",
         )
@@ -314,20 +313,19 @@ if isCI:
     keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 helm_remote(
-    "postgresql",
-    repo_url="https://charts.bitnami.com/bitnami",
-    release_name="opentdf",
-    version="10.16.2",
-    values=[postgres_helm_values],
-)
-
-helm_remote(
     "keycloak",
     version="17.0.1",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
 
+helm_remote(
+    "postgresql",
+    repo_url="https://charts.bitnami.com/bitnami",
+    release_name="opentdf",
+    version="10.16.2",
+    values=[postgres_helm_values],
+)
 
 #                                           o8o
 #                                           `"'
