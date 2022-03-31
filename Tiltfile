@@ -38,10 +38,10 @@ if "opentdf-abacus" in to_edit:
 groups = {
     'all': [
         'keycloak',
-        'kas',
-        'attributes',
-        'claims',
-        'entitlements',
+        'opentdf-kas',
+        'opentdf-attributes',
+        'opentdf-claims',
+        'opentdf-entitlements',
         'opentdf-postgresql'
     ],
     'integration-test': [
