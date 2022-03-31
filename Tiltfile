@@ -73,8 +73,8 @@ for arg in cfg.get('to-run', []):
     else:
         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
         resources.append(arg)
-# config.set_enabled_resources(resources)
 
+config.set_enabled_resources(resources)
 
 #                                                      .
 #                                                    .o8
@@ -97,6 +97,7 @@ all_secrets = {
         "KAS_PRIVATE_KEY",
     ]
 }
+
 if isCI:
     all_secrets = {
         v: from_dotenv("./certs/.env", v)
@@ -115,7 +116,6 @@ if isCI:
     all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
 else:
     all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
-
 
 def only_secrets_named(*items):
     return {k: all_secrets[k] for k in items}
@@ -339,95 +339,84 @@ helm_remote(
 #
 # usage https://docs.tilt.dev/helm.html#helm-options
 
+opentdf_attrs_values="deployments/docker-desktop/attributes-values.yaml"
+opentdf_attrs_set=[
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes",
+    "secretRef.name=postgres-password",
+]
+opentdf_claims_values="deployments/docker-desktop/claims-values.yaml"
+opentdf_claims_set=[
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/claims",
+    "secretRef.name=postgres-password",
+]
+opentdf_entitlements_values="deployments/docker-desktop/entitlements-values.yaml"
+opentdf_entitlements_set=[
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
+    "secretRef.name=postgres-password",
+]
+opentdf_kas_values="deployments/docker-desktop/kas-values.yaml"
+opentdf_kas_set=[
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
+    "secretRef.name=all-the-kas-secrets",
+    "certFileSecretName=all-the-kas-secrets",
+]
+
 if isCI:
-    k8s_yaml(
-        helm(
-            "charts/attributes",
-            "opentdf-attributes",
-            set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes"],
-            values=["tests/integration/backend-attributes-values.yaml"],
-        )
+    opentdf_attrs_values="tests/integration/backend-attributes-values.yaml"
+    opentdf_attrs_set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes"]
+    opentdf_claims_values="tests/integration/backend-claims-values.yaml"
+    opentdf_claims_set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/claims"]
+    opentdf_entitlements_values="tests/integration/backend-entitlements-values.yaml"
+    opentdf_entitlements_set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements"]
+    opentdf_kas_values="tests/integration/backend-kas-values.yaml"
+    opentdf_kas_set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/kas"]
+
+k8s_yaml(
+    helm(
+        "charts/attributes",
+        "opentdf-attributes",
+        set=opentdf_attrs_set,
+        values=[opentdf_attrs_values],
     )
-    k8s_yaml(
-        helm(
-            "charts/claims",
-            "opentdf-claims",
-            set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/claims"],
-            values=["tests/integration/backend-claims-values.yaml"],
-        )
+)
+
+k8s_yaml(
+    helm(
+        "charts/claims",
+        "opentdf-claims",
+        set=opentdf_claims_set,
+        values=[opentdf_claims_values],
     )
-    k8s_yaml(
-        helm(
-            "charts/entitlements",
-            "opentdf-entitlements",
-            set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements"],
-            values=["tests/integration/backend-entitlements-values.yaml"],
-        )
+)
+
+k8s_yaml(
+    helm(
+        "charts/entitlements",
+        "opentdf-entitlements",
+        set=opentdf_entitlements_set,
+        values=[opentdf_entitlements_values],
     )
-    k8s_yaml(
-        helm(
-            "charts/kas",
-            "opentdf-kas",
-            set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/kas"],
-            values=["tests/integration/backend-kas-values.yaml"],
-        )
+)
+
+k8s_yaml(
+    helm(
+        "charts/kas",
+        "opentdf-kas",
+        set=opentdf_kas_set,
+        values=[opentdf_kas_values],
     )
-    k8s_yaml(
-        helm(
-            "charts/keycloak_bootstrap",
-            "keycloak-bootstrap",
-            set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap"],
-            values=["tests/integration/backend-keycloak-bootstrap-values.yaml"],
-        )
+)
+
+k8s_yaml(
+    helm(
+        "charts/keycloak_bootstrap",
+        "keycloak-bootstrap",
+        set=["image.name=" + CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap"],
+        values=["tests/integration/backend-keycloak-bootstrap-values.yaml"],
     )
-    k8s_yaml("tests/integration/ingress-class.yaml")
-    k8s_yaml(OPENTDF_ABACUS_YML)
-else:
-    k8s_yaml(
-        helm(
-            "charts/attributes",
-            "attributes",
-            set=[
-                "image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes",
-                "secretRef.name=postgres-password",
-            ],
-            values=["deployments/docker-desktop/attributes-values.yaml"],
-        )
-    )
-    k8s_yaml(
-        helm(
-            "charts/claims",
-            "claims",
-            set=[
-                "image.name=" + CONTAINER_REGISTRY + "/opentdf/claims",
-                "secretRef.name=postgres-password",
-            ],
-            values=["deployments/docker-desktop/claims-values.yaml"],
-        )
-    )
-    k8s_yaml(
-        helm(
-            "charts/entitlements",
-            "entitlements",
-            set=[
-                "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
-                "secretRef.name=postgres-password",
-            ],
-            values=["deployments/docker-desktop/entitlements-values.yaml"],
-        )
-    )
-    k8s_yaml(
-        helm(
-            "charts/kas",
-            "kas",
-            set=[
-                "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
-                "secretRef.name=all-the-kas-secrets",
-                "certFileSecretName=all-the-kas-secrets",
-            ],
-            values=["deployments/docker-desktop/kas-values.yaml"],
-        )
-    )
+)
+k8s_yaml("tests/integration/ingress-class.yaml")
+k8s_yaml(OPENTDF_ABACUS_YML)
 
 # TODO this service requires actual S3 secrets
 # TODO or use https://github.com/localstack/localstack
@@ -454,17 +443,13 @@ else:
 # deprecated
 # k8s_yaml(helm('charts/eas', 'eas', values=['deployments/docker-desktop/eas-values.yaml']))
 
-
 # resource dependencies
 if isCI:
-    k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
     k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql"])
-    k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
     k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
-else:
-    k8s_resource("attributes", resource_deps=["opentdf-postgresql"])
-    k8s_resource("entitlements", resource_deps=["opentdf-postgresql"])
 
+k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
+k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
 
 #     o8o
 #     `"'
@@ -476,10 +461,10 @@ else:
 #                      d"     YD
 #                      "Y88888P'
 #
-
 # TODO should integrate with a service mesh and stop deploying our own ingress
 # We need to have big headers for the huge bearer tokens we pass around
 # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
+
 helm_remote(
     "ingress-nginx",
     repo_url="https://kubernetes.github.io/ingress-nginx",
@@ -540,7 +525,6 @@ k8s_resource(
     "opentdf-xtest",
     resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"]
 )
-
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
 # This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.
