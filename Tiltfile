@@ -233,6 +233,11 @@ docker_build(
 )
 
 if isCI:
+    local(
+        "make keycloak-repo-clone",
+        dir="./containers/keycloak-protocol-mapper"
+    )
+
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/kas",
         context="containers/kas",
@@ -295,11 +300,6 @@ else:
             "PY_VERSION": PY_VERSION,
             "PYTHON_BASE_IMAGE_SELECTOR": "",
         },
-    )
-
-    local(
-        "make keycloak-repo-clone",
-        dir="./containers/keycloak-protocol-mapper"
     )
 
 
