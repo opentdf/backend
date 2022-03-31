@@ -28,13 +28,6 @@ config.define_string_list("to-edit")
 cfg = config.parse()
 to_edit = cfg.get("to-edit", [])
 
-OPENTDF_ABACUS_YML = "tests/integration/frontend.yaml"
-
-if "opentdf-abacus" in to_edit:
-    OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
-    # frontend folder should be next to backend
-    docker_build("opentdf/abacus", "../frontend")
-
 groups = {
     'all': [
         'keycloak',
@@ -98,29 +91,15 @@ all_secrets = {
     ]
 }
 
-if isCI:
+if isCI and not os.path.exists("./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"):
     local(
         "make keycloak-repo-clone",
         dir="./containers/keycloak-protocol-mapper"
     )
 
-    all_secrets = {
-        v: from_dotenv("./certs/.env", v)
-        for v in [
-            "EAS_CERTIFICATE",
-            "KAS_CERTIFICATE",
-            "KAS_EC_SECP256R1_CERTIFICATE",
-            "KAS_EC_SECP256R1_PRIVATE_KEY",
-            "KAS_PRIVATE_KEY",
-        ]
-    }
-
 all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
-
-if isCI:
-    all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
-else:
-    all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
+all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
+all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
 
 def only_secrets_named(*items):
     return {k: all_secrets[k] for k in items}
@@ -206,6 +185,13 @@ else:
 #                                    d"     YD
 #                                    "Y88888P'
 #
+
+OPENTDF_ABACUS_YML = "tests/integration/frontend.yaml"
+
+if "opentdf-abacus" in to_edit:
+    OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
+    # frontend folder should be next to backend
+    docker_build("opentdf/abacus", "../frontend")
 
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/python-base",
@@ -442,12 +428,10 @@ k8s_yaml(OPENTDF_ABACUS_YML)
 # k8s_yaml(helm('charts/eas', 'eas', values=['deployments/docker-desktop/eas-values.yaml']))
 
 # resource dependencies
-if isCI:
-    k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql"])
-    k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
-
 k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
+k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql", "keycloak"])
 k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
+k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
 
 #     o8o
 #     `"'
@@ -521,7 +505,12 @@ k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
     "opentdf-xtest",
-    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"]
+    resource_deps=[
+        "keycloak-bootstrap",
+        "keycloak",
+        "opentdf-kas",
+        "opentdf-claims"
+    ]
 )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
