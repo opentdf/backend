@@ -99,6 +99,11 @@ all_secrets = {
 }
 
 if isCI:
+    local(
+        "make keycloak-repo-clone",
+        dir="./containers/keycloak-protocol-mapper"
+    )
+
     all_secrets = {
         v: from_dotenv("./certs/.env", v)
         for v in [
@@ -233,11 +238,6 @@ docker_build(
 )
 
 if isCI:
-    local(
-        "make keycloak-repo-clone",
-        dir="./containers/keycloak-protocol-mapper"
-    )
-
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/kas",
         context="containers/kas",
