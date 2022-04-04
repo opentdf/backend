@@ -27,6 +27,6 @@ COPY ./scripts /scripts
 RUN pip3 install --requirement /wrk/requirements.txt || true
 
 ENV KAS_ENDPOINT http://host.docker.internal:65432/api/kas
-ENV OIDC_ENDPOINT http://host.docker.internal:65432/auth
+ENV OIDC_ENDPOINT http://host.docker.internal:65432
 
 CMD ["python3", "xtest.py"]
