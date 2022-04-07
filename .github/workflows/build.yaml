@@ -304,6 +304,11 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      - name: check openapi.json is up to date
+        run: |
+          docker run --entrypoint python3 ${{ steps.meta.outputs.tags }} -m ${{ matrix.repo }}.main > openapi-json.tmp
+          diff openapi-json.tmp openapi.json
+        working-directory: containers/${{ matrix.repo }}
 
   keycloak-image-base:
     # We're literally building upstream Keycloak as-is
