@@ -19,16 +19,16 @@ today="$(date +%Y-%m-%d)"
 digest="$(git rev-parse --short HEAD)"
 suffix="${today}-${digest}"
 
-# monolog TRACE "Building [opentdf/python-base:${PY_VERSION}]"
-# if ! docker build \
-#         --tag "opentdf/python-base:${PY_VERSION}" \
-#         --build-arg ALPINE_VERSION=${ALPINE_VERSION} \
-#         --build-arg PY_VERSION=${PY_VERSION} \
-#         --file containers/python_base/Dockerfile \
-#         ./containers/python_base; then 
-#   monolog ERROR "Failed to build python_base container"
-#   exit 1
-# fi
+monolog TRACE "Building [opentdf/python-base:${PY_VERSION}]"
+if ! docker build \
+        --tag "opentdf/python-base:${PY_VERSION}" \
+        --build-arg ALPINE_VERSION=${ALPINE_VERSION} \
+        --build-arg PY_VERSION=${PY_VERSION} \
+        --file containers/python_base/Dockerfile \
+        ./containers/python_base; then 
+  monolog ERROR "Failed to build python_base container"
+  exit 1
+fi
 
 for mservice in attributes claims entitlements; do
   tag=opentdf/${mservice}:${suffix}
@@ -45,6 +45,7 @@ for mservice in attributes claims entitlements; do
     monolog ERROR "Failed to extract ${mservice} openapi json"
     exit 1
   fi
+  yq -P containers/${mservice}/openapi.json > containers/${mservice}/openapi.yaml && npx prettier -w containers/${mservice}/openapi.yaml
 done
 
-monolog DEBUG ""
+monolog DEBUG "Finished [$0${1+ }$*]"
