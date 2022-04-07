@@ -45,7 +45,9 @@ for mservice in attributes claims entitlements; do
     monolog ERROR "Failed to extract ${mservice} openapi json"
     exit 1
   fi
-  yq -P containers/${mservice}/openapi.json >containers/${mservice}/openapi.yaml && npx prettier -w containers/${mservice}/openapi.yaml
+  yq -P containers/${mservice}/openapi.json |
+    yq '. head_comment="⚠️ DO NOT EDIT! GENERATED VIA openapi-generator ⚠️"' >containers/${mservice}/openapi.yaml &&
+    npx prettier -w containers/${mservice}/openapi.yaml
 done
 
 monolog DEBUG "Finished [$0${1+ }$*]"
