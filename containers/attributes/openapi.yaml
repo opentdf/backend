@@ -46,7 +46,7 @@ paths:
         - required: false
           schema:
             title: Sort
-            pattern: ^(-*((state)|(rule)|(name)|(values)),)*-*((state)|(rule)|(name)|(values))$
+            pattern: ^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$
             type: string
             default: ""
           name: sort
@@ -121,7 +121,7 @@ paths:
         - required: false
           schema:
             title: Sort
-            pattern: ^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$
+            pattern: ^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$
             type: string
             default: ""
           name: sort
