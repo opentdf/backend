@@ -223,7 +223,7 @@ table_attribute = sqlalchemy.Table(
     sqlalchemy.Column("rule", sqlalchemy.VARCHAR),
     sqlalchemy.Column("name", sqlalchemy.VARCHAR),
     sqlalchemy.Column("description", sqlalchemy.VARCHAR),
-    sqlalchemy.Column("values", sqlalchemy.ARRAY(sqlalchemy.TEXT)),
+    sqlalchemy.Column("values_array", sqlalchemy.ARRAY(sqlalchemy.TEXT)),
 )
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
@@ -384,7 +384,7 @@ async def read_attributes(
     order: Optional[str] = None,
     sort: Optional[str] = Query(
         "",
-        regex="^(-*((state)|(rule)|(name)|(values)),)*-*((state)|(rule)|(name)|(values))$",
+        regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
     ),
     db: Session = Depends(get_db),
     pager: Pagination = Depends(Pagination),
@@ -402,7 +402,7 @@ async def read_attributes(
     if rule:
         filter_args["rule"] = rule
     if order:
-        filter_args["values"] = order
+        filter_args["values_array"] = order
 
     sort_args = sort.split(",") if sort else []
     results = await read_attributes_crud(AttributeSchema, db, filter_args, sort_args)
@@ -476,7 +476,7 @@ async def read_attributes_definitions(
     order: Optional[str] = None,
     sort: Optional[str] = Query(
         "",
-        regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
+        regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
     ),
     db: Session = Depends(get_db),
     pager: Pagination = Depends(Pagination),
@@ -491,7 +491,7 @@ async def read_attributes_definitions(
     if name:
         filter_args["name"] = name
     if order:
-        filter_args["values"] = order
+        filter_args["values_array"] = order
 
     sort_args = sort.split(",") if sort else []
 
@@ -505,7 +505,7 @@ async def read_attributes_definitions(
                 AttributeDefinition(
                     authority=authorities[row.namespace_id],
                     name=row.name,
-                    order=row.values,
+                    order=row.values_array,
                     rule=row.rule,
                     state=row.state,
                 )
@@ -573,7 +573,7 @@ async def create_attributes_definitions_crud(request):
         query = table_attribute.insert().values(
             name=request.name,
             namespace_id=namespace_id,
-            values=request.order,
+            values_array=request.order,
             state=request.state,
             rule=request.rule,
         )
@@ -648,7 +648,7 @@ async def update_attribute_definition_crud(request):
             )
 
     query = table_attribute.update().values(
-        values=request.order,
+        values_array=request.order,
         rule=request.rule,
     )
 
@@ -687,10 +687,10 @@ async def delete_attributes_definitions(
 async def delete_attributes_definitions_crud(request):
     statement = table_attribute.delete().where(
         and_(
-            table_attribute.c.authority == request.authority,
+            table_authority.c.name == request.authority,
             table_attribute.c.name == request.name,
-            table_attribute.c.rule == request.rule,
-            table_attribute.c.order == request.order,
+            table_attribute.c.rule == str(request.rule.value),
+            table_attribute.c.values_array == request.order,
         )
     )
     await database.execute(statement)
