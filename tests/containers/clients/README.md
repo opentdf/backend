@@ -8,7 +8,7 @@ Work In Progress
 
 ```
 ( cd tests/integration && tilt up & )
-docker build --tag opentdf/xtest --file tetss/containers/clients/Dockerfile .
+docker build --tag opentdf/xtest --file tests/containers/clients/Dockerfile .
 docker run opentdf/xtest
 ```
 
