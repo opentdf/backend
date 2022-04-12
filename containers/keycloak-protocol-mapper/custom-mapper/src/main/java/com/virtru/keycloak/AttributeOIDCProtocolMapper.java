@@ -184,13 +184,13 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         String[] clientIds = clientId.split(",");
 
         ObjectMapper objectMapper = new ObjectMapper();
-        formattedParameters.put("secondary_entity_ids", clientIds);
+        formattedParameters.put("secondaryEntityIds", clientIds);
 
         // Get username
         // TODO at some point we should probably skip this if it's a service account
         logger.debug("USERNAME value is: " + userSession.getLoginUsername());
         logger.debug("Current User UUID value is: " + userSession.getUser().getId());
-        formattedParameters.put("primary_entity_id", userSession.getUser().getId());
+        formattedParameters.put("primaryEntityId", userSession.getUser().getId());
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always include full claimset
@@ -262,7 +262,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             httpReq.setURI(uriBuilder.build());
             Map<String, Object> requestEntity = new HashMap<>();
             requestEntity.put("algorithm", "ec:secp256r1");
-            requestEntity.put("signerPublicKey", clientPK);
+            requestEntity.put("clientPublicSigningKey", clientPK);
 
             // Build parameters
             for (Map.Entry<String, Object> param : parameters.entrySet()) {
