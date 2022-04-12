@@ -107,7 +107,7 @@ class EntityEntitlements(BaseModel):
 # NOTE This object schema should EXACTLY match the TDF spec's ClaimsObject schema
 # as defined here: https://github.com/virtru/tdf-spec/blob/master/schema/ClaimsObject.md
 class EntitlementsObject(BaseModel):
-    client_public_signing_key: Optional[str] = ""
+    client_public_signing_key: str
     entitlements: List[EntityEntitlements] = []
     tdf_spec_version: Optional[str]
 
@@ -192,8 +192,7 @@ async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
         entity_entitlements.append(get_entitlements_for_entity_id(secondary_entity_id))
 
     entitlement_object = EntitlementsObject(
-        public_key=request.publicKey or None,
-        client_public_signing_key=request.signerPublicKey or None,
+        client_public_signing_key=request.signerPublicKey,
         entitlements=entity_entitlements,
     )
     return entitlement_object
