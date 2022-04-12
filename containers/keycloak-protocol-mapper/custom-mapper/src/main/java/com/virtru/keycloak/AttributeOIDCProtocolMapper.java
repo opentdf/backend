@@ -263,7 +263,6 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             Map<String, Object> requestEntity = new HashMap<>();
             requestEntity.put("algorithm", "ec:secp256r1");
             requestEntity.put("signerPublicKey", clientPK);
-            logger.info("Request: " + requestEntity);
 
             // Build parameters
             for (Map.Entry<String, Object> param : parameters.entrySet()) {
@@ -276,6 +275,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             ObjectMapper objectMapper = new ObjectMapper();
             httpReq.setEntity(new StringEntity(objectMapper.writeValueAsString(requestEntity)));
 
+            logger.info("Request: " + requestEntity);
             response = client.execute(httpReq);
             String bodyAsString = EntityUtils.toString(response.getEntity());
             if (response.getStatusLine().getStatusCode() != 200) {
