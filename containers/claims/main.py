@@ -192,7 +192,7 @@ async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
         entity_entitlements.append(get_entitlements_for_entity_id(secondary_entity_id))
 
     entitlement_object = EntitlementsObject(
-        client_public_signing_key=request.signerPublicKey,
+        client_public_signing_key=request.clientPublicSigningKey,
         entitlements=entity_entitlements,
     )
     return entitlement_object

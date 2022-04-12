@@ -209,10 +209,10 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
      *
      * If no client public key has been provided in the request headers noop occurs.  Otherwise, a request
      * is sent as a simple map json document with keys:
-     * - signerPublicKey: the client's public signing key
-     * - primary_entity_id: required - identifier for the principal subject claims are being fetched for (PE or NPE)
+     * - clientPublicSigningKey: the client's public signing key
+     * - primaryEntityId: required - identifier for the principal subject claims are being fetched for (PE or NPE)
      * - key/value per parameter configuration.
-     * - secondary_entity_ids: required - list of identifiers for any additional secondary subjects claims will be fetched for.
+     * - secondaryEntityIds: required - list of identifiers for any additional secondary subjects claims will be fetched for.
      * @param mappingModel
      * @param userSession
      * @param keycloakSession
