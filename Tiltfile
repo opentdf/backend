@@ -79,6 +79,7 @@ config.set_enabled_resources(resources)
 #  8""888P' `Y8bod8P' `Y8bod8P' d888b    `Y8bod8P'   "888" 8""888P'
 
 local("./scripts/genkeys-if-needed")
+local("./tests/integration/pki-test/gen-keycloak-certs.sh", dir=local_path())
 
 all_secrets = {
     v: from_dotenv("./certs/.env", v)
@@ -476,6 +477,13 @@ k8s_yaml("tests/integration/xtest.yaml")
 k8s_resource(
     "opentdf-xtest",
     resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-claims"],
+)
+
+k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
+local_resource(
+    "pki-test",
+    "python3 tests/integration/pki-test/client_pki_test.py",
+    resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
 )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart

@@ -59,7 +59,7 @@ def main():
     attributes = args.attributes.split(",") if args.attributes else []
 
     oidc_creds = OIDCCredentials()
-    oidc_creds.set_client_credentials(
+    oidc_creds.set_client_credentials_client_secret(
         client_id=auth[1],
         client_secret=auth[2],
         organization_name=auth[0],
