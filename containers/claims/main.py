@@ -179,7 +179,7 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
         await database.execute("SELECT 1")
 
 
-@app.post("/claims", response_model=EntitlementsObject, response_model_exclude_unset=True)
+@app.post("/claims", response_model=EntitlementsObject)
 async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
     logger.info("/claims POST [%s]", request)
     entity_entitlements = []
