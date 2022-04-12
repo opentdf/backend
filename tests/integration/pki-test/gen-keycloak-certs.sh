@@ -1,28 +1,34 @@
 #!/bin/bash
 export PASSPHRASE=123456
+CERTS_DIR="keycloakcerts"
+mkdir $CERTS_DIR
 
+if kubectl get secret x509-secret; then
+  echo "X509 secret already exists"
+else
 #Generate CA and Server Certificates
 
-openssl genrsa -aes256 -out ca.key -passout env:PASSPHRASE 2048
+  openssl genrsa -aes256 -out $CERTS_DIR/ca.key -passout env:PASSPHRASE 2048
 
-openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -out ca.crt -subj "/C=US/ST=Home/L=Home/O=mycorp/OU=myorg/CN=caroot.keycloak-http" -passin env:PASSPHRASE
+  openssl req -x509 -new -nodes -key $CERTS_DIR/ca.key -sha256 -days 1024 -out $CERTS_DIR/ca.crt -subj "/C=US/ST=Home/L=Home/O=mycorp/OU=myorg/CN=caroot.keycloak-http" -passin env:PASSPHRASE
 
-openssl genrsa -out  tls.key 2048
+  openssl genrsa -out  $CERTS_DIR/tls.key 2048
 
-openssl req -new -key  tls.key -out  keycloak-http.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloak-http"
+  openssl req -new -key  $CERTS_DIR/tls.key -out  $CERTS_DIR/keycloak-http.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloak-http"
 
-openssl x509 -req -extfile <(printf "subjectAltName=DNS:keycloak-http") -in keycloak-http.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out tls.crt -days 500 -sha256 -passin env:PASSPHRASE
+  openssl x509 -req -extfile <(printf "subjectAltName=DNS:keycloak-http") -in $CERTS_DIR/keycloak-http.csr -CA $CERTS_DIR/ca.crt -CAkey $CERTS_DIR/ca.key -CAcreateserial -out $CERTS_DIR/tls.crt -days 500 -sha256 -passin env:PASSPHRASE
 
 
 #Generate Client certificate
 
-openssl genrsa -out john.doe.key 2048
+  openssl genrsa -out $CERTS_DIR/john.doe.key 2048
 
-openssl req -new -sha256 -key john.doe.key -out john.doe.req -subj "/C=US/ST=California/L=LA/O=example/CN=john"
+  openssl req -new -sha256 -key $CERTS_DIR/john.doe.key -out $CERTS_DIR/john.doe.req -subj "/CN=john"
 
-openssl x509 -req -sha256 -in john.doe.req -CA ca.crt -CAkey ca.key -set_serial 101 -extensions client -days 365 -outform PEM -out john.doe.cer -passin env:PASSPHRASE
+  openssl x509 -req -sha256 -in $CERTS_DIR/john.doe.req -CA $CERTS_DIR/ca.crt -CAkey $CERTS_DIR/ca.key -extensions client -days 365 -outform PEM -out $CERTS_DIR/john.doe.cer -passin env:PASSPHRASE
 
 
 # Create Kubernetes Secret for Keycloak
 
-kubectl create secret generic x509-secret --from-file=ca.crt=ca.crt --from-file=tls.crt=tls.crt --from-file=tls.key=tls.key
+  kubectl create secret generic x509-secret --from-file=ca.crt=$CERTS_DIR/ca.crt --from-file=tls.crt=$CERTS_DIR/tls.crt --from-file=tls.key=$CERTS_DIR/tls.key
+fi

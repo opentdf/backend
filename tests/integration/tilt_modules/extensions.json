@@ -14,6 +14,11 @@
       "Name": "secret",
       "ExtensionRegistry": "https://github.com/tilt-dev/tilt-extensions",
       "TimeFetched": "2021-12-21T17:26:04.202392-05:00"
+    },
+    {
+      "Name": "min_tilt_version",
+      "ExtensionRegistry": "https://github.com/tilt-dev/tilt-extensions",
+      "TimeFetched": "2022-03-31T12:21:55.540495+03:00"
     }
   ]
 }

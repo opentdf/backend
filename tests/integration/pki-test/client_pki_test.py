@@ -1,17 +1,20 @@
+import os
 import sys
 from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
 
 # encrypt the file and apply the policy on tdf file and also decrypt.
-OIDC_ENDPOINT = "https://keycloak-http:4566"
+OIDC_ENDPOINT = "https://keycloak-http:4567"
 KAS_URL = "http://localhost:65432/kas"
 
 try:
+    curr_dir = os.path.dirname(__file__)
+
     oidc_creds = OIDCCredentials()
     oidc_creds.set_client_credentials_pki(
         client_id="client_x509",
-        client_key_file_name="john.doe.key",
-        client_cert_file_name="john.doe.cer",
-        certificate_authority="ca.crt",
+        client_key_file_name=os.path.abspath(os.path.join(curr_dir, "../../../keycloakcerts/john.doe.key")),
+        client_cert_file_name=os.path.abspath(os.path.join(curr_dir, "../../../keycloakcerts/john.doe.cer")),
+        certificate_authority=os.path.abspath(os.path.join(curr_dir, "../../../keycloakcerts/ca.crt")),
         organization_name="tdf-pki",
         oidc_endpoint=OIDC_ENDPOINT
     )

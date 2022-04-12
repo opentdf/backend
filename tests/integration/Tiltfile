@@ -313,16 +313,16 @@ docker_build(
     platform="linux/amd64",
 )
 
-k8s_resource("ingress-nginx-controller", port_forwards="4566:443")
-local_resource(
-    "pki-test",
-    "python3 pki-test/client_pki_test.py",
-    resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
-)
-
 
 k8s_yaml("xtest.yaml")
 
 k8s_resource(
     "opentdf-xtest", resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
+)
+
+k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
+local_resource(
+    "pki-test",
+    "python3 pki-test/client_pki_test.py",
+    resource_deps=["bootstrap-keycloak", "keycloak", "opentdf-kas"]
 )
