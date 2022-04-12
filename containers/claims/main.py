@@ -102,13 +102,13 @@ class AttributeDisplay(BaseModel):
 
 class EntityEntitlements(BaseModel):
     entity_identifier: str
-    entity_attributes: List[AttributeDisplay]
+    entity_attributes: List[Optional[AttributeDisplay]] = []
 
 # NOTE This object schema should EXACTLY match the TDF spec's ClaimsObject schema
 # as defined here: https://github.com/virtru/tdf-spec/blob/master/schema/ClaimsObject.md
 class EntitlementsObject(BaseModel):
     client_public_signing_key: str
-    entitlements: List[EntityEntitlements] = []
+    entitlements: List[EntityEntitlements]
     tdf_spec_version: Optional[str]
 
     class Config:
