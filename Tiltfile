@@ -79,7 +79,7 @@ config.set_enabled_resources(resources)
 #  8""888P' `Y8bod8P' `Y8bod8P' d888b    `Y8bod8P'   "888" 8""888P'
 
 local("./scripts/genkeys-if-needed")
-local("./tests/integration/pki-test/gen-keycloak-certs.sh", dir=local_path())
+local("./tests/integration/pki-test/gen-keycloak-certs.sh")
 
 all_secrets = {
     v: from_dotenv("./certs/.env", v)
