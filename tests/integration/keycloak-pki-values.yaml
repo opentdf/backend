@@ -25,7 +25,7 @@ extraEnv: |
   - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
     value: "true"
   - name: KEYCLOAK_FRONTEND_URL
-    value: "https://keycloak-http.local:4567/auth"
+    value: "https://keycloak-http:4567/auth"
   - name: X509_CA_BUNDLE
     value: /etc/x509/https/ca.crt
 extraEnvFrom: |
@@ -80,5 +80,8 @@ startupScripts:
     /subsystem=keycloak-server/spi=x509cert-lookup:write-attribute(name=default-provider, value="nginx")            
     /subsystem=keycloak-server/spi=x509cert-lookup/provider=default:remove
     /subsystem=keycloak-server/spi=x509cert-lookup/provider=nginx:add(enabled=true,properties={sslClientCert => "ssl-client-cert", sslCertChainPrefix => "USELESS",     certificateChainLength => "2"})
+    /subsystem=logging/logger=org.keycloak.authentication.authenticators.x509/:add(category=org.keycloak.authentication.authenticators.x509,level=TRACE)
+    /subsystem=logging/logger=org.keycloak.services.x509/:add(category=org.keycloak.services.x509,level=TRACE)
+    /subsystem=logging/logger=com.virtru.keycloak.AttributeOIDCProtocolMapper/:add(category=com.virtru.keycloak.AttributeOIDCProtocolMapper,level=TRACE)
     run-batch
     stop-embedded-server

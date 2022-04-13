@@ -198,7 +198,7 @@ def createTestClientForX509Flow(keycloak_admin):
                 "protocol": "openid-connect",
                 "redirectUris": ["https://local.virtru.com/*"],
                 "webOrigins": ["+"],
-                "attributes": {"x509.subjectdn": "CN=john"},
+                "attributes": {"x509.subjectdn": "CN=(.*)(?:$)"},
             },
             skip_exists=True,
         )
