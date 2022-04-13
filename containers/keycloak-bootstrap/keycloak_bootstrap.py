@@ -511,7 +511,8 @@ def createDirectAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_nam
 
     data_direct_grant_flow_executions = keycloak_admin.get_authentication_flow_executions(flow_name)
     for key in data_direct_grant_flow_executions:
-        keycloak_admin.delete_authentication_flow_execution(key.get('id'))
+        if key.get('level') == 0:
+            keycloak_admin.delete_authentication_flow_execution(key.get('id'))
 
     payload_config = {"provider": provider_name}
     params_path = {"realm-name": realm_name, "flow-alias": flow_name}
