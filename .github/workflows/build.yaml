@@ -124,9 +124,9 @@ jobs:
 
   publish-helm-charts:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    needs:
-      - integration-test
+    # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    # needs:
+    #   - integration-test
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
