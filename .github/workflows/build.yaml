@@ -150,7 +150,7 @@ jobs:
                 echo "Rendering Helm chart $d to validate defaults..."
                 helm package $d
                 echo *.tgz
-                helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+                docker push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi
           done
