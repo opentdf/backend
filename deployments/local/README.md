@@ -1,6 +1,6 @@
 # minikube
 
-## Using minikube to run the openTDF backend on MacOS
+## Using minikube to run the OpenTDF backend on MacOS
 1. Install necessary software:
  - install minikube -  `brew install minikube`
  - install kubectl - `brew install kubectl`

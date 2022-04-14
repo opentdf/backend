@@ -1,10 +1,10 @@
 
-## openTDF + Keycloak Identity Provider Integration
+## OpenTDF + Keycloak Identity Provider Integration
 
 Keycloak is our Identity Provider (IdP), and integrating
 it into Virtru's technology requires the following components:
 
-* `claims`:  A web service that provides Claims Objects to the openTDF Keycloak
+* `claims`:  A web service that provides Claims Objects to the OpenTDF Keycloak
   Protocol Mapper.
 * `keycloak-protocol-mapper`:  Virtru's Keycloak Protocol Mapper.
   This is a customized Keycloak image that makes a web service
@@ -13,7 +13,7 @@ it into Virtru's technology requires the following components:
 * `keycloak-bootstrap`:  A containerized script to initialize the Keycloak
   for use with a demo environment. It can be used as a reference for developing
   code that interacts with Keycloak and the various attribution services within
-  the openTDF backend. The demo implementation:
+  the OpenTDF backend. The demo implementation:
   * creates the `tdf` realm
   * creates the `tdf-client` client (non-person entity -- a service account)
   * configures the client to use Virtru Protocol Mapper
@@ -60,7 +60,7 @@ make all && make test
 A successful encrypt will look like this:
 
 ```
-echo "Hello openTDF" >plaintext.txt
+echo "Hello OpenTDF" >plaintext.txt
 
 cli/bin/opentdf.mjs encrypt \
   --kasEndpoint http://localhost:65432/kas \
