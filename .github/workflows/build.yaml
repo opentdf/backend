@@ -94,6 +94,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          ls
           pip3 install -r containers/attributes/requirements.txt
 
       - name: Test
