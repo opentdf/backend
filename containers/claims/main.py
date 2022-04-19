@@ -9,7 +9,7 @@ from typing import List, Optional
 import databases as databases
 import sqlalchemy
 from fastapi import FastAPI, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 logging.basicConfig(
@@ -57,15 +57,30 @@ async def add_response_headers(request: Request, call_next):
 
 class ClaimsRequest(BaseModel):
     algorithm: Optional[str] = None
-    publicKey: Optional[str] = ""
-    signerPublicKey: Optional[str] = ""
-    userId: Optional[str]
+    clientPublicSigningKey: str = Field(
+        ...,
+        description=("The client's public signing key. This will be echoed back as-is in the custom claims response. "
+                     "If the IdP does not forward this, or the field is empty, "
+                     "no claims should be returned and the request rejected as malformed.")
+        )
+    primaryEntityId: str = Field(
+        ...,  #Field is required, no default value
+        description=("The identifier for the primary entity seeking claims. "
+                     "For PE auth, this will be a PE ID. For NPE auth, this will be an NPE ID.")
+        )
+    secondaryEntityIds: Optional[List[str]] = Field(
+        [],
+        description=("Optional. For PE auth, this will be one or more "
+                     "NPE IDs (client-on-behalf-of-user). "
+                     "For NPE auth, this may be either empty (client-on-behalf-of-itself) "
+                     "or populated with one or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)")
+        )
 
     class Config:
         schema_extra = {
             "example": {
                 "algorithm": "ec:secp256r1",
-                "publicKey": "-----BEGIN PUBLIC KEY-----\n" +
+                "clientPublicSigningKey": "-----BEGIN PUBLIC KEY-----\n" +
                              "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Q9axUqaxEfhOO2+0Xw+\n" +
                              "swa5Rb2RV0xeTX3GC9DeORv9Ip49oNy+RXvaMsdNKspPWYZZEswrz2+ftwcQOSU+\n" +
                              "efRCbGIwbSl8QBfKV9nGLlVmpDydcAIajc7YvWjQnDTEpHcJdo9y7/oogG7YcEmq\n" +
@@ -74,7 +89,8 @@ class ClaimsRequest(BaseModel):
                              "Ylp04nWrSnXhPpTuxNZ5J0GcPbpcFgdT8173qmm5m5jAjiFCr735lH7USl15H2fW\n" +
                              "TwIDAQAB\n" +
                              "-----END PUBLIC KEY-----\n",
-                "userId": "31c871f2-6d2a-4d27-b727-e619cfaf4e7a",
+                "primaryEntityId": "31c871f2-6d2a-4d27-b727-e619cfaf4e7a",
+                "secondaryEntityIds": ["46a871f2-6d2a-4d27-b727-e619cfaf4e7b"],
             }
         }
 
@@ -86,13 +102,13 @@ class AttributeDisplay(BaseModel):
 
 class EntityEntitlements(BaseModel):
     entity_identifier: str
-    entity_attributes: List[Optional[AttributeDisplay]]
+    entity_attributes: List[Optional[AttributeDisplay]] = []
 
-
+# NOTE This object schema should EXACTLY match the TDF spec's ClaimsObject schema
+# as defined here: https://github.com/virtru/tdf-spec/blob/master/schema/ClaimsObject.md
 class EntitlementsObject(BaseModel):
-    client_public_signing_key: Optional[str] = ""
-    entity_id: Optional[str]
-    entitlements: Optional[List[EntityEntitlements]] = []
+    client_public_signing_key: str
+    entitlements: List[EntityEntitlements]
     tdf_spec_version: Optional[str]
 
     class Config:
@@ -163,24 +179,41 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
         await database.execute("SELECT 1")
 
 
-@app.post("/claims", response_model=EntitlementsObject, response_model_exclude_unset=True)
+@app.post("/claims", response_model=EntitlementsObject)
 async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
     logger.info("/claims POST [%s]", request)
     entity_entitlements = []
-    # select
+
+    # Get entitlements for primary entity, as reported by IdP
+    entity_entitlements.append(await get_entitlements_for_entity_id(request.primaryEntityId))
+
+    # Get any additional entitlements for any secondary entities involved in this entitlement grant request.
+    for secondary_entity_id in request.secondaryEntityIds:
+        entity_entitlements.append(await get_entitlements_for_entity_id(secondary_entity_id))
+
+    entitlement_object = EntitlementsObject(
+        client_public_signing_key=request.clientPublicSigningKey,
+        entitlements=entity_entitlements,
+    )
+    return entitlement_object
+
+
+async def get_entitlements_for_entity_id(entityId: str):
+    entitlements = []
     query = table_entity_attribute.select().where(
-        table_entity_attribute.c.entity_id == request.userId
+        table_entity_attribute.c.entity_id == entityId
     )
     result = await database.fetch_all(query)
     for row in result:
         uri = f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
-        entity_entitlements.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
-    eo = EntitlementsObject(
-        public_key=request.publicKey or None,
-        client_public_signing_key=request.signerPublicKey or None,
-        entitlements=entity_entitlements,
+        entitlements.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
+
+    entity_entitlements = EntityEntitlements(
+        entity_identifier=entityId,
+        entity_entitlements=entitlements,
     )
-    return eo
+
+    return entity_entitlements
 
 if __name__ == "__main__":
     print(json.dumps(app.openapi()), file=sys.stdout)

@@ -44,25 +44,32 @@ components:
           type: string
     ClaimsRequest:
       title: ClaimsRequest
+      required:
+        - clientPublicSigningKey
+        - primaryEntityId
       type: object
       properties:
         algorithm:
           title: Algorithm
           type: string
-        publicKey:
-          title: Publickey
+        clientPublicSigningKey:
+          title: Clientpublicsigningkey
           type: string
-          default: ""
-        signerPublicKey:
-          title: Signerpublickey
+          description: The client's public signing key. This will be echoed back as-is in the custom claims response. If the IdP does not forward this, or the field is empty, no claims should be returned and the request rejected as malformed.
+        primaryEntityId:
+          title: Primaryentityid
           type: string
-          default: ""
-        userId:
-          title: Userid
-          type: string
+          description: The identifier for the primary entity seeking claims. For PE auth, this will be a PE ID. For NPE auth, this will be an NPE ID.
+        secondaryEntityIds:
+          title: Secondaryentityids
+          type: array
+          items:
+            type: string
+          description: Optional. For PE auth, this will be one or more NPE IDs (client-on-behalf-of-user). For NPE auth, this may be either empty (client-on-behalf-of-itself) or populated with one or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
+          default: []
       example:
         algorithm: ec:secp256r1
-        publicKey: |
+        clientPublicSigningKey: |
           -----BEGIN PUBLIC KEY-----
           MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Q9axUqaxEfhOO2+0Xw+
           swa5Rb2RV0xeTX3GC9DeORv9Ip49oNy+RXvaMsdNKspPWYZZEswrz2+ftwcQOSU+
@@ -72,7 +79,9 @@ components:
           Ylp04nWrSnXhPpTuxNZ5J0GcPbpcFgdT8173qmm5m5jAjiFCr735lH7USl15H2fW
           TwIDAQAB
           -----END PUBLIC KEY-----
-        userId: 31c871f2-6d2a-4d27-b727-e619cfaf4e7a
+        primaryEntityId: 31c871f2-6d2a-4d27-b727-e619cfaf4e7a
+        secondaryEntityIds:
+          - 46a871f2-6d2a-4d27-b727-e619cfaf4e7b
     EntitlementsObject:
       title: EntitlementsObject
       type: object
@@ -81,9 +90,6 @@ components:
           title: Client Public Signing Key
           type: string
           default: ""
-        entity_id:
-          title: Entity Id
-          type: string
         entitlements:
           title: Entitlements
           type: array

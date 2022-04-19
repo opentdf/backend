@@ -641,7 +641,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
                 "realm": realm_name,
                 "enabled": "true",
                 "attributes": {
-                    "frontendUrl": "http://keycloak-http/auth/realms/tdf-pki"
+                    "frontendUrl": f"http://{kc_url}/auth/realms/tdf-pki"
                 },
             },
             skip_exists=True,
