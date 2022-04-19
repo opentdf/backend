@@ -24,6 +24,8 @@ RUN python3 -m compileall .
 
 # Validate openapi
 COPY claims/openapi.json claims/
+
+FROM build AS validate-openapi
 RUN diff <(python3 -m claims.main) claims/openapi.json
 
 # stage - production server

@@ -25,6 +25,8 @@ RUN python3 -m compileall attributes/
 
 # Validate openapi
 COPY attributes/openapi.json attributes/
+
+FROM build AS validate-openapi
 RUN diff <(python3 -m attributes.main) attributes/openapi.json
 
 # stage - production server

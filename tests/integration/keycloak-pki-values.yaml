@@ -7,13 +7,13 @@ postgresql:
   enabled: false
 extraEnv: |
   - name: KEYCLOAK_LOGLEVEL
-    value: DEBUG
+    value: INFO
   - name: KEYCLOAK_USER
     value: keycloakadmin
   - name: KEYCLOAK_PASSWORD
     value: mykeycloakpassword
   - name: CLAIMS_URL
-    value: http://opentdf-claims:5000/v1/claims
+    value: http://opentdf-claims:5000/claims
   - name: DB_VENDOR
     value: postgres
   - name: DB_ADDR
@@ -25,7 +25,7 @@ extraEnv: |
   - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
     value: "true"
   - name: KEYCLOAK_FRONTEND_URL
-    value: "https://opentdf.local:4566/auth"
+    value: "https://keycloak-http:4567/auth"
   - name: X509_CA_BUNDLE
     value: /etc/x509/https/ca.crt
 extraEnvFrom: |
@@ -41,7 +41,7 @@ ingress:
   servicePort: https
   rules:
     - # Ingress host
-      host: "opentdf.local"
+      host: "keycloak-http"
       # Paths for the host
       paths:
         - path: /
@@ -60,10 +60,10 @@ ingress:
     nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
 
   hosts:
-    - opentdf.local
+    - keycloak-http
   tls:
     - hosts:
-        - "opentdf.local"
+        - "keycloak-http"
       secretName: x509-secret
 
 extraVolumes: |
@@ -80,5 +80,8 @@ startupScripts:
     /subsystem=keycloak-server/spi=x509cert-lookup:write-attribute(name=default-provider, value="nginx")            
     /subsystem=keycloak-server/spi=x509cert-lookup/provider=default:remove
     /subsystem=keycloak-server/spi=x509cert-lookup/provider=nginx:add(enabled=true,properties={sslClientCert => "ssl-client-cert", sslCertChainPrefix => "USELESS",     certificateChainLength => "2"})
+    /subsystem=logging/logger=org.keycloak.authentication.authenticators.x509/:add(category=org.keycloak.authentication.authenticators.x509,level=TRACE)
+    /subsystem=logging/logger=org.keycloak.services.x509/:add(category=org.keycloak.services.x509,level=TRACE)
+    /subsystem=logging/logger=com.virtru.keycloak.AttributeOIDCProtocolMapper/:add(category=com.virtru.keycloak.AttributeOIDCProtocolMapper,level=TRACE)
     run-batch
     stop-embedded-server
