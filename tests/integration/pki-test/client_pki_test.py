@@ -12,9 +12,9 @@ try:
     oidc_creds = OIDCCredentials()
     oidc_creds.set_client_credentials_pki(
         client_id="client_x509",
-        client_key_file_name=os.path.abspath(os.path.join(curr_dir, "../../../keycloakcerts/john.doe.key")),
-        client_cert_file_name=os.path.abspath(os.path.join(curr_dir, "../../../keycloakcerts/john.doe.cer")),
-        certificate_authority=os.path.abspath(os.path.join(curr_dir, "../../../keycloakcerts/ca.crt")),
+        client_key_file_name=os.path.abspath(os.path.join(curr_dir, "../../../certs/john.doe.key")),
+        client_cert_file_name=os.path.abspath(os.path.join(curr_dir, "../../../certs/john.doe.cer")),
+        certificate_authority=os.path.abspath(os.path.join(curr_dir, "../../../certs/rootca_kc.crt")),
         organization_name="tdf-pki",
         oidc_endpoint=OIDC_ENDPOINT
     )

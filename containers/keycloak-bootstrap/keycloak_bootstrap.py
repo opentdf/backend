@@ -12,7 +12,7 @@ URL_ADMIN_EXECUTION_FLOW = (
 )
 
 URL_ADMIN_EXECUTIONS_EXECUTION = (
-    "admin/realms//{realm-name}/authentication/flows/{flow-alias}/executions/execution"
+    "admin/realms/{realm-name}/authentication/flows/{flow-alias}/executions/execution"
 )
 
 logging.basicConfig()
