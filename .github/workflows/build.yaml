@@ -140,12 +140,13 @@ jobs:
 #      - name: Login to GitHub Container Registry
 #        run: |-
 #          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-#      - name: Login to GitHub Container Registry
-#        uses: docker/login-action@v1
-#        with:
-#          registry: ghcr.io
-#          username: ${{ github.repository_owner }}
-#          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
       - name: push
         run: |
           cd charts
@@ -154,7 +155,6 @@ jobs:
                 echo "Rendering Helm chart $d to validate defaults..."
                 helm package $d
                 echo *.tgz
-                echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
                 helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi
