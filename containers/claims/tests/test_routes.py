@@ -38,7 +38,7 @@ def test_get_claims(test_app, monkeypatch):
 
     monkeypatch.setattr(main, "get_entitlements_for_entity_id", mock_get_entitlements_for_entity_id)
 
-    response = test_app.post("/claims", data=json.dumps(test_req))
+    response = client_fixture.post("/claims", data=json.dumps(test_req))
     assert response.status_code == 200
     assert response.json()['entitlements'][0] == test_data
     assert len(response.json()['entitlements']) == 2
