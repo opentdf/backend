@@ -113,8 +113,8 @@ public class AttributeOIDCProtocolMapperTest {
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
         assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
-        assertEquals("12345", echoedClaimValue.get("signerPublicKey"));
-        assertEquals("1234-4567-8901", echoedClaimValue.get("primary_entity_id"));
+        assertEquals("12345", echoedClaimValue.get("clientPublicSigningKey"));
+        assertEquals("1234-4567-8901", echoedClaimValue.get("primaryEntityId"));
     }
 
     private void assertTransformUserInfo_WithPKHeader() throws Exception {
@@ -129,8 +129,8 @@ public class AttributeOIDCProtocolMapperTest {
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
         assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
-        assertEquals("12345", echoedClaimValue.get("signerPublicKey"));
-        assertEquals("1234-4567-8901", echoedClaimValue.get("primary_entity_id"));
+        assertEquals("12345", echoedClaimValue.get("clientPublicSigningKey"));
+        assertEquals("1234-4567-8901", echoedClaimValue.get("primaryEntityId"));
     }
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")

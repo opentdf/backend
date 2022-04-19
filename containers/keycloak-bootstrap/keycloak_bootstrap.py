@@ -11,6 +11,10 @@ URL_ADMIN_EXECUTION_FLOW = (
     "admin/realms/{realm-name}/authentication/flows/{flow-alias}/executions"
 )
 
+URL_ADMIN_EXECUTIONS_EXECUTION = (
+    "admin/realms/{realm-name}/authentication/flows/{flow-alias}/executions/execution"
+)
+
 logging.basicConfig()
 logger = logging.getLogger("keycloak_bootstrap")
 logger.setLevel(logging.DEBUG)
@@ -26,7 +30,7 @@ def check_matched(pattern, allData):
 
 
 def createUsersInRealm(keycloak_admin):
-    for username in ("Alice_1234", "Bob_1234"):
+    for username in ("Alice_1234", "Bob_1234", "john"):
         try:
             new_user = keycloak_admin.create_user(
                 {"username": username, "enabled": True}
@@ -187,6 +191,8 @@ def createTestClientForX509Flow(keycloak_admin):
                 "clientId": client_id,
                 "publicClient": "false",
                 "standardFlowEnabled": "true",
+                "directAccessGrantsEnabled": "true",
+                "serviceAccountsEnabled": "true",
                 "clientAuthenticatorType": "client-x509",
                 "baseUrl": "https://local.virtru.com/",
                 "protocol": "openid-connect",
@@ -433,7 +439,7 @@ def assignViewRolesToUser(keycloak_admin, user_id):
     )
 
 
-def createAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
+def createBrowserAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
     flows_auth = keycloak_admin.get_authentication_flows()
     flow_exist = check_matched({"alias": flow_name}, flows_auth)
     if not flow_exist:
@@ -492,6 +498,57 @@ def createAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
             keycloak_admin.update_realm(
                 realm_name, payload={"directGrantFlow": flow_name}
             )
+
+
+def createDirectAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_name):
+    flows_auth = keycloak_admin.get_authentication_flows()
+    flow_exist = check_matched({"alias": flow_name}, flows_auth)
+    if not flow_exist:
+        if provider_name == "direct-grant-auth-x509-username":
+            keycloak_admin.copy_authentication_flow(
+                payload={"newName": flow_name}, flow_alias="direct grant"
+            )
+
+    data_direct_grant_flow_executions = keycloak_admin.get_authentication_flow_executions(flow_name)
+    for key in data_direct_grant_flow_executions:
+        if key.get('level') == 0:
+            keycloak_admin.delete_authentication_flow_execution(key.get('id'))
+
+    payload_config = {"provider": provider_name}
+    params_path = {"realm-name": realm_name, "flow-alias": flow_name}
+    conn = keycloak_admin.connection
+    conn.raw_post(
+        URL_ADMIN_EXECUTIONS_EXECUTION.format(**params_path),
+        data=json.dumps(payload_config),
+    )
+
+    flows_execution = keycloak_admin.get_authentication_flow_executions(flow_name)
+    filtered_flow = check_matched({"providerId": provider_name}, flows_execution)
+    if filtered_flow:
+        payload_config = {
+            "alias": flow_name + "_Config",
+            "config": {
+                "x509-cert-auth.canonical-dn-enabled": "false",
+                "x509-cert-auth.mapper-selection.user-attribute-name": "usercertificate",
+                "x509-cert-auth.serialnumber-hex-enabled": "false",
+                "x509-cert-auth.regular-expression": "CN=(.*?)(?:$),",
+                "x509-cert-auth.mapper-selection": "Username or Email",
+                "x509-cert-auth.crl-relative-path": "crl.pem",
+                "x509-cert-auth.crldp-checking-enabled": "false",
+                "x509-cert-auth.mapping-source-selection": "Subject's Common Name",
+                "x509-cert-auth.timestamp-validation-enabled": "true",
+            },
+        }
+        flow_id = filtered_flow[0]["id"]
+        params_path = {"realm-name": realm_name, "flow-id": flow_id}
+        conn = keycloak_admin.connection
+        conn.raw_post(
+            URL_ADMIN_AUTHENTICATOR_EXECUTION_CONFIG.format(**params_path),
+            data=json.dumps(payload_config),
+        )
+
+    if provider_name == "direct-grant-auth-x509-username":
+        keycloak_admin.update_realm(realm_name, payload={"directGrantFlow": flow_name})
 
 
 def updateMasterRealm(kc_admin_user, kc_admin_pass, kc_url):
@@ -584,7 +641,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
                 "realm": realm_name,
                 "enabled": "true",
                 "attributes": {
-                    "frontendUrl": "http://keycloak-http/auth/realms/tdf-pki"
+                    "frontendUrl": f"http://{kc_url}/auth/realms/tdf-pki"
                 },
             },
             skip_exists=True,
@@ -606,7 +663,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
 
     # X.509 Client Certificate Authentication to a Direct Grant Flow
     # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-direct-grant-flow
-    createAuthFlowX509(
+    createDirectAuthFlowX509(
         keycloak_admin,
         realm_name,
         "X509_Direct_Grant",
@@ -615,8 +672,11 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
 
     # X.509 Client Certificate Authentication to a Browser Flow
     # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-browser-flow
-    createAuthFlowX509(
-        keycloak_admin, realm_name, "X509_Browser", "auth-x509-client-username-form"
+    createBrowserAuthFlowX509(
+        keycloak_admin,
+        realm_name,
+        "X509_Browser",
+        "auth-x509-client-username-form"
     )
 
     createTestClientForX509Flow(keycloak_admin)

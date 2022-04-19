@@ -25,6 +25,7 @@ if ! docker build \
   --build-arg ALPINE_VERSION=${ALPINE_VERSION} \
   --build-arg PY_VERSION=${PY_VERSION} \
   --file containers/python_base/Dockerfile \
+  --target build \
   ./containers/python_base; then
   monolog ERROR "Failed to build python_base container"
   exit 1
