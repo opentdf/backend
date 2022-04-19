@@ -78,6 +78,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+  pytest:
+    runs-on: ubuntu-latest
+    needs:
+      - unittest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout working branch
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip3 install -r containers/attributes/requirements.txt
+          pip3 install -r containers/entitlements/requirements.txt
+
+      - name: Test
+        run: |
+          python -m pytest containers/attributes/tests
+          python -m pytest containers/entitlements/tests
+
   integration-test:
     runs-on: ubuntu-latest
     needs:
