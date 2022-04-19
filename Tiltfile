@@ -57,7 +57,7 @@ groups = {
 resources = []
 
 # isCI comes from tests/integration/Tiltfile
-isCI = False
+isCI = os.environ.get("ALPINE_VERSION", False)
 
 for arg in cfg.get("to-run", []):
     if arg == "integration-test":

@@ -25,6 +25,8 @@ RUN python3 -m compileall .
 
 # Validate openapi
 COPY entitlements/openapi.json entitlements/
+
+FROM build AS validate-openapi
 RUN diff <(python3 -m entitlements.main) entitlements/openapi.json
 
 # stage - production server
