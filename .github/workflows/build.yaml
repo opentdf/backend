@@ -94,11 +94,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          ls
           pip3 install -r containers/attributes/requirements.txt
+          pip3 install -r containers/entitlements/requirements.txt
 
       - name: Test
-        run: python -m pytest containers/attributes/tests
+        run: |
+          python -m pytest containers/attributes/tests
+          python -m pytest containers/entitlements/tests
 
   integration-test:
     runs-on: ubuntu-latest
