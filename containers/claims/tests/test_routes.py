@@ -4,7 +4,7 @@ import pytest
 from .. import main
 
 
-def test_get_claims(test_app, monkeypatch):
+def test_get_claims(client_fixture, monkeypatch):
     test_req = {
                 "algorithm": "ec:secp256r1",
                 "clientPublicSigningKey": "-----BEGIN PUBLIC KEY-----\n" +
