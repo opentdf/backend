@@ -142,7 +142,7 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
-          tilt ci integration-test
+          tilt ci integration-test pki-test
       - name: Quick check - run/validate local deployment Tiltfile
         run: |-
           tilt ci all
