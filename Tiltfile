@@ -57,7 +57,9 @@ groups = {
 resources = []
 
 # isCI comes from tests/integration/Tiltfile
-isCI = os.environ.get("ALPINE_VERSION", False)
+#isCI = os.environ.get("ALPINE_VERSION", False) Why?
+isCI = False
+isPKItest = False
 
 for arg in cfg.get("to-run", []):
     if arg == "integration-test":
@@ -65,6 +67,8 @@ for arg in cfg.get("to-run", []):
     if arg in groups:
         resources += groups[arg]
     else:
+        if arg == "pki-test":
+            isPKItest = True
         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
         resources.append(arg)
 
@@ -79,7 +83,10 @@ config.set_enabled_resources(resources)
 #  8""888P' `Y8bod8P' `Y8bod8P' d888b    `Y8bod8P'   "888" 8""888P'
 
 local("./scripts/genkeys-if-needed")
-local("./tests/integration/pki-test/gen-keycloak-certs.sh")
+
+local('echo "pki - {}"'.format(isPKItest))
+if isPKItest:
+    local("./tests/integration/pki-test/gen-keycloak-certs.sh")
 
 all_secrets = {
     v: from_dotenv("./certs/.env", v)
@@ -93,7 +100,7 @@ all_secrets = {
     ]
 }
 
-if isCI and not os.path.exists(
+if not os.path.exists(
     "./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"
 ):
     local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
@@ -276,6 +283,10 @@ keycloak_helm_values = "deployments/docker-desktop/keycloak-values.yaml"
 
 if isCI:
     postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
+    keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
+
+if isPKItest:
+    local('echo "pki values - {}"'.format(isPKItest))
     keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
 helm_remote(
