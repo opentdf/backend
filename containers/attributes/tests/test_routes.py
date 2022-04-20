@@ -5,10 +5,10 @@ from .. import main
 
 #Test Authorities
 def test_read_authority_namespace(test_app, monkeypatch):
-    test_data = [
-        "https://opentdf1.io",
-        "https://opentdf2.io"
-    ]
+    test_data = {
+        1: "https://opentdf1.io",
+        2: "https://opentdf2.io"
+    }
 
     async def mock_read_authorities_crud():
         return test_data
@@ -17,7 +17,7 @@ def test_read_authority_namespace(test_app, monkeypatch):
 
     response = test_app.get("/authorities")
     assert response.status_code == 200
-    assert response.json() == test_data
+    assert response.json() == list(test_data.values())
 
 def test_create_authorities(test_app, monkeypatch):
     test_payload = {"authority": "https://opentdf.io"}
