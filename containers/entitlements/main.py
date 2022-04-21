@@ -77,14 +77,14 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="openTDF",
-        version="1.0.0",
-        license_info={"name": "MIT"},
+        title="OpenTDF",
+        version="0.9.0",
+        license_info={"name": "BSD 3-Clause Clear", "url": "https://github.com/opentdf/backend/blob/main/LICENSE"},
         routes=app.routes,
         tags=tags_metadata,
     )
     openapi_schema["info"]["x-logo"] = {
-        "url": "https://inxmad4bw31barrx17wec71c-wpengine.netdna-ssl.com/wp-content/uploads/2018/12/o_efa1e48d0db5ebc8-4.png"
+        "url": "https://avatars.githubusercontent.com/u/90051847?s=200&v=4"
     }
     app.openapi_schema = openapi_schema
     return app.openapi_schema
