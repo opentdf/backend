@@ -142,6 +142,7 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
+          pip3 install opentdf
           tilt ci integration-test
       - name: Quick check - run/validate local deployment Tiltfile
         run: |-
