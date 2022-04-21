@@ -143,7 +143,7 @@ jobs:
       - name: Run integration test Tiltfile
         run: |-
           pip3 install opentdf
-          tilt ci integration-test pki-test
+          tilt ci integration-test
       - name: Quick check - run/validate local deployment Tiltfile
         run: |-
           tilt ci all

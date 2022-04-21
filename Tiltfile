@@ -84,7 +84,6 @@ config.set_enabled_resources(resources)
 
 local("./scripts/genkeys-if-needed")
 
-local('echo "pki - {}"'.format(isPKItest))
 if isPKItest:
     local("./tests/integration/pki-test/gen-keycloak-certs.sh")
 
@@ -286,7 +285,6 @@ if isCI:
     keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 if isPKItest:
-    local('echo "pki values - {}"'.format(isPKItest))
     keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
 helm_remote(
@@ -495,7 +493,9 @@ k8s_resource(
     resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-claims"],
 )
 
-k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
+if isPKItest:
+    k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
+
 local_resource(
     "pki-test",
     "python3 tests/integration/pki-test/client_pki_test.py",
