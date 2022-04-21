@@ -95,12 +95,10 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r containers/attributes/requirements.txt
-          pip3 install -r containers/claims/requirements.txt
           pip3 install -r containers/entitlements/requirements.txt
       - name: Test
         run: |
           python -m pytest containers/attributes/tests
-          python -m pytest containers/claims/tests
           python -m pytest containers/entitlements/tests
 
   integration-test:
