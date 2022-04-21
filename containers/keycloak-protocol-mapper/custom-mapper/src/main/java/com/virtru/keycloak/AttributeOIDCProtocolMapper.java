@@ -184,13 +184,13 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         String[] clientIds = clientId.split(",");
 
         ObjectMapper objectMapper = new ObjectMapper();
-        formattedParameters.put("secondaryEntityIds", clientIds);
+        formattedParameters.put("secondary_entity_ids", clientIds);
 
         // Get username
         // TODO at some point we should probably skip this if it's a service account
         logger.debug("USERNAME value is: " + userSession.getLoginUsername());
         logger.debug("Current User UUID value is: " + userSession.getUser().getId());
-        formattedParameters.put("primaryEntityId", userSession.getUser().getId());
+        formattedParameters.put("primary_entity_id", userSession.getUser().getId());
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always include full claimset
@@ -209,10 +209,10 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
      *
      * If no client public key has been provided in the request headers noop occurs.  Otherwise, a request
      * is sent as a simple map json document with keys:
-     * - clientPublicSigningKey: the client's public signing key
-     * - primaryEntityId: required - identifier for the principal subject claims are being fetched for (PE or NPE)
+     * - signerPublicKey: the client's public signing key
+     * - primary_entity_id: required - identifier for the principal subject claims are being fetched for (PE or NPE)
      * - key/value per parameter configuration.
-     * - secondaryEntityIds: required - list of identifiers for any additional secondary subjects claims will be fetched for.
+     * - secondary_entity_ids: required - list of identifiers for any additional secondary subjects claims will be fetched for.
      * @param mappingModel
      * @param userSession
      * @param keycloakSession
@@ -262,7 +262,8 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             httpReq.setURI(uriBuilder.build());
             Map<String, Object> requestEntity = new HashMap<>();
             requestEntity.put("algorithm", "ec:secp256r1");
-            requestEntity.put("clientPublicSigningKey", clientPK);
+            requestEntity.put("signerPublicKey", clientPK);
+            logger.info("Request: " + requestEntity);
 
             // Build parameters
             for (Map.Entry<String, Object> param : parameters.entrySet()) {
@@ -275,7 +276,6 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             ObjectMapper objectMapper = new ObjectMapper();
             httpReq.setEntity(new StringEntity(objectMapper.writeValueAsString(requestEntity)));
 
-            logger.info("Request: " + requestEntity);
             response = client.execute(httpReq);
             String bodyAsString = EntityUtils.toString(response.getEntity());
             if (response.getStatusLine().getStatusCode() != 200) {
