@@ -4,7 +4,7 @@ from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
 
 # encrypt the file and apply the policy on tdf file and also decrypt.
 OIDC_ENDPOINT = "https://keycloak-http:4567"
-KAS_URL = "http://localhost:65432/kas"
+KAS_URL = "http://localhost:65432/api/kas"
 
 try:
     curr_dir = os.path.dirname(__file__)
