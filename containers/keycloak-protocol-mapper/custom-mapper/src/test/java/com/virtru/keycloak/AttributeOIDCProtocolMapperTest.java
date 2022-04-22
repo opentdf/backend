@@ -63,7 +63,7 @@ public class AttributeOIDCProtocolMapperTest {
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
     @Test
     public void testTransformAccessToken_NoPKHeader() throws Exception {
-        commonSetup(null, true, false);
+        commonSetup(null, true, false, false);
         AccessToken accessToken = new AccessToken();
         attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
                 keycloakSession, userSessionModel, clientSessionContext);
@@ -74,7 +74,7 @@ public class AttributeOIDCProtocolMapperTest {
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "env")
     @Test
     public void testTransformAccessToken_WithPKHeader_EnvVar() throws Exception {
-        commonSetup("12345", false, false);
+        commonSetup("12345", false, false, false);
         Assertions.assertThrows(JsonRemoteClaimException.class, () ->
                 assertTransformAccessToken_WithPKHeader(), " Error when accessing remote claim - Configured URL: "
                 + System.getenv("CLAIMS_URL"));
@@ -83,21 +83,28 @@ public class AttributeOIDCProtocolMapperTest {
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "env")
     @Test
     public void testTransformAccessToken_WithPKHeader_EnvVar_ConfigOverride() throws Exception {
-        commonSetup("12345", true, false);
+        commonSetup("12345", true, false, false);
         assertTransformAccessToken_WithPKHeader();
     }
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
     @Test
+    public void testTransformAccessToken_WithPKHeader_EnvVar_DirectGrantSvcAcct() throws Exception {
+        commonSetup("12345", true, false, true);
+        assertTransformAccessToken_WithPKHeader_DirectGrantSvcAccount();
+    }
+
+    @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
+    @Test
     public void testTransformAccessToken_WithPKHeader_ConfigVar() throws Exception {
-        commonSetup("12345", true, false);
+        commonSetup("12345", true, false, false);
         assertTransformAccessToken_WithPKHeader();
     }
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
     @Test
     public void testTransformUserInfo_WithPKHeader_ConfigVar() throws Exception {
-        commonSetup("12345", true, true);
+        commonSetup("12345", true, true, false);
         assertTransformUserInfo_WithPKHeader();
     }
 
@@ -115,6 +122,29 @@ public class AttributeOIDCProtocolMapperTest {
         assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
         assertEquals("12345", echoedClaimValue.get("clientPublicSigningKey"));
         assertEquals("1234-4567-8901", echoedClaimValue.get("primaryEntityId"));
+    }
+
+    //If user ID is a service account, that means we are doing direct-grant auth against a client (not a user+client),
+    //and we only want entitlements for the client, not the internal service account user Keycloak attaches
+    //to the client session. So we should make the client ID the primary entity ID, and remove the clientID from the
+    //secondary clientId list
+    private void assertTransformAccessToken_WithPKHeader_DirectGrantSvcAccount() throws Exception {
+        AccessToken accessToken = new AccessToken();
+        attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
+                keycloakSession, userSessionModel, clientSessionContext);
+        Object customClaims = accessToken.getOtherClaims().get("customAttrs");
+        assertNotNull(customClaims, "Custom claim present");
+        //claim is an object node. keycloak jackson serialization happens upstream so we have the object node
+        assertTrue(customClaims instanceof ObjectNode);
+        ObjectNode objectNode = (ObjectNode) customClaims;
+        Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
+        Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
+
+
+        assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
+        assertEquals("12345", echoedClaimValue.get("clientPublicSigningKey"));
+        assertEquals("1234599998888", echoedClaimValue.get("primaryEntityId"));
+        assertEquals(0, ((ArrayList<String>) echoedClaimValue.get("secondaryEntityIds")).size(), "0 entries");
     }
 
     private void assertTransformUserInfo_WithPKHeader() throws Exception {
@@ -136,7 +166,7 @@ public class AttributeOIDCProtocolMapperTest {
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
     @Test
     public void testNoRemoteUrl() {
-        commonSetup("12345", false, false);
+        commonSetup("12345", false, false, false);
         AccessToken accessToken = new AccessToken();
         Assertions.assertThrows(JsonRemoteClaimException.class, () ->
                 attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
@@ -144,9 +174,10 @@ public class AttributeOIDCProtocolMapperTest {
 
     }
 
-    void commonSetup(String pkHeader, boolean setConfig, boolean userInfo) {
+    void commonSetup(String pkHeader, boolean setConfig, boolean userInfo, boolean userIsSvcAcct) {
         server.deploy(TestApp.class);
         String url = TestPortProvider.generateURL("/base/endpoint");
+        String clientId = "1234599998888";
 
         Map<String, String> config = new HashMap<>();
         if (setConfig) {
@@ -171,15 +202,18 @@ public class AttributeOIDCProtocolMapperTest {
         when(keycloakContext.getRequestHeaders()).thenReturn(httpHeaders);
 
         when(userModel.getId()).thenReturn("1234-4567-8901");
+        if (userIsSvcAcct) {
+            when(userModel.getServiceAccountClientLink()).thenReturn(clientId);
+        }
         when(userSessionModel.getUser()).thenReturn(userModel);
-        
+
         if (pkHeader != null) {
             List<String> pkHeaders = pkHeader == null ? Collections.emptyList() : Collections.singletonList(pkHeader);
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class)).thenReturn(null);
 //            when(clientSessionContext.getScopeString()).thenReturn("email");
-            when(clientModel.getId()).thenReturn("1234599998888");
+            when(clientModel.getId()).thenReturn(clientId);
             AuthenticatedClientSessionModel authenticatedClientSessionModel =  new PersistentAuthenticatedClientSessionAdapter(keycloakSession, persistentClientSessionModel, realmModel, clientModel, userSessionModel);
             Map<String, AuthenticatedClientSessionModel> clients = new HashMap<String, AuthenticatedClientSessionModel>();
             clients.put("x", authenticatedClientSessionModel);
