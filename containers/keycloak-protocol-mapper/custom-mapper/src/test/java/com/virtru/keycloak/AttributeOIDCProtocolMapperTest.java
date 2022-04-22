@@ -203,6 +203,7 @@ public class AttributeOIDCProtocolMapperTest {
 
         when(userModel.getId()).thenReturn("1234-4567-8901");
         if (userIsSvcAcct) {
+            // For ref, see: https://github.com/keycloak/keycloak/blob/99c06d11023689875b48ef56442c90bdb744c869/services/src/main/java/org/keycloak/exportimport/util/ExportUtils.java#L519
             when(userModel.getServiceAccountClientLink()).thenReturn(clientId);
         }
         when(userSessionModel.getUser()).thenReturn(userModel);

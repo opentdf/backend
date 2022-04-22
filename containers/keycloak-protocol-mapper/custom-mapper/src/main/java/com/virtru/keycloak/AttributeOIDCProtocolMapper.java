@@ -192,6 +192,8 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         //Check if this is a service account user - if it is, this is direct-grant auth, with no human user involved.
         //In that case, we don't care about the entity ID of the service account Keycloak implicitly uses under the hood.
         //So ignore the service account user entity ID and just use the client entity ID it's bound to, as the primary entity ID.
+        //
+        // For similar usage examples, see: https://github.com/keycloak/keycloak/blob/99c06d11023689875b48ef56442c90bdb744c869/services/src/main/java/org/keycloak/exportimport/util/ExportUtils.java#L519
         if (user.getServiceAccountClientLink() != null) {
             logger.debug("User: " + userSession.getLoginUsername() + " is a service account user, ignoring and using client ID in claims request");
             String clientInternalId = user.getServiceAccountClientLink();
