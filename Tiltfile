@@ -495,12 +495,11 @@ k8s_resource(
 
 if isPKItest:
     k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
-
-local_resource(
+    local_resource(
     "pki-test",
     "python3 tests/integration/pki-test/client_pki_test.py",
     resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"]
-)
+    )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
 # This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.
