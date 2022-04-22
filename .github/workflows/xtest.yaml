@@ -20,6 +20,7 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: update packages
         run: |-
+          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           cd tests/containers/clients
           npm uninstall @opentdf/cli @opentdf/client
           npm uninstall @opentdf/cli
@@ -51,4 +52,4 @@ jobs:
       - name: tilt-ci
         run: |-
           kubectl version
-          tilt ci integration-test
+          tilt ci integration-test pki-test
