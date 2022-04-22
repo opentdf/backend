@@ -84,11 +84,12 @@ ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf
 > TODO([PLAT-1599](https://virtru.atlassian.net/browse/PLAT-1599)) Consolidate integration and root tiltfile.
 
 ```shell
-tilt up [all/integration-test] [-- --to-edit opentdf-abacus]
+tilt up [all/integration-test] [-- --to-edit opentdf-abacus/opentdf-abacus-tdf3]
 
 # 'tilt up all' will run tiltfile within root (e.g. root ./tiltfile)
 # 'tilt up integration-test' will run tiltfile within ci (e.g. ./tests/integration/tiltfile)
 # '-- --to-edit opentdf-abacus' will run local frontend container instead of deployed one
+# '-- --to-edit opentdf-abacus-tdf3' will run local frontend container instead of deployed one and use DockerfileTests config
 ```
 
 # Hit spacebar to open web UI

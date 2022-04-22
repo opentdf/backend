@@ -57,7 +57,9 @@ groups = {
 resources = []
 
 # isCI comes from tests/integration/Tiltfile
+#isCI = os.environ.get("ALPINE_VERSION", False) Why?
 isCI = False
+isPKItest = False
 
 for arg in cfg.get("to-run", []):
     if arg == "integration-test":
@@ -65,6 +67,8 @@ for arg in cfg.get("to-run", []):
     if arg in groups:
         resources += groups[arg]
     else:
+        if arg == "pki-test":
+            isPKItest = True
         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
         resources.append(arg)
 
@@ -80,6 +84,9 @@ config.set_enabled_resources(resources)
 
 local("./scripts/genkeys-if-needed")
 
+if isPKItest:
+    local("./tests/integration/pki-test/gen-keycloak-certs.sh")
+
 all_secrets = {
     v: from_dotenv("./certs/.env", v)
     for v in [
@@ -92,7 +99,7 @@ all_secrets = {
     ]
 }
 
-if isCI and not os.path.exists(
+if not os.path.exists(
     "./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"
 ):
     local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
@@ -191,6 +198,11 @@ if "opentdf-abacus" in to_edit:
     # frontend folder should be next to backend
     docker_build("opentdf/abacus", "../frontend")
 
+if "opentdf-abacus-tdf3" in to_edit:
+    OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
+    # frontend folder should be next to backend
+    docker_build("opentdf/abacus", "../frontend", dockerfile = "../frontend/DockerfileTests")
+
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/python-base",
     context="containers/python_base",
@@ -271,6 +283,9 @@ keycloak_helm_values = "deployments/docker-desktop/keycloak-values.yaml"
 if isCI:
     postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
     keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
+
+if isPKItest:
+    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
 helm_remote(
     "keycloak",
@@ -477,6 +492,14 @@ k8s_resource(
     "opentdf-xtest",
     resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-claims"],
 )
+
+if isPKItest:
+    k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
+    local_resource(
+    "pki-test",
+    "python3 tests/integration/pki-test/client_pki_test.py",
+    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"]
+    )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
 # This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.

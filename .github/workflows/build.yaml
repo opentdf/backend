@@ -78,10 +78,35 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  integration-test:
+  pytest:
     runs-on: ubuntu-latest
     needs:
       - unittest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout working branch
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip3 install -r containers/attributes/requirements.txt
+          pip3 install -r containers/claims/requirements.txt
+          pip3 install -r containers/entitlements/requirements.txt
+      - name: Test
+        run: |
+          python -m pytest containers/attributes/tests
+          python -m pytest containers/claims/tests
+          python -m pytest containers/entitlements/tests
+
+  integration-test:
+    runs-on: ubuntu-latest
+    needs:
+      - pytest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
@@ -117,7 +142,9 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
-          tilt ci integration-test
+          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
+          pip3 install opentdf
+          tilt ci integration-test pki-test
       - name: Quick check - run/validate local deployment Tiltfile
         run: |-
           tilt ci all
@@ -127,8 +154,6 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       packages: write
       contents: read
@@ -140,8 +165,12 @@ jobs:
           setup-tools: helm
           helm: "3.8.0"
       - name: Login to GitHub Container Registry
-        run: |-
-          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
       - name: push
         run: |
           cd charts
@@ -149,6 +178,7 @@ jobs:
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Rendering Helm chart $d to validate defaults..."
                 helm package $d
+                echo *.tgz
                 helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi

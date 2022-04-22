@@ -185,9 +185,9 @@ async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
     entity_entitlements = []
 
     # Get entitlements for primary entity, as reported by IdP
-    derp = await get_entitlements_for_entity_id(request.primaryEntityId)
-    logger.debug("Derp [%s]", derp)
-    entity_entitlements.append(derp)
+    fetchedEntitlements = await get_entitlements_for_entity_id(request.primaryEntityId)
+    logger.debug("fetchedEntitlements [%s]", fetchedEntitlements)
+    entity_entitlements.append(fetchedEntitlements)
 
     # Get any additional entitlements for any secondary entities involved in this entitlement grant request.
     for secondary_entity_id in request.secondaryEntityIds:
