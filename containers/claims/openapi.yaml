@@ -84,18 +84,19 @@ components:
           - 46a871f2-6d2a-4d27-b727-e619cfaf4e7b
     EntitlementsObject:
       title: EntitlementsObject
+      required:
+        - client_public_signing_key
+        - entitlements
       type: object
       properties:
         client_public_signing_key:
           title: Client Public Signing Key
           type: string
-          default: ""
         entitlements:
           title: Entitlements
           type: array
           items:
             $ref: "#/components/schemas/EntityEntitlements"
-          default: []
         tdf_spec_version:
           title: Tdf Spec Version
           type: string

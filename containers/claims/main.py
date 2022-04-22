@@ -102,7 +102,7 @@ class AttributeDisplay(BaseModel):
 
 class EntityEntitlements(BaseModel):
     entity_identifier: str
-    entity_attributes: List[Optional[AttributeDisplay]] = []
+    entity_attributes: List[AttributeDisplay]
 
 # NOTE This object schema should EXACTLY match the TDF spec's ClaimsObject schema
 # as defined here: https://github.com/virtru/tdf-spec/blob/master/schema/ClaimsObject.md
@@ -185,7 +185,9 @@ async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
     entity_entitlements = []
 
     # Get entitlements for primary entity, as reported by IdP
-    entity_entitlements.append(await get_entitlements_for_entity_id(request.primaryEntityId))
+    fetchedEntitlements = await get_entitlements_for_entity_id(request.primaryEntityId)
+    logger.debug("fetchedEntitlements [%s]", fetchedEntitlements)
+    entity_entitlements.append(fetchedEntitlements)
 
     # Get any additional entitlements for any secondary entities involved in this entitlement grant request.
     for secondary_entity_id in request.secondaryEntityIds:
@@ -195,24 +197,29 @@ async def create_entitlements_object_for_jwt_claims(request: ClaimsRequest):
         client_public_signing_key=request.clientPublicSigningKey,
         entitlements=entity_entitlements,
     )
+    logger.debug("Returning claims: [%s]", entitlement_object)
+    logger.debug("Returning claims for entity 0: [%s]", entitlement_object.entitlements[0])
     return entitlement_object
 
 
 async def get_entitlements_for_entity_id(entityId: str):
-    entitlements = []
+    attributes = []
     query = table_entity_attribute.select().where(
         table_entity_attribute.c.entity_id == entityId
     )
     result = await database.fetch_all(query)
+    logger.debug("Queried attrs for entityId [%s]", entityId)
     for row in result:
         uri = f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
-        entitlements.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
+        logger.debug("Got attr: [%s]", uri)
+        attributes.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
 
     entity_entitlements = EntityEntitlements(
         entity_identifier=entityId,
-        entity_entitlements=entitlements,
+        entity_attributes=attributes,
     )
 
+    logger.debug("Returning entitlements: [%s]", entity_entitlements)
     return entity_entitlements
 
 if __name__ == "__main__":
