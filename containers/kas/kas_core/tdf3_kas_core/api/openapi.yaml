@@ -1,13 +1,11 @@
 # OpenAPI Spec https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md
 openapi: 3.0.0
 info:
-  version: 1.0.0
+  version: 0.9.0
   title: Key Access Service
-  termsOfService: https://www.virtru.com/terms-of-service/
-  contact:
-    email: support@virtru.com
+  termsOfService: https://github.com/opentdf/backend/blob/master/LICENSE
   license:
-    name: MIT
+    name: BSD 3-Clause Clear
     url: https://github.com/opentdf/backend/blob/master/LICENSE
 
 externalDocs:

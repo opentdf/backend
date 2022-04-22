@@ -1,4 +1,4 @@
-# Simple openTDF Key Access Server
+# Simple OpenTDF Key Access Server
 
 This repo constructs a plain vanilla KAS with attribute config examples.
 

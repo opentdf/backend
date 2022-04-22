@@ -126,7 +126,6 @@ components:
       title: EntityEntitlements
       required:
         - entity_identifier
-        - entity_attributes
       type: object
       properties:
         entity_identifier:
@@ -137,6 +136,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AttributeDisplay"
+          default: []
     HTTPValidationError:
       title: HTTPValidationError
       type: object
