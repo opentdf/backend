@@ -1,7 +1,7 @@
 # Protected Data Format Reference Services · [![CI](https://github.com/opentdf/backend/actions/workflows/build.yaml/badge.svg)](https://github.com/opentdf/backend/actions/workflows/build.yaml) · [![Code Quality](https://sonarcloud.io/api/project_badges/measure?project=opentdf_backend&metric=alert_status&token=4fff8ae1ff25f2ed30b5705197309bd4affbd9f1)](https://sonarcloud.io/summary/new_code?id=opentdf_backend)
 
 
-This repository is for a reference implementation of the [openTDF REST Services](https://github.com/opentdf/spec), and sufficient tooling and testing to support the development of it.
+This repository is for a reference implementation of the [OpenTDF REST Services](https://github.com/opentdf/spec), and sufficient tooling and testing to support the development of it.
 
 ## Monorepo
 
@@ -245,11 +245,11 @@ Once a cluster is running, run `tests/security-test/helm-test.sh`
 
 ### Integration Tests
 
-> TODO(PLAT-1619) Add frontend+backend integration test
+> TODO Under Construction 
 
 ## Deployment
 
-Any deployments are controlled by downstream repositories, e.g. internal to Virtru or other integrators.
+Any deployments are controlled by downstream repositories. 
 
 > TODO Reference opentdf.us deployment?
 
