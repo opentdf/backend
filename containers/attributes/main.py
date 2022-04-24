@@ -98,6 +98,7 @@ def get_retryable_request():
     http.mount("http://", adapter)
     return http
 
+
 # Given a realm ID, request that realm's public key from Keycloak's endpoint
 #
 # If anything fails, raise an exception
@@ -117,9 +118,7 @@ async def get_idp_public_key(realm_id):
 
     if not response.ok:
         logger.warning("No public key found for Keycloak realm %s", realm_id)
-        raise RuntimeError(
-            f"Failed to download Keycloak public key: [{response.text}]"
-        )
+        raise RuntimeError(f"Failed to download Keycloak public key: [{response.text}]")
 
     try:
         resp_json = response.json()
@@ -133,8 +132,11 @@ async def get_idp_public_key(realm_id):
 {resp_json['public_key']}
 -----END PUBLIC KEY-----"""
 
-    logger.debug("Keycloak public key for realm %s: [%s]", realm_id, keycloak_public_key)
+    logger.debug(
+        "Keycloak public key for realm %s: [%s]", realm_id, keycloak_public_key
+    )
     return keycloak_public_key
+
 
 # Looks as `iss` header field of token - if this is a Keycloak-issued token,
 # `iss` will have a value like 'https://<KEYCLOAK_SERVER>/auth/realms/<REALMID>
@@ -151,6 +153,7 @@ def try_extract_realm(unverified_jwt):
     # the realm name for a keycloak-issued token.
     return urlparse(issuer_url).path.rsplit("/", 1)[-1]
 
+
 def has_aud(unverified_jwt, audience):
     aud = unverified_jwt["aud"]
     if not aud:
@@ -163,6 +166,7 @@ def has_aud(unverified_jwt, audience):
         return False
     return True
 
+
 async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
     logger.debug(token)
     if logger.isEnabledFor(logging.DEBUG):
@@ -171,7 +175,7 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
     try:
         unverified_decode = keycloak_openid.decode_token(
             token,
-            key='',
+            key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
         if not has_aud(unverified_decode, "tdf-attributes"):
@@ -192,13 +196,13 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
 
 # database
 POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_DATABASE = os.getenv("POSTGRES_DATABASE")
 POSTGRES_SCHEMA = os.getenv("POSTGRES_SCHEMA")
 
-DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DATABASE}"
+DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DATABASE}"
 database = databases.Database(DATABASE_URL)
 
 metadata = sqlalchemy.MetaData(schema=POSTGRES_SCHEMA)
@@ -274,7 +278,10 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title="OpenTDF",
         version="0.9.0",
-        license_info={"name": "BSD 3-Clause Clear", "url": "https://github.com/opentdf/backend/blob/main/LICENSE"},
+        license_info={
+            "name": "BSD 3-Clause Clear",
+            "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
+        },
         routes=app.routes,
         tags=tags_metadata,
     )
@@ -418,7 +425,7 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
 
     try:
         for row in results:
-            for value in row.values:
+            for value in row.values_array:
                 attributes.append(
                     AnyUrl(
                         scheme=f"{authorities[row.namespace_id]}",
@@ -766,6 +773,39 @@ def check_duplicates(hierarchy_list):
         return False
     else:
         return True
+
+
+class Attribute(BaseModel):
+    authorityNamespace: AnyUrl
+    name: str
+    order: list
+    rule: RuleEnum
+    state: Optional[str]
+
+
+# Used by KAS, endpoint appended to EAS_HOST
+@app.post("/v1/attrName", response_model=List[Attribute], include_in_schema=False)
+async def read_attribute():
+    # return all for now body: List[HttpUrl]
+    query = table_attribute.select()
+    result = await database.fetch_all(query)
+    authorities = await read_authorities_crud()
+    attributes: List[Attribute] = []
+    for row in result:
+        try:
+            attributes.append(
+                Attribute(
+                    authorityNamespace=authorities[row.namespace_id],
+                    name=row.get(table_attribute.c.name),
+                    order=row.get("values_array"),
+                    values=row.get("values_array"),
+                    rule=row.get(table_attribute.c.rule),
+                    state=row.get(table_attribute.c.state),
+                )
+            )
+        except ValidationError as e:
+            logging.error(e)
+    return attributes
 
 
 if __name__ == "__main__":

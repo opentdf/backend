@@ -9,6 +9,7 @@ see [migration](../migration/README.md)
 ### Configure server
 ```shell
 export POSTGRES_HOST=localhost
+export POSTGRES_PORT=5432
 export POSTGRES_USER=tdf_attribute_manager
 export POSTGRES_PASSWORD=myPostgresPassword
 export POSTGRES_DATABASE=postgres
@@ -22,8 +23,8 @@ cd containers
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade pip
-python3 -m pip install --requirement claims/requirements.txt
-python3 -m uvicorn claims.main:app --reload --port 4020
+python3 -m pip install --requirement attributes/requirements.txt
+python3 -m uvicorn attributes.main:app --reload --port 4020
 ```
 
 ### Extract OpenAPI
