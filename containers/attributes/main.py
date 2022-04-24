@@ -425,7 +425,7 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
 
     try:
         for row in results:
-            for value in row.values:
+            for value in row.values_array:
                 attributes.append(
                     AnyUrl(
                         scheme=f"{authorities[row.namespace_id]}",
