@@ -4,6 +4,7 @@ import os
 import logging
 
 from importlib import metadata
+from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
 from tdf3_kas_core.server_timing import Timing
@@ -88,7 +89,7 @@ def app(name):
     logger.info("EAS_HOST = [%s]", eas_host)
     eas_backend = eas_rewrap_plugin.EASRewrapPlugin(eas_host)
     kas.use_healthz_plugin(eas_backend)
-    kas.use_rewrap_plugin(eas_backend)
+    kas.use_rewrap_plugin_v2(eas_backend)
 
     configure_filters(kas)
 
