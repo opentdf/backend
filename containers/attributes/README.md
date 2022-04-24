@@ -36,6 +36,8 @@ Run from project root
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install --upgrade pip
+python3 -m pip install --requirement attributes/requirements.txt
+python3 -m uvicorn attributes.main:app --reload --port 4020
 python3 -m pip install --requirement containers/attributes/requirements.txt
 python3 -m uvicorn containers.attributes.main:app --reload --port 4020
 ```
