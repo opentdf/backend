@@ -405,6 +405,7 @@ async def read_entitlements(
     auth_token=Depends(get_auth),
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
+    entityId: Optional[str] = None,
     order: Optional[str] = None,
     sort: Optional[str] = Query(
         "",
@@ -418,6 +419,8 @@ async def read_entitlements(
         filter_args["namespace"] = authority
     if name:
         filter_args["name"] = name
+    if entityId:
+        filter_args["entity_id"] = entityId
     if order:
         filter_args["values"] = order
 

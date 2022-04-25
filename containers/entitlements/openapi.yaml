@@ -34,6 +34,12 @@ paths:
           in: query
         - required: false
           schema:
+            title: Entityid
+            type: string
+          name: entityId
+          in: query
+        - required: false
+          schema:
             title: Order
             type: string
           name: order
