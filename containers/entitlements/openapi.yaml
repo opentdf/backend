@@ -34,9 +34,9 @@ paths:
           in: query
         - required: false
           schema:
-            title: Entity Id
+            title: Entityid
             type: string
-          name: entity_id
+          name: entityId
           in: query
         - required: false
           schema:
