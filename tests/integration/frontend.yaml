@@ -39,6 +39,7 @@ data:
   KEYCLOAK_CLIENT_ID: dcr-test
   KEYCLOAK_HOST: http://localhost:65432/auth/
   KEYCLOAK_REALM: tdf
+  SERVER_BASE_PATH:
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
