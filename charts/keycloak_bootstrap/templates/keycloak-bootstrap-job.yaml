@@ -31,7 +31,13 @@ spec:
               sleep 10 && python3 bootstrap.py
           {{- end }}
           env:
-            - name: keycloak_hostname
+            - name: ENABLE_PKI_DIRECTGRANT
+              value: {{ .Values.pki.directGrantEnable }}
+            - name: ENABLE_PKI_BROWSER
+              value: {{ .Values.pki.browserEnable }}
+            - name: OPENTDF_EXTERNAL_URL
+              value: {{ .Values.externalUrl }}
+            - name: KEYCLOAK_INTERNAL_URL
               value: {{ .Values.keycloak.hostname }}
             - name: keycloak_admin_username
               value: {{ .Values.keycloak.username }}
