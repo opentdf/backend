@@ -32,9 +32,9 @@ spec:
           {{- end }}
           env:
             - name: ENABLE_PKI_DIRECTGRANT
-              value: {{ .Values.pki.directGrantEnable }}
+              value: {{ .Values.pki.directGrantEnable | quote }}
             - name: ENABLE_PKI_BROWSER
-              value: {{ .Values.pki.browserEnable }}
+              value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
               value: {{ .Values.externalUrl }}
             - name: KEYCLOAK_INTERNAL_URL
