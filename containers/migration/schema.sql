@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS tdf_attribute.attribute
     rule         VARCHAR NOT NULL,
     name         VARCHAR NOT NULL UNIQUE, -- ??? COLLATE NOCASE
     description  VARCHAR,
-    values       TEXT[]
+    values_array       TEXT[]
 );
 
 CREATE SCHEMA IF NOT EXISTS tdf_entitlement;
