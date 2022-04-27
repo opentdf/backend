@@ -19,6 +19,14 @@ logging.basicConfig()
 logger = logging.getLogger("keycloak_bootstrap")
 logger.setLevel(logging.DEBUG)
 
+# These are the *only two URLs* anything should ever need:
+
+# 1. The URL stuff outside the cluster will use to resolve keycloak or other external services (public, browser and non-browser clients)
+# 2. The URL stuff inside the cluster will use to resolve keycloak (private, non-browser clients)
+otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432")
+kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http")
+pki_browser = os.getenv("ENABLE_PKI_BROWSER", "")
+pki_direct = os.getenv("ENABLE_PKI_DIRECTGRANT", "")
 
 def check_matched(pattern, allData):
     filtered_item = [
@@ -194,9 +202,9 @@ def createTestClientForX509Flow(keycloak_admin):
                 "directAccessGrantsEnabled": "true",
                 "serviceAccountsEnabled": "true",
                 "clientAuthenticatorType": "client-x509",
-                "baseUrl": "https://local.virtru.com/",
+                "baseUrl": f"{otdf_frontend_url}/",
                 "protocol": "openid-connect",
-                "redirectUris": ["https://local.virtru.com/*"],
+                "redirectUris": [f"{otdf_frontend_url}/*"],
                 "webOrigins": ["+"],
                 "attributes": {"x509.subjectdn": "CN=(.*)(?:$)"},
             },
@@ -244,9 +252,9 @@ def createTestClientForBrowserAuthFlow(keycloak_admin):
             "clientId": client_id,
             "publicClient": "true",
             "standardFlowEnabled": "true",
-            "baseUrl": "https://local.virtru.com/",
+            "baseUrl": f"{otdf_frontend_url}/",
             "protocol": "openid-connect",
-            "redirectUris": ["https://local.virtru.com/*"],
+            "redirectUris": [f"{otdf_frontend_url}/*"],
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -261,18 +269,15 @@ def createTestClientForBrowserAuthFlow(keycloak_admin):
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
 
-def createTestClientTDFClient(keycloak_admin, base_url):
+def createTestClientTDFClient(keycloak_admin):
     client_id = "tdf-client"
-    logger.debug("Creating client %s configured for browser auth flow", client_id)
+    logger.debug("Creating client %s configured for auth flow", client_id)
     keycloak_admin.create_client(
         payload={
             "clientId": client_id,
-            "publicClient": "true",
             "standardFlowEnabled": "true",
             "fullScopeAllowed": "false",
-            "baseUrl": base_url + "/",
             "protocol": "openid-connect",
-            "redirectUris": [base_url + "/*"],
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -289,7 +294,6 @@ def createTestClientTDFClient(keycloak_admin, base_url):
 
 def createTestClientTDFAttributes(keycloak_admin):
     client_id = "tdf-attributes"
-    base_url = os.getenv("ATTRIBUTE_AUTHORITY_HOST", "http://localhost:4020")
     logger.debug("Creating client %s configured for browser auth flow", client_id)
     keycloak_admin.create_client(
         payload={
@@ -297,9 +301,9 @@ def createTestClientTDFAttributes(keycloak_admin):
             "publicClient": "true",
             "standardFlowEnabled": "true",
             "fullScopeAllowed": "false",
-            "baseUrl": base_url + "/",
+            "baseUrl": f"{otdf_frontend_url}/",
             "protocol": "openid-connect",
-            "redirectUris": [base_url + "/*"],
+            "redirectUris": [f"{otdf_frontend_url}/*"],
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -324,9 +328,9 @@ def createTestClientTDFEntitlements(keycloak_admin):
             "publicClient": "true",
             "standardFlowEnabled": "true",
             "fullScopeAllowed": "false",
-            "baseUrl": base_url + "/",
+            "baseUrl": f"{otdf_frontend_url}/",
             "protocol": "openid-connect",
-            "redirectUris": [base_url + "/*"],
+            "redirectUris": [f"{otdf_frontend_url}/*"],
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -343,7 +347,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
 
 def createTestClientForAbacusWebAuth(keycloak_admin):
     client_id = "abacus-web"
-    logger.debug("Creating client %s configured for DCR Jupyter auth flow", client_id)
+    logger.debug("Creating client %s configured for Abacus auth flow", client_id)
     keycloak_admin.create_client(
         payload={
             "clientId": client_id,
@@ -352,10 +356,7 @@ def createTestClientForAbacusWebAuth(keycloak_admin):
             "clientAuthenticatorType": "client-secret",
             "serviceAccountsEnabled": "true",
             "protocol": "openid-connect",
-            "redirectUris": [
-                "http://localhost*",
-                "https://demo.secure-analytics-sandbox.virtru.com*",
-            ],
+            "redirectUris": [f"{otdf_frontend_url}/*"],
             "webOrigins": ["+"],
         },
         skip_exists=True,
@@ -371,7 +372,7 @@ def createTestClientForAbacusWebAuth(keycloak_admin):
 def createTestClientForDCRAuth(keycloak_admin):
     client_id = "dcr-test"
     client_secret = "123-456"
-    logger.debug("Creating client %s configured for DCR Jupyter auth flow", client_id)
+    logger.debug("Creating public client %s configured for DCR Jupyter auth flow", client_id)
     keycloak_admin.create_client(
         payload={
             "clientId": client_id,
@@ -380,9 +381,9 @@ def createTestClientForDCRAuth(keycloak_admin):
             "standardFlowEnabled": "true",
             "clientAuthenticatorType": "client-secret",
             "serviceAccountsEnabled": "true",
-            "baseUrl": "https://keycloak-http:8080/",
+            "baseUrl": f"{kc_internal_url}",
             "protocol": "openid-connect",
-            "redirectUris": ["http://localhost*"],
+            "redirectUris": [f"{otdf_frontend_url}/*"],
             "webOrigins": ["+"],
         },
         skip_exists=True,
@@ -410,7 +411,7 @@ def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
             "secret": client_secret,
             "serviceAccountsEnabled": "true",
             "publicClient": "false",
-            "redirectUris": [keycloak_auth_url + "admin/" + client_id + "/console"],
+            "redirectUris": [f"{otdf_frontend_url}/*"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
             },  # Needed to make UserInfo return signed JWT
@@ -617,6 +618,10 @@ def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url):
     # Create entitlements test client
     createTestClientTDFEntitlements(keycloak_admin)
 
+    createTestClientTDFClient(keycloak_admin)
+
+    createTestClientForAbacusWebAuth(keycloak_admin)
+
     createUsersInRealm(keycloak_admin)
 
 
@@ -641,7 +646,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
                 "realm": realm_name,
                 "enabled": "true",
                 "attributes": {
-                    "frontendUrl": f"http://{kc_url}/auth/realms/tdf-pki"
+                    "frontendUrl": f"{otdf_frontend_url}/auth/realms/tdf-pki"
                 },
             },
             skip_exists=True,
@@ -661,23 +666,27 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
     # Create test client configured for browser auth flow
     createTestClientForBrowserAuthFlow(keycloak_admin)
 
-    # X.509 Client Certificate Authentication to a Direct Grant Flow
-    # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-direct-grant-flow
-    createDirectAuthFlowX509(
-        keycloak_admin,
-        realm_name,
-        "X509_Direct_Grant",
-        "direct-grant-auth-x509-username",
-    )
+    createTestClientForAbacusWebAuth(keycloak_admin)
 
-    # X.509 Client Certificate Authentication to a Browser Flow
-    # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-browser-flow
-    createBrowserAuthFlowX509(
-        keycloak_admin,
-        realm_name,
-        "X509_Browser",
-        "auth-x509-client-username-form"
-    )
+    if pki_direct == "true":
+        # X.509 Client Certificate Authentication to a Direct Grant Flow
+        # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-direct-grant-flow
+        createDirectAuthFlowX509(
+            keycloak_admin,
+            realm_name,
+            "X509_Direct_Grant",
+            "direct-grant-auth-x509-username",
+        )
+
+    if pki_browser == "true":
+        # X.509 Client Certificate Authentication to a Browser Flow
+        # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-browser-flow
+        createBrowserAuthFlowX509(
+            keycloak_admin,
+            realm_name,
+            "X509_Browser",
+            "auth-x509-client-username-form"
+        )
 
     createTestClientForX509Flow(keycloak_admin)
 
@@ -690,11 +699,13 @@ def kc_bootstrap():
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
 
-    keycloak_hostname = os.getenv("keycloak_hostname", "http://localhost:8080")
-    keycloak_auth_url = keycloak_hostname + "/auth/"
+    keycloak_auth_url = kc_internal_url + "/auth/"
 
     updateMasterRealm(username, password, keycloak_auth_url)
     createTDFRealm(username, password, keycloak_auth_url)
-    createTDFPKIRealm(username, password, keycloak_auth_url)
+
+    # If either browser PKI or direct grant PKI configured, create PKI realm
+    if ((pki_browser == "true") or (pki_direct == "true")):
+        createTDFPKIRealm(username, password, keycloak_auth_url)
 
     return True  # It is pointless to return True here, as we arent' checking the return values of the previous calls (and don't really need to)

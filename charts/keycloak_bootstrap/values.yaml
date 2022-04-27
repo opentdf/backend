@@ -6,6 +6,10 @@ image:
   image: ghcr.io/opentdf/keycloak-bootstrap
   pullPolicy: Always
   pullSecret: virtru-regcred
+externalUrl: http://localhost:65432
+pki:
+  directGrantEnable: "true"
+  browserEnable: "true"
 keycloak:
   hostname: http://keycloak-http
   clientId: tdf-client

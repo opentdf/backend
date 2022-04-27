@@ -9,47 +9,9 @@ logging.basicConfig()
 logger = logging.getLogger("keycloak_bootstrap")
 logger.setLevel(logging.DEBUG)
 
-# tdf_realm_user_attrmap = {
-#     'tdf-user': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'user1': [
-#         "https://example.com/attr/Classification/value/S",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'bob_1234': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRC"
-#     ],
-#     'alice_1234': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRD"
-#     ]
-# }
-
-# tdf_realm_client_attrmap = {
-#     'tdf-client': [
-#         "https://example.com/attr/Classification/value/S",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'browsertest': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRA"
-#     ],
-#     'service-account-tdf-client': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRB"
-#     ],
-#     'client_x509': [
-#         "https://example.com/attr/Classification/value/S",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'dcr-test': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRF"
-#     ]
-# }
+# This is the only URL this file should ever need -
+# The URL stuff inside the cluster (aka this bootstrap job) will use to resolve keycloak (private, non-browser clients)
+kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http")
 
 
 def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authToken):
@@ -144,8 +106,7 @@ def entitlements_bootstrap():
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
 
-    keycloak_hostname = os.getenv("keycloak_hostname", "http://localhost:8080")
-    keycloak_auth_url = keycloak_hostname + "/auth/"
+    keycloak_auth_url = kc_internal_url + "/auth/"
 
     keycloak_admin_tdf = KeycloakAdmin(
         server_url=keycloak_auth_url,
@@ -163,7 +124,6 @@ def entitlements_bootstrap():
     insertEntitlementAttrsForRealm(
         keycloak_admin_tdf, "tdf", keycloak_auth_url, entity_attrmap
     )
-    # FIXME: Enable PKI realm
     keycloak_admin_tdf_pki = KeycloakAdmin(
         server_url=keycloak_auth_url,
         username=username,
