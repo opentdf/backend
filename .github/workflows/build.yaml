@@ -154,6 +154,11 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
+      # If we publish helm charts before we finish publishing the images
+      # they depend on, you can get into weirdness where the chart is pullable
+      # but the images are not, yet. Avoid that.
+      - build-and-publish-with-shared-base
+      - build-and-publish-isolated
     permissions:
       packages: write
       contents: read
