@@ -28,7 +28,9 @@ oidc:
 image:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
-  image: ghcr.io/opentdf/attributes
+  repo: ghcr.io/opentdf/attributes
+  # Chart.AppVersion will be used for image tag, override here if needed
+  # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 

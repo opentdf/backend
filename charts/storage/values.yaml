@@ -10,7 +10,9 @@ replicaCount: 1
 image:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
-  image: ghcr.io/opentdf/storage
+  repo: ghcr.io/opentdf/storage
+  # Chart.AppVersion will be used for image tag, override here if needed
+  # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
