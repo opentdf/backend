@@ -102,6 +102,8 @@ jobs:
           python -m pytest containers/attributes/tests
           python -m pytest containers/claims/tests
           python -m pytest containers/entitlements/tests
+          python -m pytest containers/kas_app/tdf3_kas_app
+          python -m pytest containers/kas_core/tdf3_kas_core
 
   integration-test:
     runs-on: ubuntu-latest
