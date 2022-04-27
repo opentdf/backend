@@ -13,7 +13,7 @@ spec:
       containers:
         - name: {{ .Values.name }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          image: {{ .Values.image.image }}
+          image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           {{- if .Values.istioTerminationHack }}
           command: ["/bin/sh", "-c"]
           # The following hack does 2 things:

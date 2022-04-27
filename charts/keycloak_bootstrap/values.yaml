@@ -3,7 +3,9 @@ replicaCount: 1
 job:
   backoffLimit: 10
 image:
-  image: ghcr.io/opentdf/keycloak-bootstrap
+  repo: ghcr.io/opentdf/keycloak-bootstrap
+  # Chart.AppVersion will be used for image tag, override here if needed
+  # tag: main
   pullPolicy: Always
   pullSecret: virtru-regcred
 externalUrl: http://localhost:65432
