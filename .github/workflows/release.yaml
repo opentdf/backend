@@ -1,0 +1,59 @@
+name: Release Backend
+env:
+  KEYCLOAK_BASE_IMAGE: ghcr.io/opentdf/keycloak-multiarch-base
+  CONTAINER_ARCHS: linux/amd64,linux/arm64
+
+# Only run on release publish
+# GITHUB_SHA/REF will be set to the SHA/REF of the last commit in the tagged release
+on:
+  release:
+    types: [published]
+
+# This workflow is designed to be triggered only when someone publishes a Github release against a specific, preexisting Git tag in `main`
+# This workflow presumes that the normal `main` merge CI has already run for the particular merge SHA the release tag is bound to, as it should for every change to `main`
+# This workflow assumes the release tag is the literal Semver you want to use to stamp the release charts with.
+# This workflow will bake images into the (human-readable SEMVER from tag) charts using (generated from current tag SHA) tagged image builds, which presumably have already been built+pushed for this SHA
+jobs:
+  publish-helm-charts-release:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    timeout-minutes: 10
+    steps:
+      # Quick check to ensure the release we have is tagged with strict semver
+      # https://jubianchi.github.io/semver-check/#/
+      # e.g. no leading v.
+      - uses: rubenesp87/semver-validation-action@0.0.6
+        with:
+          version: ${{ github.event.release.tag_name }}
+      - uses: actions/checkout@v2
+      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+        with:
+          setup-tools: helm
+          helm: "3.8.0"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+      - name: push
+        run: |
+          cd charts
+          short_ver=sha-${GITHUB_SHA::7}
+          escaped_version=$(printf '%s\n' "${{ github.event.release.tag_name }}" | sed -e 's/[\/.]/\\./g')
+          for d in */ ; do
+              if [ -f "$d/Chart.yaml" ]; then
+                echo "Setting Chart.yaml version to ${{ github.event.release.tag_name }}..."
+                sed -i "s/version\: 0\.0\.0/version\: $escaped_version/" $d/Chart.yaml
+                echo "Rendering Helm chart $d to validate defaults..."
+                helm package $d --app-version="${short_ver}"
+                echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${GITHUB_SHA::7}"
+                echo *.tgz
+                helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+                rm *.tgz
+              fi
+          done
+
