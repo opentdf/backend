@@ -1,7 +1,4 @@
 name: Release Backend
-env:
-  KEYCLOAK_BASE_IMAGE: ghcr.io/opentdf/keycloak-multiarch-base
-  CONTAINER_ARCHS: linux/amd64,linux/arm64
 
 # Only run on release publish
 # GITHUB_SHA/REF will be set to the SHA/REF of the last commit in the tagged release
