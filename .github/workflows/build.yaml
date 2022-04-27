@@ -177,7 +177,7 @@ jobs:
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Rendering Helm chart $d to validate defaults..."
-                helm package $d --app-version sha-${GITHUB_SHA::7}
+                helm package $d --app-version="sha-$(echo ${GITHUB_SHA} | cut -c1-7)"
                 echo "Packaged Helm chart $d with appVersion (e.g. container tag) baked to ${GITHUB_SHA::7}"
                 echo *.tgz
                 helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
