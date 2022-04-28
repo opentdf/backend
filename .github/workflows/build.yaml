@@ -91,6 +91,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.10"
+          cache: 'pipenv'
+          cache-dependency-path: containers/kas/kas_app/Pipfile.lock
 
       - name: Install dependencies
         run: |
@@ -102,7 +104,7 @@ jobs:
           python -m pytest containers/attributes/tests
           python -m pytest containers/claims/tests
           python -m pytest containers/entitlements/tests
-          python -m pytest containers/kas
+          python -m pytest containers/kas/
 
   integration-test:
     runs-on: ubuntu-latest
