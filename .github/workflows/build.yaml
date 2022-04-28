@@ -178,8 +178,8 @@ jobs:
       - name: push
         run: |
           cd charts
-          short_ver=0.0.0-sha-$(git rev-parse --short HEAD)
-          escaped_version=$(printf '%s\n' "${short_ver}" | sed -e 's/[\/.]/\\./g')
+          short_ver=sha-$(git rev-parse --short HEAD)
+          escaped_version=$(printf '%s\n' "0.0.0-${short_ver}" | sed -e 's/[\/.]/\\./g')
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Setting Chart.yaml version to ${short_ver}..."
