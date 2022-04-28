@@ -40,7 +40,7 @@ jobs:
         #8char shortsha should be WAY more than enough, and this avoids a hard dep on in-image Git binaries: https://stackoverflow.com/a/18134919
         run: |
           cd charts
-          short_ver=sha-${GITHUB_SHA::8}
+          short_ver=sha-$(git rev-parse --short)
           escaped_version=$(printf '%s\n' "${{ github.event.release.tag_name }}" | sed -e 's/[\/.]/\\./g')
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
