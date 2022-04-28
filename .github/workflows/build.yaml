@@ -92,7 +92,9 @@ jobs:
         with:
           python-version: "3.10"
           cache: 'pipenv'
-          cache-dependency-path: containers/kas/kas_app/Pipfile.lock
+          cache-dependency-path: |
+               containers/kas/kas_app/Pipfile.lock
+               containers/kas/kas_core/Pipfile.lock
 
       - name: Install dependencies
         run: |
