@@ -60,6 +60,7 @@ This quick start guide is primarily for development and testing the ABAC and KAS
   - Others see https://github.com/tilt-dev/ctlptl#homebrew-maclinux
 
 ### Alternative Prerequisites install
+
 ```shell
 # Install pre-requisites (drop what you've already got)
 ./scripts/pre-reqs docker helm tilt kind
@@ -69,7 +70,7 @@ This quick start guide is primarily for development and testing the ABAC and KAS
 
 > You may need to manually clean the `certs` folder occasionally
 
-```
+```shell
 ./scripts/genkeys-if-needed
 ```
 
@@ -254,6 +255,7 @@ Any deployments are controlled by downstream repositories.
 > TODO Reference opentdf.us deployment?
 
 # Customizing your local development experience
+
 #### Quick Start
 
 To assist in quickly starting use the `./scripts/genkeys-if-needed` to build all the keys. The hostname will be assigned `opentdf.local`.
