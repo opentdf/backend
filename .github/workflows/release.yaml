@@ -37,7 +37,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: false
       - name: push
-        #8char shortsha should be WAY more than enough, and this avoids a hard dep on in-image Git binaries: https://stackoverflow.com/a/18134919
         run: |
           cd charts
           short_ver=sha-$(git rev-parse --short HEAD)
