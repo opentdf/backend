@@ -23,21 +23,25 @@ if ! cd "$PROJECT_ROOT"; then
   exit 1
 fi
 
-mkdir -p build/export
 
 today="$(date +%Y-%m-%d)"
 digest="$(git rev-parse --short HEAD)"
 suffix="${today}-${digest}"
 : "${SERVICE_IMAGE_TAG:="sha-${digest}"}"
 : "${SERVICE_CHART_TAG:="0.0.0-sha-${digest}"}"
+: "${OUTPUT_DIRECTORY:="${PROJECT_ROOT}/build/export"}"
+
+OUT_DIR="${OUTPUT_DIRECTORY}/bundle"
+
+mkdir -p "${OUT_DIR}"
 
 export SERVICE_IMAGE_TAG
 
-echo "${SERVICE_IMAGE_TAG}" > build/export/BUNDLE_TAG
+echo "${SERVICE_IMAGE_TAG}" > "$OUT_DIR/BUNDLE_TAG"
 
 # EXPORT SERVICES SOURCE AS ZIP FILE
-monolog TRACE "Exporting archive as [build/export/opentdf-backend-${suffix}.zip]"
-if ! git archive --format=zip --prefix=opentdf-backend "--output=build/export/opentdf-backend-${suffix}.zip" main; then
+monolog TRACE "Exporting archive as [${OUT_DIR}/opentdf-backend-${suffix}.zip]"
+if ! git archive --format=zip --prefix=opentdf-backend "--output=${OUT_DIR}/opentdf-backend-${suffix}.zip" main; then
   monolog ERROR "Failed to create source content archive, opentdf-backend-${suffix}.zip"
   exit 1
 fi
@@ -54,8 +58,8 @@ for x in attributes claims entitlements kas keycloak keycloak-bootstrap; do
   to_save+=( "$i" )
 done
 
-monolog TRACE "Save docker images as [build/export/opentdf-service-images-${suffix}.tar] from [${to_save[*]}]"
-if ! docker save -o "build/export/opentdf-service-images-${suffix}.tar" "${to_save[@]}"; then
+monolog TRACE "Save docker images as [${OUT_DIR}/opentdf-service-images-${suffix}.tar] from [${to_save[*]}]"
+if ! docker save -o "${OUT_DIR}/opentdf-service-images-${suffix}.tar" "${to_save[@]}"; then
   monolog ERROR "Failed to save docker images ${to_save[*]}"
   exit 1
 fi
@@ -66,7 +70,7 @@ save-third-party() {
   local name_tag="$2"
   local sha="$3"
   local version="${name_tag}@sha256:${sha}"
-  local path="build/export/third-party-image-${short_name}-${suffix}"
+  local path="${OUT_DIR}/third-party-image-${short_name}-${suffix}"
   local tar_path="${path}.tar"
   monolog TRACE "Save docker images as [${tar_path}] from [${version}]"
   if ! docker pull "${version}"; then
@@ -98,15 +102,15 @@ save-third-party postgresql bitnami/postgresql:v12.8.0 ff0644fea98b51f111cff32c0
 # Keycloak: Since we are bulding a custom image, we don't include that in thirdparty but in primary bundle
 
 # Third party helm charts
-if ! helm pull --repo https://kubernetes.github.io/ingress-nginx --version 4.0.16 --destination charts ingress-nginx; then
+if ! helm pull --repo https://kubernetes.github.io/ingress-nginx --version 4.0.16 --destination "${OUT_DIR}/charts" ingress-nginx; then
   monolog ERROR "Unable to helm pull ingress-nginx"
   exit 1
 fi
-if ! helm pull --repo https://codecentric.github.io/helm-charts --version 17.0.1 --destination charts keycloak; then
+if ! helm pull --repo https://codecentric.github.io/helm-charts --version 17.0.1 --destination "${OUT_DIR}/charts" keycloak; then
   monolog ERROR "Unable to helm pull keycloak"
   exit 1
 fi
-if ! helm pull --repo https://charts.bitnami.com/bitnami --version 10.16.2 --destination charts postgresql; then
+if ! helm pull --repo https://charts.bitnami.com/bitnami --version 10.16.2 --destination "${OUT_DIR}/charts" postgresql; then
   monolog ERROR "Unable to helm pull postgresql"
   exit 1
 fi
@@ -115,25 +119,25 @@ fi
 # TODO(PLAT-1417) Add abacus
 for x in attributes claims entitlements kas keycloak-bootstrap; do
   i="oci://ghcr.io/opentdf/charts/${x}"
-  if ! helm pull --repo "$i" --version "$SERVICE_CHART_TAG"; then
+  if ! helm pull "${i}" --version "$SERVICE_CHART_TAG" --destination "${OUT_DIR}/charts"; then
     monolog ERROR "Failed to [helm pull ${i} --version $SERVICE_CHART_TAG]"
     exit 1
   fi
 done
 
 # Include an example deployment
-if ! rsync -lmr --safe-links --executability --force deployments/local/* build/export/deployment; then
+if ! rsync -lmr --safe-links --executability --force deployments/local/* "${OUT_DIR}/deployment"; then
   monolog ERROR "Unable to update deployment"
   exit 1
 fi
 
-# if ! sed -i '' "s/:head/:$SERVICE_IMAGE_TAG/" "build/export/deployment/values-all-in-one.yaml"; then
+# if ! sed -i '' "s/:main/:$SERVICE_IMAGE_TAG/" "${OUT_DIR}/deployment/values-all-in-one.yaml"; then
 #   monolog ERROR "Unable to change deployment image tags"
 #   exit 1
 # fi
 
 # # Include scripts for helping with things
-# if ! rsync -lmr --safe-links --executability --force scripts/* build/export/scripts; then
+# if ! rsync -lmr --safe-links --executability --force scripts/* ${OUT_DIR}/scripts; then
 #   monolog ERROR "Unable to update scripts folder"
 #   exit 1
 # fi
@@ -152,7 +156,7 @@ fi
 # # TODO: Release client to npm
 # # TDF3_LATEST=$(curl -s http://registry.npmjs.org/tdf3-js/latest/ | sed 's/.*"tarball":"\([^"]*\).*/\1/')
 # # TDF3_TGZ=$(echo "$TDF3_LATEST" | sed 's/.*-\/\(.*\.tgz\)$/\1/')
-# # curl -s "https://registry.npmjs.org/tdf3-js/-/$TDF3_TGZ" --output "build/export/sdk-$TDF3_TGZ"
+# # curl -s "https://registry.npmjs.org/tdf3-js/-/$TDF3_TGZ" --output "${OUT_DIR}/sdk-$TDF3_TGZ"
 # # maybe-exit "Failed to get latest of tdf3-js (${TDF3_LATEST}) from NPM, expected at [${TDF3_TGZ}]"
 
 # pip-latest() {
@@ -187,7 +191,7 @@ fi
 #     [[ $filename && $url ]]
 #     maybe-exit "filename=[$filename] url=[$url]"
 #     monolog INFO "Downloading $filename from $url"
-#     curl -s "${url}" >"build/export/${filename}"
+#     curl -s "${url}" >"${OUT_DIR}/${filename}"
 #     maybe-exit "Failed downloading [$url]"
 #   done
 # }
@@ -196,10 +200,10 @@ fi
 
 # # BUNDLE THAT STUFF UP
 # fname="offline-bundle-${suffix}.zip"
-# if ! ( cd build && zip -r "${fname}" export ); then
+# if ! ( cd ${OUTPUT_DIRECTORY} && zip -r "${fname}" bundle ); then
 #   monolog ERROR "Failed to export as zip file"
 #   exit 1
 # fi
 
-# echo "${suffix}" >build/export/COMPLETED_TAG
-# monolog DEBUG "Saved stuff as build/${fname}"
+# echo "${suffix}" >${OUT_DIR}/COMPLETED_TAG
+# monolog DEBUG "Saved stuff as ${OUTPUT_DIRECTORY}/${fname}"
