@@ -33,7 +33,7 @@ suffix="${today}-${digest}"
 
 OUT_DIR="${OUTPUT_DIRECTORY}/bundle"
 
-mkdir -p "${OUT_DIR}"
+mkdir -p "${OUT_DIR}/charts"
 
 export SERVICE_IMAGE_TAG
 
@@ -136,74 +136,85 @@ fi
 #   exit 1
 # fi
 
-# # Include scripts for helping with things
-# if ! rsync -lmr --safe-links --executability --force scripts/* ${OUT_DIR}/scripts; then
-#   monolog ERROR "Unable to update scripts folder"
-#   exit 1
-# fi
+# Include scripts for helping with things
+if ! rsync -lmr --safe-links --executability --force scripts/* ${OUT_DIR}/scripts; then
+  monolog ERROR "Unable to update scripts folder"
+  exit 1
+fi
 
 
-# maybe-exit() {
-#   local err="$?"
-#   if [[ ! $err ]]; then
-#     monolog ERROR "$1; err=$err"
-#     exit 1
-#   fi
-# }
+maybe-exit() {
+  local err="$?"
+  if [[ ! $err ]]; then
+    monolog ERROR "$1; err=$err"
+    exit 1
+  fi
+}
 
 
 # # # DOWNLOAD SOME SDKS
+# TODO(PLAT-1417) Get @opentdf/client from npm
+npm-latest() {
+  local project
+  project="$1"
+  shift
+
+  local NPM_LATEST
+  NPM_LATEST=$(curl -s http://registry.npmjs.org/${project}/latest/ | sed 's/.*"tarball":"\([^"]*\).*/\1/')
+
+  local NPM_TGZ
+  NPM_TGZ=$(echo "$NPM_LATEST" | sed 's/.*-\/\(.*\.tgz\)$/\1/')
+  curl -s "https://registry.npmjs.org/${project}/-/$NPM_TGZ" --output "${OUT_DIR}/sdk-$NPM_TGZ"
+  maybe-exit "Failed to get latest of ${project} (${NPM_LATEST}) from NPM, expected at [${NPM_TGZ}]"
+}
 # # TODO: Release client to npm
-# # TDF3_LATEST=$(curl -s http://registry.npmjs.org/tdf3-js/latest/ | sed 's/.*"tarball":"\([^"]*\).*/\1/')
-# # TDF3_TGZ=$(echo "$TDF3_LATEST" | sed 's/.*-\/\(.*\.tgz\)$/\1/')
-# # curl -s "https://registry.npmjs.org/tdf3-js/-/$TDF3_TGZ" --output "${OUT_DIR}/sdk-$TDF3_TGZ"
-# # maybe-exit "Failed to get latest of tdf3-js (${TDF3_LATEST}) from NPM, expected at [${TDF3_TGZ}]"
+# npm-latest @opentdf/client
 
-# pip-latest() {
-#   local project
-#   project="$1"
-#   shift
+pip-latest() {
+  local project
+  project="$1"
+  shift
 
-#   local deets
-#   deets="$(curl -s "https://pypi.org/pypi/${project}/json")"
-#   maybe-exit "Getting details of [${project}] failed with $?"
+  local deets
+  deets="$(curl -s "https://pypi.org/pypi/${project}/json")"
+  maybe-exit "Getting details of [${project}] failed with $?"
 
-#   local version
-#   version="$(jq -r '.info.version' <<<"${deets}")"
-#   maybe-exit "Getting latest version of [${project}] failed"
+  local version
+  version="$(jq -r '.info.version' <<<"${deets}")"
+  maybe-exit "Getting latest version of [${project}] failed"
 
-#   local variants
-#   variants=$(jq -r --arg version "$version" '.releases[$version]' <<<"${deets}")
-#   maybe-exit "Getting latest version of [${project}] failed"
+  local variants
+  variants=$(jq -r --arg version "$version" '.releases[$version]' <<<"${deets}")
+  maybe-exit "Getting latest version of [${project}] failed"
 
-#   local len
-#   len=$(jq -r 'length' <<<"$variants")
-#   maybe-exit "Surprising variants object"
-#   [[ $len ]]
-#   maybe-exit "len=[$len]"
-#   monolog INFO "Found $len variants of $project $version"
+  local len
+  len=$(jq -r 'length' <<<"$variants")
+  maybe-exit "Surprising variants object"
+  [[ $len ]]
+  maybe-exit "len=[$len]"
+  monolog INFO "Found $len variants of $project $version"
 
-#   local filename
-#   local url
-#   for ((i = 0; i < len; i++)); do
-#     filename=$(jq -r --argjson i "$i" '.[$i].filename' <<<"${variants}")
-#     url=$(jq -r --argjson i "$i" '.[$i].url' <<<"${variants}")
-#     [[ $filename && $url ]]
-#     maybe-exit "filename=[$filename] url=[$url]"
-#     monolog INFO "Downloading $filename from $url"
-#     curl -s "${url}" >"${OUT_DIR}/${filename}"
-#     maybe-exit "Failed downloading [$url]"
-#   done
-# }
+  local filename
+  local url
+  for ((i = 0; i < len; i++)); do
+    filename=$(jq -r --argjson i "$i" '.[$i].filename' <<<"${variants}")
+    url=$(jq -r --argjson i "$i" '.[$i].url' <<<"${variants}")
+    [[ $filename && $url ]]
+    maybe-exit "filename=[$filename] url=[$url]"
+    monolog INFO "Downloading $filename from $url"
+    curl -s "${url}" >"${OUT_DIR}/${filename}"
+    maybe-exit "Failed downloading [$url]"
+  done
+}
 
-# pip-latest opentdf
+pip-latest opentdf
 
-# # BUNDLE THAT STUFF UP
-# fname="offline-bundle-${suffix}.zip"
-# if ! ( cd ${OUTPUT_DIRECTORY} && zip -r "${fname}" bundle ); then
-#   monolog ERROR "Failed to export as zip file"
-#   exit 1
-# fi
+# BUNDLE THAT STUFF UP
+fname="offline-bundle-${suffix}.zip"
+if ! ( cd ${OUTPUT_DIRECTORY} && zip -r "${fname}" bundle ); then
+  monolog ERROR "Failed to export as zip file"
+  exit 1
+fi
 
-# echo "${suffix}" >${OUT_DIR}/COMPLETED_TAG
-# monolog DEBUG "Saved stuff as ${OUTPUT_DIRECTORY}/${fname}"
+echo "${suffix}" >${OUT_DIR}/COMPLETED_TAG
+monolog DEBUG "Saved stuff as ${OUTPUT_DIRECTORY}/${fname}"
