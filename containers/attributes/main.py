@@ -108,7 +108,7 @@ def get_retryable_request():
 # This is a low priority though since it doesn't save us from having to get the
 # realmId first and so is a largely cosmetic difference
 async def get_idp_public_key(realm_id):
-    url = f"{os.getenv('OIDC_SERVER_URL')}/realms/{realm_id}"
+    url = f"{os.getenv('OIDC_SERVER_URL')}realms/{realm_id}"
 
     http = get_retryable_request()
 
@@ -178,7 +178,7 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
             key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
-        if not has_aud(unverified_decode, "tdf-attributes"):
+        if not has_aud(unverified_decode, keycloak_openid.client_id):
             raise Exception("Invalid audience")
         return keycloak_openid.decode_token(
             token,
@@ -654,7 +654,12 @@ async def update_attribute_definition_crud(request):
                 detail="Duplicated items when Rule is Hierarchy",
             )
 
-    query = table_attribute.update().values(
+    query = table_attribute.update().where(
+        and_(
+            table_authority.c.name == request.authority,
+            table_attribute.c.name == request.name,
+        )
+    ).values(
         values_array=request.order,
         rule=request.rule,
     )
