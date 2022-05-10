@@ -370,7 +370,7 @@ async def read_relationship(
 ):
     query = (
         table_entity_attribute.select().where(table_entity_attribute.c.name == name)
-    )  # .where(entity_attribute.c.userid == request.userId) .where(table_entity_attribute.c.name == name)
+    )  # .where(entity_attribute.c.userid == request.userId)
     result = await database.fetch_all(query)
     relationships: List[EntityAttributeRelationship] = []
     for row in result:
