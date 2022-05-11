@@ -1,0 +1,19 @@
+name: X-Test-trigger
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+jobs:
+  xtest:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger opentdf/tests
+        run: >-
+          curl -X POST
+               -u "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+               -H "Accept: application/vnd.github.v3+json"
+               https://api.github.com/repos/opentdf/tests/dispatches
+               --data '{"event_type":"xtest"}'
