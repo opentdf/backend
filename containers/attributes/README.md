@@ -29,6 +29,8 @@ export OIDC_CONFIGURATION_URL="https://<<host>>/auth/realms/opentdf-realm/.well-
 Update import for local, non-container env
 `from ..python_base import get_query, Pagination`
 
+Add blank `__init__.py` to `containers/`
+
 Run from project root
 ```shell
 python3 -m venv .venv
