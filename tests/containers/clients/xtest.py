@@ -179,12 +179,12 @@ def main():
     try:
         logger.info("SERVICES TESTS:")
         failed += run_service_tests(service_test)
-        # logger.info("TDF3 TESTS:")
-        # failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
-        # logger.info("NANO TESTS:")
-        # failed += run_cli_tests(
-        #     nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
-        # )
+        logger.info("TDF3 TESTS:")
+        failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
+        logger.info("NANO TESTS:")
+        failed += run_cli_tests(
+            nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
+        )
     finally:
         if not args.no_teardown:
             teardown()
@@ -243,7 +243,7 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
     if not filecmp.cmp(pt_file, rt_file):
         raise Exception(
             "Test #%s: FAILED due to rt mismatch\n\texpected: %s\n\tactual: %s)"
-            % (serial, pt, rt)
+            % (serial, pt_file, rt_file)
         )
     logger.info("Test #%s, (%s->%s): Succeeded!", serial, encrypt_sdk, decrypt_sdk)
 
