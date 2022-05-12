@@ -18,10 +18,10 @@ export SERVER_LOG_LEVEL=DEBUG
 export OIDC_CLIENT_ID="localhost-attributes"
 export OIDC_REALM="opentdf-realm"
 export OIDC_SCOPES="openid"
-export OIDC_SERVER_URL="https://keycloak.opentdf.us/auth/"
-export OIDC_AUTHORIZATION_URL="https://keycloak.opentdf.us/auth/realms/opentdf-realm/protocol/openid-connect/auth"
-export OIDC_TOKEN_URL="https://keycloak.opentdf.us/auth/realms/opentdf-realm/protocol/openid-connect/token"
-export OIDC_CONFIGURATION_URL="https://keycloak.opentdf.us/auth/realms/opentdf-realm/.well-known/openid-configuration"
+export OIDC_SERVER_URL="https://<<host>>/auth/"
+export OIDC_AUTHORIZATION_URL="https://<<host>>/auth/realms/opentdf-realm/protocol/openid-connect/auth"
+export OIDC_TOKEN_URL="https://<<host>>s/auth/realms/opentdf-realm/protocol/openid-connect/token"
+export OIDC_CONFIGURATION_URL="https://<<host>>/auth/realms/opentdf-realm/.well-known/openid-configuration"
 ```
 
 ### Start Server
@@ -74,4 +74,12 @@ helm upgrade --install attributes ./charts/attributes --debug
 ### ingress
 ```shell
 kubectl --filename=deployments/pki_local/nginx.ingress.yaml
+```
+
+### Troubleshooting
+
+Check connectivity, run shell in pod
+```shell
+apk add curl
+curl telnet://keycloak-http/auth/
 ```
