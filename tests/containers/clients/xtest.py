@@ -180,11 +180,14 @@ def main():
         logger.info("SERVICES TESTS:")
         failed += run_service_tests(service_test)
         logger.info("TDF3 TESTS:")
-        failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
+        failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file, attributes=None)
         logger.info("NANO TESTS:")
         failed += run_cli_tests(
             nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
         )
+        logger.info("TDF3 ATTRIBUTES TESTS:")
+        failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file,
+                                attributes=["https://opentdf.io/attr/IntellectualProperty/value/Proprietary"])
     finally:
         if not args.no_teardown:
             teardown()
@@ -204,15 +207,15 @@ def run_service_tests(service_test):
     return failed
 
 
-def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file):
-    logger.info("--- run_cli_tests %s => %s", sdks_encrypt, sdks_decrypt)
+def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file, attributes=None):
+    logger.info("--- run_cli_tests %s => %s with %s", sdks_encrypt, sdks_decrypt, attributes)
     failed = []
 
     serial = 0
     for x in sdks_encrypt:
         for y in sdks_decrypt:
             try:
-                test_cross_roundtrip(x, y, serial, pt_file)
+                test_cross_roundtrip(x, y, serial, pt_file, attributes)
             except Exception as e:
                 logger.error("Exception with pass %s => %s", x, y, exc_info=True)
                 failed += [f"{x}=>{y}"]
@@ -222,12 +225,13 @@ def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file):
 
 # Test a roundtrip across the two referenced sdks.
 # Returns True if test succeeded, false otherwise.
-def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
+def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file, attributes=None):
     logger.info(
-        "--- Begin Test #%s: Roundtrip encrypt(%s) --> decrypt(%s)",
+        "--- Begin Test #%s: Roundtrip encrypt(%s) --> decrypt(%s) with %s",
         serial,
         encrypt_sdk,
         decrypt_sdk,
+        attributes
     )
 
     # Generate plaintext and files
@@ -235,7 +239,7 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
 
     # Do the roundtrip.
     logger.info("Encrypt %s", encrypt_sdk)
-    encrypt_sdk(pt_file, ct_file)
+    encrypt_sdk(pt_file, ct_file, attributes)
     logger.info("Decrypt %s", decrypt_sdk)
     decrypt_sdk(ct_file, rt_file)
 
