@@ -43,7 +43,7 @@ jobs:
       - name: Render Templates
         run: |
           cd charts
-          for d in */ ; do
+          for d in * ; do
             if [[ $d == keycloak_bootstrap ]]; then
               echo "Rendering Helm chart to validate defaults..."
               helm template --set externalUrl=http://nowhere "$d"
