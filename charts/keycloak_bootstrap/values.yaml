@@ -8,7 +8,8 @@ image:
   # tag: main
   pullPolicy: Always
   pullSecret: virtru-regcred
-externalUrl: http://localhost:65432
+# URL of the abacus service. Used for redirect URIs, among others
+externalUrl:
 pki:
   directGrantEnable: "true"
   browserEnable: "true"

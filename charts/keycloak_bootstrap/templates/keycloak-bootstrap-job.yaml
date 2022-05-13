@@ -36,7 +36,7 @@ spec:
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ .Values.externalUrl }}
+              value: {{ required "Please define the abacus host URL for redirects" .Values.externalUrl }}
             - name: KEYCLOAK_INTERNAL_URL
               value: {{ .Values.keycloak.hostname }}
             - name: keycloak_admin_username
