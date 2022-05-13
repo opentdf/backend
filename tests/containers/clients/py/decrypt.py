@@ -29,7 +29,8 @@ def decrypt_file(
         str(nano),
     )
     client.enable_console_logging(LogLevel.Trace)
-
+    if isinstance(client, NanoTDFClient):
+        client.is_valid_nano_tdf_file(ct_file)
     client.decrypt_file(ct_file, rt_file)
     logger.info("Decrypting file ")
 

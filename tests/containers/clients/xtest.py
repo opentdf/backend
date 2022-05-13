@@ -239,7 +239,7 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file, attributes=N
 
     # Do the roundtrip.
     logger.info("Encrypt %s", encrypt_sdk)
-    encrypt_sdk(pt_file, ct_file, attributes)
+    encrypt_sdk(pt_file, ct_file, attributes=attributes)
     logger.info("Decrypt %s", decrypt_sdk)
     decrypt_sdk(ct_file, rt_file)
 

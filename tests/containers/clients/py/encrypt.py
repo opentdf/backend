@@ -35,7 +35,7 @@ def encrypt_file(
     client.enable_console_logging(LogLevel.Info)
 
     for attribute in attributes:
-        client.add_data_attribute(attribute)
+        client.add_data_attribute(attribute, kas)
 
     client.encrypt_file(pt_file, ct_file)
     logger.info("Encrypting with data attributes: %s", attributes)
