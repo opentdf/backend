@@ -7,8 +7,10 @@ image:
   # Chart.AppVersion will be used for image tag, override here if needed
   # tag: main
   pullPolicy: Always
-  pullSecret: virtru-regcred
-externalUrl: http://localhost:65432
+  # Used for imagePullSecret, if set
+  pullSecret:
+# URL of the abacus service. Used for redirect URIs, among others
+externalUrl:
 pki:
   directGrantEnable: "true"
   browserEnable: "true"

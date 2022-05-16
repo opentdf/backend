@@ -43,11 +43,18 @@ jobs:
       - name: Render Templates
         run: |
           cd charts
-          for d in */ ; do
-              if [ -f "$d/Chart.yaml" ]; then
-                echo "Rendering Helm chart $d to validate defaults..."
-                helm template "$d"
+          for d in * ; do
+            if [[ $d == keycloak_bootstrap ]]; then
+              echo "Rendering Helm chart to validate defaults..."
+              helm template --set externalUrl=http://nowhere "$d"
+              if helm template "$d"; then
+                echo "$d should fail with defaults, as it has a required parameter"
+                exit 1
               fi
+            elif [ -f "$d/Chart.yaml" ]; then
+              echo "Rendering Helm chart $d to validate defaults..."
+              helm template "$d"
+            fi
           done
 
   scriptcheck:

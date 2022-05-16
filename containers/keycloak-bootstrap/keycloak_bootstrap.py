@@ -381,7 +381,7 @@ def createTestClientForDCRAuth(keycloak_admin):
             "standardFlowEnabled": "true",
             "clientAuthenticatorType": "client-secret",
             "serviceAccountsEnabled": "true",
-            "baseUrl": f"{kc_internal_url}",
+            "baseUrl": f"{otdf_frontend_url}",
             "protocol": "openid-connect",
             "redirectUris": [f"{otdf_frontend_url}/*"],
             "webOrigins": ["+"],

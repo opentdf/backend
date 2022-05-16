@@ -57,7 +57,7 @@ groups = {
 resources = []
 
 # isCI comes from tests/integration/Tiltfile
-#isCI = os.environ.get("ALPINE_VERSION", False) Why?
+# isCI = os.environ.get("ALPINE_VERSION", False) Why?
 isCI = False
 isPKItest = False
 
@@ -201,7 +201,9 @@ if "opentdf-abacus" in to_edit:
 if "opentdf-abacus-client-web" in to_edit:
     OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
     # frontend folder should be next to backend
-    docker_build("opentdf/abacus", "../frontend", dockerfile = "../frontend/DockerfileTests")
+    docker_build(
+        "opentdf/abacus", "../frontend", dockerfile="../frontend/DockerfileTests"
+    )
 
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/python-base",
@@ -496,9 +498,9 @@ k8s_resource(
 if isPKItest:
     k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
     local_resource(
-    "pki-test",
-    "python3 tests/integration/pki-test/client_pki_test.py",
-    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"]
+        "pki-test",
+        "python3 tests/integration/pki-test/client_pki_test.py",
+        resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"],
     )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
