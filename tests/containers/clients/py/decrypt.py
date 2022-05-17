@@ -1,8 +1,5 @@
 import argparse
-import json
 import logging
-import os
-import sys
 
 from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
 
@@ -31,8 +28,9 @@ def decrypt_file(
         org_name,
         str(nano),
     )
-    client.enable_console_logging(LogLevel.Info)
-
+    client.enable_console_logging(LogLevel.Trace)
+    if isinstance(client, NanoTDFClient):
+        client.is_valid_nano_tdf_file(ct_file)
     client.decrypt_file(ct_file, rt_file)
     logger.info("Decrypting file ")
 

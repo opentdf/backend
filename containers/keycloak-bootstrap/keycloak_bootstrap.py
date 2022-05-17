@@ -290,6 +290,7 @@ def createTestClientTDFClient(keycloak_admin):
     logger.info("Created client %s", keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
 
 def createTestClientTDFAttributes(keycloak_admin):

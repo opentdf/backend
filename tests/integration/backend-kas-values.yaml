@@ -1,4 +1,4 @@
-logLevel: INFO
+logLevel: DEBUG
 endpoints:
   easHost: http://opentdf-attributes:4020
   oidcPubkeyEndpoint: http://keycloak-http
