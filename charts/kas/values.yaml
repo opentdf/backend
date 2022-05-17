@@ -112,7 +112,7 @@ endpoints:
   easHost: http://opentdf-attributes:4020
   statsdHost: opentdf-statsd
   # TODO replace this with a template var instead of a hardcode when Keycloak charts are merged into opentdf/backend.
-  oidcPubkeyEndpoint: http://opentdf-keycloak
+  oidcPubkeyEndpoint: http://keycloak-http
 
 # Adds a container livenessProbe, if set.
 livenessProbe:
