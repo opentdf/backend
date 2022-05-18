@@ -18,14 +18,16 @@ RUN python3 --version
 
 # test
 WORKDIR /wrk
-COPY ./tests/containers/clients /wrk
+COPY ./tests/containers/clients/package.json \
+ ./tests/containers/clients/package-lock.json \
+ ./tests/containers/clients/requirements.txt \
+ ./tests/containers/clients/opentdf-client-0.0.2.tgz \
+ ./tests/containers/clients/opentdf-cli-0.0.2.tgz \
+ /wrk/
 RUN npm install
-# Delete credentials from layer
-RUN rm /wrk/.npmrc
-
-COPY ./scripts /scripts
 RUN pip3 install --requirement /wrk/requirements.txt || true
-
+COPY ./scripts /scripts
+COPY ./tests/containers/clients /wrk
 ENV KAS_ENDPOINT http://host.docker.internal:65432/api/kas
 ENV OIDC_ENDPOINT http://host.docker.internal:65432
 
