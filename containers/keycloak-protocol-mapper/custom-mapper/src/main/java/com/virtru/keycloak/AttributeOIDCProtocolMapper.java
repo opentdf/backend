@@ -1,5 +1,6 @@
 package com.virtru.keycloak;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -62,20 +63,20 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         configProperties.get(configProperties.size()-1).setDefaultValue("http://www.virtru.com/tdf_claims");
 
         configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Attribute Provider URL",
-                "Full URL of the remote attribute provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
-                ProviderConfigProperty.STRING_TYPE, null));
+                                                        "Full URL of the remote attribute provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
+                                                        ProviderConfigProperty.STRING_TYPE, null));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_PARAMETERS, "Parameters",
-                "List of additional parameters to send separated by '&'. Separate parameter name and value by an equals sign '=', the value can contain equals signs (ex: scope=all&full=true).",
-                ProviderConfigProperty.STRING_TYPE, null));
+                                                        "List of additional parameters to send separated by '&'. Separate parameter name and value by an equals sign '=', the value can contain equals signs (ex: scope=all&full=true).",
+                                                        ProviderConfigProperty.STRING_TYPE, null));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_PARAMETERS, "Headers",
-                "List of headers to send separated by '&'. Separate header name and value by an equals sign '=', the value can contain equals signs (ex: Authorization=az89d).",
-                ProviderConfigProperty.STRING_TYPE, null));
+                                                        "List of headers to send separated by '&'. Separate header name and value by an equals sign '=', the value can contain equals signs (ex: Authorization=az89d).",
+                                                        ProviderConfigProperty.STRING_TYPE, null));
 
         configProperties.add(new ProviderConfigProperty(PUBLIC_KEY_HEADER, "Client Public Key Header Name",
-                "Header name containing tdf client public key",
-                ProviderConfigProperty.STRING_TYPE, "X-VirtruPubKey"));
+                                                        "Header name containing tdf client public key",
+                                                        ProviderConfigProperty.STRING_TYPE, "X-VirtruPubKey"));
 
     }
 
@@ -116,19 +117,29 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         //We will have to fix `dissems` to properly get rid of this hack.
         token.setSubject(userSession.getUser().getId());
         logger.info("Custom claims mapper triggered");
+
+        String clientPK = getClientPublicKey(mappingModel, keycloakSession);
         JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Fetch remote claims = " + (claims == null));
-        }
-        // If claims are not cached OR this is a userinfo request (which should always refresh claims from remote)
-        // then refresh claims.
-        if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
-            logger.debug("Getting remote authorizations");
-            claims = getRemoteAuthorizations(mappingModel, userSession, keycloakSession, clientSessionCtx, token);
-            clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
+        //If no PK in request, don't bother asking for claims - no authorization.
+        if (clientPK == null) {
+            logger.info("No public key in auth request, skipping remote auth call and returning empty claims");
+            claims = null;
         } else {
-            logger.debug("Looks like remote authorizations are already cached, not refreshing...");
-            logger.debug("Cached claims are: " + claims);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Fetch remote claims = " + (claims == null));
+            }
+
+            // If claims are not cached OR this is a userinfo request (which should always refresh claims from remote)
+            // then refresh claims.
+            if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
+                logger.debug("Getting remote authorizations");
+                JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, keycloakSession, clientSessionCtx, token);
+                claims = buildClaimsObject(entitlements, clientPK);
+                clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
+            } else {
+                logger.debug("Looks like remote authorizations are already cached, not refreshing...");
+                logger.debug("Cached claims are: " + claims);
+            }
         }
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
     }
@@ -197,17 +208,17 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         if (user.getServiceAccountClientLink() != null) {
             logger.debug("User: " + userSession.getLoginUsername() + " is a service account user, ignoring and using client ID in claims request");
             String clientInternalId = user.getServiceAccountClientLink();
-            formattedParameters.put("primaryEntityId", clientInternalId);
+            formattedParameters.put("primary_entity_id", clientInternalId);
 
             //This is dumb. If there's a terser and more efficient Java-y way to do this, feel free to fix.
             List<String> clientlist = new ArrayList<String>(Arrays.asList(clientIds));
             clientlist.remove(clientInternalId);
             clientIds = clientlist.toArray(new String[0]);
         } else {
-            formattedParameters.put("primaryEntityId", userSession.getUser().getId());
+            formattedParameters.put("primary_entity_id", userSession.getUser().getId());
         }
 
-        formattedParameters.put("secondaryEntityIds", clientIds);
+        formattedParameters.put("secondary_entity_ids", clientIds);
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always include full claimset
@@ -216,10 +227,45 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             claimReqType = "full_claims";
         }
 
-        formattedParameters.put(CLAIM_REQUEST_TYPE, claimReqType);
-
         return formattedParameters;
     }
+
+
+    private JsonNode buildClaimsObject(JsonNode entitlements, String clientPublicKey) {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode rootNode = mapper.createObjectNode();
+        JsonNode val = mapper.valueToTree(entitlements);
+        rootNode.set("entitlements", val);
+        rootNode.put("client_public_signing_key", clientPublicKey);
+        logger.debug("CLAIMSOBJ IS: " + rootNode.toPrettyString());
+        return rootNode;
+    }
+
+
+    private String getClientPublicKey(ProtocolMapperModel mappingModel, KeycloakSession keycloakSession) {
+
+        String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
+        String clientPK = null;
+        if (clientPKHeaderName != null) {
+            List<String> clientPKList = keycloakSession.getContext().getRequestHeaders().getRequestHeader(clientPKHeaderName);
+            clientPK = clientPKList == null || clientPKList.isEmpty() ? null : clientPKList.get(0);
+        }
+        if (clientPK != null) {
+            if (clientPK.startsWith("LS0")) {
+                byte[] decodedBytes = Base64.getDecoder().decode(clientPK);
+                clientPK = new String(decodedBytes);
+            }
+            logger.info("Client Cert: " + clientPK);
+        }
+        if (clientPK == null) {
+            logger.warn("No client cert presented in request, returning null");
+            //noop - return
+            return null;
+        }
+
+        return clientPK;
+    }
+
 
     /**
      * Query Attribute-Provider for user's attributes.
@@ -238,24 +284,27 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
     private JsonNode getRemoteAuthorizations(ProtocolMapperModel mappingModel, UserSessionModel userSession,
                                              KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx,
                                              IDToken token) {
-        String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
-        String clientPK = null;
-        if (clientPKHeaderName != null) {
-            List<String> clientPKList = keycloakSession.getContext().getRequestHeaders().getRequestHeader(clientPKHeaderName);
-            clientPK = clientPKList == null || clientPKList.isEmpty() ? null : clientPKList.get(0);
-        }
-        if (clientPK != null) {
-            if (clientPK.startsWith("LS0")) {
-                byte[] decodedBytes = Base64.getDecoder().decode(clientPK); 
-                clientPK = new String(decodedBytes);
-            }
-            logger.info("Client Cert: " + clientPK);
-        }
-        if (clientPK == null) {
-            logger.warn("No client cert for: [" + token.getSubject() + "] within [" + token + "]");
-            //noop - return
-            return null;
-        }
+
+// {
+//   "echo" : {
+//     "clientPublicSigningKey" : "12345",
+//     "primaryEntityId" : "1234-4567-8901",
+//     "claim_request_type" : "full_claims",
+//     "secondaryEntityIds" : [ "1234599998888" ],
+//     "algorithm" : "ec:secp256r1"
+//   }
+// }
+
+// {
+//   "entitlements" : {
+//     "echo" : {
+//       "primary_entity_id" : "1234-4567-8901",
+//       "secondary_entity_ids" : [ "1234599998888" ]
+//     }
+//   },
+//   "client_public_signing_key" : "12345"
+// }
+
         // Call remote service
         ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
         RegisterBuiltin.register(instance);
@@ -278,8 +327,8 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
             httpReq.setURI(uriBuilder.build());
             Map<String, Object> requestEntity = new HashMap<>();
-            requestEntity.put("algorithm", "ec:secp256r1");
-            requestEntity.put("clientPublicSigningKey", clientPK);
+            // requestEntity.put("algorithm", "ec:secp256r1");
+            // requestEntity.put("clientPublicSigningKey", clientPK);
 
             // Build parameters
             for (Map.Entry<String, Object> param : parameters.entrySet()) {
