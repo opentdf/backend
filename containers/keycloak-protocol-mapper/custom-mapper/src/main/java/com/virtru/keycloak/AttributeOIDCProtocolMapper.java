@@ -285,26 +285,6 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
                                              KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx,
                                              IDToken token) {
 
-// {
-//   "echo" : {
-//     "clientPublicSigningKey" : "12345",
-//     "primaryEntityId" : "1234-4567-8901",
-//     "claim_request_type" : "full_claims",
-//     "secondaryEntityIds" : [ "1234599998888" ],
-//     "algorithm" : "ec:secp256r1"
-//   }
-// }
-
-// {
-//   "entitlements" : {
-//     "echo" : {
-//       "primary_entity_id" : "1234-4567-8901",
-//       "secondary_entity_ids" : [ "1234599998888" ]
-//     }
-//   },
-//   "client_public_signing_key" : "12345"
-// }
-
         // Call remote service
         ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
         RegisterBuiltin.register(instance);
