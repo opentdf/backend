@@ -1,0 +1,38 @@
+# Tiltfile for development use Amazon EKS
+# https://docs.tilt.dev/api.html
+
+load('ext://helm_remote', 'helm_remote')
+load('ext://namespace', 'namespace_yaml')
+
+# settings
+settings = read_json('tilt_option.json', default={})
+default_registry(settings.get('default_registry', 'public.ecr.aws/l1j0c5i1'))
+
+# EKS cluster allowed
+allow_k8s_contexts('arn:aws:eks:us-west-2:318258757195:cluster/opentdf')
+
+# namespace
+k8s_yaml(namespace_yaml('ingress-nginx'))
+k8s_yaml(namespace_yaml('opentdf'))
+
+# helm remote resources
+# https://kubernetes.github.io/ingress-nginx/deploy/
+helm_remote('ingress-nginx', namespace='ingress-nginx', repo_url='https://kubernetes.github.io/ingress-nginx', values=['ingress-values.yaml'])
+helm_remote('postgresql', version="10.16.2", repo_url='https://charts.bitnami.com/bitnami', release_name='opentdf', namespace='opentdf', values=['tdf-postgresql-values.yaml'])
+helm_remote('statsd', repo_url='https://keyporttech.github.io/helm-charts', release_name='opentdf', namespace='opentdf')
+
+# builds
+update_settings(suppress_unused_image_warnings=["opentdf/python-base"])
+docker_build('opentdf/python-base', '../../containers/python_base')
+docker_build('opentdf/attributes', '../../containers', dockerfile = '../../containers/attributes/Dockerfile')
+docker_build('opentdf/entitlements', '../../containers', dockerfile = '../../containers/entitlements/Dockerfile')
+docker_build('opentdf/claims', '../../containers', dockerfile = '../../containers/claims/Dockerfile')
+
+
+# helm charts
+# usage https://docs.tilt.dev/helm.html#helm-options
+k8s_yaml(helm('../../helm', 'opentdf', namespace='opentdf', values=['values.yaml']))
+
+# port forward
+k8s_resource('opentdf-postgresql', port_forwards='15432')
+#k8s_resource('opentdf-claims', port_forwards='5000')

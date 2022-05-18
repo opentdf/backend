@@ -1,0 +1,12 @@
+global:
+  postgresql:
+    image:
+      repository: bitnami/postgresql
+      tag: 12.7.0
+    postgresqlUsername: postgres
+    postgresqlPassword: mydbapassword
+
+initdbUser: postgres
+initdbPassword: mydbapassword
+initdbScripts:
+  init.sql: CREATE DATABASE tdf_database;

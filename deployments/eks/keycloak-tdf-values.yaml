@@ -1,0 +1,30 @@
+image:
+  repository: opentdf/keycloak
+  tag: 16.1.0
+
+##  https://artifacthub.io/packages/helm/bitnami/keycloak
+auth:
+  createAdminUser: true
+  adminUser: keycloakadmin
+  adminPassword: mykeycloakpassword
+
+extraEnvVars:
+  - name: KEYCLOAK_LOG_LEVEL
+    value: DEBUG
+  - name: KEYCLOAK_USER
+    value: keycloakadmin
+  - name: KEYCLOAK_PASSWORD
+    value: mykeycloakpassword
+  - name: ATTRIBUTE_PROVIDER_URL
+    value: http://opentdf-attributes:4020/attributes
+  - name: KEYCLOAK_EXTRA_ARGS
+    value: "-Dkeycloak.frontendUrl=https://keycloak.opentdf.us/auth -Dkeycloak.adminUrl=https://keycloak.opentdf.us/auth"
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  path: /keycloak
+  hostname: opentdf.us
+# rewrite keycloak rule
+# services need to talk to the new host and path
