@@ -703,6 +703,33 @@ async def delete_attributes_definitions_crud(request):
     await database.execute(statement)
     return {}
 
+@app.delete(
+    "/definitions/attributes/{id}",
+    tags=["Attributes Definitions"],
+    status_code=ACCEPTED,
+    dependencies=[Depends(get_auth)],
+    responses={
+        202: {
+            "description": "No Content",
+            "content": {"application/json": {"example": {"detail": "Item deleted"}}},
+        }
+    },
+)
+async def delete_attributes_definitions_id(
+    definitionId: int = Path(
+        ...,
+        example= 101,
+    )
+):
+    return await delete_attributes_definitions_crud_id(definitionId)
+
+async def delete_attributes_definitions_crud_id(definitionId):
+    statement = table_attribute.delete().where(
+        table_attribute.c.id == definitionId
+    )
+    await database.execute(statement)
+    return {}
+
 
 #
 # Authorities

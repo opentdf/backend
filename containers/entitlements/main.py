@@ -694,6 +694,33 @@ async def remove_entitlement_from_entity_crud(entityId, request):
     )
     return {}
 
+@app.delete(
+    "/entitlements/id/{id}",
+    tags=["Entitlements"],
+    status_code=ACCEPTED,
+    responses={
+        202: {
+            "description": "No Content",
+            "content": {"application/json": {"example": {"detail": "Item deleted"}}},
+        }
+    },
+)
+async def remove_entitlement_id(
+    entitlementId: int = Path(
+        ...,
+        example=101,
+    ),
+    auth_token=Depends(get_auth),
+):
+  return await remove_entitlement_id_crud(entitlementId)
+
+async def remove_entitlement_id_crud(entitlementId):
+    statement = table_entity_attribute.delete().where(
+        table_entity_attribute.c.id == entitlementId
+    )
+    await database.execute(statement)
+    return {}
+
 
 if __name__ == "__main__":
     print(json.dumps(app.openapi()), file=sys.stdout)
