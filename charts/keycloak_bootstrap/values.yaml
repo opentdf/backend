@@ -6,7 +6,8 @@ image:
   repo: ghcr.io/opentdf/keycloak-bootstrap
   # Chart.AppVersion will be used for image tag, override here if needed
   # tag: main
-  pullPolicy: Always
+  # Defaults to IfNotPresent to skip lookup of newer versions.
+  pullPolicy: IfNotPresent
   # Used for imagePullSecret, if set
   pullSecret:
 # URL of the abacus service. Used for redirect URIs, among others
