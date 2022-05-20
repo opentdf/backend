@@ -13,6 +13,7 @@ COPY VERSION VERSION
 COPY bootstrap.py /project/bootstrap.py
 COPY keycloak_bootstrap.py /project/keycloak_bootstrap.py
 COPY entitlements_bootstrap.py /project/entitlements_bootstrap.py
+COPY attributes_bootstrap.py /project/attributes_bootstrap.py
 COPY requirements.txt /project/
 
 RUN pip install --upgrade pip && \
