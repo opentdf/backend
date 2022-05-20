@@ -44,7 +44,7 @@ attributes:
   #   name: number
   #   rule: anyOf
   #   state: published
-  #   order: 
+  #   order:
   #   - '00'
   #   - '01'
   #   - '02'
@@ -55,7 +55,7 @@ attributes:
   #   name: letter
   #   rule: allOf
   #   state: published
-  #   order: 
+  #   order:
   #   - A
   #   - B
   #   - C
