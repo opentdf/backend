@@ -10,7 +10,7 @@ image:
   # Used for imagePullSecret, if set
   pullSecret:
 # URL of the abacus service. Used for redirect URIs, among others
-externalUrl: 
+externalUrl:
 pki:
   directGrantEnable: "true"
   browserEnable: "true"
