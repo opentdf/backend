@@ -15,55 +15,49 @@ kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http")
 
 
 def createAttributes(keycloak_admin, attribute_host, preloaded_attributes, authToken):
+    loc = f"{attribute_host}/definitions/attributes"
+    get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"})
     for definition in preloaded_attributes:
-        loc = f"{attribute_host}/definitions/attributes"
-        logger.info(f"Adding attribute definition {definition}")
-        response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"})
-        if definition in response.json():
-            logger.info(f"Attribute definition {definition} already exists")
-            return
+        if definition not in get_response.json():
+            logger.info(f"Adding attribute definition {definition}")
+            logger.debug("Using auth JWT: [%s]", authToken)
 
-        logger.debug("Using auth JWT: [%s]", authToken)
-
-        response = requests.post(
-            loc,
-            json=definition,
-            headers={"Authorization": f"Bearer {authToken}"},
-        )
-        if response.status_code != 200:
-            logger.error(
-                "Unexpected code [%s] from attributes service when attempting to create attribute definition! [%s]",
-                response.status_code,
-                response.text,
-                exc_info=True,
+            response = requests.post(
+                loc,
+                json=definition,
+                headers={"Authorization": f"Bearer {authToken}"},
             )
-            exit(1)
+            if response.status_code != 200:
+                logger.error(
+                    "Unexpected code [%s] from attributes service when attempting to create attribute definition! [%s]",
+                    response.status_code,
+                    response.text,
+                    exc_info=True,
+                )
+                exit(1)
 
 
 def createAuthorities(keycloak_admin, attribute_host, preloaded_authorities, authToken):
-    for authority in preloaded_authorities:
-        loc = f"{attribute_host}/authorities"
-        logger.info(f"Adding authority {authority}")
-        response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"})
-        if authority in response.json():
-            logger.info(f"Authority {authority} already exists")
-            continue
-        
-        logger.debug("Using auth JWT: [%s]", authToken)
+   loc = f"{attribute_host}/authorities"
+   get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"})
+   for authority in preloaded_authorities:
+        if authority not in get_response.json():
+            logger.info(f"Adding authority {authority}")
+            logger.debug("Using auth JWT: [%s]", authToken)
 
-        response = requests.post(
-            loc,
-            json={"authority": authority},
-            headers={"Authorization": f"Bearer {authToken}"},
-        )
-        if response.status_code != 200:
-            logger.error(
-                "Unexpected code [%s] from attributes service when attempting to create authority! [%s]",
-                response.status_code,
-                response.text,
-                exc_info=True,
+            response = requests.post(
+                loc,
+                json={"authority": authority},
+                headers={"Authorization": f"Bearer {authToken}"},
             )
-            exit(1)
+            if response.status_code != 200:
+                logger.error(
+                    "Unexpected code [%s] from attributes service when attempting to create authority! [%s]",
+                    response.status_code,
+                    response.text,
+                    exc_info=True,
+                )
+                exit(1)
 
 
 def createPreloadedForRealm(keycloak_admin, target_realm, keycloak_auth_url, preloaded_authorities, preloaded_attributes):

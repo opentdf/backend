@@ -6,45 +6,41 @@ keycloak:
   clientId: tdf-client
   clientSecret: 123-456
   realm: tdf
-  preloadedClients: null
-    # - clientId: test-client-1
-    #   clientSecret: test-client-secret
-    # - clientId: test-client-2
-    #   clientSecret: 123-456-789
-  preloadedUsers: null
-    # - username: user3
-    #   password: testuser1234
-    # - username: user4
-    #   password: testuser12345
+  preloadedClients:
+    - clientId: test-client-1
+      clientSecret: 123-456-789
+    - clientId: test-client-2
+      clientSecret: 123-456-789
+  preloadedUsers:
+    - username: user3
+      password: testuser123
+    - username: user4
+      password: testuser123
 
 attributes:
   hostname: http://opentdf-attributes:4020
-  preloadedAuthorities: null
-    # - http://example.fun
-    # - http://testing123.fun
-  preloadedAttributes: null
-  # - authority: http://example.fun
-  #   name: number
-  #   rule: anyOf
-  #   state: published
-  #   order: 
-  #   - '00'
-  #   - '01'
-  #   - '02'
-  #   - '03'
-  #   - '04'
-  #   - '05'
-  # - authority: http://testing123.fun
-  #   name: letter
-  #   rule: allOf
-  #   state: published
-  #   order: 
-  #   - A
-  #   - B
-  #   - C
-  #   - D
+  preloadedAuthorities:
+    - http://testing123.fun
+  preloadedAttributes:
+  - authority: http://testing123.fun
+    name: Color
+    rule: anyOf
+    state: published
+    order: 
+    - blue
+    - red
+    - green
+    - yellow
+  - authority: http://testing123.fun
+    name: Language
+    rule: allOf
+    state: published
+    order: 
+    - french
+    - english
+    - spanish
+    - portuguese
        
-
 entitlements:
   hostname: http://opentdf-entitlements:4030
   clientId: dcr-test
@@ -80,9 +76,12 @@ entitlements:
     user1:
       - https://example.com/attr/Classification/value/S
       - https://example.com/attr/COI/value/PRX
-    # test-client-1:
-    #   - http://example.fun/attr/number/value/01
-    #   - http://testing123.fun/attr/letter/value/B
+    test-client-1:
+      - http://testing123.fun/attr/Language/value/french
+      - http://testing123.fun/attr/Color/value/green
+    test-client-2:
+      - http://testing123.fun/attr/Language/value/spanish
+      - http://testing123.fun/attr/Color/value/green
 
 externalUrl: http://localhost:65432
 
