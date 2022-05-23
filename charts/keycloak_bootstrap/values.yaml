@@ -23,9 +23,43 @@ keycloak:
   realm: tdf
   passwordUsers: testuser@virtru.com,user1,user2
   npeClients: null
+  preloadedClients: null
+    # - clientId: test-client-1
+    #   clientSecret: test-client-secret
+    # - clientId: test-client-2
+    #   clientSecret: 123-456-789
+  preloadedUsers: null
+    # - username: user3
+    #   password: testuser1234
+    # - username: user4
+    #   password: testuser12345
 istioTerminationHack: false
 attributes:
   hostname: http://opentdf-attribute
+  preloadedAuthorities: null
+    # - http://example.fun
+    # - http://testing123.fun
+  preloadedAttributes: null
+  # - authority: http://example.fun
+  #   name: number
+  #   rule: anyOf
+  #   state: published
+  #   order:
+  #   - '00'
+  #   - '01'
+  #   - '02'
+  #   - '03'
+  #   - '04'
+  #   - '05'
+  # - authority: http://testing123.fun
+  #   name: letter
+  #   rule: allOf
+  #   state: published
+  #   order:
+  #   - A
+  #   - B
+  #   - C
+  #   - D
 entitlements:
   hostname: http://opentdf-entitlements
   clientId: dcr-test
