@@ -122,7 +122,7 @@ def entitlements_bootstrap():
         with open("/etc/virtru-config/entitlements.yaml") as f:
             entity_attrmap = yaml.safe_load(f)
     except FileNotFoundError:
-        logger.warning("No entitlements.yaml found", exc_info=1)
+        logger.warning("Not found: /etc/virtru-config/entitlements.yaml", exc_info=1)
 
     insertEntitlementAttrsForRealm(
         keycloak_admin_tdf, "tdf", keycloak_auth_url, entity_attrmap

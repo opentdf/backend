@@ -110,14 +110,14 @@ def attributes_bootstrap():
         with open("/etc/virtru-config/authorities.yaml") as f:
             preloaded_authorities = yaml.safe_load(f)
     except FileNotFoundError:
-        logger.warning("No authorities.yaml found", exc_info=1)
+        logger.warning("Not found: /etc/virtru-config/authorities.yaml", exc_info=1)
 
     # Preloaded authorities
     try:
         with open("/etc/virtru-config/attributes.yaml") as f:
             preloaded_attributes = yaml.safe_load(f)
     except FileNotFoundError:
-        logger.warning("No attributes.yaml found", exc_info=1)
+        logger.warning("Not found: /etc/virtru-config/attributes.yaml", exc_info=1)
 
     #TDF
     createPreloadedForRealm(
