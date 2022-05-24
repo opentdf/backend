@@ -112,7 +112,7 @@ def attributes_bootstrap():
     except FileNotFoundError:
         logger.warning("Not found: /etc/virtru-config/authorities.yaml", exc_info=1)
 
-    # Preloaded authorities
+    # Preloaded attributes
     try:
         with open("/etc/virtru-config/attributes.yaml") as f:
             preloaded_attributes = yaml.safe_load(f)
