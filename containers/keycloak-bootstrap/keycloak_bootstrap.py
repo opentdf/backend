@@ -772,6 +772,7 @@ def kc_bootstrap():
             preloaded_clients = yaml.safe_load(f)
     except FileNotFoundError:
         logger.warning("Not found: /etc/virtru-config/clients.yaml", exc_info=1)
+        preloaded_clients = None
 
     # Contains a list of usernames and passwords we want to preload
     try:
@@ -779,6 +780,7 @@ def kc_bootstrap():
             preloaded_users = yaml.safe_load(f)
     except FileNotFoundError:
         logger.warning("Not found: /etc/virtru-config/users.yaml", exc_info=1)
+        preloaded_users = None
 
     updateMasterRealm(username, password, keycloak_auth_url)
     createTDFRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)

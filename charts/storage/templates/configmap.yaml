@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "storage.name" . }}-cm
 data:
-  AWS_DEFAULT_REGION: {{ .Values.s3BucketRegion }}
-  BUCKET: {{ .Values.s3Bucket }}
-  CORS_ORIGINS: {{ .Values.corsOrigins }}
-  SERVER_LOG_LEVEL: {{ .Values.logLevel }}
+  AWS_DEFAULT_REGION: {{ .Values.s3BucketRegion | quote }}
+  BUCKET: {{ .Values.s3Bucket | quote }}
+  CORS_ORIGINS: {{ .Values.corsOrigins | quote }}
+  SERVER_LOG_LEVEL: {{ .Values.logLevel | quote }}
