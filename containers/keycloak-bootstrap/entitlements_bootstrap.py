@@ -118,8 +118,11 @@ def entitlements_bootstrap():
 
     # Contains a map of `entities` to attributes we want to preload
     # Entities can be clients or users, doesn't matter
-    with open("/etc/virtru-config/entitlements.yaml") as f:
-        entity_attrmap = yaml.safe_load(f)
+    try:
+        with open("/etc/virtru-config/entitlements.yaml") as f:
+            entity_attrmap = yaml.safe_load(f)
+    except FileNotFoundError:
+        logger.warning("Not found: /etc/virtru-config/entitlements.yaml", exc_info=1)
 
     insertEntitlementAttrsForRealm(
         keycloak_admin_tdf, "tdf", keycloak_auth_url, entity_attrmap
