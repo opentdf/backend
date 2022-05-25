@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: {{ include "claims.name" . }}-cm
 data:
-  POSTGRES_DATABASE: {{ .Values.postgres.database }}
-  POSTGRES_HOST: {{ .Values.postgres.host }}
-  POSTGRES_SCHEMA: {{ .Values.postgres.schema }}
-  POSTGRES_USER: {{ .Values.postgres.user }}
-  SERVER_LOG_LEVEL: {{ .Values.logLevel }}
+  POSTGRES_DATABASE: {{ .Values.postgres.database | quote }}
+  POSTGRES_HOST: {{ .Values.postgres.host | quote }}
+  POSTGRES_SCHEMA: {{ .Values.postgres.schema | quote }}
+  POSTGRES_USER: {{ .Values.postgres.user | quote }}
+  SERVER_LOG_LEVEL: {{ .Values.logLevel | quote }}
