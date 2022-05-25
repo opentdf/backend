@@ -480,6 +480,7 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
 async def read_attributes_definitions(
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
+    rule: Optional[str] = None,
     order: Optional[str] = None,
     sort: Optional[str] = Query(
         "",
@@ -499,6 +500,8 @@ async def read_attributes_definitions(
         filter_args["name"] = name
     if order:
         filter_args["values_array"] = order
+    if rule:
+        filter_args["rule"] = rule
 
     sort_args = sort.split(",") if sort else []
 
