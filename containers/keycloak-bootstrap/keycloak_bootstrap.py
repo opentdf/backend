@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import yaml
 from keycloak import KeycloakAdmin
 
 URL_ADMIN_AUTHENTICATOR_EXECUTION_CONFIG = (
@@ -35,6 +36,29 @@ def check_matched(pattern, allData):
     if filtered_item is not None:
         return filtered_item
     return []
+
+def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
+    for item in preloaded_users:
+        try:
+            new_user = keycloak_admin.create_user(
+                {
+                    "username": item["username"],
+                    "enabled": True,
+                    "credentials": [
+                        {
+                            "value": item["password"],
+                            "type": "password",
+                        }
+                    ],
+                }
+            )
+            logger.info("Created new passworded user %s", new_user)
+
+            # Add Abacus-related roles to user
+            assignViewRolesToUser(keycloak_admin, new_user)
+        except Exception as e:
+            logger.warning("Could not create passworded user %s!", item["username"])
+            logger.warning(str(e))
 
 
 def createUsersInRealm(keycloak_admin):
@@ -290,6 +314,31 @@ def createTestClientTDFClient(keycloak_admin):
     logger.info("Created client %s", keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
+
+def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clients):
+    for item in preloaded_clients:
+        logger.debug("Creating preloaded client %s configured for clientcreds flow", item["clientId"])
+        keycloak_admin.create_client(
+            payload={
+                "clientId": item["clientId"],
+                "directAccessGrantsEnabled": "true",
+                "clientAuthenticatorType": "client-secret",
+                "secret": item["clientSecret"],
+                "serviceAccountsEnabled": "true",
+                "publicClient": "false",
+                "redirectUris": [keycloak_auth_url + "admin/" + item["clientId"] + "/console"],
+                "attributes": {
+                    "user.info.response.signature.alg": "RS256"
+                },  # Needed to make UserInfo return signed JWT
+            },
+            skip_exists=True,
+        )
+
+        keycloak_client_id = keycloak_admin.get_client_id(item["clientId"])
+        logger.info("Created client %s", keycloak_client_id)
+
+        addVirtruMappers(keycloak_admin, keycloak_client_id)
 
 
 def createTestClientTDFAttributes(keycloak_admin):
@@ -565,7 +614,7 @@ def updateMasterRealm(kc_admin_user, kc_admin_pass, kc_url):
     createTestClientForAbacusWebAuth(keycloak_admin)
 
 
-def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url):
+def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, preloaded_users):
     realm_name = "tdf"
 
     logger.debug("Login admin %s %s", kc_url, kc_admin_user)
@@ -622,10 +671,18 @@ def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url):
 
     createTestClientForAbacusWebAuth(keycloak_admin)
 
+    #create preloaded clients
+    if preloaded_clients is not None:
+        createPreloadedTDFClients(keycloak_admin, kc_url, preloaded_clients)
+
     createUsersInRealm(keycloak_admin)
 
+    #create preloaded users
+    if preloaded_users is not None:
+        createPreloadedUsersInRealm(keycloak_admin, preloaded_users)
 
-def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
+
+def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, preloaded_users):
     # BEGIN PKI
     realm_name = "tdf-pki"
 
@@ -690,7 +747,15 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url):
 
     createTestClientForX509Flow(keycloak_admin)
 
+    #create preloaded clients
+    if preloaded_clients is not None:
+        createPreloadedTDFClients(keycloak_admin, kc_url, preloaded_clients)
+
     createUsersInRealm(keycloak_admin)
+
+    #create preloaded users
+    if preloaded_users is not None:
+        createPreloadedUsersInRealm(keycloak_admin, preloaded_users)    
 
     # END PKI
 
@@ -701,11 +766,27 @@ def kc_bootstrap():
 
     keycloak_auth_url = kc_internal_url + "/auth/"
 
+    # Contains a list of clientIds and clientSecrets we want to preload
+    try:
+        with open("/etc/virtru-config/clients.yaml") as f:
+            preloaded_clients = yaml.safe_load(f)
+    except FileNotFoundError:
+        logger.warning("Not found: /etc/virtru-config/clients.yaml", exc_info=1)
+        preloaded_clients = None
+
+    # Contains a list of usernames and passwords we want to preload
+    try:
+        with open("/etc/virtru-config/users.yaml") as f:
+            preloaded_users = yaml.safe_load(f)
+    except FileNotFoundError:
+        logger.warning("Not found: /etc/virtru-config/users.yaml", exc_info=1)
+        preloaded_users = None
+
     updateMasterRealm(username, password, keycloak_auth_url)
-    createTDFRealm(username, password, keycloak_auth_url)
+    createTDFRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
 
     # If either browser PKI or direct grant PKI configured, create PKI realm
     if ((pki_browser == "true") or (pki_direct == "true")):
-        createTDFPKIRealm(username, password, keycloak_auth_url)
+        createTDFPKIRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
 
     return True  # It is pointless to return True here, as we arent' checking the return values of the previous calls (and don't really need to)

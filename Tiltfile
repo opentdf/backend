@@ -471,7 +471,7 @@ k8s_resource(
     links=[link("localhost:65432/auth", "Keycloak admin console")],
 )
 
-k8s_resource("keycloak-bootstrap", resource_deps=["keycloak", "opentdf-entitlements"])
+k8s_resource("keycloak-bootstrap", resource_deps=["keycloak", "opentdf-entitlements", "opentdf-attributes"])
 
 #    db    db d888888b d88888b .d8888. d888888b
 #    `8b  d8' `~~88~~' 88'     88'  YP `~~88~~'

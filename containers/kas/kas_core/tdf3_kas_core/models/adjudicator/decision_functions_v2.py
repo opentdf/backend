@@ -17,12 +17,17 @@ def all_of_decision(data_values, entity_claims):
         for entity_id, entity_attributes in entity_claims.entity_attributes.items():
             ent_attr_cluster = entity_attributes.cluster(dv.namespace)
             if ent_attr_cluster is None:
-                logger.debug(f"All-of criteria NOT satisfied for entity: {entity_id} - lacked attribute")
+                logger.debug(
+                    f"All-of criteria NOT satisfied for entity: {entity_id} - lacked attribute"
+                )
                 raise AuthorizationError("AllOf not satisfied")
             if not data_values <= ent_attr_cluster.values:
-                logger.debug(f"All-of criteria NOT satisfied for entity: {entity_id} - wrong attribute value")
+                logger.debug(
+                    f"All-of criteria NOT satisfied for entity: {entity_id} - wrong attribute value"
+                )
                 raise AuthorizationError("AllOf not satisfied")
     return True
+
 
 def any_of_decision(data_values, entity_claims):
     """Test any_of type attributes."""
@@ -31,22 +36,29 @@ def any_of_decision(data_values, entity_claims):
     for dv in data_values:
         found_dv_match = False
         logger.debug("DV attrib: %s", dv.attribute)
-        for entity_id, entity_attributes in entity_claims.enntity_attributes.items():
+        for entity_id, entity_attributes in entity_claims.entity_attributes.items():
             ent_attr_cluster = entity_attributes.cluster(dv.namespace)
 
             if ent_attr_cluster is None:
-                logger.debug(f"Any-of criteria not satisfied for attr: {dv.attribute} on entity: {entity_id} - keep looking")
+                logger.debug(
+                    f"Any-of criteria not satisfied for attr: {dv.attribute} on entity: {entity_id} - keep looking"
+                )
             else:
                 intersect = data_values & ent_attr_cluster.values
                 if len(data_values) == 0 or len(intersect) > 0:
-                    logger.debug(f"Any-of criteria satisfied for attr: {dv.attribute} on entity: {entity_id}")
+                    logger.debug(
+                        f"Any-of criteria satisfied for attr: {dv.attribute} on entity: {entity_id}"
+                    )
                     found_dv_match = True
 
         if not found_dv_match:
-            logger.debug(f"Any-of criteria not satisfied - no entity in claims entitled with {dv.attribute}")
+            logger.debug(
+                f"Any-of criteria not satisfied - no entity in claims entitled with {dv.attribute}"
+            )
             raise AuthorizationError("AnyOf not satisfied")
         else:
             return True
+
 
 def hierarchy_decision(data_values, entity_claims, order):
     """Test hierarchy decision function."""
@@ -63,8 +75,8 @@ def hierarchy_decision(data_values, entity_claims, order):
 
     merged_entity_attr_values = set()
 
-    #Mush all the entity attr values for this namespace into a single set,
-    #then calc order on least-significant one
+    # Mush all the entity attr values for this namespace into a single set,
+    # then calc order on least-significant one
     for entity_id, entity_attributes in entity_claims.entity_attributes.items():
         # Get entity attrib key that == data attrib key
         ent_attr_cluster = entity_attributes.cluster(data_value.namespace)
@@ -76,8 +88,11 @@ def hierarchy_decision(data_values, entity_claims, order):
             merged_entity_attr_values.add(None)
         else:
             merged_entity_attr_values.update(ent_attr_cluster.values)
-        logger.debug("Attribute entity values for entity {} = {}".format(entity_id, merged_entity_attr_values))
-
+        logger.debug(
+            "Attribute entity values for entity {} = {}".format(
+                entity_id, merged_entity_attr_values
+            )
+        )
 
     # Compute the rank of the entity attr value against the rank of the data value
     # While we only ever compare against a single value, we may have several
@@ -85,7 +100,9 @@ def hierarchy_decision(data_values, entity_claims, order):
     least_ent_rank = 0
     for val in merged_entity_attr_values:
         if val is None or val.value not in order:
-            raise AuthorizationError("Hierarchy - entity missing hierarchy value, which is an automatic hierarchy failure")
+            raise AuthorizationError(
+                "Hierarchy - entity missing hierarchy value, which is an automatic hierarchy failure"
+            )
         value_rank = order.index(val.value)
         print(f"VAL IS {value_rank} AND LEAST IS {least_ent_rank}")
         if value_rank >= least_ent_rank:

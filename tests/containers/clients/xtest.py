@@ -17,14 +17,16 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 tmp_dir = "tmp/"
 
-SDK_PATHS = {"py_encrypt": "py/encrypt.py", "py_decrypt": "py/decrypt.py"}
+SDK_PATHS = {"py_service": "py/service.py", "py_encrypt": "py/encrypt.py", "py_decrypt": "py/decrypt.py"}
 
 KAS_ENDPOINT = os.getenv("KAS_ENDPOINT", "http://host.docker.internal:65432/kas")
+ATTRIBUTES_ENDPOINT = os.getenv("ATTRIBUTES_ENDPOINT", "http://opentdf-attributes:4020")
 OIDC_ENDPOINT = os.getenv("OIDC_ENDPOINT", "http://host.docker.internal:65432/keycloak")
 ORGANIZATION_NAME = "tdf"
 CLIENT_ID = "tdf-client"
 CLIENT_SECRET = "123-456"
-
+ATTRIBUTES_CLIENT_ID = "tdf-client"
+ATTRIBUTES_CLIENT_SECRET = "123-456"
 
 def encrypt_web(ct_file, rt_file, attributes=None):
     c = [
@@ -75,6 +77,21 @@ def encrypt_py_nano(ct_file, rt_file, attributes=None):
 
 def decrypt_py_nano(ct_file, rt_file):
     decrypt_py(ct_file, rt_file, nano=True)
+
+
+def service_py():
+    c = [
+        "python3",
+        SDK_PATHS["py_service"],
+        "--attributesEndpoint",
+        ATTRIBUTES_ENDPOINT,
+        "--oidcEndpoint",
+        OIDC_ENDPOINT,
+        "--auth",
+        f"{ORGANIZATION_NAME}:{ATTRIBUTES_CLIENT_ID}:{ATTRIBUTES_CLIENT_SECRET}",
+    ]
+    logger.info("Invoking subprocess: %s", " ".join(c))
+    subprocess.check_call(c)
 
 
 def encrypt_py(pt_file, ct_file, nano=False, attributes=None):
@@ -134,7 +151,7 @@ def teardown():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cross-test various TDF libraries.")
+    parser = argparse.ArgumentParser(description="Cross-test various TDF libraries and services.")
     parser.add_argument(
         "--large",
         help="Use a 5 GiB File; doesn't work with nano sdks",
@@ -144,6 +161,8 @@ def main():
         "--no-teardown", action="store_true", help="don't delete temp files"
     )
     args = parser.parse_args()
+
+    service_test = set([service_py])
 
     tdf3_sdks_to_encrypt = set([encrypt_py])
     tdf3_sdks_to_decrypt = set([decrypt_py])
@@ -158,6 +177,8 @@ def main():
     nano_pt_file = pt_file if not args.large else gen_pt(large=False)
     failed = []
     try:
+        logger.info("SERVICES TESTS:")
+        failed += run_service_tests(service_test)
         logger.info("TDF3 TESTS:")
         failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
         logger.info("NANO TESTS:")
@@ -169,6 +190,18 @@ def main():
             teardown()
     if failed:
         raise Exception(f"tests {failed} FAILED. See output for details.")
+
+
+def run_service_tests(service_test):
+    logger.info("--- run_service_tests %s", service_test)
+    failed = []
+    for x in service_test:
+        try:
+            x()
+        except Exception as e:
+            logger.error("Exception with pass %s", x, exc_info=True)
+            failed += [f"{x}"]
+    return failed
 
 
 def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file):
@@ -210,7 +243,7 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
     if not filecmp.cmp(pt_file, rt_file):
         raise Exception(
             "Test #%s: FAILED due to rt mismatch\n\texpected: %s\n\tactual: %s)"
-            % (serial, pt, rt)
+            % (serial, pt_file, rt_file)
         )
     logger.info("Test #%s, (%s->%s): Succeeded!", serial, encrypt_sdk, decrypt_sdk)
 
