@@ -296,6 +296,24 @@ helm_remote(
     values=[keycloak_helm_values],
 )
 
+# Working
+# k8s_yaml(
+#     helm(
+#         "../frontend/charts/abacus",
+#         "opentdf-abacus",
+#         values=["../frontend/charts/abacus/values.yaml"],
+#     )
+# )
+
+# WIP
+helm_remote(
+    "opentdf-abacus",
+    repo_url="https://ghcr.io/opentdf/charts/opentdf-abacus",
+    release_name="opentdf",
+    version="10.16.2",
+    values=[postgres_helm_values],
+)
+
 helm_remote(
     "postgresql",
     repo_url="https://charts.bitnami.com/bitnami",
@@ -393,7 +411,7 @@ k8s_yaml(
     )
 )
 k8s_yaml("tests/integration/ingress-class.yaml")
-k8s_yaml(OPENTDF_ABACUS_YML)
+# k8s_yaml(OPENTDF_ABACUS_YML)
 
 # TODO this service requires actual S3 secrets
 # TODO or use https://github.com/localstack/localstack
