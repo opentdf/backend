@@ -113,8 +113,8 @@ services:
       - attributes
       - eas
     environment:
-      - EAS_HOST=http://attributes:4020
-      - EAS_CERTIFICATE
+      - ATTR_AUTHORITY_HOST=http://attributes:4020
+      - ATTR_AUTHORITY_CERTIFICATE
       - FLASK_DEBUG=True
       - FLASK_TESTING=True
       - JSON_LOGGER=False

@@ -26,13 +26,6 @@ spec:
     - host: opentdf.local
       http:
         paths:
-          - path: /eas/(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: eas
-                port:
-                  name: http
           - path: /kas/(.*)
             pathType: ImplementationSpecific
             backend:
