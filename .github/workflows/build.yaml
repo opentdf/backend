@@ -12,16 +12,12 @@ on:
 jobs:
   config:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/helmpack/chart-testing:latest
     outputs:
       KEYCLOAK_BASE_VERSION: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
       KEYCLOAK_OTDF_VERSION: ${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
       - name: Select keycloak base version
         run: echo '::set-output name=KEYCLOAK_BASE_VERSION::'$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)
         id: keycloak-base-version
