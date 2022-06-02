@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/part-of: kas
 data:
-  EAS_HOST: {{ .Values.endpoints.easHost | quote  }}
+  ATTR_AUTHORITY_HOST: {{ coalesce .Values.endpoints.attrHost .Values.endpoints.easHost | quote  }}
   FLASK_DEBUG: {{ .Values.flaskDebug | quote }}
   GUNICORN_WORKERS: {{ .Values.gunicornWorkers | default 1 | quote }}
   KEYCLOAK_HOST: {{ .Values.endpoints.oidcPubkeyEndpoint | quote }}

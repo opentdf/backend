@@ -91,7 +91,7 @@ all_secrets = {
     v: from_dotenv("./certs/.env", v)
     for v in [
         "CA_CERTIFICATE",
-        "EAS_CERTIFICATE",
+        "ATTR_AUTHORITY_CERTIFICATE",
         "KAS_CERTIFICATE",
         "KAS_EC_SECP256R1_CERTIFICATE",
         "KAS_EC_SECP256R1_PRIVATE_KEY",
@@ -124,7 +124,7 @@ if isCI:
         secret_from_dict(
             "kas-secrets",
             inputs=only_secrets_named(
-                "EAS_CERTIFICATE",
+                "ATTR_AUTHORITY_CERTIFICATE",
                 "KAS_EC_SECP256R1_CERTIFICATE",
                 "KAS_CERTIFICATE",
                 "KAS_EC_SECP256R1_PRIVATE_KEY",
@@ -143,7 +143,7 @@ if isCI:
             "claims-secrets",
             inputs=only_secrets_named(
                 "POSTGRES_PASSWORD",
-                "EAS_CERTIFICATE",
+                "ATTR_AUTHORITY_CERTIFICATE",
                 "KAS_EC_SECP256R1_CERTIFICATE",
                 "KAS_CERTIFICATE",
             ),
@@ -163,7 +163,7 @@ else:
         secret_from_dict(
             "all-the-kas-secrets",
             inputs=only_secrets_named(
-                "EAS_CERTIFICATE",
+                "ATTR_AUTHORITY_CERTIFICATE",
                 "KAS_EC_SECP256R1_CERTIFICATE",
                 "KAS_CERTIFICATE",
                 "KAS_EC_SECP256R1_PRIVATE_KEY",

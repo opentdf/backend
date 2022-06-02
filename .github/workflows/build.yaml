@@ -12,16 +12,12 @@ on:
 jobs:
   config:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/helmpack/chart-testing:latest
     outputs:
       KEYCLOAK_BASE_VERSION: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
       KEYCLOAK_OTDF_VERSION: ${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
       - name: Select keycloak base version
         run: echo '::set-output name=KEYCLOAK_BASE_VERSION::'$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)
         id: keycloak-base-version
@@ -35,9 +31,15 @@ jobs:
       image: quay.io/helmpack/chart-testing:latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - run: >-
+          git version && ( git remote -v | grep backend.git ) || (
+            git config --global --add safe.directory /__w/backend/backend ||
+              git remote add origin https://github.com/opentdf/backend.git ||
+              git remote set-url origin https://github.com/opentdf/backend.git
+          ) || echo not configurable
       - name: Lint
         run: ct lint --target-branch main --all charts/
       - name: Render Templates
@@ -61,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: 🦪 ✔ 🧼🧼🧼
         run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "koalaman/shellcheck:v0.8.0" --color=always scripts/*
       - name: 🦪 ✅ 🦇🦇🦇
@@ -74,7 +76,7 @@ jobs:
       - scriptcheck
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: "🐍 🧪"
@@ -92,7 +94,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout working branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
@@ -116,7 +118,7 @@ jobs:
       - pytest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
         with:
           setup-tools: |
@@ -170,7 +172,7 @@ jobs:
       contents: read
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
         with:
           setup-tools: helm
@@ -213,7 +215,7 @@ jobs:
       packages: write
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Docker meta
@@ -269,7 +271,7 @@ jobs:
           - keycloak-bootstrap
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
@@ -317,7 +319,7 @@ jobs:
           - attributes
           - entitlements
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
@@ -365,7 +367,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout upstream Keycloak image repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: 'keycloak/keycloak-containers'
           ref: ${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
@@ -409,7 +411,7 @@ jobs:
       packages: write
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
