@@ -22,6 +22,8 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
     def __init__(self, attribute_host):
         """Initialize the plugin."""
         self._host = attribute_host
+        self._headers = {"Content-Type": "application/json"}
+        self._timeout = 10  # in seconds
 
     def fetch_attributes(self, namespaces):
         """Fetch attribute definitions from authority for KAS to make rewrap decision."""
@@ -32,26 +34,23 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
         client_cert_path = os.environ.get("CLIENT_CERT_PATH")
         client_key_path = os.environ.get("CLIENT_KEY_PATH")
 
-        headers = {"Content-Type": "application/json", },
-        timeout = 10  # in seconds
-
         try:
             if client_cert_path and client_key_path:
                 logger.debug("Using cert auth for url:%s", uri)
                 resp = requests.post(
                     uri,
-                    headers,
+                    headers=self._headers,
                     data=json.dumps(namespaces),
-                    timeout=timeout,
+                    timeout=self._timeout,
                     cert=(client_cert_path, client_key_path),
                     verify=ca_cert_path,
                 )
             else:
                 resp = requests.post(
                     uri,
-                    headers,
+                    headers=self._headers,
                     data=json.dumps(namespaces),
-                    timeout=timeout,
+                    timeout=self._timeout,
                     verify=ca_cert_path,
                 )
         except (
@@ -96,7 +95,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
                 resp = requests.get(
                     uri,
                     headers=self._headers,
-                    timeout=self._requests_timeout,
+                    timeout=self._timeout,
                     cert=(client_cert_path, client_key_path),
                     verify=ca_cert_path,
                 )
@@ -104,7 +103,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
                 resp = requests.get(
                     uri,
                     headers=self._headers,
-                    timeout=self._requests_timeout,
+                    timeout=self._timeout,
                     verify=ca_cert_path,
                 )
 
