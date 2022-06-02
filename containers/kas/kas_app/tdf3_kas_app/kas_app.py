@@ -9,7 +9,7 @@ from importlib.metadata import PackageNotFoundError
 from tdf3_kas_core import Kas
 from tdf3_kas_core.server_timing import Timing
 
-from .plugins import eas_rewrap_plugin, revocation_plugin
+from .plugins import opentdf_attr_authority_plugin, revocation_plugin
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ def app(name):
         logger.error("OTDF attribute host is not configured correctly.")
 
     logger.info("ATTR_AUTHORITY_HOST = [%s]", attr_host)
-    otdf_attr_backend = eas_rewrap_plugin.OpenTDFAttrAuthorityPlugin(attr_host)
+    otdf_attr_backend = opentdf_attr_authority_plugin.OpenTDFAttrAuthorityPlugin(attr_host)
     kas.use_healthz_plugin(otdf_attr_backend)
     kas.use_rewrap_plugin_v2(otdf_attr_backend)
 
