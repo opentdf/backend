@@ -1,0 +1,1 @@
+{"schemaVersion":2,"manifests":[{"mediaType":"application/vnd.oci.image.manifest.v1+json","digest":"sha256:5a0126502291b503a602263c1b0d3db478dea473b84c7b0289abdfe4a3c88ed2","size":559,"annotations":{"org.opencontainers.image.ref.name":"ghcr.io/virtru-corp/entitlement-pdp/entitlements-policybundle:0.0.6"}}]}

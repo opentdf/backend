@@ -34,7 +34,7 @@ groups = {
         "keycloak",
         "opentdf-kas",
         "opentdf-attributes",
-        "opentdf-claims",
+        "opentdf-entitlement-pdp",
         "opentdf-entitlements",
         "opentdf-postgresql",
     ],
@@ -45,7 +45,7 @@ groups = {
         "ingress-nginx-admission-create",
         "ingress-nginx-admission-patch",
         "opentdf-attributes",
-        "opentdf-claims",
+        "opentdf-entitlement-pdp",
         "opentdf-entitlements",
         "opentdf-kas",
         "opentdf-abacus",
@@ -107,6 +107,7 @@ if not os.path.exists(
 all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
 all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
 all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
+all_secrets["opaPolicyPullSecret"] = os.environ.get("CR_PAT")
 
 
 def only_secrets_named(*items):
@@ -140,12 +141,9 @@ if isCI:
     )
     k8s_yaml(
         secret_from_dict(
-            "claims-secrets",
+            "opentdf-entitlement-pdp-secret",
             inputs=only_secrets_named(
-                "POSTGRES_PASSWORD",
-                "ATTR_AUTHORITY_CERTIFICATE",
-                "KAS_EC_SECP256R1_CERTIFICATE",
-                "KAS_CERTIFICATE",
+                "opaPolicyPullSecret",
             ),
         )
     )
@@ -169,6 +167,14 @@ else:
                 "KAS_EC_SECP256R1_PRIVATE_KEY",
                 "KAS_PRIVATE_KEY",
                 "ca-cert.pem",
+            ),
+        )
+    )
+    k8s_yaml(
+        secret_from_dict(
+            "opentdf-entitlement-pdp-secret",
+            inputs=only_secrets_named(
+                "opaPolicyPullSecret",
             ),
         )
     )
@@ -236,6 +242,12 @@ docker_build(
 )
 
 docker_build(
+    CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+    context="./containers/entitlement-pdp",
+    ssh="default",
+)
+
+docker_build(
     CONTAINER_REGISTRY + "/opentdf/kas",
     build_args={
         "ALPINE_VERSION": ALPINE_VERSION,
@@ -253,7 +265,7 @@ docker_build(
     ],
 )
 
-for microservice in ["attributes", "entitlements", "claims"]:
+for microservice in ["attributes", "entitlements"]:
     image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
     docker_build(
         image_name,
@@ -319,16 +331,18 @@ opentdf_attrs_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes",
     "secretRef.name=postgres-password",
 ]
-opentdf_claims_values = "deployments/docker-desktop/claims-values.yaml"
-opentdf_claims_set = [
-    "image.name=" + CONTAINER_REGISTRY + "/opentdf/claims",
-    "secretRef.name=postgres-password",
+
+opentdf_entitlement_pdp_set = [
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+    "createPolicySecret=false",
 ]
+
 opentdf_entitlements_values = "deployments/docker-desktop/entitlements-values.yaml"
 opentdf_entitlements_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
     "secretRef.name=postgres-password",
 ]
+
 opentdf_kas_values = "deployments/docker-desktop/kas-values.yaml"
 opentdf_kas_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
@@ -338,15 +352,8 @@ opentdf_kas_set = [
 
 if isCI:
     opentdf_attrs_values = "tests/integration/backend-attributes-values.yaml"
-    opentdf_attrs_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes"]
-    opentdf_claims_values = "tests/integration/backend-claims-values.yaml"
-    opentdf_claims_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/claims"]
     opentdf_entitlements_values = "tests/integration/backend-entitlements-values.yaml"
-    opentdf_entitlements_set = [
-        "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements"
-    ]
     opentdf_kas_values = "tests/integration/backend-kas-values.yaml"
-    opentdf_kas_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/kas"]
 
 k8s_yaml(
     helm(
@@ -359,10 +366,9 @@ k8s_yaml(
 
 k8s_yaml(
     helm(
-        "charts/claims",
-        "opentdf-claims",
-        set=opentdf_claims_set,
-        values=[opentdf_claims_values],
+        "charts/entitlement-pdp",
+        "opentdf-entitlement-pdp",
+        set=opentdf_entitlement_pdp_set,
     )
 )
 
@@ -422,8 +428,8 @@ k8s_yaml(OPENTDF_ABACUS_YML)
 
 # resource dependencies
 k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
-k8s_resource("opentdf-claims", resource_deps=["opentdf-postgresql", "keycloak"])
 k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
+k8s_resource("opentdf-entitlement-pdp", resource_deps=["opentdf-entitlements"])
 k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
 
 #     o8o

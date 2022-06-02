@@ -1,0 +1,52 @@
+name: 'opentdf-entitlement-pdp'
+replicaCount: 3
+image:
+  name: ghcr.io/virtru-corp/entitlement-pdp:0.0.5
+  pullPolicy: Always
+
+useImagePullSecret: false
+imageCredentials:
+  registry: ghcr.io
+  username: username
+  password: password
+  email: nope@nah.com
+
+secret:
+  opaPolicyPullSecret: "YOUR_GHCR_PAT_HERE"
+
+opaConfigMountPath: "/etc/opa/config"
+
+opaConfigYaml:
+  services:
+    ghcr-registry:
+      url: https://ghcr.io
+      type: oci
+      credentials:
+        bearer:
+          token: "${CR_PAT}"
+
+  bundles:
+    entitlement-policy:
+      service: ghcr-registry
+      resource: ghcr.io/virtru-corp/entitlement-pdp/entitlements-policybundle:0.0.6
+      polling:
+        min_delay_seconds: 60
+        max_delay_seconds: 120
+
+  distributed_tracing:
+    type: grpc
+    address: opentelemetry-collector.otel.svc:4317
+    service_name: entitlement-pdp-opa
+    sample_percentage: 50
+    encryption: "off"
+
+  decision_logs:
+    console: true
+
+config:
+  listenPort: 3355
+  externalHost: ""
+  verbose: "false"
+  disableTracing: "false"
+  otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
+  opaConfigPath: "/etc/opa/config/opa-config.yaml"

@@ -1,0 +1,7 @@
+{
+	"virtru": {
+		"entitlements_service": {
+			"url": "http://entitlements:4030/entitle"
+		}
+	}
+}

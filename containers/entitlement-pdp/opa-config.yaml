@@ -1,0 +1,29 @@
+services:
+  ghcr-registry:
+    url: https://ghcr.io
+    type: oci
+    credentials:
+      bearer:
+        token: "${CR_PAT}"
+
+bundles:
+  entitlement-policy:
+    service: ghcr-registry
+    resource: ghcr.io/virtru-corp/entitlement-pdp/entitlements-policybundle:0.0.6
+    persist: true
+    trigger: "manual"
+    polling:
+      min_delay_seconds: 60
+      max_delay_seconds: 120
+
+persistence_directory: derp-opa
+
+distributed_tracing:
+  type: grpc
+  address: opentelemetry-collector.otel.svc:4317
+  service_name: entitlement-pdp-opa
+  sample_percentage: 50
+  encryption: "off"
+
+decision_logs:
+  console: true
