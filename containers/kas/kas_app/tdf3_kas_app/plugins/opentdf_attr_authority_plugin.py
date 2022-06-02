@@ -42,7 +42,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
                     uri,
                     headers,
                     data=json.dumps(namespaces),
-                    timeout,
+                    timeout=timeout,
                     cert=(client_cert_path, client_key_path),
                     verify=ca_cert_path,
                 )
@@ -51,7 +51,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
                     uri,
                     headers,
                     data=json.dumps(namespaces),
-                    timeout,
+                    timeout=timeout,
                     verify=ca_cert_path,
                 )
         except (
