@@ -22,7 +22,9 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
     def __init__(self, attribute_host):
         """Initialize the plugin."""
         self._host = attribute_host
-        self._headers = {"Content-Type": "application/json", },
+        self._headers = {
+            "Content-Type": "application/json",
+        }
         self._timeout = 10  # in seconds
 
     def fetch_attributes(self, namespaces):
