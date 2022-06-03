@@ -1,8 +1,9 @@
 name: 'opentdf-entitlement-pdp'
 replicaCount: 3
 image:
-  name: ghcr.io/virtru-corp/entitlement-pdp:0.0.5
-  pullPolicy: Always
+  # repo: ghcr.io/virtru-corp/entitlement-pdp
+  # tag: 0.0.5
+  # pullPolicy: Always
 
 useImagePullSecret: false
 imageCredentials:

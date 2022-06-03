@@ -2,17 +2,12 @@
 Repo for Entitlement Policy Decision Point (PDP) service
 
 What's an Entitlement PDP?
- - https://virtru.atlassian.net/wiki/spaces/ENG/pages/2433450039/Standardized+ABAC+Terminology+And+Abbreviations
 
 ![ABAC System](./index.png)
 
 ## Modifying/Building/Publishing Entitlement Policy Logic
 
 See [entitlement-policy](entitlement-policy/README.md) subfolder
-
-## Helm chart
-
-Published to `oci://ghcr.io/virtru-corp/entitlement-pdp/chart`
 
 ## OCI container image
 
@@ -34,4 +29,4 @@ make dockerbuild
 make dockerbuildpush
 ```
 
-Published to `oci://ghcr.io/virtru-corp/entitlement-pdp`
+Published to `oci://ghcr.io/opentdf/entitlement-pdp`

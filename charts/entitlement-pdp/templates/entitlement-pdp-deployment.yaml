@@ -26,7 +26,7 @@ spec:
       containers:
       - name: {{ .Values.name }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
-        image: {{ .Values.image.name }}
+        image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
           - name: LISTEN_PORT
             valueFrom:
