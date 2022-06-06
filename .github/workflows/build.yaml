@@ -342,7 +342,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: ssh-eval
         run: |
-          eval $(ssh-agent)
+          eval $(ssh-agent -s)
       - name: publish
         uses: docker/build-push-action@v3
         with:
