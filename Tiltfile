@@ -149,6 +149,12 @@ if isCI:
     )
     k8s_yaml(
         secret_from_dict(
+            "postgres-password",
+            inputs=only_secrets_named("POSTGRES_PASSWORD"),
+        )
+    )
+    k8s_yaml(
+        secret_from_dict(
             "entitlements-secrets",
             inputs={
                 "OIDC_CLIENT_SECRET": all_secrets["OIDC_CLIENT_SECRET"],
