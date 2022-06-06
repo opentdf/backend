@@ -6,11 +6,11 @@ image:
   pullPolicy: IfNotPresent
 
 useImagePullSecret: false
-imageCredentials:
-  registry: ghcr.io
-  username: username
-  password: password
-  email: nope@nah.com
+# imageCredentials:
+#   registry: ghcr.io
+#   username: username
+#   password: password
+#   email: nope@nah.com
 
 secret:
   opaPolicyPullSecret: "YOUR_GHCR_PAT_HERE"
@@ -19,6 +19,7 @@ opaConfigMountPath: "/etc/opa/config"
 
 opaConfig:
   policy:
+    useStaticPolicy: false
     OCIRegistryUrl: "https://ghcr.io"
     bundleRepo: "ghcr.io/virtru-corp/entitlement-pdp/entitlements-policybundle"
     # `bundleTag` will default to `.Chart.AppVersion` if unset

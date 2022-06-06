@@ -59,9 +59,21 @@ RUN overcover --coverprofile cover.out ./... --threshold ${COVERAGE_THRESH_PCT}
 # Build the application
 RUN go build -o /dist/entitlement-pdp
 
+# Build a local copy of the policy - normally OPA will be configured to fetch the policybundle from
+# an OCI registry, and using a cluster-local OCI registry would be the best approach for offline mode for all OCI artifacts generally,
+# but until we have a local OCI registry for offline scenarios, just pack a
+# .tar.gz policy bundle into the cache which can (if OPA is configured accordingly) be used as a fallback
+# when the remote OCI bundle is unreachable.
+RUN go install github.com/opcr-io/policy/cmd/policy@latest
+
+RUN policy build entitlement-policy -t local:main \
+    && policy save local:main \
+    && cp bundle.tar.gz /dist/bundle.tar.gz
+
 # Create the minimal runtime image
 FROM golang:1.18-alpine AS emptyfinal
 
 COPY --chown=0:0 --from=builder /dist/entitlement-pdp /entitlement-pdp
+COPY --chown=0:0 --from=builder /dist/bundle.tar.gz /var/opa/policycache/bundles/bundle.tar.gz
 
 ENTRYPOINT ["/entitlement-pdp"]
