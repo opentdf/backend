@@ -348,7 +348,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           ssh: |
-            default
+            default=${{ env.SSH_AUTH_SOCK }}
 
   build-and-publish-policybundle:
     runs-on: ubuntu-latest
