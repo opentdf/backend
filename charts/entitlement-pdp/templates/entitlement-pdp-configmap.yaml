@@ -30,11 +30,11 @@ data:
       entitlement-policy:
         service: policy-registry
         resource: {{ $.Values.opaConfig.policy.bundleRepo }}:{{ $.Values.opaConfig.policy.bundleTag | default $.Chart.AppVersion  }}
-        {{- if .Values.opaConfig.policy.useStaticPolicy }}trigger: "manual"{{ end }}
+        {{ if .Values.opaConfig.policy.useStaticPolicy }}trigger: "manual"{{- end }}
         polling:
           min_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
           max_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
 
-    {{- if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /var/opa/policycache{{ end }}
+    {{ if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /var/opa/policycache{{ end }}
 
 {{ toYaml .Values.opaConfig.extraConfigYaml | indent 4 }}

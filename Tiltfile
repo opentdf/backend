@@ -338,6 +338,7 @@ opentdf_attrs_set = [
     "secretRef.name=postgres-password",
 ]
 
+opentdf_entitlement_pdp_values = "tests/integration/backend-entitlement-pdp-values.yaml"
 opentdf_entitlement_pdp_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
     "createPolicySecret=false",
