@@ -14,5 +14,24 @@ data:
   disableTracing: {{ .Values.config.disableTracing | quote }}
   otlpCollectorEndpoint: {{ .Values.config.otlpCollectorEndpoint | quote }}
   opaConfigPath: {{ .Values.config.opaConfigPath | quote }}
+  # NOTE that "${CR_PATH}" below is NOT templated by helm - this
+  # is a placeholder/anchor for a secret that the service will update
+  # at runtime and should be left as-is
   opa-config.yaml: |-
-{{ toYaml .Values.opaConfigYaml | indent 4 }}
+    services:
+      policy-registry:
+        url: {{ $.Values.opaConfig.policy.OCIRegistryUrl }}
+        type: oci
+        credentials:
+          bearer:
+            token: "${CR_PAT}"
+
+    bundles:
+      entitlement-policy:
+        service: policy-registry
+        resource: {{ $.Values.opaConfig.policy.bundleRepo }}:{{ $.Values.opaConfig.policy.bundleTag | default $.Chart.AppVersion  }}
+        polling:
+          min_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
+          max_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
+
+{{ toYaml .Values.opaConfig.extraConfigYaml | indent 4 }}
