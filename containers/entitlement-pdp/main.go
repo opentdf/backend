@@ -10,7 +10,7 @@ import (
 
 	"github.com/virtru/v2/entitlement-pdp/pdp"
 
-	"github.com/virtru-corp/oteltracer"
+	"github.com/virtru/oteltracer"
 
 	"github.com/caarlos0/env"
 	"go.uber.org/zap"

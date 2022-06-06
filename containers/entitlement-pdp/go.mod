@@ -8,7 +8,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/swaggo/http-swagger v1.2.8
 	github.com/swaggo/swag v1.8.1
-	github.com/virtru-corp/oteltracer v1.1.0
+	github.com/virtru/oteltracer v1.1.2
 	go.opentelemetry.io/otel v1.7.0
 	go.uber.org/zap v1.21.0
 )
