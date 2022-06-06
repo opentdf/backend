@@ -3,7 +3,7 @@ replicaCount: 3
 image:
   # repo: ghcr.io/virtru-corp/entitlement-pdp
   # tag: 0.0.5
-  # pullPolicy: Always
+  pullPolicy: IfNotPresent
 
 useImagePullSecret: false
 imageCredentials:
