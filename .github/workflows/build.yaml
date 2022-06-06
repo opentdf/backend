@@ -334,9 +334,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: ssh-eval
-        run: |
-          eval $(ssh-agent -s)
       - name: publish
         uses: docker/build-push-action@v3
         with:
@@ -347,8 +344,6 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          ssh: |
-            default=${{ env.SSH_AUTH_SOCK }}
 
   build-and-publish-policybundle:
     runs-on: ubuntu-latest
