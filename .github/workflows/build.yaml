@@ -340,6 +340,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: ssh-eval
+        run: |
+          eval $(ssh-agent)
       - name: publish
         uses: docker/build-push-action@v3
         with:
