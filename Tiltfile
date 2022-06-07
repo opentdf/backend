@@ -1,6 +1,7 @@
 # Tiltfile for development of OpenTDF backend
 # reference https://docs.tilt.dev/api.html
 # extensions https://github.com/tilt-dev/tilt-extensions
+# helm remote usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
 
 load("ext://helm_remote", "helm_remote")
 load("ext://helm_resource", "helm_resource")
@@ -15,13 +16,7 @@ KEYCLOAK_BASE_VERSION = str(
     local('cut -d- -f1 < "{}"'.format("containers/keycloak-protocol-mapper/VERSION"))
 ).strip()
 
-# ghcr.io == GitHub packages. pre-release versions, created from recent green `main` commit
-# docker.io == Docker hub. Manually released versions
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
-
-FRONTEND_IMAGE_TAG = "main"
-FRONTEND_CHART_TAG = "0.0.0-sha-d198639"
-
 
 def from_dotenv(path, key):
     # Read a variable from a `.env` file
@@ -54,12 +49,12 @@ groups = {
         "opentdf-kas",
         "opentdf-abacus",
         "opentdf-postgresql",
-        # "opentdf-xtest",
+        "opentdf-xtest",
+        "opentdf-abacus"
     ],
 }
 
 resources = []
-
 
 isCI = False
 isPKItest = False
@@ -194,18 +189,16 @@ else:
 #                                    "Y88888P'
 #
 
-# OPENTDF_ABACUS_YML = "tests/integration/frontend.yaml"
+OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
 
-# if "opentdf-abacus" in to_edit:
-    # OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
-    # frontend folder should be next to backend
-    # docker_build("opentdf/abacus", "../frontend")
+if "opentdf-abacus" in to_edit:
+    docker_build("opentdf/abacus", "../frontend")
 
 if "opentdf-abacus-client-web" in to_edit:
-    # OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
-    # frontend folder should be next to backend
     docker_build(
-        "opentdf/abacus", "../frontend", dockerfile="../frontend/DockerfileTests"
+        "opentdf/abacus",
+        "../frontend",
+        dockerfile="../frontend/DockerfileTests"
     )
 
 docker_build(
@@ -279,9 +272,6 @@ for microservice in ["attributes", "entitlements", "claims"]:
         ],
     )
 
-# remote resources
-# usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
-
 postgres_helm_values = "deployments/docker-desktop/tdf-postgresql-values.yaml"
 keycloak_helm_values = "deployments/docker-desktop/keycloak-values.yaml"
 
@@ -299,16 +289,19 @@ helm_remote(
     values=[keycloak_helm_values],
 )
 
-helm_resource(
-    "opentdf-abacus",
-    "oci://ghcr.io/opentdf/charts/abacus",
-    flags=[
-        "--version",
-        "0.0.0-sha-93bb332",
-    ],
-    labels="Frontend",
-    resource_deps=["keycloak-bootstrap"],
-)
+if "opentdf-abacus" in to_edit or "opentdf-abacus-client-web" in to_edit:
+    k8s_yaml(OPENTDF_ABACUS_YML)
+else:
+    helm_resource(
+        "opentdf-abacus",
+        "oci://ghcr.io/opentdf/charts/abacus",
+        flags=[
+            "--version",
+            "0.0.0-sha-d198639",
+        ],
+        labels="Frontend",
+        resource_deps=["keycloak-bootstrap"],
+    )
 
 helm_remote(
     "postgresql",
@@ -406,8 +399,8 @@ k8s_yaml(
         values=["tests/integration/backend-keycloak-bootstrap-values.yaml"],
     )
 )
+
 k8s_yaml("tests/integration/ingress-class.yaml")
-# k8s_yaml(OPENTDF_ABACUS_YML)
 
 # TODO this service requires actual S3 secrets
 # TODO or use https://github.com/localstack/localstack
@@ -432,7 +425,6 @@ k8s_yaml("tests/integration/ingress-class.yaml")
 # )
 # k8s_yaml(helm('charts/storage', 'storage', values=['deployments/docker-desktop/storage-values.yaml']))
 
-# resource dependencies
 k8s_resource(
     "opentdf-attributes",
     resource_deps=["opentdf-postgresql"],
