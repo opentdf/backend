@@ -162,7 +162,6 @@ if isCI:
             },
         )
     )
-else:
     k8s_yaml(
         secret_from_dict(
             "all-the-kas-secrets",
@@ -176,21 +175,6 @@ else:
             ),
         )
     )
-    k8s_yaml(
-        secret_from_dict(
-            "opentdf-entitlement-pdp-secret",
-            inputs=only_secrets_named(
-                "opaPolicyPullSecret",
-            ),
-        )
-    )
-    k8s_yaml(
-        secret_from_dict(
-            "postgres-password",
-            inputs=only_secrets_named("POSTGRES_PASSWORD"),
-        )
-    )
-
 
 #   o8o
 #   `"'
