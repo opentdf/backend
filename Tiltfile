@@ -490,7 +490,7 @@ k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
     "opentdf-xtest",
-    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-claims"],
+    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
 )
 
 if isPKItest:
