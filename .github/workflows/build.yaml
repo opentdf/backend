@@ -304,7 +304,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  build-and-publish-pdp:
+  build-and-publish:
     needs:
       - integration-test
     permissions:
