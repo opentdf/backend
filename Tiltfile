@@ -123,18 +123,6 @@ if isCI:
     )
     k8s_yaml(
         secret_from_dict(
-            "kas-secrets",
-            inputs=only_secrets_named(
-                "ATTR_AUTHORITY_CERTIFICATE",
-                "KAS_EC_SECP256R1_CERTIFICATE",
-                "KAS_CERTIFICATE",
-                "KAS_EC_SECP256R1_PRIVATE_KEY",
-                "KAS_PRIVATE_KEY",
-            ),
-        )
-    )
-    k8s_yaml(
-        secret_from_dict(
             "keycloak-bootstrap-secrets",
             inputs=only_secrets_named("OIDC_CLIENT_SECRET"),
         )
@@ -164,7 +152,7 @@ if isCI:
     )
     k8s_yaml(
         secret_from_dict(
-            "all-the-kas-secrets",
+            "kas-secrets",
             inputs=only_secrets_named(
                 "ATTR_AUTHORITY_CERTIFICATE",
                 "KAS_EC_SECP256R1_CERTIFICATE",
@@ -336,8 +324,8 @@ opentdf_entitlements_set = [
 opentdf_kas_values = "deployments/docker-desktop/kas-values.yaml"
 opentdf_kas_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
-    "secretRef.name=all-the-kas-secrets",
-    "certFileSecretName=all-the-kas-secrets",
+    "secretRef.name=kas-secrets",
+    "certFileSecretName=kas-secrets",
 ]
 
 if isCI:
