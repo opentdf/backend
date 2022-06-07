@@ -266,13 +266,14 @@ for microservice in ["attributes", "entitlements"]:
 # remote resources
 # usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
 
-postgres_helm_values = "deployments/docker-desktop/tdf-postgresql-values.yaml"
-keycloak_helm_values = "deployments/docker-desktop/keycloak-values.yaml"
+postgres_helm_values = "deployments/tilt/tdf-postgresql-values.yaml"
+keycloak_helm_values = "deployments/tilt/keycloak-values.yaml"
 
-if isIntegrationTest:
+if isIntegrationTest or isPKItest:
     postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
     keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
+# Override Keycloak chart values for PKI
 if isPKItest:
     keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
@@ -301,29 +302,25 @@ helm_remote(
 #
 # usage https://docs.tilt.dev/helm.html#helm-options
 
-# TODO We should drop all this `docker-desktop` stuff, in every case that I can see they either are
-# chart-level defaults already, or should be.
-# Only overrides should be for tests
-
-opentdf_attrs_values = "deployments/docker-desktop/attributes-values.yaml"
+opentdf_attrs_values = ""
 opentdf_attrs_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes",
     "secretRef.name=postgres-password",
 ]
 
-opentdf_entitlement_pdp_values = "deployments/docker-desktop/entitlement-pdp-values.yaml"
+opentdf_entitlement_pdp_values = ""
 opentdf_entitlement_pdp_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
     "createPolicySecret=false",
 ]
 
-opentdf_entitlements_values = "deployments/docker-desktop/entitlements-values.yaml"
+opentdf_entitlements_values = ""
 opentdf_entitlements_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
     "secretRef.name=postgres-password",
 ]
 
-opentdf_kas_values = "deployments/docker-desktop/kas-values.yaml"
+opentdf_kas_values = ""
 opentdf_kas_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
     "secretRef.name=kas-secrets",
@@ -405,8 +402,6 @@ k8s_yaml(OPENTDF_ABACUS_YML)
 #     },
 # )
 # k8s_yaml(helm('charts/storage', 'storage', values=['deployments/docker-desktop/storage-values.yaml']))
-# deprecated
-# k8s_yaml(helm('charts/eas', 'eas', values=['deployments/docker-desktop/eas-values.yaml']))
 
 # resource dependencies
 k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
@@ -483,6 +478,7 @@ k8s_resource(
     resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
 )
 
+# For PKI tests, create a custom ingress
 if isPKItest:
     k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
     local_resource(

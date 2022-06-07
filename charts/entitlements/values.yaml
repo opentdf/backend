@@ -112,7 +112,7 @@ affinity: {}
 # Configuration for the database backend
 postgres:
   # postgres server's k8s name or global DNS for external server
-  host: localhost
+  host: opentdf-postgresql
   # postgres server port
   port: 5432
   # Must be a postgresql user with the tdf_entitlement_manager role

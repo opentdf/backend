@@ -28,7 +28,7 @@ imagePullSecrets: []
 nameOverride: ""
 
 # The fully qualified appname override
-fullnameOverride: ""
+fullnameOverride: "opentdf-claims"
 
 # A service account to create
 serviceAccount:
@@ -86,7 +86,7 @@ affinity: {}
 # Configuration for the database backend
 postgres:
   # postgres server's k8s name or global DNS for external server
-  host: localhost
+  host: opentdf-postgresql
   # postgres server port
   port: 5432
   # Must be a postgres user with tdf_entitlement_reader role
