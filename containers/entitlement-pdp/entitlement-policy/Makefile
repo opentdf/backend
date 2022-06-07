@@ -1,5 +1,5 @@
 POLICYVERSION?=0.0.6
-BUNDLETAG?=ghcr.io/virtru-corp/entitlement-pdp/entitlements-policybundle
+BUNDLETAG?=ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
 
 .PHONY: localprep
 localprep:

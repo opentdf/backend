@@ -21,7 +21,7 @@ opaConfig:
   policy:
     useStaticPolicy: false
     OCIRegistryUrl: "https://ghcr.io"
-    bundleRepo: "ghcr.io/virtru-corp/entitlement-pdp/entitlements-policybundle"
+    bundleRepo: "ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle"
     # `bundleTag` will default to `.Chart.AppVersion` if unset
     # bundleTag: 0.0.6
     updatePolling:
