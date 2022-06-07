@@ -250,7 +250,6 @@ docker_build(
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
     context="./containers/entitlement-pdp",
-    ssh="default",
 )
 
 docker_build(
