@@ -378,6 +378,7 @@ jobs:
         run: |
           go install github.com/opcr-io/policy/cmd/policy@latest
           cd containers/entitlement-pdp/entitlement-policy
+          policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
 
   build-and-publish-with-shared-base:
