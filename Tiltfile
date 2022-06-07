@@ -1,8 +1,10 @@
 # Tiltfile for development of OpenTDF backend
 # reference https://docs.tilt.dev/api.html
 # extensions https://github.com/tilt-dev/tilt-extensions
+# helm remote usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
 
 load("ext://helm_remote", "helm_remote")
+load("ext://helm_resource", "helm_resource")
 load("ext://secret", "secret_from_dict", "secret_yaml_generic")
 load("ext://min_tilt_version", "min_tilt_version")
 
@@ -14,10 +16,7 @@ KEYCLOAK_BASE_VERSION = str(
     local('cut -d- -f1 < "{}"'.format("containers/keycloak-protocol-mapper/VERSION"))
 ).strip()
 
-# ghcr.io == GitHub packages. pre-release versions, created from recent green `main` commit
-# docker.io == Docker hub. Manually released versions
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
-
 
 def from_dotenv(path, key):
     # Read a variable from a `.env` file
@@ -52,6 +51,7 @@ groups = {
         "opentdf-abacus",
         "opentdf-postgresql",
         "opentdf-xtest",
+        "opentdf-abacus"
     ],
 }
 
@@ -173,18 +173,16 @@ k8s_yaml(
 #                                    "Y88888P'
 #
 
-OPENTDF_ABACUS_YML = "tests/integration/frontend.yaml"
+OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
 
 if "opentdf-abacus" in to_edit:
-    OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
-    # frontend folder should be next to backend
     docker_build("opentdf/abacus", "../frontend")
 
 if "opentdf-abacus-client-web" in to_edit:
-    OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
-    # frontend folder should be next to backend
     docker_build(
-        "opentdf/abacus", "../frontend", dockerfile="../frontend/DockerfileTests"
+        "opentdf/abacus",
+        "../frontend",
+        dockerfile="../frontend/DockerfileTests"
     )
 
 docker_build(
@@ -263,9 +261,6 @@ for microservice in ["attributes", "entitlements"]:
         ],
     )
 
-# remote resources
-# usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
-
 postgres_helm_values = "deployments/tilt/tdf-postgresql-values.yaml"
 keycloak_helm_values = "deployments/tilt/keycloak-values.yaml"
 
@@ -283,6 +278,20 @@ helm_remote(
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
+
+if "opentdf-abacus" in to_edit or "opentdf-abacus-client-web" in to_edit:
+    k8s_yaml(OPENTDF_ABACUS_YML)
+else:
+    helm_resource(
+        "opentdf-abacus",
+        "oci://ghcr.io/opentdf/charts/abacus",
+        flags=[
+            "--version",
+            "0.0.0-sha-d198639",
+        ],
+        labels="Frontend",
+        resource_deps=["keycloak-bootstrap"],
+    )
 
 helm_remote(
     "postgresql",
@@ -377,8 +386,8 @@ k8s_yaml(
         values=["tests/integration/backend-keycloak-bootstrap-values.yaml"],
     )
 )
+
 k8s_yaml("tests/integration/ingress-class.yaml")
-k8s_yaml(OPENTDF_ABACUS_YML)
 
 # TODO this service requires actual S3 secrets
 # TODO or use https://github.com/localstack/localstack
@@ -403,11 +412,26 @@ k8s_yaml(OPENTDF_ABACUS_YML)
 # )
 # k8s_yaml(helm('charts/storage', 'storage', values=['deployments/docker-desktop/storage-values.yaml']))
 
-# resource dependencies
-k8s_resource("opentdf-attributes", resource_deps=["opentdf-postgresql"])
-k8s_resource("opentdf-entitlements", resource_deps=["opentdf-postgresql"])
-k8s_resource("opentdf-entitlement-pdp", resource_deps=["opentdf-entitlements"])
-k8s_resource("opentdf-kas", resource_deps=["opentdf-attributes"])
+k8s_resource(
+    "opentdf-attributes",
+    resource_deps=["opentdf-postgresql"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entitlement-pdp",
+    resource_deps=["opentdf-entitlements"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entitlements",
+    resource_deps=["opentdf-postgresql"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-kas",
+    resource_deps=["opentdf-attributes"],
+    labels=["Backend"]
+)
 
 #     o8o
 #     `"'
@@ -431,6 +455,7 @@ helm_remote(
 )
 
 k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
+k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
 
 #     .o8                               .                .
 #    "888                             .o8              .o8
@@ -452,9 +477,14 @@ docker_build(
 k8s_resource(
     "keycloak",
     links=[link("localhost:65432/auth", "Keycloak admin console")],
+    labels=["Third-party"]
 )
 
-k8s_resource("keycloak-bootstrap", resource_deps=["keycloak", "opentdf-entitlements", "opentdf-attributes"])
+k8s_resource(
+    "keycloak-bootstrap",
+    resource_deps=["keycloak", "opentdf-entitlements", "opentdf-attributes"],
+    labels="Utility"
+)
 
 #    db    db d888888b d88888b .d8888. d888888b
 #    `8b  d8' `~~88~~' 88'     88'  YP `~~88~~'
@@ -478,9 +508,7 @@ k8s_resource(
     resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
 )
 
-# For PKI tests, create a custom ingress
 if isPKItest:
-    k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
     local_resource(
         "pki-test",
         "python3 tests/integration/pki-test/client_pki_test.py",
