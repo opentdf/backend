@@ -305,7 +305,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   build-and-publish-pdp:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     permissions:
@@ -350,7 +349,6 @@ jobs:
 
   build-and-publish-policybundle:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     permissions:
