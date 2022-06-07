@@ -24,7 +24,7 @@ jobs:
       - uses: rubenesp87/semver-validation-action@0.0.6
         with:
           version: ${{ github.event.release.tag_name }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
         with:
           setup-tools: helm

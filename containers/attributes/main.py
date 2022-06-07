@@ -791,7 +791,7 @@ class Attribute(BaseModel):
     state: Optional[str]
 
 
-# Used by KAS, endpoint appended to EAS_HOST
+# Used by KAS, endpoint appended to ATTR_AUTHORITY_HOST
 @app.post("/v1/attrName", response_model=List[Attribute], include_in_schema=False)
 async def read_attribute():
     # return all for now body: List[HttpUrl]

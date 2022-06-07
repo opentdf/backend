@@ -14,12 +14,12 @@ echo PATH $PATH
   scripts/genkeys-if-needed
 )
 
-export EAS_HOST=https://opentdf.local/eas/
+export ATTR_AUTHORITY_HOST=http://attributes:4020
 export KEYCLOAK_PUBLIC_KEY="$PROJECT_ROOT/certs/keycloak-public.pem"
 export CA_CERT_PATH="$PROJECT_ROOT/certs/ca.crt"
 
 [ -f "$PROJECT_ROOT/certs/.env" ] && . "$PROJECT_ROOT/certs/.env"
-export EAS_CERTIFICATE
+export ATTR_AUTHORITY_CERTIFICATE
 export KAS_EC_SECP256R1_PRIVATE_KEY
 export KAS_EC_SECP256R1_CERTIFICATE
 export KAS_PRIVATE_KEY

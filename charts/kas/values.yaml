@@ -108,8 +108,7 @@ affinity: {}
 maxUnavailable: 1
 
 endpoints:
-  # TODO rename to claimsHost or whatever
-  easHost: http://opentdf-attributes:4020
+  attrHost: http://opentdf-attributes:4020
   statsdHost: opentdf-statsd
   # TODO replace this with a template var instead of a hardcode when Keycloak charts are merged into opentdf/backend.
   oidcPubkeyEndpoint: http://opentdf-keycloak
