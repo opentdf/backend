@@ -1,7 +1,7 @@
 {
 	"virtru": {
 		"entitlements_service": {
-			"url": "http://entitlements:4030/entitle"
+			"url": "http://opentdf-entitlements:4030/entitle"
 		}
 	}
 }
