@@ -48,7 +48,8 @@ RUN mkdir /dist
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./ ${GOLANGCI_VERSION}
 
-RUN ./golangci-lint --version && ./golangci-lint run --timeout 10m
+# TODO this is very slow on `arm64` - like 5x slower
+RUN ./golangci-lint --version && ./golangci-lint run --timeout 20m
 
 # Run tests
 RUN go test --coverprofile cover.out ./...
