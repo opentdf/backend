@@ -512,7 +512,7 @@ if isPKItest:
     local_resource(
         "pki-test",
         "python3 tests/integration/pki-test/client_pki_test.py",
-        resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"],
+        resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
     )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
