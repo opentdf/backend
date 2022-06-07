@@ -336,7 +336,7 @@ opentdf_kas_set = [
     "certFileSecretName=kas-secrets",
 ]
 
-if isIntegrationTest:
+if isIntegrationTest or isPKItest:
     opentdf_attrs_values = "tests/integration/backend-attributes-values.yaml"
     opentdf_entitlements_values = "tests/integration/backend-entitlements-values.yaml"
     opentdf_entitlement_pdp_values = "tests/integration/backend-entitlement-pdp-values.yaml"
