@@ -264,7 +264,7 @@ for microservice in ["attributes", "entitlements"]:
 postgres_helm_values = "deployments/tilt/tdf-postgresql-values.yaml"
 keycloak_helm_values = "deployments/tilt/keycloak-values.yaml"
 
-if isIntegrationTest or isPKItest:
+if isIntegrationTest:
     postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
     keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
