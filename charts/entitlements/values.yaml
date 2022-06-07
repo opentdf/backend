@@ -30,7 +30,7 @@ image:
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/entitlements
   # Chart.AppVersion will be used for image tag, override here if needed
-  tag: 0.0.2-dcr
+  # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
