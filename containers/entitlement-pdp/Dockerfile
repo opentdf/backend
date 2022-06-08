@@ -1,8 +1,3 @@
-# syntax=docker/dockerfile:experimental
-
-# ^ remove that experimental tag when we migrate off of Docker v19
-# as it is not required in current versions (v20 onward) of Docker
-
 FROM golang:1.18-alpine AS builder
 
 ARG GOLANGCI_VERSION=v1.46.2
@@ -11,15 +6,8 @@ ARG COVERAGE_THRESH_PCT=19
 ENV GO111MODULE=on \
     CGO_ENABLED=0
 
-# Get git and openssh client tools (for go mod private repo fetch over ssh)
-RUN apk add --no-cache git=~2 openssh-client=~9 wget=~1
-
-# Git creds come from host mount, but we need to do some setup to make sure fetching internal Virtru
-# private Git repos via Go works correctly
-# hadolint ignore=SC2174
-RUN git config --global url."git@github.com:".insteadOf "https://github.com/" \
-    && mkdir -p -m 0600 ~/.ssh \
-    && ssh-keyscan github.com >> ~/.ssh/known_hosts
+# Get git and other tools needed
+RUN apk add --no-cache git=~2 wget=~1
 
 # Get test coverage tool and swagger codegen
 RUN go install github.com/klmitch/overcover@latest \
@@ -36,9 +24,9 @@ COPY . .
 # Generate swagger docs from API def.
 RUN swag init
 
-# Vendor modules here (that is, download them, using SSH creds if need be) so that subsequent steps don't
+# Vendor modules here so that subsequent steps don't
 # re-fetch, and just use the vendored versions
-RUN --mount=type=ssh go mod vendor
+RUN go mod vendor
 
 # Let's create a /dist folder containing just the files necessary for runtime.
 # Later, it will be copied as the / (root) of the output image.
