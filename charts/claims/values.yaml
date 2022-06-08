@@ -28,7 +28,7 @@ imagePullSecrets: []
 nameOverride: ""
 
 # The fully qualified appname override
-fullnameOverride: "opentdf-claims"
+fullnameOverride: ""
 
 # A service account to create
 serviceAccount:
