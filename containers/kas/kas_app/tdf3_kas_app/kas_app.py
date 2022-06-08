@@ -9,7 +9,7 @@ from importlib.metadata import PackageNotFoundError
 from tdf3_kas_core import Kas
 from tdf3_kas_core.server_timing import Timing
 
-from .plugins import eas_rewrap_plugin, revocation_plugin
+from .plugins import opentdf_attr_authority_plugin, revocation_plugin
 
 logger = logging.getLogger(__name__)
 
@@ -81,15 +81,15 @@ def app(name):
         e_msg = "Either USE_KEYCLOAK or KEYCLOAK_HOST are not correctly defined - both are required."
         logger.error(e_msg)
         raise Exception(e_msg)
-    # Add Attribute fetch plugin - still named EAS
-    eas_host = os.environ.get("EAS_HOST")
-    if not eas_host:
-        logger.error("EAS host is not configured correctly.")
+    # Add Attribute fetch plugin
+    attr_host = os.environ.get("ATTR_AUTHORITY_HOST")
+    if not attr_host:
+        logger.error("OTDF attribute host is not configured correctly.")
 
-    logger.info("EAS_HOST = [%s]", eas_host)
-    eas_backend = eas_rewrap_plugin.EASRewrapPlugin(eas_host)
-    kas.use_healthz_plugin(eas_backend)
-    kas.use_rewrap_plugin_v2(eas_backend)
+    logger.info("ATTR_AUTHORITY_HOST = [%s]", attr_host)
+    otdf_attr_backend = opentdf_attr_authority_plugin.OpenTDFAttrAuthorityPlugin(attr_host)
+    kas.use_healthz_plugin(otdf_attr_backend)
+    kas.use_rewrap_plugin_v2(otdf_attr_backend)
 
     configure_filters(kas)
 
@@ -127,11 +127,11 @@ def app(name):
     kas.set_key_pem("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", kas_ec_secp256r1_certificate)
 
     # Configure compatibility with EO mode
-    eas_certificate = load_key_bytes("EAS_CERTIFICATE", missing_variables)
-    if not eas_certificate:
-        logger.warn("KAS does not have an EAS_CERTIFICATE; running in OIDC-only mode")
+    aa_certificate = load_key_bytes("ATTR_AUTHORITY_CERTIFICATE", missing_variables)
+    if not aa_certificate:
+        logger.warn("KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode")
     else:
-        kas.set_key_pem("AA-PUBLIC", "PUBLIC", eas_certificate)
+        kas.set_key_pem("AA-PUBLIC", "PUBLIC", aa_certificate)
 
     # Get a Flask app from the KAS instance
     running_app = kas.app()

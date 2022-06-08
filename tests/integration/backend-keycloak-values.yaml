@@ -6,7 +6,7 @@ image:
 postgresql:
   enabled: false
 extraEnv: |
-  - name: KEYCLOAK_LOG_LEVEL
+  - name: KEYCLOAK_LOGLEVEL
     value: DEBUG
   - name: KEYCLOAK_USER
     value: keycloakadmin

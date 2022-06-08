@@ -79,12 +79,12 @@ See the [root README](../../README.md) for instructions on generating keys for E
 - KAS_EC_SECP256R1_CERTIFICATE
   - The public key of curve secp256r1, KAS clients can use
    to validate responses.
-- EAS_CERTIFICATE
-  - The public key used to validate responses from EAS.
 
-EAS host is required for EAS to fetch and check the validity of attributes.
-- EAS_HOST
-  - EAS host to fetch attributes.
+An attribute authority is required for KAS to fetch attribute definitions and check the validity of attributes. OpenTDF provides the Attribute service for this purpose.
+- ATTR_AUTHORITY_HOST
+  - OpenTDF Attribute service host, or other compliant authority
+- ATTR_AUTHORITY_CERTIFICATE
+  - The public key used to validate responses from ATTR_AUTHORITY_HOST.
   
 ### Optional
 
