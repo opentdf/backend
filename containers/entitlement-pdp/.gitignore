@@ -21,7 +21,7 @@
 vendor/
 
 # Autogen swagger files
-docs/
+# docs/
 
 # Go workspace file
 go.work
