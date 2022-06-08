@@ -67,14 +67,14 @@ package play
 foo := ["bar", "baz", "buz", "bar"]
 
 # It is possible for all the terms in this rule to be True at the same time
-test_bar_is_zero {
+test_bar_is_three {
   some i
   "bar" == foo[i] # "bar" is in foo, so this term can be true given data "foo" as defined above
   i == 3 # "bar" appears at the 3rd index, so this term can be true given data "foo" as defined above
 }
 
 # It is possible for all the terms in this rule to be True at the same time
-test_bar_is_three {
+test_bar_is_zero {
   some i
   "bar" == foo[i] # "bar" is in foo, so this term can be true given data "foo" as defined above
   i == 0 # "bar" appears at the 0th index, so this term can be true given data "foo" as defined above

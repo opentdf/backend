@@ -11,6 +11,7 @@ import (
 	"github.com/virtru/v2/entitlement-pdp/pdp"
 
 	"github.com/virtru/oteltracer"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/caarlos0/env"
 	"go.uber.org/zap"
@@ -22,11 +23,11 @@ var cfg EnvConfig
 
 //Env config
 type EnvConfig struct {
-	ListenPort string `env:"LISTEN_PORT" envDefault:"3355"`
-	ExternalHost string `env:"EXTERNAL_HOST" envDefault:""`
-	Verbose bool `env:"VERBOSE" envDefault:"false"`
-	DisableTracing bool `env:"DISABLE_TRACING" envDefault:"false"`
-	OPAConfigPath string `env:"OPA_CONFIG_PATH" envDefault:"/etc/opa/config/opa-config.yaml"`
+	ListenPort          string `env:"LISTEN_PORT" envDefault:"3355"`
+	ExternalHost        string `env:"EXTERNAL_HOST" envDefault:""`
+	Verbose             bool   `env:"VERBOSE" envDefault:"false"`
+	DisableTracing      bool   `env:"DISABLE_TRACING" envDefault:"false"`
+	OPAConfigPath       string `env:"OPA_CONFIG_PATH" envDefault:"/etc/opa/config/opa-config.yaml"`
 	OPAPolicyPullSecret string `env:"OPA_POLICYBUNDLE_PULLCRED" envDefault:"YOURPATHERE"`
 }
 
@@ -88,9 +89,10 @@ func main() {
 		Addr: fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
 	}
 
-	http.Handle("/healthz", handlers.GetHealthzHandler())
+	//This otel HTTP handler middleware simply traces all handled request for you - DD needs it
+	http.Handle("/healthz", otelhttp.NewHandler(handlers.GetHealthzHandler(), "HealthZHandler"))
 
-	http.Handle("/entitlements", handlers.GetEntitlementsHandler(&opaPDP, logger))
+	http.Handle("/entitlements", otelhttp.NewHandler(handlers.GetEntitlementsHandler(&opaPDP, logger), "EntitlementsHandler"))
 
 	http.Handle("/swagger/", handlers.GetSwaggerHandler(server.Addr))
 

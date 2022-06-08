@@ -84,14 +84,14 @@ func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handl
 		bodBytes, err := ioutil.ReadAll(req.Body)
 		defer req.Body.Close()
 		if err != nil {
-			logger.Error("Couldn't read client request!")
+			logger.Errorf("Couldn't read client request! Error was %s", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
 		payload, err := getRequestPayload(bodBytes, handlerCtx, logger)
 		if err != nil {
-			logger.Error("Couldn't read deserialize client request!")
+			logger.Errorf("Couldn't deserialize client request! Error was %s", err)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -103,7 +103,7 @@ func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handl
 			handlerCtx)
 
 		if err != nil {
-			logger.Error("Policy engine returned error! Error was %s", err)
+			logger.Errorf("Policy engine returned error! Error was %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -112,7 +112,7 @@ func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handl
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(entitlements)
 		if err != nil {
-			logger.Error("Error encoding entitlements in response!")
+			logger.Errorf("Error encoding entitlements in response! Error was %s", err)
 			http.Error(w, "Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -130,7 +130,7 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	var payload EntitlementsRequest
 	err := json.Unmarshal(bodBytes, &payload)
 	if err != nil {
-		logger.Error("Error parsing Exchange request body")
+		logger.Warn("Error parsing Exchange request body")
 		return nil, err
 	}
 
@@ -138,7 +138,7 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	if payload.IdentityProviderContextObject != "" {
 		if !json.Valid([]byte(payload.IdentityProviderContextObject)) {
 			err := errors.New("Context object is not valid JSON")
-			logger.Error(err)
+			logger.Warn(err)
 			return nil, err
 		}
 	}

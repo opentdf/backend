@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"io/ioutil"
+	"encoding/json"
 	"errors"
-	"strings"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
-	"encoding/json"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -22,15 +22,16 @@ const entitlementsReq string = `
   "idp_context_obj": "{\"subject_attributes\":[{\"http://attribs.com/visibility_level\":\"fuschia\"},{\"http://attribs.com/user_identifier\":\"bupkis@yello.com\"}],\"object_attributes\":[{\"http://attribs.com/min_visibility_level\":\"fuschia\"},{\"http://attribs.com/user_dissem_list\":[\"bupkis@yello.com\",\"nolo@contendere.com\"]}]}"
 }
 `
+
 var primaryEntityEntitlement EntityEntitlement = EntityEntitlement{
 	EntityId: "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3",
 	EntityAttributes: []EntityAttribute{
 		{
-			Attribute: "https://example.com/attr/Classification/value/S",
+			Attribute:   "https://example.com/attr/Classification/value/S",
 			DisplayName: "Classification",
 		},
 		{
-			Attribute: "https://example.com/attr/COI/value/PRX",
+			Attribute:   "https://example.com/attr/COI/value/PRX",
 			DisplayName: "COI",
 		},
 	},
@@ -40,7 +41,7 @@ var secondaryEntityEntitlement1 EntityEntitlement = EntityEntitlement{
 	EntityId: "4f6636ca-c60c-40d1-9f3f-015086303f74",
 	EntityAttributes: []EntityAttribute{
 		{
-			Attribute: "https://example.org/attr/OPA/value/AddedByOPA",
+			Attribute:   "https://example.org/attr/OPA/value/AddedByOPA",
 			DisplayName: "Added By OPA",
 		},
 	},
