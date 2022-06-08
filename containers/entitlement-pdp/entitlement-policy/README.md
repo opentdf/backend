@@ -46,7 +46,7 @@ make policypush
 ## Rego quickref
 There are a few key things to understand with Rego that tend to trip up people used to imperative languages (e.g. most of us)
 
-1. It is not Turing-complete - a Rego policy always resolves to either success or failure.
+1. It is not Turing-complete, it is guaranteed deterministic (Turning-complete languages are *not* guaranteed deterministic) - a Rego policy always resolves to either success or failure.
 1. It in not imperative - it is rules-based. There is no guarantee about execution order of rules.
 1. All rules must be valid for all data at all times - if undefined results are possible policy will not build. Think of every rule as a "for all possible (data/inputs)".
 1. Rules are composable.
