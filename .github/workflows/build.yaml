@@ -104,12 +104,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r containers/attributes/requirements.txt
-          pip3 install -r containers/claims/requirements.txt
+          pip3 install -r containers/entitlement-store/requirements.txt
           pip3 install -r containers/entitlements/requirements.txt
       - name: Test
         run: |
           python -m pytest containers/attributes/tests
-          python -m pytest containers/claims/tests
+          python -m pytest containers/entitlement-store/tests
           python -m pytest containers/entitlements/tests
 
   integration-test:
@@ -392,7 +392,7 @@ jobs:
     strategy:
       matrix:
         repo:
-          - claims
+          - entitlement-store
           - attributes
           - entitlements
     steps:

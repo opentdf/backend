@@ -1,6 +1,6 @@
 autoscaling:
   enabled: false
-nameOverride: opentdf-claims
+nameOverride: opentdf-entitlement-store
 postgres:
   host: opentdf-postgresql
   port: 5432
@@ -9,6 +9,6 @@ postgres:
   schema: tdf_entitlement
 replicaCount: 1
 secretRef:
-  name: claims-secrets
+  name: entitlement-store-secrets
 serviceAccount:
   create: true

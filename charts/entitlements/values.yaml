@@ -37,7 +37,7 @@ image:
 # JSON passed to the deployment's template.spec.imagePullSecrets
 imagePullSecrets: []
 
-# Select a specific name for the resource, instead of the default, opentdf-claims
+# Select a specific name for the resource, instead of the default, opentdf-entitlements
 nameOverride: ""
 
 # The fully qualified appname override
