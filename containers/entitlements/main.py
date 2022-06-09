@@ -318,29 +318,6 @@ class SNSMessageAttribute(BaseModel):
     attribute: HttpUrl
 
 
-class AttributeDisplay(BaseModel):
-    attribute: str
-    displayName: Optional[str]
-
-
-class EntityEntitlements(BaseModel):
-    entity_identifier: str
-    entity_attributes: List[AttributeDisplay]
-
-class EntitleRequest(BaseModel):
-    primary_entity_id: str = Field(
-        ...,  # Field is required, no default value
-        description=("The identifier for the primary entity seeking claims. "
-                     "For PE auth, this will be a PE ID. For NPE auth, this will be an NPE ID.")
-        )
-    secondary_entity_ids: Optional[List[str]] = Field(
-        [],
-        description=("Optional. For PE auth, this will be one or more "
-                     "NPE IDs (client-on-behalf-of-user). "
-                     "For NPE auth, this may be either empty (client-on-behalf-of-itself) "
-                     "or populated with one or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)")
-        )
-
 class Entitlements(BaseModel):
     __root__: Dict[
         str,
@@ -407,25 +384,6 @@ async def read_relationship(
     return relationships
 
 
-@app.post("/entitle",
-          tags=["Entitlements"],
-          response_model=List[EntityEntitlements])
-async def create_entitlements_object_for_jwt_claims(request: EntitleRequest):
-    logger.info("/entitle POST [%s]", request)
-
-    entity_entitlements = []
-    fetchedEntitlements = await get_entitlements_for_entity_id(request.primary_entity_id)
-    logger.debug("fetchedEntitlements [%s]", fetchedEntitlements)
-    entity_entitlements.append(fetchedEntitlements)
-
-    # Get any additional entitlements for any secondary entities involved in this entitlement grant request.
-    for secondary_entity_id in request.secondary_entity_ids:
-        entity_entitlements.append(await get_entitlements_for_entity_id(secondary_entity_id))
-
-    logger.debug("Returning claims: [%s]", entity_entitlements)
-    logger.debug("Returning claims for entity 0: [%s]", entity_entitlements[0])
-    return entity_entitlements
-
 @app.get(
     "/entitlements",
     tags=["Entitlements"],
@@ -478,29 +436,6 @@ async def read_entitlements(
     return pager.paginate(results)
 
 
-async def get_entitlements_for_entity_id(
-        entityId: str,
-        db: Session = Depends(get_db)):
-    attributes = []
-    query = table_entity_attribute.select().where(
-        table_entity_attribute.c.entity_id == entityId
-    )
-    result = await database.fetch_all(query)
-    logger.debug("Queried attrs for entityId [%s]", entityId)
-    for row in result:
-        uri = f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
-        logger.debug("Got attr: [%s]", uri)
-        attributes.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
-
-    entity_entitlements = EntityEntitlements(
-        entity_identifier=entityId,
-        entity_attributes=attributes,
-    )
-
-    logger.debug("Returning entitlements: [%s]", entity_entitlements)
-    return entity_entitlements
-
-
 async def read_entitlements_crud(schema, db, filter_args, sort_args):
     results = get_query(schema, db, filter_args, sort_args)
     # logger.debug(query)
@@ -515,9 +450,6 @@ async def read_entitlements_crud(schema, db, filter_args, sort_args):
         entity_id: str = row.entity_id
         if not previous_entity_id:
             previous_entity_id = entity_id
-        # FIXME what exactly is this doing and why?
-        # Does this function support querying for multiple entity's entitlements at once?
-        # If it does, why doesn't the thing that invokes it support that?
         if previous_entity_id != entity_id:
             entitlements.append({previous_entity_id: previous_attributes})
             previous_entity_id = entity_id
