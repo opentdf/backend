@@ -6,16 +6,6 @@ from .. import main
 
 def test_get_entitlements(client_fixture, monkeypatch):
     test_req = {
-                "algorithm": "ec:secp256r1",
-                "clientPublicSigningKey": "-----BEGIN PUBLIC KEY-----\n" +
-                             "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Q9axUqaxEfhOO2+0Xw+\n" +
-                             "swa5Rb2RV0xeTX3GC9DeORv9Ip49oNy+RXvaMsdNKspPWYZZEswrz2+ftwcQOSU+\n" +
-                             "efRCbGIwbSl8QBfKV9nGLlVmpDydcAIajc7YvWjQnDTEpHcJdo9y7/oogG7YcEmq\n" +
-                             "S3NtVJXCmbc4DyrZpc2BmZD4y9417fSiNjTTYY3Fc19lQz07hxDQLgMT21N4N0Fz\n" +
-                             "mD6EkiEpG5sdpDT/NIuGjFnJEPfqIs6TnPaX2y1OZ2/JzC+mldJFZuEqJZ/6qq/e\n" +
-                             "Ylp04nWrSnXhPpTuxNZ5J0GcPbpcFgdT8173qmm5m5jAjiFCr735lH7USl15H2fW\n" +
-                             "TwIDAQAB\n" +
-                             "-----END PUBLIC KEY-----\n",
                 "primaryEntityId": "31c871f2-6d2a-4d27-b727-e619cfaf4e7a",
                 "secondaryEntityIds": ["46a871f2-6d2a-4d27-b727-e619cfaf4e7b"],
             }
