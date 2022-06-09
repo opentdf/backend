@@ -1,13 +1,13 @@
 import json
 import pytest
 
-from .. import main
+import main
 
 
 def test_get_entitlements(client_fixture, monkeypatch):
     test_req = {
-                "primaryEntityId": "31c871f2-6d2a-4d27-b727-e619cfaf4e7a",
-                "secondaryEntityIds": ["46a871f2-6d2a-4d27-b727-e619cfaf4e7b"],
+                "primary_entity_id": "31c871f2-6d2a-4d27-b727-e619cfaf4e7a",
+                "secondary_entity_ids": ["46a871f2-6d2a-4d27-b727-e619cfaf4e7b"],
             }
     test_data = {
                         "entity_identifier": "cliententityid-14443434-1111343434-asdfdffff",
@@ -30,5 +30,5 @@ def test_get_entitlements(client_fixture, monkeypatch):
 
     response = client_fixture.post("/entitle", data=json.dumps(test_req))
     assert response.status_code == 200
-    assert response.json()['entitlements'][0] == test_data
-    assert len(response.json()['entitlements']) == 2
+    assert response.json()[0] == test_data
+    assert len(response.json()[0]) == 2
