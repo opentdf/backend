@@ -35,6 +35,7 @@ groups = {
         "opentdf-kas",
         "opentdf-attributes",
         "opentdf-entitlement-pdp",
+        "opentdf-entitlement-store",
         "opentdf-entitlements",
         "opentdf-postgresql",
     ],
@@ -46,6 +47,7 @@ groups = {
         "ingress-nginx-admission-patch",
         "opentdf-attributes",
         "opentdf-entitlement-pdp",
+        "opentdf-entitlement-store",
         "opentdf-entitlements",
         "opentdf-kas",
         "opentdf-abacus",
@@ -125,6 +127,12 @@ k8s_yaml(
         inputs=only_secrets_named("OIDC_CLIENT_SECRET"),
     )
 )
+k8s_yaml(
+        secret_from_dict(
+            "entitlement-store-secrets",
+            inputs=only_secrets_named("POSTGRES_PASSWORD"),
+        )
+    )
 k8s_yaml(
     secret_from_dict(
         "opentdf-entitlement-pdp-secret",
@@ -238,7 +246,7 @@ docker_build(
     ],
 )
 
-for microservice in ["attributes", "entitlements"]:
+for microservice in ["attributes", "entitlements", "entititlement-store"]:
     image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
     docker_build(
         image_name,
@@ -323,6 +331,12 @@ opentdf_entitlement_pdp_set = [
     "createPolicySecret=false",
 ]
 
+opentdf_entitlement_store_values = ""
+opentdf_entitlement_store_set = [
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store",
+    "secretRef.name=postgres-password",
+]
+
 opentdf_entitlements_values = ""
 opentdf_entitlements_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
@@ -338,6 +352,8 @@ opentdf_kas_set = [
 
 if isIntegrationTest or isPKItest:
     opentdf_attrs_values = "tests/integration/backend-attributes-values.yaml"
+    opentdf_entitlement_store_values = "tests/integration/backend-entitlement-store-values.yaml"
+    opentdf_entitlement_store_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store"]
     opentdf_entitlements_values = "tests/integration/backend-entitlements-values.yaml"
     opentdf_entitlement_pdp_values = "tests/integration/backend-entitlement-pdp-values.yaml"
     opentdf_kas_values = "tests/integration/backend-kas-values.yaml"
@@ -357,6 +373,15 @@ k8s_yaml(
         "opentdf-entitlement-pdp",
         set=opentdf_entitlement_pdp_set,
         values=[opentdf_entitlement_pdp_values],
+    )
+)
+
+k8s_yaml(
+    helm(
+        "charts/entitlement-store",
+        "opentdf-entitlement-store",
+        set=opentdf_entitlement_store_set,
+        values=[opentdf_entitlement_store_values],
     )
 )
 
@@ -419,7 +444,12 @@ k8s_resource(
 )
 k8s_resource(
     "opentdf-entitlement-pdp",
-    resource_deps=["opentdf-entitlements"],
+    resource_deps=["opentdf-entitlement-store"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entitlement-store",
+    resource_deps=["opentdf-postgresql"],
     labels=["Backend"]
 )
 k8s_resource(
