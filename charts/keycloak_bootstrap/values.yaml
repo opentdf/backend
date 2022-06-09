@@ -36,7 +36,7 @@ keycloak:
     #   password: testuser12345
 istioTerminationHack: false
 attributes:
-  hostname: http://opentdf-attribute
+  hostname: http://opentdf-attributes
   preloadedAuthorities: null
     # - http://example.fun
     # - http://testing123.fun
