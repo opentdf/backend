@@ -1,4 +1,5 @@
 IMAGEVERSION?=0.0.5
+IMAGEVERSION?=$(shell cat VERSION)
 IMAGETAG?=ghcr.io/opentdf/entitlement-pdp
 PLATFORMS?=linux/arm64,linux/amd64
 CGO_ENABLED=0
