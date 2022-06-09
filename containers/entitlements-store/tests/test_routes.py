@@ -4,7 +4,7 @@ import pytest
 from .. import main
 
 
-def test_get_claims(client_fixture, monkeypatch):
+def test_get_entitlements(client_fixture, monkeypatch):
     test_req = {
                 "algorithm": "ec:secp256r1",
                 "clientPublicSigningKey": "-----BEGIN PUBLIC KEY-----\n" +
@@ -38,7 +38,7 @@ def test_get_claims(client_fixture, monkeypatch):
 
     monkeypatch.setattr(main, "get_entitlements_for_entity_id", mock_get_entitlements_for_entity_id)
 
-    response = client_fixture.post("/claims", data=json.dumps(test_req))
+    response = client_fixture.post("/entitle", data=json.dumps(test_req))
     assert response.status_code == 200
     assert response.json()['entitlements'][0] == test_data
     assert len(response.json()['entitlements']) == 2
