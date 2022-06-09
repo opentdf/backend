@@ -1,7 +1,7 @@
 apiVersion: v2
-name: claims
+name: entitlement-store
 version: 0.0.1
-description: Provides 'claims' objects as the backend for an OpenTDF authZ service
+description: A read-only service that fetches and returns any entity<->attribute mappings present in the data store
 type: application
 maintainers:
   - name: Virtru

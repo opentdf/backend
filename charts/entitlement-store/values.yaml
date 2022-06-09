@@ -8,14 +8,14 @@ replicaCount: 1
 
 # Name of application. Used during oauth flows, for example when connecting to
 # the OpenAPI endpoint with an OAuth authentication
-serverPublicName: "Claims"
+serverPublicName: "entitlement-store"
 
 
 # Configure the container image to use in the deployment.
 image:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
-  repo: ghcr.io/opentdf/claims
+  repo: ghcr.io/opentdf/entitlement-store
   # Chart.AppVersion will be used for image tag, override here if needed
   # tag: main
   # The container's `imagePullPolicy`
@@ -24,7 +24,7 @@ image:
 # JSON passed to the deployment's template.spec.imagePullSecrets
 imagePullSecrets: []
 
-# Select a specific name for the resource, instead of the default, opentdf-claims
+# Select a specific name for the resource, instead of the default, opentdf-entitlement-store
 nameOverride: ""
 
 # The fully qualified appname override
@@ -55,7 +55,7 @@ securityContext: {}
 #     KAS_CERTIFICATE: Public key for Key Access service
 #     KAS_EC_SECP256R1_CERTIFICATE: Public key (EC Mode) for Key Access service
 secretRef:
-  name: claims-secrets
+  name: entitlement-store-secrets
 
 # Service configuation information.
 service:

@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "claims.fullname" . }}
+  name: {{ include "entitlement-store.fullname" . }}
   labels:
-    {{- include "claims.labels" . | nindent 4 }}
+    {{- include "entitlement-store.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "claims.selectorLabels" . | nindent 6 }}
+      {{- include "entitlement-store.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "claims.selectorLabels" . | nindent 8 }}
+        {{- include "entitlement-store.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "claims.serviceAccountName" . }}
+      serviceAccountName: {{ include "entitlement-store.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -39,7 +39,7 @@ spec:
                 {{- toYaml . | nindent 16 }}
             {{- end }}
             - configMapRef:
-                name: {{ include "claims.name" . }}-cm
+                name: {{ include "entitlement-store.name" . }}-cm
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
