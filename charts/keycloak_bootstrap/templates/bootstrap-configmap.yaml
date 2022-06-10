@@ -7,14 +7,16 @@ metadata:
     release: "{{ $.Release.Name }}"
     heritage: "{{ $.Release.Service }}"
 data:
-  clients.yaml: |-
-{{ toYaml .Values.keycloak.preloadedClients | indent 4 }}
-  users.yaml: |-
-{{ toYaml .Values.keycloak.preloadedUsers | indent 4 }}
+  config.yaml: |-
+{{ toYaml .Values.keycloak.realms | indent 4 }}
   entitlements.yaml: |-
-{{ toYaml .Values.entitlements.preloadedClaims | indent 4 }}
+{{ toYaml .Values.entitlements.realms | indent 4 }}
   authorities.yaml: |-
 {{ toYaml .Values.attributes.preloadedAuthorities | indent 4 }}
   attributes.yaml: |-
 {{ toYaml .Values.attributes.preloadedAttributes | indent 4 }}
+#   clients.yaml: |-
+# {{ toYaml .Values.keycloak.preloadedClients | indent 4 }}
+#   users.yaml: |-
+# {{ toYaml .Values.keycloak.preloadedUsers | indent 4 }}
 
