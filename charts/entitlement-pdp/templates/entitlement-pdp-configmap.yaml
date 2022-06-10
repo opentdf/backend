@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-config
+  labels:
+    app: {{ .Values.name }}
+    chart: {{ template "entitlementpdp.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  listenPort: {{ .Values.config.listenPort | quote }}
+  externalHost: {{ .Values.config.externalHost | quote }}
+  verbose: {{ .Values.config.verbose | quote }}
+  disableTracing: {{ .Values.config.disableTracing | quote }}
+  otlpCollectorEndpoint: {{ .Values.config.otlpCollectorEndpoint | quote }}
+  opaConfigPath: {{ .Values.config.opaConfigPath | quote }}
+  # NOTE that "${CR_PATH}" below is NOT templated by helm - this
+  # is a placeholder/anchor for a secret that the service will update
+  # at runtime and should be left as-is
+  opa-config.yaml: |-
+    services:
+      policy-registry:
+        url: {{ $.Values.opaConfig.policy.OCIRegistryUrl }}
+        type: oci
+        credentials:
+          bearer:
+            token: "${CR_PAT}"
+
+    bundles:
+      entitlement-policy:
+        service: policy-registry
+        resource: {{ $.Values.opaConfig.policy.bundleRepo }}:{{ $.Values.opaConfig.policy.bundleTag | default $.Chart.AppVersion  }}
+        {{- if .Values.opaConfig.policy.useStaticPolicy }}
+        trigger: "manual"
+        persist: true
+        {{- end }}
+        polling:
+          min_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
+          max_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
+
+    {{ if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /var/opa/policycache{{ end }}
+
+{{ toYaml .Values.opaConfig.extraConfigYaml | indent 4 }}

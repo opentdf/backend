@@ -26,6 +26,7 @@ def from_dotenv(path, key):
 config.define_string_list("to-run", args=True)
 config.define_string_list("to-edit")
 cfg = config.parse()
+
 to_edit = cfg.get("to-edit", [])
 
 groups = {
@@ -33,7 +34,8 @@ groups = {
         "keycloak",
         "opentdf-kas",
         "opentdf-attributes",
-        "opentdf-claims",
+        "opentdf-entitlement-pdp",
+        "opentdf-entitlement-store",
         "opentdf-entitlements",
         "opentdf-postgresql",
     ],
@@ -44,7 +46,8 @@ groups = {
         "ingress-nginx-admission-create",
         "ingress-nginx-admission-patch",
         "opentdf-attributes",
-        "opentdf-claims",
+        "opentdf-entitlement-pdp",
+        "opentdf-entitlement-store",
         "opentdf-entitlements",
         "opentdf-kas",
         "opentdf-abacus",
@@ -56,12 +59,12 @@ groups = {
 
 resources = []
 
-isCI = False
+isIntegrationTest = False
 isPKItest = False
 
 for arg in cfg.get("to-run", []):
     if arg == "integration-test":
-        isCI = True
+        isIntegrationTest = True
     if arg in groups:
         resources += groups[arg]
     else:
@@ -105,78 +108,67 @@ if not os.path.exists(
 all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
 all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
 all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
+all_secrets["opaPolicyPullSecret"] = os.environ.get("CR_PAT")
 
 
 def only_secrets_named(*items):
     return {k: all_secrets[k] for k in items}
 
 
-if isCI:
-    k8s_yaml(
-        secret_from_dict(
-            "attributes-secrets",
-            inputs=only_secrets_named("OIDC_CLIENT_SECRET", "POSTGRES_PASSWORD"),
-        )
+k8s_yaml(
+    secret_from_dict(
+        "attributes-secrets",
+        inputs=only_secrets_named("OIDC_CLIENT_SECRET", "POSTGRES_PASSWORD"),
     )
-    k8s_yaml(
-        secret_from_dict(
-            "kas-secrets",
-            inputs=only_secrets_named(
-                "ATTR_AUTHORITY_CERTIFICATE",
-                "KAS_EC_SECP256R1_CERTIFICATE",
-                "KAS_CERTIFICATE",
-                "KAS_EC_SECP256R1_PRIVATE_KEY",
-                "KAS_PRIVATE_KEY",
-            ),
-        )
+)
+k8s_yaml(
+    secret_from_dict(
+        "keycloak-bootstrap-secrets",
+        inputs=only_secrets_named("OIDC_CLIENT_SECRET"),
     )
-    k8s_yaml(
+)
+k8s_yaml(
         secret_from_dict(
-            "keycloak-bootstrap-secrets",
-            inputs=only_secrets_named("OIDC_CLIENT_SECRET"),
-        )
-    )
-    k8s_yaml(
-        secret_from_dict(
-            "claims-secrets",
-            inputs=only_secrets_named(
-                "POSTGRES_PASSWORD",
-                "ATTR_AUTHORITY_CERTIFICATE",
-                "KAS_EC_SECP256R1_CERTIFICATE",
-                "KAS_CERTIFICATE",
-            ),
-        )
-    )
-    k8s_yaml(
-        secret_from_dict(
-            "entitlements-secrets",
-            inputs={
-                "OIDC_CLIENT_SECRET": all_secrets["OIDC_CLIENT_SECRET"],
-                "POSTGRES_PASSWORD": all_secrets["POSTGRES_PASSWORD"],
-            },
-        )
-    )
-else:
-    k8s_yaml(
-        secret_from_dict(
-            "all-the-kas-secrets",
-            inputs=only_secrets_named(
-                "ATTR_AUTHORITY_CERTIFICATE",
-                "KAS_EC_SECP256R1_CERTIFICATE",
-                "KAS_CERTIFICATE",
-                "KAS_EC_SECP256R1_PRIVATE_KEY",
-                "KAS_PRIVATE_KEY",
-                "ca-cert.pem",
-            ),
-        )
-    )
-    k8s_yaml(
-        secret_from_dict(
-            "postgres-password",
+            "entitlement-store-secrets",
             inputs=only_secrets_named("POSTGRES_PASSWORD"),
         )
     )
-
+k8s_yaml(
+    secret_from_dict(
+        "opentdf-entitlement-pdp-secret",
+        inputs=only_secrets_named(
+            "opaPolicyPullSecret",
+        ),
+    )
+)
+k8s_yaml(
+    secret_from_dict(
+        "postgres-password",
+        inputs=only_secrets_named("POSTGRES_PASSWORD"),
+    )
+)
+k8s_yaml(
+    secret_from_dict(
+        "entitlements-secrets",
+        inputs={
+            "OIDC_CLIENT_SECRET": all_secrets["OIDC_CLIENT_SECRET"],
+            "POSTGRES_PASSWORD": all_secrets["POSTGRES_PASSWORD"],
+        },
+    )
+)
+k8s_yaml(
+    secret_from_dict(
+        "kas-secrets",
+        inputs=only_secrets_named(
+            "ATTR_AUTHORITY_CERTIFICATE",
+            "KAS_EC_SECP256R1_CERTIFICATE",
+            "KAS_CERTIFICATE",
+            "KAS_EC_SECP256R1_PRIVATE_KEY",
+            "KAS_PRIVATE_KEY",
+            "ca-cert.pem",
+        ),
+    )
+)
 
 #   o8o
 #   `"'
@@ -232,6 +224,11 @@ docker_build(
 )
 
 docker_build(
+    CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+    context="./containers/entitlement-pdp",
+)
+
+docker_build(
     CONTAINER_REGISTRY + "/opentdf/kas",
     build_args={
         "ALPINE_VERSION": ALPINE_VERSION,
@@ -249,7 +246,7 @@ docker_build(
     ],
 )
 
-for microservice in ["attributes", "entitlements", "claims"]:
+for microservice in ["attributes", "entitlements", "entitlement-store"]:
     image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
     docker_build(
         image_name,
@@ -272,13 +269,14 @@ for microservice in ["attributes", "entitlements", "claims"]:
         ],
     )
 
-postgres_helm_values = "deployments/docker-desktop/tdf-postgresql-values.yaml"
-keycloak_helm_values = "deployments/docker-desktop/keycloak-values.yaml"
+postgres_helm_values = "deployments/tilt/tdf-postgresql-values.yaml"
+keycloak_helm_values = "deployments/tilt/keycloak-values.yaml"
 
-if isCI:
+if isIntegrationTest:
     postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
     keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
+# Override Keycloak chart values for PKI
 if isPKItest:
     keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
@@ -321,39 +319,44 @@ helm_remote(
 #
 # usage https://docs.tilt.dev/helm.html#helm-options
 
-opentdf_attrs_values = "deployments/docker-desktop/attributes-values.yaml"
+opentdf_attrs_values = ""
 opentdf_attrs_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes",
     "secretRef.name=postgres-password",
 ]
-opentdf_claims_values = "deployments/docker-desktop/claims-values.yaml"
-opentdf_claims_set = [
-    "image.name=" + CONTAINER_REGISTRY + "/opentdf/claims",
+
+opentdf_entitlement_pdp_values = ""
+opentdf_entitlement_pdp_set = [
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+    "createPolicySecret=false",
+]
+
+opentdf_entitlement_store_values = ""
+opentdf_entitlement_store_set = [
+    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store",
     "secretRef.name=postgres-password",
 ]
-opentdf_entitlements_values = "deployments/docker-desktop/entitlements-values.yaml"
+
+opentdf_entitlements_values = ""
 opentdf_entitlements_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
     "secretRef.name=postgres-password",
 ]
-opentdf_kas_values = "deployments/docker-desktop/kas-values.yaml"
+
+opentdf_kas_values = ""
 opentdf_kas_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
-    "secretRef.name=all-the-kas-secrets",
-    "certFileSecretName=all-the-kas-secrets",
+    "secretRef.name=kas-secrets",
+    "certFileSecretName=kas-secrets",
 ]
 
-if isCI:
+if isIntegrationTest or isPKItest:
     opentdf_attrs_values = "tests/integration/backend-attributes-values.yaml"
-    opentdf_attrs_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes"]
-    opentdf_claims_values = "tests/integration/backend-claims-values.yaml"
-    opentdf_claims_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/claims"]
+    opentdf_entitlement_store_values = "tests/integration/backend-entitlement-store-values.yaml"
+    opentdf_entitlement_store_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store"]
     opentdf_entitlements_values = "tests/integration/backend-entitlements-values.yaml"
-    opentdf_entitlements_set = [
-        "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements"
-    ]
+    opentdf_entitlement_pdp_values = "tests/integration/backend-entitlement-pdp-values.yaml"
     opentdf_kas_values = "tests/integration/backend-kas-values.yaml"
-    opentdf_kas_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/kas"]
 
 k8s_yaml(
     helm(
@@ -366,10 +369,19 @@ k8s_yaml(
 
 k8s_yaml(
     helm(
-        "charts/claims",
-        "opentdf-claims",
-        set=opentdf_claims_set,
-        values=[opentdf_claims_values],
+        "charts/entitlement-pdp",
+        "opentdf-entitlement-pdp",
+        set=opentdf_entitlement_pdp_set,
+        values=[opentdf_entitlement_pdp_values],
+    )
+)
+
+k8s_yaml(
+    helm(
+        "charts/entitlement-store",
+        "opentdf-entitlement-store",
+        set=opentdf_entitlement_store_set,
+        values=[opentdf_entitlement_store_values],
     )
 )
 
@@ -431,8 +443,13 @@ k8s_resource(
     labels=["Backend"]
 )
 k8s_resource(
-    "opentdf-claims",
-    resource_deps=["opentdf-postgresql", "keycloak"],
+    "opentdf-entitlement-pdp",
+    resource_deps=["opentdf-entitlement-store"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entitlement-store",
+    resource_deps=["opentdf-postgresql"],
     labels=["Backend"]
 )
 k8s_resource(
@@ -518,14 +535,14 @@ k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
     "opentdf-xtest",
-    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-claims"],
+    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
 )
 
 if isPKItest:
     local_resource(
         "pki-test",
         "python3 tests/integration/pki-test/client_pki_test.py",
-        resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas"],
+        resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
     )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
