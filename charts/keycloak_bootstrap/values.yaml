@@ -17,20 +17,20 @@ pki:
   browserEnable: "true"
 keycloak:
   hostname: http://keycloak-http
-  # clientId: tdf-client
-  # clientSecret: 123-456
+  clientId: tdf-client
+  clientSecret: 123-456
   username: keycloakadmin
   password: mykeycloakpassword
-  realms: null
-  # realm: tdf
-  # passwordUsers: testuser@virtru.com,user1,user2
-  # npeClients: null
-  # preloadedClients: null
+  customConfig: null
+  realm: tdf
+  passwordUsers: testuser@virtru.com,user1,user2
+  npeClients: null
+  preloadedClients: null
     # - clientId: test-client-1
     #   clientSecret: test-client-secret
     # - clientId: test-client-2
     #   clientSecret: 123-456-789
-  # preloadedUsers: null
+  preloadedUsers: null
     # - username: user3
     #   password: testuser1234
     # - username: user4

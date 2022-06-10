@@ -45,18 +45,18 @@ spec:
             - name: keycloak_admin_password
               value: {{ . }}
             {{- end }}
-            # - name: passwordUsers
-            #   value: {{ .Values.keycloak.passwordUsers }}
-            # {{- with .Values.keycloak.clientId }}
-            # - name: CLIENT_ID
-            #   value: {{ . }}
-            # {{- end }}
-            # {{- with .Values.keycloak.clientSecret }}
-            # - name: CLIENT_SECRET
-            #   value: {{ . }}
-            # {{- end }}
-            # - name: realm
-            #   value: {{ .Values.keycloak.realm }}
+            - name: passwordUsers
+              value: {{ .Values.keycloak.passwordUsers }}
+            {{- with .Values.keycloak.clientId }}
+            - name: CLIENT_ID
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.keycloak.clientSecret }}
+            - name: CLIENT_SECRET
+              value: {{ . }}
+            {{- end }}
+            - name: realm
+              value: {{ .Values.keycloak.realm }}
             - name: ATTRIBUTE_AUTHORITY_HOST
               value: {{ .Values.attributes.hostname }}
             - name: ENTITLEMENT_HOST

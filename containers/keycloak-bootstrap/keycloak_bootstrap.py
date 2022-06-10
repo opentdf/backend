@@ -776,6 +776,7 @@ def findAndReplace(obj, str_to_find, replace_with):
         return obj
 
 def replaceYamlVars(config):
+    # replace yaml vars
     config = findAndReplace(config, "{{ hostname }}", kc_internal_url)
     config = findAndReplace(config, "{{ externalUrl }}", otdf_frontend_url)
     return config
@@ -784,7 +785,6 @@ def replaceYamlVars(config):
 def addClientMappers(keycloak_admin, keycloak_client_id, mappers):
     for mapper in mappers:
         logger.info("Assigning mapper to client %s", keycloak_client_id)
-        logger.info(f"{mapper}")
         try:
             keycloak_admin.add_mapper_to_client(
                 keycloak_client_id,
@@ -824,7 +824,6 @@ def createClient(keycloak_admin, realm_name, client):
     try:
         client_id = client["payload"]["clientId"]
         logger.debug("Creating client %s", client_id)
-        logger.debug(f"{client}")
         keycloak_admin.create_client(
             payload = client["payload"],
             skip_exists=True,
@@ -854,8 +853,8 @@ def createUser(keycloak_admin, realm_name, user):
         if "roles" in user:
             addRolesToUser(keycloak_admin, new_user, user["roles"])
     except Exception as e:
-        logger.warning(f"Error creating user {user['payload']}")
-        logger.warning(str(e))
+        logger.error(f"Error creating user {user['payload']}")
+        logger.error(str(e))
 
 
 def createRealm(keycloak_admin, realm_name, payload):
@@ -864,7 +863,6 @@ def createRealm(keycloak_admin, realm_name, payload):
     realm_exist = check_matched({"realm": realm_name}, realms)
     if not realm_exist:
         keycloak_admin.create_realm(
-            # payload={"realm": realm_name, "enabled": "true", "attributes": {"frontendUrl": "http://keycloak-http:8080/auth/realms/tdf"}}, skip_exists=True
             payload=payload,
             skip_exists=True,
         )
@@ -892,7 +890,7 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
             )
         if "clients" in realm:
             for client in realm["clients"]:
-                logger.info(f"Client {client}")
+                logger.debug(f"Client {client}")
                 createClient(keycloak_admin, realm["name"], client)
         if "users" in realm:
             for user in realm["users"]:
@@ -913,33 +911,37 @@ def kc_bootstrap():
         logger.warning("Not found: /etc/virtru-config/config.yaml", exc_info=1)
         bootstrap_config = None
 
-    # # Contains a list of clientIds and clientSecrets we want to preload
-    # try:
-    #     with open("/etc/virtru-config/clients.yaml") as f:
-    #         preloaded_clients = yaml.safe_load(f)
-    # except FileNotFoundError:
-    #     logger.warning("Not found: /etc/virtru-config/clients.yaml", exc_info=1)
-    #     preloaded_clients = None
+    
 
-    # # Contains a list of usernames and passwords we want to preload
-    # try:
-    #     with open("/etc/virtru-config/users.yaml") as f:
-    #         preloaded_users = yaml.safe_load(f)
-    # except FileNotFoundError:
-    #     logger.warning("Not found: /etc/virtru-config/users.yaml", exc_info=1)
-    #     preloaded_users = None
-
-    # updateMasterRealm(username, password, keycloak_auth_url)
-
+    # use the custom config
     if bootstrap_config is not None:
         bootstrap_config = replaceYamlVars(bootstrap_config)
         configureKeycloak(username, password, keycloak_auth_url, bootstrap_config)
+    # use our hardcoded config
+    else:
+        # Contains a list of clientIds and clientSecrets we want to preload
+        try:
+            with open("/etc/virtru-config/clients.yaml") as f:
+                preloaded_clients = yaml.safe_load(f)
+        except FileNotFoundError:
+            logger.warning("Not found: /etc/virtru-config/clients.yaml", exc_info=1)
+            preloaded_clients = None
 
-    
-    # createTDFRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
+        # Contains a list of usernames and passwords we want to preload
+        try:
+            with open("/etc/virtru-config/users.yaml") as f:
+                preloaded_users = yaml.safe_load(f)
+        except FileNotFoundError:
+            logger.warning("Not found: /etc/virtru-config/users.yaml", exc_info=1)
+            preloaded_users = None
 
-    # # If either browser PKI or direct grant PKI configured, create PKI realm
-    # if ((pki_browser == "true") or (pki_direct == "true")):
-    #     createTDFPKIRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
+        updateMasterRealm(username, password, keycloak_auth_url)
+
+        
+        createTDFRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
+
+        # If either browser PKI or direct grant PKI configured, create PKI realm
+        if ((pki_browser == "true") or (pki_direct == "true")):
+            createTDFPKIRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
 
     return True  # It is pointless to return True here, as we arent' checking the return values of the previous calls (and don't really need to)
