@@ -23,13 +23,13 @@ services:
       dockerfile: Dockerfile
     image: opentdf/kas:${SERVICE_IMAGE_TAG:-head}
 
-  claims:
+  entitlement-store:
     build:
-      context: ./containers/claims
+      context: ./containers/entitlement-store
       args:
         - PY_VERSION=${PY_VERSION:-3.10}
       dockerfile: Dockerfile
-    image: opentdf/claims:${SERVICE_IMAGE_TAG:-head}
+    image: opentdf/entitlement-store:${SERVICE_IMAGE_TAG:-head}
 
   keycloak:
     build:
