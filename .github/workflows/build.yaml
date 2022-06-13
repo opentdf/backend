@@ -376,6 +376,14 @@ jobs:
         with:
           go-version: '>=1.17.0'
       - name: Build policy bundle
+        if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
+        run: |
+          go install github.com/opcr-io/policy/cmd/policy@latest
+          cd containers/entitlement-pdp/entitlement-policy
+          policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+          POLICYVERSION=sha-$(git rev-parse --short HEAD) make policybuild
+      - name: Publish policy bundle
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
         run: |
           go install github.com/opcr-io/policy/cmd/policy@latest
           cd containers/entitlement-pdp/entitlement-policy
