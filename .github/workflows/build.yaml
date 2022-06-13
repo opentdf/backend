@@ -256,7 +256,7 @@ jobs:
           platforms: ${{ env.CONTAINER_ARCHS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: true
+          push: "${{ ! github.event.pull_request.head.repo.fork }}"
 
   build-and-publish-isolated:
     needs:
