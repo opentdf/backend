@@ -218,16 +218,20 @@ table_attribute = sqlalchemy.Table(
     "attribute",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
-        "namespace_id",
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("attribute_namespace.id"),
-    ),
+    sqlalchemy.Column("namespace_id",
+                      sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey("attribute_namespace.id"),
+                      ),
     sqlalchemy.Column("state", sqlalchemy.VARCHAR),
     sqlalchemy.Column("rule", sqlalchemy.VARCHAR),
     sqlalchemy.Column("name", sqlalchemy.VARCHAR),
     sqlalchemy.Column("description", sqlalchemy.VARCHAR),
     sqlalchemy.Column("values_array", sqlalchemy.ARRAY(sqlalchemy.TEXT)),
+    sqlalchemy.Column("group_by_attr",
+                      sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey("attribute.id")
+                      ),
+    sqlalchemy.Column("group_by_attrval", sqlalchemy.TEXT),
 )
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
@@ -304,6 +308,19 @@ class RuleEnum(str, Enum):
 class AuthorityUrl(AnyUrl):
     max_length = 2000
 
+class AttributeInstance(BaseModel):
+    authority: AuthorityUrl
+    name: Annotated[str, Field(max_length=2000)]
+    value: Annotated[str, Field(max_length=2000)]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "value": "Proprietary"
+            }
+        }
 
 class AttributeDefinition(BaseModel):
     authority: AuthorityUrl
@@ -314,6 +331,7 @@ class AttributeDefinition(BaseModel):
     ]
     rule: RuleEnum
     state: Annotated[Optional[str], Field(max_length=64)]
+    group_by: AttributeInstance
 
     class Config:
         schema_extra = {
@@ -323,6 +341,11 @@ class AttributeDefinition(BaseModel):
                 "rule": "hierarchy",
                 "state": "published",
                 "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+                "group_by": {
+                    "authority": "https://opentdf.io",
+                    "name": "ClassificationUS",
+                    "value": "Proprietary"
+                }
             }
         }
 
@@ -385,16 +408,16 @@ oidc_scheme = OpenIdConnect(
     },
 )
 async def read_attributes(
-    authority: Optional[AuthorityUrl] = None,
-    name: Optional[str] = None,
-    rule: Optional[str] = None,
-    order: Optional[str] = None,
-    sort: Optional[str] = Query(
-        "",
-        regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
-    ),
-    db: Session = Depends(get_db),
-    pager: Pagination = Depends(Pagination),
+        authority: Optional[AuthorityUrl] = None,
+        name: Optional[str] = None,
+        rule: Optional[str] = None,
+        order: Optional[str] = None,
+        sort: Optional[str] = Query(
+            "",
+            regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
+        ),
+        db: Session = Depends(get_db),
+        pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
@@ -470,6 +493,11 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
                                 "BusinessSensitive",
                                 "Open",
                             ],
+                            "group_by": {
+                                "authority": "https://opentdf.io",
+                                "name": "ClassificationUS",
+                                "value": "Proprietary"
+                            }
                         }
                     ]
                 }
@@ -478,16 +506,16 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
     },
 )
 async def read_attributes_definitions(
-    authority: Optional[AuthorityUrl] = None,
-    name: Optional[str] = None,
-    rule: Optional[str] = None,
-    order: Optional[str] = None,
-    sort: Optional[str] = Query(
-        "",
-        regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
-    ),
-    db: Session = Depends(get_db),
-    pager: Pagination = Depends(Pagination),
+        authority: Optional[AuthorityUrl] = None,
+        name: Optional[str] = None,
+        rule: Optional[str] = None,
+        order: Optional[str] = None,
+        sort: Optional[str] = Query(
+            "",
+            regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
+        ),
+        db: Session = Depends(get_db),
+        pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
@@ -511,15 +539,26 @@ async def read_attributes_definitions(
     attributes: List[AttributeDefinition] = []
     for row in results:
         try:
-            attributes.append(
-                AttributeDefinition(
-                    authority=authorities[row.namespace_id],
-                    name=row.name,
-                    order=row.values_array,
-                    rule=row.rule,
-                    state=row.state,
-                )
+            attr_def = AttributeDefinition(
+                authority=authorities[row.namespace_id],
+                name=row.name,
+                order=row.values_array,
+                rule=row.rule,
+                state=row.state,
             )
+            # If this attribute definition has a "groupby AttributeInstance"
+            # that is, it has a non-null reference to another attribute definition
+            # and a specific grouping value, then look for and return that
+            if row.group_by_attr:
+                groupfilter = {}
+                groupfilter["id"] = row.group_by_attr
+                groupby_results = get_query(AttributeSchema, db, groupfilter, sort_args)
+                attr_def.group_by = AttributeInstance(
+                    authority=groupby_results[0].authority,
+                    name=groupby_results[0].name,
+                    value=row.group_by_attrval
+                )
+            attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
     return pager.paginate(attributes)
@@ -552,16 +591,16 @@ async def read_attributes_definitions(
     },
 )
 async def create_attributes_definitions(
-    request: AttributeDefinition = Body(
-        ...,
-        example={
-            "authority": "https://opentdf.io",
-            "name": "IntellectualProperty",
-            "rule": "hierarchy",
-            "state": "published",
-            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-        },
-    )
+        request: AttributeDefinition = Body(
+            ...,
+            example={
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "rule": "hierarchy",
+                "state": "published",
+                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+            },
+        )
 ):
     return await create_attributes_definitions_crud(request)
 
@@ -578,8 +617,8 @@ async def create_attributes_definitions_crud(request):
                     status_code=BAD_REQUEST,
                     detail="Duplicated items when Rule is Hierarchy",
                 )
-        namespace_id = result.get(table_authority.c.id)
-        # insert
+            namespace_id = result.get(table_authority.c.id)
+            # insert
         query = table_attribute.insert().values(
             name=request.name,
             namespace_id=namespace_id,
@@ -625,16 +664,16 @@ async def create_attributes_definitions_crud(request):
     },
 )
 async def update_attribute_definition(
-    request: AttributeDefinition = Body(
-        ...,
-        example={
-            "authority": "https://opentdf.io",
-            "name": "IntellectualProperty",
-            "rule": "hierarchy",
-            "state": "published",
-            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-        },
-    )
+        request: AttributeDefinition = Body(
+            ...,
+            example={
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "rule": "hierarchy",
+                "state": "published",
+                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+            },
+        )
 ):
     return await update_attribute_definition_crud(request)
 
@@ -685,16 +724,16 @@ async def update_attribute_definition_crud(request):
     },
 )
 async def delete_attributes_definitions(
-    request: AttributeDefinition = Body(
-        ...,
-        example={
-            "authority": "https://opentdf.io",
-            "name": "IntellectualProperty",
-            "rule": "hierarchy",
-            "state": "published",
-            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-        },
-    )
+        request: AttributeDefinition = Body(
+            ...,
+            example={
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "rule": "hierarchy",
+                "state": "published",
+                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+            },
+        )
 ):
     return await delete_attributes_definitions_crud(request)
 
@@ -750,9 +789,9 @@ async def read_authorities_crud():
     },
 )
 async def create_authorities(
-    request: AuthorityDefinition = Body(
-        ..., example={"authority": "https://opentdf.io"}
-    )
+        request: AuthorityDefinition = Body(
+            ..., example={"authority": "https://opentdf.io"}
+        )
 ):
     return await create_authorities_crud(request)
 
