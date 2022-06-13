@@ -104,12 +104,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip3 install -r containers/attributes/requirements.txt
-          pip3 install -r containers/claims/requirements.txt
+          pip3 install -r containers/entitlement-store/requirements.txt
           pip3 install -r containers/entitlements/requirements.txt
       - name: Test
         run: |
           python -m pytest containers/attributes/tests
-          python -m pytest containers/claims/tests
+          python -m pytest containers/entitlement-store/tests
           python -m pytest containers/entitlements/tests
 
   integration-test:
@@ -245,7 +245,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         id: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
             ALPINE_VERSION=3.15
@@ -291,7 +291,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
             ALPINE_VERSION=3.15
@@ -304,6 +304,83 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+  build-and-publish:
+    needs:
+      - integration-test
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - entitlement-pdp
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ghcr.io/opentdf/${{ matrix.repo }}
+          tags: |
+            type=ref,event=branch
+            type=sha
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: publish
+        uses: docker/build-push-action@v3
+        with:
+          build-args: |-
+            CONTAINER_REGISTRY=ghcr.io
+          context: ./containers/${{ matrix.repo }}
+          platforms: ${{ env.CONTAINER_ARCHS }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-and-publish-policybundle:
+    runs-on: ubuntu-latest
+    needs:
+      - integration-test
+    permissions:
+      packages: write
+      contents: read
+    timeout-minutes: 10
+    env:
+      BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+      - name: Setup OPA for running policy tests
+        uses: open-policy-agent/setup-opa@v1
+        with:
+          version: latest
+      - name: Setup policy OCI bundler tool
+        uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.17.0'
+      - name: Build policy bundle
+        run: |
+          go install github.com/opcr-io/policy/cmd/policy@latest
+          cd containers/entitlement-pdp/entitlement-policy
+          policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+          POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
+
   build-and-publish-with-shared-base:
     needs:
       - build-base
@@ -315,7 +392,7 @@ jobs:
     strategy:
       matrix:
         repo:
-          - claims
+          - entitlement-store
           - attributes
           - entitlements
     steps:
@@ -339,7 +416,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
             ALPINE_VERSION=3.15
@@ -393,7 +470,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish upstream Keycloak base image as multi-arch image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: ./server
           file: ./server/Dockerfile
@@ -432,7 +509,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
             MAVEN_VERSION=3.8.4

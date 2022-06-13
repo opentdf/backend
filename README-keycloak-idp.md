@@ -1,5 +1,4 @@
-
-## OpenTDF + Keycloak Identity Provider Integration
+# OpenTDF + Keycloak Identity Provider Integration
 
 Keycloak is our Identity Provider (IdP), and integrating
 it into Virtru's technology requires the following components:

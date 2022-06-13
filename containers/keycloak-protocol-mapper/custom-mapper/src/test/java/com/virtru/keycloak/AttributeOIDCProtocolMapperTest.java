@@ -3,6 +3,7 @@ package com.virtru.keycloak;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.jboss.resteasy.test.TestPortProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -118,10 +119,12 @@ public class AttributeOIDCProtocolMapperTest {
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
-        Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
-        assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
-        assertEquals("12345", echoedClaimValue.get("clientPublicSigningKey"));
-        assertEquals("1234-4567-8901", echoedClaimValue.get("primaryEntityId"));
+        assertNotNull(responseClaimAsMap, "Echoed claim present");
+        assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
+        assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
+        ArrayList entitlements = (ArrayList)responseClaimAsMap.get("entitlements");
+        Map ent = (Map) entitlements.get(0);
+        assertEquals("1234-4567-8901", ent.get("primary_entity_id"));
     }
 
     //If user ID is a service account, that means we are doing direct-grant auth against a client (not a user+client),
@@ -138,13 +141,13 @@ public class AttributeOIDCProtocolMapperTest {
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
-        Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
-
-
-        assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
-        assertEquals("12345", echoedClaimValue.get("clientPublicSigningKey"));
-        assertEquals("1234599998888", echoedClaimValue.get("primaryEntityId"));
-        assertEquals(0, ((ArrayList<String>) echoedClaimValue.get("secondaryEntityIds")).size(), "0 entries");
+        assertNotNull(responseClaimAsMap, "Echoed claim present");
+        assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
+        assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
+        ArrayList entitlements = (ArrayList)responseClaimAsMap.get("entitlements");
+        Map ent = (Map) entitlements.get(0);
+        assertEquals("1234599998888", ent.get("primary_entity_id"));
+        assertEquals(0, ((ArrayList<String>) ent.get("secondary_entity_ids")).size(), "0 entries");
     }
 
     private void assertTransformUserInfo_WithPKHeader() throws Exception {
@@ -157,10 +160,12 @@ public class AttributeOIDCProtocolMapperTest {
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
-        Map echoedClaimValue = (Map) responseClaimAsMap.get("echo");
-        assertEquals(5, echoedClaimValue.keySet().size(), "5 entries");
-        assertEquals("12345", echoedClaimValue.get("clientPublicSigningKey"));
-        assertEquals("1234-4567-8901", echoedClaimValue.get("primaryEntityId"));
+        assertNotNull(responseClaimAsMap, "Echoed claim present");
+        assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
+        assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
+        ArrayList entitlements = (ArrayList)responseClaimAsMap.get("entitlements");
+        Map ent = (Map) entitlements.get(0);
+        assertEquals("1234-4567-8901", ent.get("primary_entity_id"));
     }
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
@@ -243,9 +248,8 @@ public class AttributeOIDCProtocolMapperTest {
         @POST
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
-        public Map createMyModel(Map payload) {
-            Map response = new HashMap<>();
-            response.put("echo", payload);
+        public Map[] createMyModel(Map payload) {
+            Map[] response = { payload };
             return response;
         }
 
