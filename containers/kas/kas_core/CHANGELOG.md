@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]: https://github.com/opentdf/backendd/compare/master...HEAD
+## [Unreleased]: https://github.com/opentdf/backend/compare/main...HEAD
+
+## 0.8.6 - 2022-06-10
 
 - PLAT-1641
   - Updates to latest version of cryptography to address vulnerabilities

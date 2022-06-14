@@ -28,6 +28,3 @@ pytest-watch = "*"
 setuptools = "*"
 twine = "*"
 wheel = "*"
-
-[requires]
-python_version = "3"
