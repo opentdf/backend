@@ -331,7 +331,7 @@ class AttributeDefinition(BaseModel):
     ]
     rule: RuleEnum
     state: Annotated[Optional[str], Field(max_length=64)]
-    group_by: AttributeInstance
+    group_by: Optional[AttributeInstance] = None
 
     class Config:
         schema_extra = {
@@ -584,6 +584,11 @@ async def read_attributes_definitions(
                             "BusinessSensitive",
                             "Open",
                         ],
+                        "group_by": {
+                            "authority": "https://opentdf.io",
+                            "name": "ClassificationUS",
+                            "value": "Proprietary"
+                        }
                     }
                 }
             }
@@ -599,6 +604,11 @@ async def create_attributes_definitions(
                 "rule": "hierarchy",
                 "state": "published",
                 "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+                "group_by": {
+                    "authority": "https://opentdf.io",
+                    "name": "ClassificationUS",
+                    "value": "Proprietary"
+                }
             },
         )
 ):
@@ -609,31 +619,62 @@ async def create_attributes_definitions_crud(request):
     # lookup
     query = table_authority.select().where(table_authority.c.name == request.authority)
     result = await database.fetch_one(query)
-    if result:
-        if request.rule == RuleEnum.hierarchy:
-            is_duplicated = check_duplicates(request.order)
-            if is_duplicated:
-                raise HTTPException(
-                    status_code=BAD_REQUEST,
-                    detail="Duplicated items when Rule is Hierarchy",
-                )
-            namespace_id = result.get(table_authority.c.id)
-            # insert
-        query = table_attribute.insert().values(
-            name=request.name,
-            namespace_id=namespace_id,
-            values_array=request.order,
-            state=request.state,
-            rule=request.rule,
-        )
-        try:
-            await database.execute(query)
-        except UniqueViolationError as e:
-            raise HTTPException(
-                status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
-            ) from e
-    else:
+    if not result:
         raise HTTPException(status_code=BAD_REQUEST, detail=f"namespace not found")
+
+    group_attr_id = None
+    if request.group_by:
+        # Groupby
+        group_authority_query = table_authority.select().where(table_authority.c.name == request.group_by.authority)
+        group_authority = await database.fetch_one(group_authority_query)
+        if not group_authority:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Group-by attribute authority does not exist",
+            )
+
+        attr_def_q = table_attribute.select().where(
+            and_(
+                table_attribute.c.namespace_id == group_authority.id,
+                table_attribute.c.name == request.group_by.name
+            )
+        )
+
+        group_attr = await database.fetch_one(attr_def_q)
+
+        if request.group_by.value not in group_attr.values_array:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Specified an invalid value for group-by attribute",
+            )
+
+        group_attr_id = group_attr.id
+
+    if request.rule == RuleEnum.hierarchy:
+        is_duplicated = check_duplicates(request.order)
+        if is_duplicated:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Duplicated items when Rule is Hierarchy",
+            )
+        namespace_id = result.get(table_authority.c.id)
+
+    # insert
+    query = table_attribute.insert().values(
+        name=request.name,
+        namespace_id=namespace_id,
+        values_array=request.order,
+        state=request.state,
+        rule=request.rule,
+        group_by_attr=group_attr_id,
+        group_by_attrval=(request.group_by.value if group_attr_id else None)
+    )
+    try:
+        await database.execute(query)
+    except UniqueViolationError as e:
+        raise HTTPException(
+            status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
+        ) from e
     return request
 
 
@@ -672,6 +713,11 @@ async def update_attribute_definition(
                 "rule": "hierarchy",
                 "state": "published",
                 "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+                "group_by": {
+                    "authority": "https://opentdf.io",
+                    "name": "ClassificationUS",
+                    "value": "Proprietary"
+                }
             },
         )
 ):
@@ -696,6 +742,34 @@ async def update_attribute_definition_crud(request):
                 detail="Duplicated items when Rule is Hierarchy",
             )
 
+    group_attr_id = None
+    if request.group_by:
+        # Groupby
+        group_authority_query = table_authority.select().where(table_authority.c.name == request.group_by.authority)
+        group_authority = await database.fetch_one(group_authority_query)
+        if not group_authority:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Group-by attribute authority does not exist",
+            )
+
+        attr_def_q = table_attribute.select().where(
+            and_(
+                table_attribute.c.namespace_id == group_authority.id,
+                table_attribute.c.name == request.group_by.name
+            )
+        )
+
+        group_attr = await database.fetch_one(attr_def_q)
+
+        if request.group_by.value not in group_attr.values_array:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Specified an invalid value for group-by attribute",
+            )
+
+        group_attr_id = group_attr.id
+
     query = table_attribute.update().where(
         and_(
             table_authority.c.name == request.authority,
@@ -704,6 +778,8 @@ async def update_attribute_definition_crud(request):
     ).values(
         values_array=request.order,
         rule=request.rule,
+        group_by_attr=group_attr_id,
+        group_by_attrval=(request.group_by.value if group_attr_id else None)
     )
 
     await database.execute(query)
