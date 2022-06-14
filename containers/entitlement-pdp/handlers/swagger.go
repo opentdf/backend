@@ -11,6 +11,6 @@ import (
 func GetSwaggerHandler(address string) http.Handler {
 
 	return httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("http://%s/swagger/doc.json", address)), //The url pointing to API definition
+		httpSwagger.URL(fmt.Sprintf("http://%s/docs/doc.json", address)), //The url pointing to API definition
 	)
 }

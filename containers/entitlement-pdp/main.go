@@ -94,7 +94,7 @@ func main() {
 
 	http.Handle("/entitlements", otelhttp.NewHandler(handlers.GetEntitlementsHandler(&opaPDP, logger), "EntitlementsHandler"))
 
-	http.Handle("/swagger/", handlers.GetSwaggerHandler(server.Addr))
+	http.Handle("/docs/", handlers.GetSwaggerHandler(server.Addr))
 
 	logger.Info("Starting server", zap.String("address", server.Addr))
 	handlers.MarkHealthy()
