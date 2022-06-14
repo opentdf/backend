@@ -551,7 +551,7 @@ async def read_attributes_definitions(
             # and a specific grouping value, then look for and return that
             if row.group_by_attr:
                 groupby_attr_q = table_attribute.select().where(
-                        table_attribute.c.id == row.group_by_attr
+                    table_attribute.c.id == row.group_by_attr
                 )
 
                 groupby_attr = await database.fetch_one(groupby_attr_q)
@@ -578,6 +578,7 @@ async def read_attributes_definitions(
                     name=groupby_attr.name,
                     value=row.group_by_attrval
                 )
+
             attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
