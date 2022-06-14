@@ -41,7 +41,10 @@ initdbScripts:
         rule         VARCHAR NOT NULL,
         name         VARCHAR NOT NULL UNIQUE, -- ??? COLLATE NOCASE
         description  VARCHAR,
-        values_array TEXT[]
+        values_array TEXT[],
+        group_by_attr     INTEGER REFERENCES tdf_attribute.attribute(id),
+        group_by_attrval  VARCHAR,
+        CHECK(group_by_attrval is not null or group_by_attr is null)
     );
 
     CREATE SCHEMA IF NOT EXISTS tdf_entitlement;
