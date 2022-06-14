@@ -48,3 +48,29 @@ test_entitlements_call_success_appends_attr_to_entities_with_empty_attr_sets {
 				"displayName": "Added By OPA"
 			}
 }
+
+test_attributes_merge {
+  entitlement_objs = [
+    {
+      "entity_attributes": [
+        {
+          "attribute": "https://example.com/attr/Classification/value/S",
+          "displayName": "Classification"
+        },
+        {
+          "attribute": "https://example.com/attr/COI/value/PRX",
+          "displayName": "COI"
+        }
+      ],
+      "entity_identifier": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"
+    }
+  ]
+  entitlements := entitlement.generated_entitlements with entitlementsvc.entitlements_fetch_success as entitlement_objs
+   with input as {"idp_context": {"email": "unittest@test.com"}, "primary_entity": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"}
+
+  expectedAttributes := array.concat(entitlement_objs[0].entity_attributes, [{
+			    "attribute": "https://example.org/attr/OPA/value/email",
+				  "displayName": "unittest@test.com"
+			}])
+  entitlements[0].entity_attributes == expectedAttributes
+}
