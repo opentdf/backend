@@ -204,7 +204,7 @@ jobs:
           done
 
   build-base:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - unittest
       - lint
@@ -214,6 +214,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
@@ -259,6 +260,7 @@ jobs:
           push: "${{ ! github.event.pull_request.head.repo.fork }}"
 
   build-and-publish-isolated:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
     permissions:
@@ -306,6 +308,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   build-and-publish:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     permissions:
@@ -349,12 +352,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   build-and-publish-policybundle:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     permissions:
       packages: write
       contents: read
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
@@ -391,6 +395,7 @@ jobs:
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
 
   build-and-publish-with-shared-base:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
     timeout-minutes: 90
@@ -440,16 +445,17 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   keycloak-image-base:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     # We're literally building upstream Keycloak as-is
     # and we don't need to rebuild unless there's a major Keycloak version bump
     # so at least skip this for non-main builds
-    runs-on: ubuntu-latest
     needs:
       - config
       - integration-test
     permissions:
       contents: read
       packages: write
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - name: Checkout upstream Keycloak image repo
@@ -488,13 +494,14 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   custom-keycloak-image:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - config
       - keycloak-image-base
     permissions:
       contents: read
       packages: write
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
