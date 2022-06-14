@@ -4,7 +4,7 @@ import os
 import sys
 import requests
 from enum import Enum
-from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED
+from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
@@ -550,12 +550,32 @@ async def read_attributes_definitions(
             # that is, it has a non-null reference to another attribute definition
             # and a specific grouping value, then look for and return that
             if row.group_by_attr:
-                groupfilter = {}
-                groupfilter["id"] = row.group_by_attr
-                groupby_results = get_query(AttributeSchema, db, groupfilter, sort_args)
+                groupby_attr_q = table_attribute.select().where(
+                        table_attribute.c.id == row.group_by_attr
+                )
+
+                groupby_attr = await database.fetch_one(groupby_attr_q)
+
+                # If this happens, we have not been properly maintaining the integrity of the
+                # attribute store - we're referencing an attr ID that no longer exists in this table.
+                if not groupby_attr:
+                    raise HTTPException(
+                        status_code=INTERNAL_SERVER_ERROR,
+                        detail="Groupby attribute not found",
+                    )
+                # If this attr has a group_by, get the name of the authority
+                # TODO there is probably a nicer SQL query that does all this in one go.
+                # For the sake of clarity, doing it individually.
+                groupby_authority_q = table_authority.select().where(table_authority.c.id == groupby_attr.namespace_id)
+                groupby_authority = await database.fetch_one(groupby_authority_q)
+                if not groupby_authority:
+                    raise HTTPException(
+                        status_code=BAD_REQUEST,
+                        detail="Group-by attribute authority does not exist")
+
                 attr_def.group_by = AttributeInstance(
-                    authority=groupby_results[0].authority,
-                    name=groupby_results[0].name,
+                    authority=groupby_authority.name,
+                    name=groupby_attr.name,
                     value=row.group_by_attrval
                 )
             attributes.append(attr_def)
@@ -618,9 +638,10 @@ async def create_attributes_definitions(
 async def create_attributes_definitions_crud(request):
     # lookup
     query = table_authority.select().where(table_authority.c.name == request.authority)
-    result = await database.fetch_one(query)
-    if not result:
+    ns_result = await database.fetch_one(query)
+    if not ns_result:
         raise HTTPException(status_code=BAD_REQUEST, detail=f"namespace not found")
+    namespace_id = ns_result.get(table_authority.c.id)
 
     group_attr_id = None
     if request.group_by:
@@ -657,7 +678,6 @@ async def create_attributes_definitions_crud(request):
                 status_code=BAD_REQUEST,
                 detail="Duplicated items when Rule is Hierarchy",
             )
-        namespace_id = result.get(table_authority.c.id)
 
     # insert
     query = table_attribute.insert().values(
