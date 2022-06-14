@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG)
 kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http")
 
 
-def createAttributes(keycloak_admin, attribute_host, preloaded_attributes, authToken):
+def createAttributes(attribute_host, preloaded_attributes, authToken):
     loc = f"{attribute_host}/definitions/attributes"
     get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"})
     for definition in preloaded_attributes:
@@ -37,7 +37,7 @@ def createAttributes(keycloak_admin, attribute_host, preloaded_attributes, authT
                 exit(1)
 
 
-def createAuthorities(keycloak_admin, attribute_host, preloaded_authorities, authToken):
+def createAuthorities(attribute_host, preloaded_authorities, authToken):
    loc = f"{attribute_host}/authorities"
    get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"})
    for authority in preloaded_authorities:
@@ -60,35 +60,30 @@ def createAuthorities(keycloak_admin, attribute_host, preloaded_authorities, aut
                 exit(1)
 
 
-def createPreloadedForRealm(keycloak_admin, target_realm, keycloak_auth_url, preloaded_authorities, preloaded_attributes):
-    logger.info("Creating authorities and attrs for realm: [%s]", target_realm)
-
-    #just using the entitlement creds for now
-    attribute_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
-    attribute_username = os.getenv("ENTITLEMENT_USERNAME")
-    attribute_password = os.getenv("ENTITLEMENT_PASSWORD")
+def createPreloaded(keycloak_admin, realm, keycloak_auth_url,
+     preloaded_authorities, preloaded_attributes):
+    attribute_clientid = os.getenv("ATTRIBUTES_CLIENT_ID")
+    attribute_username = os.getenv("ATTRIBUTES_USERNAME")
+    attribute_password = os.getenv("ATTRIBUTES_PASSWORD")
     attribute_host = os.getenv("ATTRIBUTE_AUTHORITY_HOST", "http://opentdf-attributes:4020")
 
     keycloak_openid = KeycloakOpenID(
-        # NOTE: `realm_name` IS NOT == `target_realm` here
-        # Target realm is the realm you're querying users from keycloak for
-        # `realm_name` is the realm you're using to get a token to talk to entitlements with
-        # They are not the same.
         server_url=keycloak_auth_url,
         client_id=attribute_clientid,
-        realm_name="tdf",
-    )  # Attributes endpoint always uses `tdf` realm client creds
+        realm_name=realm,
+    ) 
+
     authToken = keycloak_openid.token(attribute_username, attribute_password)
 
     # Create authorities
     if preloaded_authorities is not None:
         createAuthorities(
-            keycloak_admin, attribute_host, preloaded_authorities, authToken["access_token"]
+            attribute_host, preloaded_authorities, authToken["access_token"]
         )
     # Create attributes
     if preloaded_attributes is not None:
         createAttributes(
-            keycloak_admin, attribute_host, preloaded_attributes, authToken["access_token"]
+            attribute_host, preloaded_attributes, authToken["access_token"]
         )
 
 
@@ -96,12 +91,13 @@ def attributes_bootstrap():
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
     keycloak_auth_url = kc_internal_url + "/auth/"
+    attribute_realm = os.getenv("ATTRIBUTES_REALM")
 
-    keycloak_admin_tdf = KeycloakAdmin(
+    keycloak_admin = KeycloakAdmin(
         server_url=keycloak_auth_url,
         username=username,
         password=password,
-        realm_name="tdf",
+        realm_name=attribute_realm,
         user_realm_name="master",
     )
 
@@ -122,21 +118,8 @@ def attributes_bootstrap():
         preloaded_attributes = None
 
     #TDF
-    createPreloadedForRealm(
-        keycloak_admin_tdf, "tdf", keycloak_auth_url, preloaded_authorities, preloaded_attributes
-    )
-
-    keycloak_admin_tdf_pki = KeycloakAdmin(
-        server_url=keycloak_auth_url,
-        username=username,
-        password=password,
-        realm_name="tdf-pki",
-        user_realm_name="master",
-    )
-
-    #PKI
-    createPreloadedForRealm(
-        keycloak_admin_tdf_pki, "tdf-pki", keycloak_auth_url, preloaded_authorities, preloaded_attributes
+    createPreloaded(
+        keycloak_admin, attribute_realm, keycloak_auth_url, preloaded_authorities, preloaded_attributes
     )
 
     return True

@@ -74,12 +74,13 @@ def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, aut
 
 
 def insertEntitlementAttrsForRealm(
-    keycloak_admin, target_realm, keycloak_auth_url, entity_attrmap
+    keycloak_admin, target_realm, keycloak_auth_url, cliend_id,
+    username, password, entity_attrmap
 ):
     logger.info("Inserting attrs for realm: [%s]", target_realm)
-    entitlement_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
-    entitlement_username = os.getenv("ENTITLEMENT_USERNAME")
-    entitlement_password = os.getenv("ENTITLEMENT_PASSWORD")
+    # entitlement_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
+    # entitlement_username = os.getenv("ENTITLEMENT_USERNAME")
+    # entitlement_password = os.getenv("ENTITLEMENT_PASSWORD")
     entitlement_host = os.getenv("ENTITLEMENT_HOST", "http://opentdf-entitlements:4030")
 
     keycloak_openid = KeycloakOpenID(
@@ -88,10 +89,10 @@ def insertEntitlementAttrsForRealm(
         # `realm_name` is the realm you're using to get a token to talk to entitlements with
         # They are not the same.
         server_url=keycloak_auth_url,
-        client_id=entitlement_clientid,
+        client_id=cliend_id,
         realm_name="tdf",
     )  # Entitlements endpoint always uses `tdf` realm client creds
-    authToken = keycloak_openid.token(entitlement_username, entitlement_password)
+    authToken = keycloak_openid.token(username, password)
 
     insertAttrsForUsers(
         keycloak_admin, entitlement_host, entity_attrmap, authToken["access_token"]
@@ -108,35 +109,27 @@ def entitlements_bootstrap():
 
     keycloak_auth_url = kc_internal_url + "/auth/"
 
-    keycloak_admin_tdf = KeycloakAdmin(
-        server_url=keycloak_auth_url,
-        username=username,
-        password=password,
-        realm_name="tdf",
-        user_realm_name="master",
-    )
-
     # Contains a map of `entities` to attributes we want to preload
     # Entities can be clients or users, doesn't matter
     try:
         with open("/etc/virtru-config/entitlements.yaml") as f:
-            entity_attrmap = yaml.safe_load(f)
+            entitlements = yaml.safe_load(f)
     except FileNotFoundError:
         logger.warning("Not found: /etc/virtru-config/entitlements.yaml", exc_info=1)
-        entity_attrmap = {}
+        entitlements = {}
 
-    insertEntitlementAttrsForRealm(
-        keycloak_admin_tdf, "tdf", keycloak_auth_url, entity_attrmap
-    )
-    keycloak_admin_tdf_pki = KeycloakAdmin(
-        server_url=keycloak_auth_url,
-        username=username,
-        password=password,
-        realm_name="tdf-pki",
-        user_realm_name="master",
-    )
-    insertEntitlementAttrsForRealm(
-        keycloak_admin_tdf_pki, "tdf-pki", keycloak_auth_url, entity_attrmap
-    )
+    if entitlements:
+        for realm in entitlements:
+            keycloak_admin_tdf = KeycloakAdmin(
+                server_url=keycloak_auth_url,
+                username=username,
+                password=password,
+                realm_name=realm["name"],
+                user_realm_name="master",
+            )
+            insertEntitlementAttrsForRealm(
+                keycloak_admin_tdf, realm["name"], keycloak_auth_url, realm["clientId"],
+                realm["username"], realm["password"], realm["preloadedClaims"]
+            )
 
     return True
