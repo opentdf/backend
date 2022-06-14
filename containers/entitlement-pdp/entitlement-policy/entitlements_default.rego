@@ -65,7 +65,7 @@ merge_idp_attributes(core_entitlements, idp_attributes) = merged_entitlements {
 
         entityItem := {
             "entity_identifier": entitiy.entity_identifier,
-            "entity_attributes": idp_attributes
+            "entity_attributes":  array.concat(entitiy.entity_attributes, idp_attributes)
         }
     ]
 }

@@ -49,7 +49,7 @@ test_entitlements_call_success_appends_attr_to_entities_with_empty_attr_sets {
 			}
 }
 
-test_attributes_merge {
+test_merge_attributes_with_core {
   entitlement_objs = [
     {
       "entity_attributes": [
@@ -72,5 +72,22 @@ test_attributes_merge {
 			    "attribute": "https://example.org/attr/OPA/value/email",
 				  "displayName": "unittest@test.com"
 			}])
+  entitlements[0].entity_attributes == expectedAttributes
+}
+
+test_merge_attributes_when_core_attributes_are_missing {
+  entitlement_objs = [
+    {
+      "entity_attributes": [],
+      "entity_identifier": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"
+    }
+  ]
+  entitlements := entitlement.generated_entitlements with entitlementsvc.entitlements_fetch_success as entitlement_objs
+   with input as {"idp_context": {"email": "unittest@test.com"}, "primary_entity": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"}
+
+  expectedAttributes := [{
+			    "attribute": "https://example.org/attr/OPA/value/email",
+				  "displayName": "unittest@test.com"
+			}]
   entitlements[0].entity_attributes == expectedAttributes
 }
