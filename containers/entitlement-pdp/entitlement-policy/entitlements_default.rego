@@ -5,7 +5,7 @@ import future.keywords.in
 import input.idp_context
 
 custom_attribute_names := attribute_names {
-    attribute_names := ["name", "preferred_username", "email"]
+    attribute_names := ["name", "preferredUsername", "email"]
 }
 
 generated_entitlements := newEntitlements {
