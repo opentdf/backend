@@ -61,12 +61,14 @@ spec:
               value: {{ .Values.attributes.hostname }}
             - name: ENTITLEMENT_HOST
               value: {{ .Values.entitlements.hostname }}
-            - name: ENTITLEMENT_CLIENT_ID
-              value: {{ .Values.entitlements.clientId }}
-            - name: ENTITLEMENT_USERNAME
-              value: {{ .Values.entitlements.username }}
-            - name: ENTITLEMENT_PASSWORD
-              value: {{ .Values.entitlements.password }}
+            - name: ATTRIBUTES_CLIENT_ID
+              value: {{ .Values.attributes.clientId }}
+            - name: ATTRIBUTES_USERNAME
+              value: {{ .Values.attributes.username }}
+            - name: ATTRIBUTES_PASSWORD
+              value: {{ .Values.attributes.password }}
+            - name: ATTRIBUTES_REALM
+              value: {{ .Values.attributes.realm }}
           {{- with .Values.secretRef }}
           envFrom:
             - secretRef:

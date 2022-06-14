@@ -19,6 +19,10 @@ keycloak:
 
 attributes:
   hostname: http://opentdf-attributes:4020
+  realm: tdf
+  clientId: dcr-test
+  username: user1
+  password: testuser123
   preloadedAuthorities:
     - http://testing123.fun
   preloadedAttributes:
@@ -43,46 +47,48 @@ attributes:
        
 entitlements:
   hostname: http://opentdf-entitlements:4030
-  clientId: dcr-test
-  username: user1
-  password: testuser123
-  preloadedClaims: null
-  preloadedClaims:
-    alice_1234:
-      - https://example.com/attr/Classification/value/C
-      - https://example.com/attr/COI/value/PRD
-    bob_1234:
-      - https://example.com/attr/Classification/value/C
-      - https://example.com/attr/COI/value/PRC
-    browsertest:
-      - https://example.com/attr/Classification/value/C
-      - https://example.com/attr/COI/value/PRA
-    client_x509:
-      - https://example.com/attr/Classification/value/S
-      - https://example.com/attr/COI/value/PRX
-    dcr-test:
-      - https://example.com/attr/Classification/value/C
-      - https://example.com/attr/COI/value/PRF
-    service-account-tdf-client:
-      - https://example.com/attr/Classification/value/C
-      - https://example.com/attr/COI/value/PRB
-    tdf-client:
-      - https://example.com/attr/Classification/value/S
-      - https://example.com/attr/COI/value/PRX
-      - https://example.com/attr/Env/value/CleanRoom
-    tdf-user:
-      - https://example.com/attr/Classification/value/C
-      - https://example.com/attr/COI/value/PRX
-    user1:
-      - https://example.com/attr/Classification/value/S
-      - https://example.com/attr/COI/value/PRX
-    test-client-1:
-      - http://testing123.fun/attr/Language/value/french
-      - http://testing123.fun/attr/Color/value/green
-    test-client-2:
-      - http://testing123.fun/attr/Language/value/spanish
-      - http://testing123.fun/attr/Color/value/green
-
+  realms:
+  - name: tdf
+    clientId: dcr-test
+    username: user1
+    password: testuser123
+    preloadedClaims: null
+    preloadedClaims:
+      alice_1234:
+        - https://example.com/attr/Classification/value/C
+        - https://example.com/attr/COI/value/PRD
+      bob_1234:
+        - https://example.com/attr/Classification/value/C
+        - https://example.com/attr/COI/value/PRC
+      browsertest:
+        - https://example.com/attr/Classification/value/C
+        - https://example.com/attr/COI/value/PRA
+      client_x509:
+        - https://example.com/attr/Classification/value/S
+        - https://example.com/attr/COI/value/PRX
+      dcr-test:
+        - https://example.com/attr/Classification/value/C
+        - https://example.com/attr/COI/value/PRF
+      service-account-tdf-client:
+        - https://example.com/attr/Classification/value/C
+        - https://example.com/attr/COI/value/PRB
+      tdf-client:
+        - https://example.com/attr/Classification/value/S
+        - https://example.com/attr/COI/value/PRX
+        - https://example.com/attr/Env/value/CleanRoom
+      tdf-user:
+        - https://example.com/attr/Classification/value/C
+        - https://example.com/attr/COI/value/PRX
+      user1:
+        - https://example.com/attr/Classification/value/S
+        - https://example.com/attr/COI/value/PRX
+      test-client-1:
+        - http://testing123.fun/attr/Language/value/french
+        - http://testing123.fun/attr/Color/value/green
+      test-client-2:
+        - http://testing123.fun/attr/Language/value/spanish
+        - http://testing123.fun/attr/Color/value/green
+      
 externalUrl: http://localhost:65432
 
 job:
