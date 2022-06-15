@@ -95,19 +95,23 @@ class AttributePolicyCache(object):
                 self.__policies[attribute_name_object] = policy
         Timing.stop("attribute_load")
 
-    def get(self, namespace):
+    def get(self, attr_definition):
+        # TODO rename AttributePolicy to AttributeDefinition -
+        # makes more sense and distinguishes effectively between
+        # AttributeDefinitions (attr with possible values)
+        # and AttributeInstances (attr with concrete values)
         """Get an AttributePolicy."""
         try:
             count = 2
-            while (namespace not in self.__policies) and (count > 0):
-                ap = get_attribute_policy(namespace)
+            while (attr_definition not in self.__policies) and (count > 0):
+                ap = get_attribute_policy(attr_definition)
                 if isinstance(ap, AttributePolicy):
-                    self.__policies[namespace] = ap
+                    self.__policies[attr_definition] = ap
                 count = count - 1
 
-            if namespace not in self.__policies:
+            if attr_definition not in self.__policies:
                 raise Exception()
-            return self.__policies[namespace]
+            return self.__policies[attr_definition]
         except Exception as e:
             logger.exception(e)
             logger.setLevel(logging.DEBUG)  # dynamically escalate level

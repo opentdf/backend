@@ -17,6 +17,10 @@ class AttributeSet(object):
     contain clusters of values.  The clusters mirror the AttributePolicy
     instances in the AttributePolicyCache.  The AttributeSet is built this way
     because the decision logic on access is conducted at the cluster level.
+
+    NOTE: Why is it conducted at the cluster level? Is there a reason for that?
+    It doesn't appear as if there is one, outside of giving this object model
+    a reason to exist in the first place.
     """
 
     def __init__(self):
@@ -32,6 +36,9 @@ class AttributeSet(object):
 
         This is a fairly expensive operation. Use sparingly. If a set clone
         is needed do it directly at the AttributeCluster level.
+
+        NOTE: if we were worried about setops being expensive we wouldn't
+        write this in python in the first place but OK.
         """
         values = set()
         for cluster in self.__clusters.values():

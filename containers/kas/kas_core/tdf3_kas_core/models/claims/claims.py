@@ -104,5 +104,5 @@ class Claims(object):
     @entity_attributes.setter
     def entity_attributes(self, new_entity_attributes):
         # TODO what actual purpose does this serve, we're in a dynamically typed language
-        """Block intadvertent changes to the claims attributes."""
+        """Block inadvertent changes to the claims attributes."""
         pass

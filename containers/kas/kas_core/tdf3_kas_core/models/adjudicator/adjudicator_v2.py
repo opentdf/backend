@@ -103,16 +103,19 @@ class AdjudicatorV2(object):
 
             # CASE All_OF (ALL OF entities must have ALL OF the data attributes)
             if rule == ALL_OF:
-                all_of_decision(data_values, claims)
+                all_of_decision(data_values, claims, attr_policy.group_by)
 
             # CASE ANY_OF (ANY OF the entities can satisfy the data attribute match requirement)
             if rule == ANY_OF:
-                any_of_decision(data_values, claims)
+                any_of_decision(data_values, claims, attr_policy.group_by)
 
             # CASE HIERARCHY (Lowest heirerchy value among all entities is the "heirarchy value", with None always being the lowest)
             if rule == HIERARCHY:
                 hierarchy_decision(
-                    data_values, claims, attr_policy.options["order"]
+                    data_values,
+                    claims,
+                    attr_policy.options["order"],
+                    attr_policy.group_by
                 )
 
         return True

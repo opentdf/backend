@@ -7,7 +7,7 @@ from tdf3_kas_core.errors import AuthorizationError
 logger = logging.getLogger(__name__)
 
 
-def all_of_decision(data_values, entity_claims):
+def all_of_decision(data_values, entity_claims, group_by_attr_instance):
     """Test all-of type attributes."""
     logger.debug("All-of decision function called")
 
@@ -15,6 +15,11 @@ def all_of_decision(data_values, entity_claims):
         logger.debug("DV attrib: %s", dv.attribute)
         logger.debug(entity_claims.entity_attributes)
         for entity_id, entity_attributes in entity_claims.entity_attributes.items():
+            if entity_attributes.get(group_by_attr_instance) is None:
+                #our groupby is here
+            else:
+                # our groupby is not here
+
             ent_attr_cluster = entity_attributes.cluster(dv.namespace)
             if ent_attr_cluster is None:
                 logger.debug(
@@ -29,7 +34,7 @@ def all_of_decision(data_values, entity_claims):
     return True
 
 
-def any_of_decision(data_values, entity_claims):
+def any_of_decision(data_values, entity_claims, group_by_attr_instance):
     """Test any_of type attributes."""
     logger.debug("Any-of decision function called")
 
@@ -60,7 +65,7 @@ def any_of_decision(data_values, entity_claims):
             return True
 
 
-def hierarchy_decision(data_values, entity_claims, order):
+def hierarchy_decision(data_values, entity_claims, order, group_by_attr_instance):
     """Test hierarchy decision function."""
     logger.debug("Hierarchical decision function called")
 
