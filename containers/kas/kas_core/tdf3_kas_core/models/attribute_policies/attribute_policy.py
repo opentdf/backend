@@ -45,6 +45,10 @@ class AttributePolicy(object):
 
         self.__rule = rule
 
+        # If group_by defined...
+        if "group_by" in kwargs and kwargs["group_by"] != "":
+            self.__group_by = kwargs["group_by"]
+
         # Check and remember the keyword options
         self.__options = {}
         if rule == HIERARCHY:
@@ -97,4 +101,16 @@ class AttributePolicy(object):
     @options.setter
     def options(self, new_options):
         """Setter for options property is a noop. Read-only."""
+        pass
+
+    @property
+    def group_by(self):
+        """Getter for group_by property."""
+        return self.__group_by
+
+    @group_by.setter
+    def group_by(self, new_group_by):
+        """Setter for group_by property is a noop. Read-only."""
+        # If you want static typing, just use a language with static typing.
+        # It's always a mistake to try and glom a type-based model onto something that lacks one.
         pass

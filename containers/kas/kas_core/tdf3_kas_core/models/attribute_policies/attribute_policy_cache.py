@@ -27,7 +27,18 @@ class AttributePolicyCache(object):
         return len(self.__policies)
 
     def load_config(self, attribute_policy_config):
-        """Load policies defined in a config dict."""
+        """
+        Load policies defined in a config dict.
+
+        Note that this translates un-modeled "attribute_objects"
+        returned from rewrap plugins into modeled AttributePolicy
+        objects.
+
+        If you're wondering why specific plugin implementations
+        don't perform/hide this translation to avoid abstraction leakage,
+        join the club, and maybe redo this in a language with a static typing
+        system that wouldn't allow this to happen in the first place.
+        """
         if not attribute_policy_config:
             logger.warn("No attribute configs found")
             return
@@ -41,6 +52,14 @@ class AttributePolicyCache(object):
             authority_namespace = attribute_object["authorityNamespace"]
             attribute_name = attribute_object["name"]
             attribute_name_object = f"{authority_namespace}/attr/{attribute_name}"
+            group_by_attr = ""
+            if "group_by" in attribute_object:
+                group_by_attr = "{}/attr/{}/value/{}".format(
+                    attribute_object["group_by"]["authority"],
+                    attribute_object["group_by"]["name"],
+                    attribute_object["group_by"]["value"]
+                )
+
             if "rule" in attribute_object:
                 # specialize the arguments for the rule
                 if attribute_object["rule"] == HIERARCHY:
@@ -55,14 +74,20 @@ class AttributePolicyCache(object):
                         attribute_name_object,
                         rule=attribute_object["rule"],
                         order=attribute_object["order"],
+                        group_by=group_by_attr,
                     )
                 else:  # No special options argument list
                     policy = AttributePolicy(
-                        attribute_name_object, rule=attribute_object["rule"]
+                        attribute_name_object,
+                        rule=attribute_object["rule"],
+                        group_by=group_by_attr,
                     )
             else:
                 # Use the default rule
-                policy = AttributePolicy(attribute_name_object)
+                policy = AttributePolicy(
+                    attribute_name_object,
+                    group_by=group_by_attr,
+                )
 
             # Add to the cache
             logger.debug("--- cached  [policy = %s] ---", str(policy))
