@@ -39,6 +39,10 @@ keycloak:
 istioTerminationHack: false
 attributes:
   hostname: http://opentdf-attributes
+  realm: tdf
+  clientId: dcr-test
+  username: user1
+  password: testuser123
   preloadedAuthorities: null
     # - http://example.fun
     # - http://testing123.fun
