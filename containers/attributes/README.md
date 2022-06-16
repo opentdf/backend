@@ -75,11 +75,6 @@ kubectl create secret generic attributes-secrets --from-literal=POSTGRES_PASSWOR
 helm upgrade --install attributes ./charts/attributes --debug
 ```
 
-### ingress
-```shell
-kubectl --filename=deployments/pki_local/nginx.ingress.yaml
-```
-
 ### Troubleshooting
 
 Check connectivity, run shell in pod

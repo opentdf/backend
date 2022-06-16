@@ -25,7 +25,7 @@ extraEnv: |
   - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
     value: "true"
   - name: KEYCLOAK_FRONTEND_URL
-    value: "https://keycloak-http:4567/auth"
+    value: "http://localhost:65432/auth"
   - name: X509_CA_BUNDLE
     value: /etc/x509/https/ca.crt
 extraEnvFrom: |
@@ -38,18 +38,16 @@ secrets:
       DB_PASSWORD: otdf-pgsql-admin
 ingress:
   enabled: true
+  ingressClassName: nginx
   servicePort: https
   rules:
-    - # Ingress host
-      host: "keycloak-http"
-      # Paths for the host
+    - host: "keycloak-http"
       paths:
-        - path: /
+        - path: /auth(/|$)(.*)
           pathType: Prefix
   annotations:
     kubernetes.io/tls-acme: "true"
     ingress.kubernetes.io/affinity: cookie
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     nginx.ingress.kubernetes.io/proxy-ssl-secret: "default/x509-secret"
     nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
