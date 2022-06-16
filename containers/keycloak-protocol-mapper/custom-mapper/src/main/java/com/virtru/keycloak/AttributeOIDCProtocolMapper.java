@@ -287,7 +287,6 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
      * @return custom claims; null if no client pk present.
      */
     private JsonNode getRemoteAuthorizations(ProtocolMapperModel mappingModel, UserSessionModel userSession,
-                                             KeycloakSession keycloakSession, ClientSessionContext clientSessionCtx,
                                              IDToken token) {
 
         // Call remote service
