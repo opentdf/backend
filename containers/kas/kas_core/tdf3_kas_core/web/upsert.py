@@ -3,7 +3,6 @@ import connexion
 import logging
 from tdf3_kas_core.kas import Kas
 from tdf3_kas_core.schema import get_schema
-from tdf3_kas_core.server_timing import Timing
 
 from .create_context import create_context
 from .run_service_with_exceptions import run_service_with_exceptions
@@ -18,7 +17,6 @@ def upsert_helper(body, mode="upsert"):
     This endpoint performs a secondary service of the KAS; to proxy the
     back-end services that support the KAS functions.
     """
-    Timing.start("upsert")
     logger.debug("+=+=+=+=+=+ Upsert service runner starting")
 
     # Data validation performed by Connexion library against openapi.yaml
@@ -39,7 +37,6 @@ def upsert_helper(body, mode="upsert"):
     # package up the response and send it.
 
     logger.debug("+=+=+=+=+=+ Upsert request complete")
-    Timing.stop("upsert")
     return res
 
 
