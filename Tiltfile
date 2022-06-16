@@ -329,6 +329,7 @@ opentdf_entitlement_pdp_values = ""
 opentdf_entitlement_pdp_set = [
     "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
     "createPolicySecret=false",
+    "opaConfig.policy.useStaticPolicy=true",
 ]
 
 opentdf_entitlement_store_values = ""
