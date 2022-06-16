@@ -133,7 +133,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             // then refresh claims.
             if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
                 logger.debug("Getting remote authorizations");
-                JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, keycloakSession, clientSessionCtx, token);
+                JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
                 claims = buildClaimsObject(entitlements, clientPK);
                 clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
             } else {
@@ -167,7 +167,9 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         return map;
     }
 
-    private Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel, UserSessionModel userSession, ClientSessionContext clientSessionCtx) throws JsonProcessingException {
+    private Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
+                                                     UserSessionModel userSession,
+                                                     IDToken token) throws JsonProcessingException {
         // Get parameters
         final Map<String, Object> formattedParameters = buildMapFromStringConfig(mappingModel.getConfig().get(REMOTE_PARAMETERS));
 
@@ -219,6 +221,9 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         }
 
         formattedParameters.put("secondary_entity_ids", clientIds);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        formattedParameters.put("idp_context_obj", objectMapper.writeValueAsString(token));
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always include full claimset
@@ -278,7 +283,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
      * - secondaryEntityIds: required - list of identifiers for any additional secondary subjects claims will be fetched for.
      * @param mappingModel
      * @param userSession
-     * @param keycloakSession
+     * @param token
      * @return custom claims; null if no client pk present.
      */
     private JsonNode getRemoteAuthorizations(ProtocolMapperModel mappingModel, UserSessionModel userSession,
@@ -294,7 +299,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         CloseableHttpResponse response = null;
         try {
             // Get parameters
-            Map<String, Object> parameters = getRequestParameters(mappingModel, userSession, clientSessionCtx);
+            Map<String, Object> parameters = getRequestParameters(mappingModel, userSession, token);
             // Get headers
             Map<String, Object> headers = getHeaders(mappingModel, userSession);
             headers.put("Content-Type", "application/json");
@@ -306,14 +311,12 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
             HttpPost httpReq = new HttpPost(url);
             URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
             httpReq.setURI(uriBuilder.build());
-            Map<String, Object> requestEntity = new HashMap<>();
+
+            // Build parameters
+            Map<String, Object> requestEntity = new HashMap<>(parameters);
             // requestEntity.put("algorithm", "ec:secp256r1");
             // requestEntity.put("clientPublicSigningKey", clientPK);
 
-            // Build parameters
-            for (Map.Entry<String, Object> param : parameters.entrySet()) {
-                requestEntity.put(param.getKey(), param.getValue());
-            }
             // Build headers
             for (Map.Entry<String, Object> header : headers.entrySet()) {
                 httpReq.setHeader(header.getKey(), header.getValue().toString());
