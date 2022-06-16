@@ -17,13 +17,13 @@ var tracer = otel.Tracer("handlers")
 // @Description Represents a single entity attribute.
 type EntityAttribute struct {
 	//Attribute, in URI format, e.g.: "https://example.org/attr/Classification/value/COI"
-	Attribute string `json:"attribute"`
+	Attribute string `json:"attribute" example:"https://example.org/attr/OPA/value/AddedByOPA"`
 	//Optional display name for the attribute
-	DisplayName string `json:"displayName"`
+	DisplayName string `json:"displayName" example:"Added By OPA"`
 }
 
 type EntityEntitlement struct {
-	EntityId         string            `json:"entity_identifier"`
+	EntityId         string            `json:"entity_identifier" example:"bc03f40c-a7af-4507-8198-d5334e2823e6"`
 	EntityAttributes []EntityAttribute `json:"entity_attributes"`
 }
 
@@ -35,18 +35,18 @@ type EntityEntitlement struct {
 type EntitlementsRequest struct {
 	//The identifier for the primary entity seeking entitlement.
 	// For PE auth, this will be a PE ID. For NPE/direct grant auth, this will be an NPE ID.
-	PrimaryEntityId string `json:"primary_entity_id"`
+	PrimaryEntityId string `json:"primary_entity_id" example:"bc03f40c-a7af-4507-8198-d5334e2823e6"`
 	//Optional, may be left empty.
 	//For PE auth, this will be one or more NPE IDs (client-on-behalf-of-user).
 	//For NPE/direct grant auth,
 	//this may be either empty (client-on-behalf-of-itself) or populated with one
 	//or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
-	SecondaryEntityIds []string `json:"secondary_entity_ids"`
+	SecondaryEntityIds []string `json:"secondary_entity_ids" example:"4f6636ca-c60c-40d1-9f3f-015086303f74"`
 	//Optional, may be left empty.
 	//A free-form, (valid, escaped) JSON object in string format, containing any additional IdP context around and from
 	//the entity authentication process. This JSON object will be checked as a valid, generic JSON document,
 	// and then passed to the PDP engine as-is, as an input document.
-	IdentityProviderContextObject string `json:"idp_context_obj,omitempty"`
+	IdentityProviderContextObject string `json:"idp_context_obj,omitempty" example:"{\"somekey\":\"somevalue\"}"`
 }
 
 type PDPEngine interface {
