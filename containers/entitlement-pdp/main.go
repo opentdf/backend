@@ -40,8 +40,6 @@ type EnvConfig struct {
 
 // @license.name BSD 3-Clause
 // @license.url https://opensource.org/licenses/BSD-3-Clause
-
-// @BasePath /v1
 func main() {
 	var zapLog *zap.Logger
 	var logErr error
