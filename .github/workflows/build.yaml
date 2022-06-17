@@ -99,8 +99,6 @@ jobs:
           - entitlement-store
           - attributes
           - entitlements
-    needs:
-      - unittest
     timeout-minutes: 30
     steps:
       - name: Checkout working branch
@@ -211,7 +209,7 @@ jobs:
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
-      - unittest
+      - kas-unittest
       - lint
       - integration-test
     outputs:
