@@ -72,7 +72,7 @@ jobs:
   # TODO this seems to be redundant with `pytest` - it tests the same services
   # Only KAS needs it, due to some unmocked environmental deps - which we should probably solve for
   # Everything else should strive to be OK with plain/baseline `pip install && pytest`
-  unittest:
+  kas-unittest:
     runs-on: ubuntu-latest
     needs:
       - lint
