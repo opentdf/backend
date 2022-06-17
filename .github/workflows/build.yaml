@@ -123,6 +123,7 @@ jobs:
     needs:
       - pytest
       - kas-unittest
+      - config
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
@@ -212,8 +213,6 @@ jobs:
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
-      - kas-unittest
-      - lint
       - integration-test
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
@@ -456,7 +455,6 @@ jobs:
     # and we don't need to rebuild unless there's a major Keycloak version bump
     # so at least skip this for non-main builds
     needs:
-      - config
       - integration-test
     permissions:
       contents: read
@@ -502,7 +500,6 @@ jobs:
   custom-keycloak-image:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
-      - config
       - keycloak-image-base
     permissions:
       contents: read
