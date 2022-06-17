@@ -101,7 +101,6 @@ _single_package() {
     if [[ $rval -ne 0 ]]; then
         monolog DEBUG "Failed [$1]"
     else
-      monolog INFO "singletest got ${rval}"
       monolog DEBUG "Passed [$1]"
     fi
     return $rval
