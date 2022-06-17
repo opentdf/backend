@@ -30,15 +30,6 @@ cfg = config.parse()
 to_edit = cfg.get("to-edit", [])
 
 groups = {
-    "all": [
-        "keycloak",
-        "opentdf-kas",
-        "opentdf-attributes",
-        "opentdf-entitlement-pdp",
-        "opentdf-entitlement-store",
-        "opentdf-entitlements",
-        "opentdf-postgresql",
-    ],
     "integration-test": [
         "keycloak",
         "keycloak-bootstrap",
@@ -181,8 +172,6 @@ k8s_yaml(
 #                                    "Y88888P'
 #
 
-OPENTDF_ABACUS_YML = "tests/integration/frontend-local.yaml"
-
 if "opentdf-abacus" in to_edit:
     docker_build("opentdf/abacus", "../frontend")
 
@@ -268,13 +257,8 @@ for microservice in ["attributes", "entitlements", "entitlement-store"]:
             ),
         ],
     )
-
-postgres_helm_values = "deployments/tilt/tdf-postgresql-values.yaml"
-keycloak_helm_values = "deployments/tilt/keycloak-values.yaml"
-
-if isIntegrationTest:
-    postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
-    keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
+postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
+keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 # Override Keycloak chart values for PKI
 if isPKItest:
@@ -288,7 +272,7 @@ helm_remote(
 )
 
 if "opentdf-abacus" in to_edit or "opentdf-abacus-client-web" in to_edit:
-    k8s_yaml(OPENTDF_ABACUS_YML)
+    k8s_yaml("tests/integration/frontend-local.yaml")
 else:
     helm_resource(
         "opentdf-abacus",
@@ -319,52 +303,15 @@ helm_remote(
 #
 # usage https://docs.tilt.dev/helm.html#helm-options
 
-opentdf_attrs_values = ""
-opentdf_attrs_set = [
-    "image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes",
-    "secretRef.name=postgres-password",
-]
-
-opentdf_entitlement_pdp_values = ""
-opentdf_entitlement_pdp_set = [
-    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-    "createPolicySecret=false",
-    "opaConfig.policy.useStaticPolicy=true",
-]
-
-opentdf_entitlement_store_values = ""
-opentdf_entitlement_store_set = [
-    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store",
-    "secretRef.name=postgres-password",
-]
-
-opentdf_entitlements_values = ""
-opentdf_entitlements_set = [
-    "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
-    "secretRef.name=postgres-password",
-]
-
-opentdf_kas_values = ""
-opentdf_kas_set = [
-    "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
-    "secretRef.name=kas-secrets",
-    "certFileSecretName=kas-secrets",
-]
-
-if isIntegrationTest or isPKItest:
-    opentdf_attrs_values = "tests/integration/backend-attributes-values.yaml"
-    opentdf_entitlement_store_values = "tests/integration/backend-entitlement-store-values.yaml"
-    opentdf_entitlement_store_set = ["image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store"]
-    opentdf_entitlements_values = "tests/integration/backend-entitlements-values.yaml"
-    opentdf_entitlement_pdp_values = "tests/integration/backend-entitlement-pdp-values.yaml"
-    opentdf_kas_values = "tests/integration/backend-kas-values.yaml"
-
 k8s_yaml(
     helm(
         "charts/attributes",
         "opentdf-attributes",
-        set=opentdf_attrs_set,
-        values=[opentdf_attrs_values],
+        set=[
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/attributes",
+            "secretRef.name=postgres-password",
+        ],
+        values=["tests/integration/backend-attributes-values.yaml"],
     )
 )
 
@@ -372,8 +319,12 @@ k8s_yaml(
     helm(
         "charts/entitlement-pdp",
         "opentdf-entitlement-pdp",
-        set=opentdf_entitlement_pdp_set,
-        values=[opentdf_entitlement_pdp_values],
+        set= [
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+            "createPolicySecret=false",
+            "opaConfig.policy.useStaticPolicy=true",
+        ],
+        values=["tests/integration/backend-entitlement-pdp-values.yaml"],
     )
 )
 
@@ -381,8 +332,11 @@ k8s_yaml(
     helm(
         "charts/entitlement-store",
         "opentdf-entitlement-store",
-        set=opentdf_entitlement_store_set,
-        values=[opentdf_entitlement_store_values],
+        set=[
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store",
+            "secretRef.name=postgres-password",
+        ],
+        values=["tests/integration/backend-entitlement-store-values.yaml"],
     )
 )
 
@@ -390,8 +344,11 @@ k8s_yaml(
     helm(
         "charts/entitlements",
         "opentdf-entitlements",
-        set=opentdf_entitlements_set,
-        values=[opentdf_entitlements_values],
+        set=[
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlements",
+            "secretRef.name=postgres-password",
+        ],
+        values=["tests/integration/backend-entitlements-values.yaml"],
     )
 )
 
@@ -399,8 +356,12 @@ k8s_yaml(
     helm(
         "charts/kas",
         "opentdf-kas",
-        set=opentdf_kas_set,
-        values=[opentdf_kas_values],
+        set= [
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/kas",
+            "secretRef.name=kas-secrets",
+            "certFileSecretName=kas-secrets",
+        ],
+        values=["tests/integration/backend-kas-values.yaml"],
     )
 )
 
@@ -507,7 +468,7 @@ docker_build(
 
 k8s_resource(
     "keycloak",
-    links=[link("localhost:65432/auth", "Keycloak admin console")],
+    links=[link("http://localhost:65432/auth/", "Keycloak admin console")],
     labels=["Third-party"]
 )
 

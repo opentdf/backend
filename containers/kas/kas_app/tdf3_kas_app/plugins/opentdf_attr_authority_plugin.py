@@ -80,6 +80,10 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
         logger.debug("Fetch attribute %s => %s", uri, res)
         return res
 
+    def update(self, req, res):
+        """We use the default rewrap behavior."""
+        return (req, res)
+
     def healthz(self, *, probe):
         """Ping OpenTDF Attribute service."""
         if "readiness" == probe:

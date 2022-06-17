@@ -1,4 +1,3 @@
-basePath: /v1
 definitions:
   handlers.EntitlementsRequest:
     description: Request containing entity identifiers seeking entitlement. At least
@@ -12,11 +11,13 @@ definitions:
           A free-form, (valid, escaped) JSON object in string format, containing any additional IdP context around and from
           the entity authentication process. This JSON object will be checked as a valid, generic JSON document,
           and then passed to the PDP engine as-is, as an input document.
+        example: '{"somekey":"somevalue"}'
         type: string
       primary_entity_id:
         description: |-
           The identifier for the primary entity seeking entitlement.
           For PE auth, this will be a PE ID. For NPE/direct grant auth, this will be an NPE ID.
+        example: bc03f40c-a7af-4507-8198-d5334e2823e6
         type: string
       secondary_entity_ids:
         description: |-
@@ -25,6 +26,8 @@ definitions:
           For NPE/direct grant auth,
           this may be either empty (client-on-behalf-of-itself) or populated with one
           or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
+        example:
+        - 4f6636ca-c60c-40d1-9f3f-015086303f74
         items:
           type: string
         type: array
@@ -34,9 +37,11 @@ definitions:
     properties:
       attribute:
         description: 'Attribute, in URI format, e.g.: "https://example.org/attr/Classification/value/COI"'
+        example: https://example.org/attr/OPA/value/AddedByOPA
         type: string
       displayName:
         description: Optional display name for the attribute
+        example: Added By OPA
         type: string
     type: object
   handlers.EntityEntitlement:
@@ -46,6 +51,7 @@ definitions:
           $ref: '#/definitions/handlers.EntityAttribute'
         type: array
       entity_identifier:
+        example: bc03f40c-a7af-4507-8198-d5334e2823e6
         type: string
     type: object
 info:

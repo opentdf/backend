@@ -1,3 +1,4 @@
+# https://github.com/codecentric/helm-charts/tree/keycloak-17.0.1/charts/keycloak
 image:
   # This is a CI env NOT a local env, so we expect the registry to be ghcr.io
   repository: ghcr.io/opentdf/keycloak
