@@ -90,6 +90,12 @@ jobs:
 
   pytest:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - entitlement-store
+          - attributes
+          - entitlements
     needs:
       - unittest
     timeout-minutes: 30
@@ -104,14 +110,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip3 install -r containers/attributes/requirements.txt
-          pip3 install -r containers/entitlement-store/requirements.txt
-          pip3 install -r containers/entitlements/requirements.txt
+          pip3 install -r containers/${{ matrix.repo }}/requirements.txt
       - name: Test
         run: |
-          python -m pytest containers/attributes/tests
-          python -m pytest containers/entitlement-store/tests
-          python -m pytest containers/entitlements/tests
+          python -m pytest containers/${{ matrix.repo }}/tests
 
   integration-test:
     runs-on: ubuntu-latest
