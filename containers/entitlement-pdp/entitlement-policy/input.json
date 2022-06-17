@@ -18,7 +18,10 @@
             {
                 "http://attribs.com/user_identifier":"bupkis@yello.com"
             }
-        ]
+        ],
+        "preferredUsername" : "fuschia",
+        "name": "bupkis",
+        "email": "bupkis@yello.com"
     },
     "primary_entity":"74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3",
     "secondary_entities":[
