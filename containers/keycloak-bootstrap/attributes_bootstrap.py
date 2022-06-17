@@ -16,9 +16,13 @@ kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http")
 
 def createAttributes(attribute_host, preloaded_attributes, authToken):
     loc = f"{attribute_host}/definitions/attributes"
-    get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"})
     for definition in preloaded_attributes:
-        if definition not in get_response.json():
+        q_params = {'name': definition.name, 'authority': definition.authority}
+        # Look up existing attrs by guaranteed-unique NS/authority combo
+        # to decide if we should POST (not there) or PUT (already there)
+        get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"}, params=q_params)
+        # POST - add new
+        if get_response.status_code == 404:
             logger.info(f"Adding attribute definition {definition}")
             logger.debug("Using auth JWT: [%s]", authToken)
 
@@ -29,7 +33,25 @@ def createAttributes(attribute_host, preloaded_attributes, authToken):
             )
             if response.status_code != 200:
                 logger.error(
-                    "Unexpected code [%s] from attributes service when attempting to create attribute definition! [%s]",
+                    "Unexpected code [%s] from attributes service when attempting to CREATE attribute definition! [%s]",
+                    response.status_code,
+                    response.text,
+                    exc_info=True,
+                )
+                exit(1)
+        # PUT - update existing
+        elif get_response.status_code < 400:
+            logger.info(f"Updating attribute definition {definition}")
+            logger.debug("Using auth JWT: [%s]", authToken)
+
+            response = requests.put(
+                loc,
+                json=definition,
+                headers={"Authorization": f"Bearer {authToken}"},
+            )
+            if response.status_code != 200:
+                logger.error(
+                    "Unexpected code [%s] from attributes service when attempting to UPDATE attribute definition! [%s]",
                     response.status_code,
                     response.text,
                     exc_info=True,
