@@ -156,7 +156,7 @@ jobs:
           tilt ci integration-test pki-test
       - name: Quick check - run/validate local deployment Tiltfile
         run: |-
-          tilt ci all
+          tilt ci
 
   publish-helm-charts:
     runs-on: ubuntu-latest
