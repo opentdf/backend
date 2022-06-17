@@ -17,7 +17,7 @@ kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http")
 def createAttributes(attribute_host, preloaded_attributes, authToken):
     loc = f"{attribute_host}/definitions/attributes"
     for definition in preloaded_attributes:
-        q_params = {'name': definition.name, 'authority': definition.authority}
+        q_params = {'name': definition['name'], 'authority': definition['authority']}
         # Look up existing attrs by guaranteed-unique NS/authority combo
         # to decide if we should POST (not there) or PUT (already there)
         get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"}, params=q_params)
