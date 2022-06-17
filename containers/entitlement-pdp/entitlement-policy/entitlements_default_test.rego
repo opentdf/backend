@@ -6,21 +6,11 @@ import data.virtru.entitlementsvc
 valid_secondary_entities = ["4f6636ca-c60c-40d1-9f3f-015086303f74", "3f6636ca-c61c-40d1-9f3f-015086303f74"]
 get_entitlements_arr = [
         {
-          "entity_attributes": [
-            {
-              "attribute": "https://example.org/attr/OPA/value/AddedByOPA",
-              "displayName": "Added By OPA"
-            }
-          ],
+          "entity_attributes": [],
           "entity_identifier": "4f6636ca-c60c-40d1-9f3f-015086303f74"
         },
         {
-          "entity_attributes": [
-            {
-              "attribute": "https://example.org/attr/OPA/value/AddedByOPA",
-              "displayName": "Added By OPA"
-            }
-          ],
+          "entity_attributes": [],
           "entity_identifier": "3f6636ca-c61c-40d1-9f3f-015086303f74"
         },
         {
@@ -43,10 +33,7 @@ test_entitlements_call_success_appends_attr_to_entities_with_empty_attr_sets {
 	entitlements := entitlement.generated_entitlements with entitlementsvc.entitlements_fetch_success as get_entitlements_arr
 
 	entitlements[i].entity_identifier == valid_secondary_entities[_] 
-	entitlements[i].entity_attributes[0] == {
-			    "attribute": "https://example.org/attr/OPA/value/AddedByOPA",
-				"displayName": "Added By OPA"
-			}
+	count(entitlements[i].entity_attributes) == 0
 }
 
 test_merge_attributes_with_core {
