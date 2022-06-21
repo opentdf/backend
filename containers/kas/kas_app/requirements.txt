@@ -1,0 +1,36 @@
+-i https://pypi.org/simple
+attrs==21.4.0
+bitstruct==8.14.1
+certifi==2022.5.18.1
+cffi==1.15.0
+charset-normalizer==2.0.12
+click==8.1.3
+clickclick==20.10.2
+connexion==2.13.1
+cryptography==37.0.2
+flask==2.1.2
+gunicorn==20.1.0
+idna==3.3
+importlib-metadata==4.11.4
+importlib-resources==5.7.1
+inflection==0.5.1
+itsdangerous==2.1.2
+jinja2==3.1.2
+jsonschema==4.5.1
+markupsafe==2.1.1
+packaging==21.3
+pycparser==2.21
+pyjwt==2.4.0
+pyparsing==3.0.9
+pyrsistent==0.18.1
+python-json-logger==2.0.2
+pyyaml==6.0
+requests==2.27.1
+setuptools==62.3.2
+statsd==3.3.0
+swagger-ui-bundle==0.0.9
+-e ./../kas_core
+urllib3==1.26.9
+werkzeug==2.1.2
+wsgicors==0.7.0
+zipp==3.8.0

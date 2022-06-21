@@ -78,6 +78,7 @@ _single_pytest() {
       python3 -m coverage xml -o coverage-reports/coverage.xml || monolog WARNING "Coverage xml failure"
       python3 -m coverage report -m --skip-covered || monolog WARNING "Coverage report failure"
     fi
+    monolog INFO "Pytest returned ${command_rv}"
     return $command_rv
   else
     python3 -m pytest
@@ -94,7 +95,15 @@ _single_package() {
   if [ -f "${PROJECT_ROOT}/$1/requirements.txt" ] || [ -f "${PROJECT_ROOT}/$1/setup.py" ]; then
     monolog INFO "$(python3 --version)"
     monolog INFO "Testing $1 as a python project"
-    _single_pytest "$@" && monolog DEBUG "Passed [$1]"
+    local rval
+    _single_pytest "$@"
+    rval=$?
+    if [[ $rval -ne 0 ]]; then
+        monolog DEBUG "Failed [$1]"
+    else
+      monolog DEBUG "Passed [$1]"
+    fi
+    return $rval
   elif [ -x "${PROJECT_ROOT}/$1/test" ]; then
     monolog INFO "Testing $1 using bundled script"
     "${PROJECT_ROOT}/$1/test" "${@:2}" && monolog DEBUG "Passed [${*}]"
@@ -105,9 +114,10 @@ _single_package() {
 }
 
 for p in "${packages_under_test[@]}"; do
-  if ! _single_package "$p"; then
-    rval=$?
-    monolog ERROR "FAILED ${p}"
-    exit $rval
+  _single_package "$p"
+  rval=$?
+  if [[ $rval -ne 0 ]]; then
+    monolog ERROR "FAILED ${p} with exit code ${rval}"
+    exit "$rval"
   fi
 done
