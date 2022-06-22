@@ -43,14 +43,14 @@ type EntitlementsRequest struct {
 	//or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
 	SecondaryEntityIds []string `json:"secondary_entity_ids" example:"4f6636ca-c60c-40d1-9f3f-015086303f74"`
 	//Optional, may be left empty.
-	//A free-form, (valid, escaped) JSON object in string format, containing any additional IdP context around and from
+	//A free-form, (valid, escaped) JSON object in string format, containing any additional IdP/input context around and from
 	//the entity authentication process. This JSON object will be checked as a valid, generic JSON document,
 	// and then passed to the PDP engine as-is, as an input document.
-	IdentityProviderContextObject string `json:"idp_context_obj,omitempty" example:"{\"somekey\":\"somevalue\"}"`
+	EntitlementContextObject string `json:"entitlement_context_obj,omitempty" example:"{\"somekey\":\"somevalue\"}"`
 }
 
 type PDPEngine interface {
-	ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, idpContextJSON string, parentCtx ctx.Context) ([]EntityEntitlement, error)
+	ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, entitlementContextJSON string, parentCtx ctx.Context) ([]EntityEntitlement, error)
 }
 
 // GetEntitlements godoc
@@ -99,7 +99,7 @@ func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handl
 		entitlements, err := pdp.ApplyEntitlementPolicy(
 			payload.PrimaryEntityId,
 			payload.SecondaryEntityIds,
-			payload.IdentityProviderContextObject,
+			payload.EntitlementContextObject,
 			handlerCtx)
 
 		if err != nil {
@@ -135,8 +135,8 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	}
 
 	//If context supplied, must be in JSON format
-	if payload.IdentityProviderContextObject != "" {
-		if !json.Valid([]byte(payload.IdentityProviderContextObject)) {
+	if payload.EntitlementContextObject != "" {
+		if !json.Valid([]byte(payload.EntitlementContextObject)) {
 			err := errors.New("Context object is not valid JSON")
 			logger.Warn(err)
 			return nil, err

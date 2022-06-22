@@ -5,10 +5,10 @@ definitions:
       to be invoked directly by an identity provider and with contextual entity information
       attested to and possessed by that identity provider
     properties:
-      idp_context_obj:
+      entitlement_context_obj:
         description: |-
           Optional, may be left empty.
-          A free-form, (valid, escaped) JSON object in string format, containing any additional IdP context around and from
+          A free-form, (valid, escaped) JSON object in string format, containing any additional IdP/input context around and from
           the entity authentication process. This JSON object will be checked as a valid, generic JSON document,
           and then passed to the PDP engine as-is, as an input document.
         example: '{"somekey":"somevalue"}'

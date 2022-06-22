@@ -1,5 +1,5 @@
 {
-    "idp_context":{
+    "entitlement_context":{
         "object_attributes":[
             {
                 "http://attribs.com/min_visibility_level":"fuschia"
