@@ -1,6 +1,6 @@
-## Development
+# Development
 
-### Start database
+## Start database
 
 ```shell
 mkdir -p data
@@ -13,7 +13,7 @@ docker run \
     postgres
 ```
 
-### Initialize schema
+## Initialize schema
 
 ```shell
 psql \
@@ -34,6 +34,6 @@ psql \
 #   myPostgresPassword
 ```
 
-### Migration
+## Migration
 
 https://github.com/JeffGradyAtVirtru/python-example
