@@ -19,7 +19,7 @@ const entitlementsReq string = `
 {
   "primary_entity_id": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3",
   "secondary_entity_ids": ["4f6636ca-c60c-40d1-9f3f-015086303f74"],
-  "idp_context_obj": "{\"subject_attributes\":[{\"http://attribs.com/visibility_level\":\"fuschia\"},{\"http://attribs.com/user_identifier\":\"bupkis@yello.com\"}],\"object_attributes\":[{\"http://attribs.com/min_visibility_level\":\"fuschia\"},{\"http://attribs.com/user_dissem_list\":[\"bupkis@yello.com\",\"nolo@contendere.com\"]}]}"
+  "entitlement_context_obj": "{\"subject_attributes\":[{\"http://attribs.com/visibility_level\":\"fuschia\"},{\"http://attribs.com/user_identifier\":\"bupkis@yello.com\"}],\"object_attributes\":[{\"http://attribs.com/min_visibility_level\":\"fuschia\"},{\"http://attribs.com/user_dissem_list\":[\"bupkis@yello.com\",\"nolo@contendere.com\"]}]}"
 }
 `
 

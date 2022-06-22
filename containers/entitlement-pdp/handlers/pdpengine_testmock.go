@@ -19,8 +19,8 @@ func NewMockPDPEngine() PDPEngine {
 func (t *MockPDPEngine) ApplyEntitlementPolicy(
 	primaryEntity string,
 	secondaryEntities []string,
-	idpContextJSON string,
+	entitlementContextJSON string,
 	parentCtx ctx.Context) ([]EntityEntitlement, error) {
-	args := t.Called(primaryEntity, secondaryEntities, idpContextJSON, parentCtx)
+	args := t.Called(primaryEntity, secondaryEntities, entitlementContextJSON, parentCtx)
 	return args.Get(0).([]EntityEntitlement), args.Error(1)
 }
