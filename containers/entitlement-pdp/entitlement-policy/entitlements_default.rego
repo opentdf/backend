@@ -1,6 +1,6 @@
-package virtru.entitlement
+package opentdf.entitlement
 
-import data.virtru.entitlementsvc
+import data.opentdf.entitlementsvc
 import future.keywords.in
 import input.entitlement_context
 

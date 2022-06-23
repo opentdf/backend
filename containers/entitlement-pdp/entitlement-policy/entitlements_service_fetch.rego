@@ -1,6 +1,6 @@
-package virtru.entitlementsvc
+package opentdf.entitlementsvc
 
-import data.virtru.entitlements_service
+import data.opentdf.entitlements_service
 import input.primary_entity
 import input.secondary_entities
 

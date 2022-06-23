@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"github.com/virtru/v2/entitlement-pdp/handlers"
+	"github.com/opentdf/v2/entitlement-pdp/handlers"
 )
 
 var tracer = otel.Tracer("pdp")
@@ -24,9 +24,9 @@ type OPAPDPEngine struct {
 }
 
 type entitlementDecisionInputDocument struct {
-	PrimaryEntity     string                 `json:"primary_entity"`
-	SecondaryEntities []string               `json:"secondary_entities"`
-	EntitlementContext        map[string]interface{} `json:"entitlement_context,omitempty"`
+	PrimaryEntity      string                 `json:"primary_entity"`
+	SecondaryEntities  []string               `json:"secondary_entities"`
+	EntitlementContext map[string]interface{} `json:"entitlement_context,omitempty"`
 }
 
 type Decision struct {
@@ -100,7 +100,7 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 
 	decisionReq := sdk.DecisionOptions{
 		Now:   time.Now(),
-		Path:  "virtru/entitlement/generated_entitlements",
+		Path:  "opentdf/entitlement/generated_entitlements",
 		Input: inputDoc,
 	}
 
