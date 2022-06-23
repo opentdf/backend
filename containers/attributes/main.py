@@ -262,7 +262,7 @@ async def add_response_headers(request: Request, call_next):
 tags_metadata = [
     {
         "name": "Attributes",
-        "description": """Operations to view data attributes. TDF protocol supports ABAC (Attribute Based Access Control). 
+        "description": """Operations to view data attributes. TDF protocol supports ABAC (Attribute Based Access Control).
         This allows TDF protocol to implement policy driven and highly scalable access control mechanism.""",
     },
     {
@@ -909,6 +909,45 @@ async def create_authorities_crud(request):
     for row in result:
         namespaces.append(f"{row.get(table_authority.c.name)}")
     return namespaces
+
+
+@app.delete(
+    "/authorities",
+    tags=["Authorities"],
+    dependencies=[Depends(get_auth)],
+    status_code=NO_CONTENT,
+    responses={
+        202: {
+            "description": "No Content",
+            "content": {"application/json": {"example": {"detail": "Item deleted"}}},
+        }
+    },
+)
+async def delete_authorities(
+        request: AuthorityDefinition = Body(
+            ..., example={"authority": "https://opentdf.io"}
+        )
+):
+    return await delete_authorities_crud(request)
+
+
+async def delete_authorities_crud(request):
+    query = table_authority.select().where(table_authority.c.name == request.authority)
+    result = await database.fetch_one(query)
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Record not found"
+        )
+
+    statement = table_authority.delete().where(
+        and_(
+            table_authority.c.name == request.authority
+        )
+    )
+    await database.execute(statement)
+    return {}
 
 
 # Check for duplicated items when rule is Hierarchy
