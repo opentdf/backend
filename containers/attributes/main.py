@@ -528,7 +528,7 @@ async def read_attributes_definitions(
             regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
         ),
         db: Session = Depends(get_db),
-        pager: Pagination = Depends(Pagination)
+        pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
@@ -596,9 +596,13 @@ async def read_attributes_definitions(
         except ValidationError as e:
             logger.error(e)
 
-    # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just the latter has pagination and JWT auth, and the former does not.
-    # JWT auth is something that can be included or excluded in the route decorator, but our DIY pager cannot be handled at the decorator level.
-    # So we do this - conditional can be removed when we stop doing JWT auth at the service level and add pagination in KAS's client code.
+    # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just
+    # the latter has pagination and JWT auth, and the former does not.
+    # JWT auth is something that can be included or excluded in the route decorator,
+    # but our DIY pager cannot be handled at the decorator level.
+    # So we do this - this conditional can be removed when we
+    # stop doing JWT auth at the service level and add pagination in KAS's client code
+    # and drop this alias.
     if "v1/attrName" in request.url.path:
         return attributes
     else:
