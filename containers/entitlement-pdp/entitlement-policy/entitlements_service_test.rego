@@ -1,6 +1,6 @@
-package virtru.entitlementsvc_tests
+package opentdf.entitlementsvc_tests
 
-import data.virtru.entitlementsvc
+import data.opentdf.entitlementsvc
 
 primaryEntityValid = "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"
 
@@ -8,47 +8,47 @@ secondaryEntitiesValid = ["4f6636ca-c60c-40d1-9f3f-015086303f74"]
 
 httpResSuccess = {
 	"body": [
-			{
-				"entity_attributes": [
-					{
-						"attribute": "https://example.com/attr/Classification/value/S",
-						"displayName": "Classification",
-					},
-					{
-						"attribute": "https://example.com/attr/COI/value/PRX",
-						"displayName": "COI",
-					},
-				],
-				"entity_identifier": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3",
-			},
-			{
-				"entity_attributes": [],
-				"entity_identifier": "4f6636ca-c60c-40d1-9f3f-015086303f74",
-			},
-		],
+		{
+			"entity_attributes": [
+				{
+					"attribute": "https://example.com/attr/Classification/value/S",
+					"displayName": "Classification",
+				},
+				{
+					"attribute": "https://example.com/attr/COI/value/PRX",
+					"displayName": "COI",
+				},
+			],
+			"entity_identifier": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3",
+		},
+		{
+			"entity_attributes": [],
+			"entity_identifier": "4f6636ca-c60c-40d1-9f3f-015086303f74",
+		},
+	],
 	"status_code": 200,
 }
 
 httpResFailure = {
 	"body": [
-			{
-				"entity_attributes": [
-					{
-						"attribute": "https://example.com/attr/Classification/value/S",
-						"displayName": "Classification",
-					},
-					{
-						"attribute": "https://example.com/attr/COI/value/PRX",
-						"displayName": "COI",
-					},
-				],
-				"entity_identifier": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3",
-			},
-			{
-				"entity_attributes": [],
-				"entity_identifier": "4f6636ca-c60c-40d1-9f3f-015086303f74",
-			},
-		],
+		{
+			"entity_attributes": [
+				{
+					"attribute": "https://example.com/attr/Classification/value/S",
+					"displayName": "Classification",
+				},
+				{
+					"attribute": "https://example.com/attr/COI/value/PRX",
+					"displayName": "COI",
+				},
+			],
+			"entity_identifier": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3",
+		},
+		{
+			"entity_attributes": [],
+			"entity_identifier": "4f6636ca-c60c-40d1-9f3f-015086303f74",
+		},
+	],
 	"status_code": 500,
 }
 
