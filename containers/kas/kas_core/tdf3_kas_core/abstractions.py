@@ -62,7 +62,18 @@ class AbstractRewrapPlugin(AbstractPlugin):
         return (req, res)
 
     def fetch_attributes(self, namespaces):
-        """Override this method."""
+        """Override this method. Overriders are expected to return a List of
+           objects like the following:
+
+            class Attribute:
+                authorityNamespace: AnyUrl
+                name: str
+                order: list
+                rule: RuleEnum
+                state: Optional[str]
+                group_by: Optional[AnyUrl]
+
+        """
         logger.warning("AbstractUpsertPlugin fetch_attributes method was called on [%s]", self.__class__.__name__)
         logger.debug("namespaces = %s", namespaces)
         return {}

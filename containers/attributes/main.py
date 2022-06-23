@@ -329,14 +329,6 @@ class AttributeInstance(BaseModel):
             }
         }
 
-# class Attribute(BaseModel):
-#     authorityNamespace: AnyUrl
-#     name: str
-#     order: list
-#     rule: RuleEnum
-#     state: Optional[str]
-
-
 class AttributeDefinition(BaseModel):
     authority: AuthorityUrl
     name: Annotated[str, Field(max_length=2000)]
@@ -521,8 +513,11 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
     },
 )
 # This is an alias endpoint for the same handler, as used by KAS
-# This does *exactly* the same thing as `GET /definitions/attributes`, just without JWT auth
-# or pagination for KAS.
+# This is because KAS needs something that does *exactly* the same thing as `GET /definitions/attributes`,
+# just without JWT auth or pagination.
+#
+# JWT auth can be disabled for the aliased route and pagination can be selectively employed, so do that to
+# avoid functionally-identical-yet-parallel handlers and object models.
 #
 # When JWT auth is removed from service code and implemented at the Ingress level on specific routes,
 # where it belongs, and KAS's attribute authority client code is made to grok pagination,
