@@ -526,6 +526,7 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
 # For now, let's at least just alias the deprecated endpoint to the same implementation to avoid confusing people.
 @app.get("/v1/attrName", response_model=List[AttributeDefinition], include_in_schema=False)
 async def read_attributes_definitions(
+        request: Request,
         authority: Optional[AuthorityUrl] = None,
         name: Optional[str] = None,
         rule: Optional[str] = None,
@@ -535,8 +536,7 @@ async def read_attributes_definitions(
             regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
         ),
         db: Session = Depends(get_db),
-        pager: Pagination = Depends(Pagination),
-        request: Request
+        pager: Pagination = Depends(Pagination)
 ):
     filter_args = {}
     if authority:
