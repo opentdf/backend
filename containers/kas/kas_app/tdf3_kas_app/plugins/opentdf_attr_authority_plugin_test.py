@@ -30,7 +30,7 @@ def test_otdf_plugin_constructor():
     assert actual._host == HOST
 
 
-@patch.object(requests, "post", return_value=Mock(status_code=404))
+@patch.object(requests, "get", return_value=Mock(status_code=404))
 def test_fetch_attributes_404(mock_request):
     actual = OpenTDFAttrAuthorityPlugin(HOST)
     result = actual.fetch_attributes([])
@@ -49,28 +49,28 @@ def mocked_requests_response(*args, **kwargs):
     return MockResponse(ATTRIBUTES, 200)
 
 
-@patch.object(requests, "post", side_effect=mocked_requests_response)
+@patch.object(requests, "get", side_effect=mocked_requests_response)
 def test_fetch_attributes_200_stautus(mock_request):
     actual = OpenTDFAttrAuthorityPlugin(HOST)
     attributes = actual.fetch_attributes(NAMESPACES)
     assert attributes == ATTRIBUTES
 
 
-@patch.object(requests, "post", side_effect=requests.exceptions.ReadTimeout)
+@patch.object(requests, "get", side_effect=requests.exceptions.ReadTimeout)
 def test_fetch_attributes_read_timeout_exception(mock_request):
     actual = OpenTDFAttrAuthorityPlugin(HOST)
     with pytest.raises(RequestTimeoutError):
         actual.fetch_attributes(NAMESPACES)
 
 
-@patch.object(requests, "post", side_effect=requests.exceptions.ConnectTimeout)
+@patch.object(requests, "get", side_effect=requests.exceptions.ConnectTimeout)
 def test_fetch_attributes_connect_timeout_exception(mock_request):
     actual = OpenTDFAttrAuthorityPlugin(HOST)
     with pytest.raises(RequestTimeoutError):
         actual.fetch_attributes(NAMESPACES)
 
 
-@patch.object(requests, "post", side_effect=requests.exceptions.RequestException)
+@patch.object(requests, "get", side_effect=requests.exceptions.RequestException)
 def test_fetch_attributes_request_exception(mock_request):
     actual = OpenTDFAttrAuthorityPlugin(HOST)
     with pytest.raises(InvalidAttributeError):
