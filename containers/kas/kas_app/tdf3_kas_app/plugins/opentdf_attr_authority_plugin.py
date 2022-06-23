@@ -67,13 +67,13 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
         client_cert_path = os.environ.get("CLIENT_CERT_PATH")
         client_key_path = os.environ.get("CLIENT_KEY_PATH")
 
-        uri = "{0}/definitions/attributes".format(self._host)
+        uri = "{0}/v1/attrName".format(self._host)
         params = {'authority': namespace}
 
         try:
             if client_cert_path and client_key_path:
                 logger.debug("Using cert auth for url:%s", uri)
-                resp = requests.post(
+                resp = requests.get(
                     uri,
                     headers=self._headers,
                     params=params,
@@ -82,7 +82,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
                     verify=ca_cert_path,
                 )
             else:
-                resp = requests.post(
+                resp = requests.get(
                     uri,
                     headers=self._headers,
                     params=params,
