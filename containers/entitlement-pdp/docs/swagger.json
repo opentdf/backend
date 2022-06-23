@@ -4,8 +4,8 @@
         "description": "An implementation of a Policy Decision Point",
         "title": "entitlement-pdp",
         "contact": {
-            "name": "Virtru",
-            "url": "https://www.virtru.com"
+            "name": "OpenTDF",
+            "url": "https://www.opentdf.io"
         },
         "license": {
             "name": "BSD 3-Clause",

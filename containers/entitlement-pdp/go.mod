@@ -1,4 +1,4 @@
-module github.com/virtru/v2/entitlement-pdp
+module github.com/opentdf/v2/entitlement-pdp
 
 go 1.18
 

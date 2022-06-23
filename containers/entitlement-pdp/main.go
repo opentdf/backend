@@ -6,9 +6,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/virtru/v2/entitlement-pdp/handlers"
+	"github.com/opentdf/v2/entitlement-pdp/handlers"
 
-	"github.com/virtru/v2/entitlement-pdp/pdp"
+	"github.com/opentdf/v2/entitlement-pdp/pdp"
 
 	"github.com/virtru/oteltracer"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -35,8 +35,8 @@ type EnvConfig struct {
 // @version 0.0.1
 // @description An implementation of a Policy Decision Point
 
-// @contact.name Virtru
-// @contact.url https://www.virtru.com
+// @contact.name OpenTDF
+// @contact.url https://www.opentdf.io
 
 // @license.name BSD 3-Clause
 // @license.url https://opensource.org/licenses/BSD-3-Clause

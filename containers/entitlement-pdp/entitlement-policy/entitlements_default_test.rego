@@ -1,7 +1,7 @@
-package virtru.entitlement_tests
+package opentdf.entitlement_tests
 
-import data.virtru.entitlement
-import data.virtru.entitlementsvc
+import data.opentdf.entitlement
+import data.opentdf.entitlementsvc
 
 valid_secondary_entities = ["4f6636ca-c60c-40d1-9f3f-015086303f74", "3f6636ca-c61c-40d1-9f3f-015086303f74"]
 
