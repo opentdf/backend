@@ -15,13 +15,35 @@ NAMESPACES = [
     "https://acme.com/attr/IntellectualProperty",
     "https://acme.mil/attr/AcmeRestrictions",
 ]
-ATTRIBUTES = {
-    "https://acme.com/attr/IntellectualProperty": {
+
+
+ATTRIBUTES = [
+    {
+        "authority": "https://opentdf.io",
+        "name": "IntellectualProperty",
         "rule": "hierarchy",
-        "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+        "state": "published",
+        "order": [
+            "TradeSecret",
+            "Proprietary",
+            "BusinessSensitive",
+            "Open",
+        ],
     },
-    "https://acme.mil/attr/AcmeRestrictions": {"rule": "allOf"},
-}
+    {
+        "authority": "https://acme.mil",
+        "name": "AcmeRestrictions",
+        "rule": "allOf",
+    }
+]
+
+# ATTRIBUTES = {
+#     "https://acme.com/attr/IntellectualProperty": {
+#         "rule": "hierarchy",
+#         "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+#     },
+#     "https://acme.mil/attr/AcmeRestrictions": {"rule": "allOf"},
+# }
 
 
 def test_otdf_plugin_constructor():
@@ -50,10 +72,12 @@ def mocked_requests_response(*args, **kwargs):
 
 
 @patch.object(requests, "get", side_effect=mocked_requests_response)
-def test_fetch_attributes_200_stautus(mock_request):
+def test_fetch_attributes_200_status(mock_request):
     actual = OpenTDFAttrAuthorityPlugin(HOST)
     attributes = actual.fetch_attributes(NAMESPACES)
-    assert attributes == ATTRIBUTES
+    assert len(attributes) == 4
+    assert "authorityNamespace" in attributes[0]
+    assert "authorityNamespace" in attributes[1]
 
 
 @patch.object(requests, "get", side_effect=requests.exceptions.ReadTimeout)

@@ -33,8 +33,10 @@ def _translate_otdf_attrdefs(attrdefs):
     '''
 
     for attr in attrdefs:
-        attr["authorityNamespace"] = attr["authority"]
-        attr["values"] = attr["order"]
+        if "authority" in attr:
+            attr["authorityNamespace"] = attr["authority"]
+        if "order" in attr:
+            attr["values"] = attr["order"]
 
 
 class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
@@ -124,8 +126,12 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
         for namespace in namespaces:
             ns_attrdefs = self._fetch_definition_from_authority_by_ns(namespace)
             _translate_otdf_attrdefs(ns_attrdefs)
-            attrs.append(ns_attrdefs)
+            attrs = attrs + ns_attrdefs
 
+        if len(attrs) == 0:
+            return None
+
+        print(attrs)
         return attrs
 
     def update(self, req, res):
