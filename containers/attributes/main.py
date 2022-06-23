@@ -257,6 +257,13 @@ async def add_response_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
 
 # OpenAPI
 tags_metadata = [
@@ -321,6 +328,14 @@ class AttributeInstance(BaseModel):
                 "value": "Proprietary"
             }
         }
+
+# class Attribute(BaseModel):
+#     authorityNamespace: AnyUrl
+#     name: str
+#     order: list
+#     rule: RuleEnum
+#     state: Optional[str]
+
 
 class AttributeDefinition(BaseModel):
     authority: AuthorityUrl
@@ -505,6 +520,16 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
         }
     },
 )
+# This is an alias endpoint for the same handler, as used by KAS
+# This does *exactly* the same thing as `GET /definitions/attributes`, just without JWT auth
+# or pagination for KAS.
+#
+# When JWT auth is removed from service code and implemented at the Ingress level on specific routes,
+# where it belongs, and KAS's attribute authority client code is made to grok pagination,
+# then we won't need this endpoint alias anymore and can drop it
+# (since KAS<->attribute service is east-west traffic)
+# For now, let's at least just alias the deprecated endpoint to the same implementation to avoid confusing people.
+@app.get("/v1/attrName", response_model=List[AttributeDefinition], include_in_schema=False)
 async def read_attributes_definitions(
         authority: Optional[AuthorityUrl] = None,
         name: Optional[str] = None,
@@ -516,6 +541,7 @@ async def read_attributes_definitions(
         ),
         db: Session = Depends(get_db),
         pager: Pagination = Depends(Pagination),
+        request: Request
 ):
     filter_args = {}
     if authority:
@@ -582,7 +608,14 @@ async def read_attributes_definitions(
             attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
-    return pager.paginate(attributes)
+
+    # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just the latter has pagination and JWT auth, and the former does not.
+    # JWT auth is something that can be included or excluded in the route decorator, but our DIY pager cannot be handled at the decorator level.
+    # So we do this - conditional can be removed when we stop doing JWT auth at the service level and add pagination in KAS's client code.
+    if "v1/attrName" in request.url.path:
+        return attributes
+    else:
+        return pager.paginate(attributes)
 
 
 @app.post(
@@ -956,40 +989,3 @@ def check_duplicates(hierarchy_list):
         return False
     else:
         return True
-
-
-class Attribute(BaseModel):
-    authorityNamespace: AnyUrl
-    name: str
-    order: list
-    rule: RuleEnum
-    state: Optional[str]
-
-
-# Used by KAS, endpoint appended to ATTR_AUTHORITY_HOST
-@app.post("/v1/attrName", response_model=List[Attribute], include_in_schema=False)
-async def read_attribute():
-    # return all for now body: List[HttpUrl]
-    query = table_attribute.select()
-    result = await database.fetch_all(query)
-    authorities = await read_authorities_crud()
-    attributes: List[Attribute] = []
-    for row in result:
-        try:
-            attributes.append(
-                Attribute(
-                    authorityNamespace=authorities[row.namespace_id],
-                    name=row.get(table_attribute.c.name),
-                    order=row.get("values_array"),
-                    values=row.get("values_array"),
-                    rule=row.get(table_attribute.c.rule),
-                    state=row.get(table_attribute.c.state),
-                )
-            )
-        except ValidationError as e:
-            logging.error(e)
-    return attributes
-
-
-if __name__ == "__main__":
-    print(json.dumps(app.openapi()), file=sys.stdout)
