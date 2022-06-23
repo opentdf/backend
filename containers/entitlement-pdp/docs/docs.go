@@ -11,8 +11,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "Virtru",
-            "url": "https://www.virtru.com"
+            "name": "OpenTDF",
+            "url": "https://www.opentdf.io"
         },
         "license": {
             "name": "BSD 3-Clause",

@@ -56,8 +56,8 @@ definitions:
     type: object
 info:
   contact:
-    name: Virtru
-    url: https://www.virtru.com
+    name: OpenTDF
+    url: https://www.opentdf.io
   description: An implementation of a Policy Decision Point
   license:
     name: BSD 3-Clause
