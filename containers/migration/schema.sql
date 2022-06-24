@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS tdf_attribute.attribute
     namespace_id INTEGER NOT NULL REFERENCES tdf_attribute.attribute_namespace,
     state        VARCHAR NOT NULL,
     rule         VARCHAR NOT NULL,
-    name         VARCHAR NOT NULL UNIQUE, -- ??? COLLATE NOCASE
+    name         VARCHAR NOT NULL, -- ??? COLLATE NOCASE
     description  VARCHAR,
     values_array       TEXT[],
     group_by_attr     INTEGER REFERENCES tdf_attribute.attribute(id),
