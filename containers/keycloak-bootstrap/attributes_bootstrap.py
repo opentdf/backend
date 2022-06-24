@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 # This is the only URL this file should ever need -
 # The URL stuff inside the cluster (aka this bootstrap job) will use to resolve keycloak (private, non-browser clients)
-kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http")
+kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http").rstrip("/")
 
 
 def createAttributes(attribute_host, preloaded_attributes, authToken):
@@ -87,7 +87,7 @@ def createPreloaded(keycloak_admin, realm, keycloak_auth_url,
     attribute_clientid = os.getenv("ATTRIBUTES_CLIENT_ID")
     attribute_username = os.getenv("ATTRIBUTES_USERNAME")
     attribute_password = os.getenv("ATTRIBUTES_PASSWORD")
-    attribute_host = os.getenv("ATTRIBUTE_AUTHORITY_HOST", "http://opentdf-attributes:4020")
+    attribute_host = os.getenv("ATTRIBUTE_AUTHORITY_HOST", "http://opentdf-attributes:4020").rstrip("/")
 
     keycloak_openid = KeycloakOpenID(
         server_url=keycloak_auth_url,
