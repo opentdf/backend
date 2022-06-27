@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS tdf_attribute.attribute
     group_by_attr     INTEGER REFERENCES tdf_attribute.attribute(id),
     group_by_attrval  VARCHAR,
     CHECK(group_by_attrval is not null or group_by_attr is null)
+    CONSTRAINT namespase_id_name_unique UNIQUE (namespace_id, name)
 );
 
 CREATE SCHEMA IF NOT EXISTS tdf_entitlement;
