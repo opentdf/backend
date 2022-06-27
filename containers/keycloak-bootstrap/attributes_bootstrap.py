@@ -22,7 +22,7 @@ def createAttributes(attribute_host, preloaded_attributes, authToken):
         # to decide if we should POST (not there) or PUT (already there)
         get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"}, params=q_params)
         # POST - add new
-        if get_response.status_code == 404:
+        if get_response.status_code == 404 or get_response.json() == [] :
             logger.info(f"Adding attribute definition {definition}")
             logger.debug("Using auth JWT: [%s]", authToken)
 
