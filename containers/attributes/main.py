@@ -534,6 +534,7 @@ async def read_attributes_definitions(
     if authority:
         # lookup authority by value and get id (namespace_id)
         authorities = await read_authorities_crud()
+        logger.info(f"authority {authority}")
         filter_args["namespace_id"] = list(authorities.keys())[
             list(authorities.values()).index(authority)
         ]
