@@ -112,7 +112,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
                 resp.status_code,
                 resp.reason,
             )
-            return None
+            return []
         logger.debug("--- Fetch attributes successful --- ")
         res = resp.json()
         logger.debug("Fetch attribute %s => %s", uri, res)
@@ -124,6 +124,8 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
 
         attrs = []
         for namespace in namespaces:
+            if "attr" in namespace:
+                namespace = namespace.split("attr")[0][:-1]
             ns_attrdefs = self._fetch_definition_from_authority_by_ns(namespace)
             _translate_otdf_attrdefs(ns_attrdefs)
             attrs = attrs + ns_attrdefs
