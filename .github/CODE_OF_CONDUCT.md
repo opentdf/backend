@@ -55,7 +55,7 @@ further defined and clarified by project maintainers.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at [developers@virtru.com](email-developers). All
+reported by contacting the project team at [support@opentdf.io](email-developers). All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
@@ -70,7 +70,7 @@ members of the project's leadership.
 This Code of Conduct is adapted from the [Contributor Covenant][cc-homepage], version 1.4,
 available at [https://contributor-covenant.org/version/1/4][cc-version]
 
-[email-developers]: mailto:developers@virtru.com
+[email-developers]: mailto:support@opentdf.io
 [cc-homepage]: https://contributor-covenant.org
 [cc-version]: https://contributor-covenant.org/version/1/4/
 [virtru]: https://www.virtru.com/
