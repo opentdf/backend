@@ -15,4 +15,4 @@ We're glad you're interested in the [Virtru](virtru) product and look forward to
 [slack]: https://docs.google.com/forms/d/e/1FAIpQLSfCx5tSl9hGQSZ-H-ZIzNw6uWIPN3_HSpMtYssKQ9jytj9yQQ/viewform
 [support-ticket]: https://support.virtru.com/hc/en-us/requests/new?ticket_form_id=360001419954
 [virtru]: https://www.virtru.com/
-[email-developers]: mailto:developers@virtru.com
+[email-developers]: mailto:support@opentdf.io
