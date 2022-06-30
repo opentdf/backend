@@ -15,13 +15,13 @@ import (
 
 var tracer = otel.Tracer("handlers")
 
-// EntityResolution
+// EntityResolution Model
 type EntityResolution struct {
 	Identifier        string   `json:"identifier" example:"bob@sample.org"`
 	EntityIdentifiers []string `json:"entity_ids" example:"XUX-ASDF-ASDFSD"`
 }
 
-// EntityResolution
+// EntityResolution Response Model
 type EntityResolutionResponse struct {
 	AttributeType     string             `json:"type" example:"email"`
 	EntityResolutions []EntityResolution `json:"entity_resolutions"`
@@ -51,7 +51,7 @@ type KeyCloakConfg struct {
 // @Summary      Resolve a set of entity labels to their keycloak identifiers
 // @Description  Provide an attribute type and attribute label list
 // @Description  and receive a list of entity idenitifiers
-// @Success      200 {array}  handlers.EntityResolution
+// @Success      200 {object} handlers.EntityResolutionResponse
 // @Param        "Entity Resolution Request" body handlers.EntityResolutionRequest true "Entity Identifiers to be resolved"
 // @Accept       json
 // @Produce      json
