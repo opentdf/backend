@@ -24,11 +24,31 @@ ATTRIBUTES_ENDPOINT = os.getenv("ATTRIBUTES_ENDPOINT", "http://opentdf-attribute
 OIDC_ENDPOINT = os.getenv("OIDC_ENDPOINT", "http://host.docker.internal:65432/keycloak")
 ORGANIZATION_NAME = "tdf"
 CLIENT_ID = "tdf-client"
-CLIENT_SECRET = "123-456"
+TEST_CLIENT_1 = "test-client-1"
+TEST_CLIENT_2 = "test-client-2"
 ATTRIBUTES_CLIENT_ID = "tdf-client"
 ATTRIBUTES_CLIENT_SECRET = "123-456"
+CLIENTS = {
+    CLIENT_ID: "123-456",
+    TEST_CLIENT_1: "123-456-789",
+    TEST_CLIENT_2: "123-456-789"
+}
+ALL_OF_SUCCESS = ["http://testing123.fun/attr/Language/value/spanish"]
+ALL_OF_FAILURE = ["http://testing123.fun/attr/Language/value/spanish", "http://testing123.fun/attr/Language/value/french"]
+ANY_OF_SUCCESS = ["http://testing123.fun/attr/Color/value/green", "http://testing123.fun/attr/Color/value/blue"]
+ANY_OF_FAILURE = ["http://testing123.fun/attr/Color/value/blue"]
+HIERARCHY_SUCCESS = ["https://example.com/attr/Classification/value/U"]
+HIERARCHY_FAILURE = ["https://example.com/attr/Classification/value/TS"]
+ATTR_TESTS = {
+    "allOf": ALL_OF_SUCCESS, 
+    "allOf fail": ALL_OF_FAILURE, 
+    "anyOf": ANY_OF_SUCCESS, 
+    "anyOf fail": ANY_OF_FAILURE, 
+    "hierarchy": HIERARCHY_SUCCESS, 
+    "hierarchy fail": HIERARCHY_FAILURE
+}
 
-def encrypt_web(ct_file, rt_file, attributes=None):
+def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
     c = [
         "npx",
         "@opentdf/cli",
@@ -39,7 +59,7 @@ def encrypt_web(ct_file, rt_file, attributes=None):
         "--oidcEndpoint",
         OIDC_ENDPOINT,
         "--auth",
-        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
         "--output",
         rt_file,
     ]
@@ -50,7 +70,7 @@ def encrypt_web(ct_file, rt_file, attributes=None):
     subprocess.check_call(c)
 
 
-def decrypt_web(ct_file, rt_file):
+def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID):
     c = [
         "npx",
         "@opentdf/cli",
@@ -61,7 +81,7 @@ def decrypt_web(ct_file, rt_file):
         "--oidcEndpoint",
         OIDC_ENDPOINT,
         "--auth",
-        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
         "--output",
         rt_file,
         "decrypt",
@@ -71,12 +91,12 @@ def decrypt_web(ct_file, rt_file):
     subprocess.check_call(c)
 
 
-def encrypt_py_nano(ct_file, rt_file, attributes=None):
-    encrypt_py(ct_file, rt_file, attributes=attributes, nano=True)
+def encrypt_py_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
+    encrypt_py(ct_file, rt_file, attributes=attributes, nano=True, client_id=client_id)
 
 
-def decrypt_py_nano(ct_file, rt_file):
-    decrypt_py(ct_file, rt_file, nano=True)
+def decrypt_py_nano(ct_file, rt_file, client_id=CLIENT_ID):
+    decrypt_py(ct_file, rt_file, nano=True, client_id=client_id)
 
 
 def service_py():
@@ -94,7 +114,7 @@ def service_py():
     subprocess.check_call(c)
 
 
-def encrypt_py(pt_file, ct_file, nano=False, attributes=None):
+def encrypt_py(pt_file, ct_file, nano=False, attributes=None, client_id=CLIENT_ID):
     c = [
         "python3",
         SDK_PATHS["py_encrypt"],
@@ -103,7 +123,7 @@ def encrypt_py(pt_file, ct_file, nano=False, attributes=None):
         "--oidcEndpoint",
         OIDC_ENDPOINT,
         "--auth",
-        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
         "--ctfile",
         ct_file,
         "--ptfile",
@@ -117,7 +137,7 @@ def encrypt_py(pt_file, ct_file, nano=False, attributes=None):
     subprocess.check_call(c)
 
 
-def decrypt_py(ct_file, rt_file, nano=False):
+def decrypt_py(ct_file, rt_file, nano=False, client_id=CLIENT_ID):
     c = [
         "python3",
         SDK_PATHS["py_decrypt"],
@@ -126,7 +146,7 @@ def decrypt_py(ct_file, rt_file, nano=False):
         "--oidcEndpoint",
         OIDC_ENDPOINT,
         "--auth",
-        f"{ORGANIZATION_NAME}:{CLIENT_ID}:{CLIENT_SECRET}",
+        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
         "--rtfile",
         rt_file,
         "--ctfile",
@@ -160,6 +180,9 @@ def main():
     parser.add_argument(
         "--no-teardown", action="store_true", help="don't delete temp files"
     )
+    parser.add_argument(
+        "--attrtest", action="store_true", help="Include attribute tests"
+    )
     args = parser.parse_args()
 
     service_test = set([service_py])
@@ -185,6 +208,13 @@ def main():
         failed += run_cli_tests(
             nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
         )
+        if args.attrtest:
+            logger.info("TDF3 ATTRIBUTE TESTS:")
+            failed += run_attribute_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
+            logger.info("NANO ATTRIBUTE TESTS:")
+            failed += run_attribute_tests(
+            nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
+        )
     finally:
         if not args.no_teardown:
             teardown()
@@ -203,8 +233,30 @@ def run_service_tests(service_test):
             failed += [f"{x}"]
     return failed
 
+def run_attribute_tests(sdks_encrypt, sdks_decrypt, pt_file):
+    logger.info("--- run_attribute_tests %s => %s", sdks_encrypt, sdks_decrypt)
 
-def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file):
+    failed = []
+
+    serial = 0
+    for x in sdks_encrypt:
+        for y in sdks_decrypt:
+            serial_attr = 1
+            for name, attrs in ATTR_TESTS.items():
+                rt_func = test_cross_roundtrip_failure if "fail" in name else test_cross_roundtrip
+                logger.info(f"Test #{serial}.{serial_attr}: {name}")
+                try:
+                    rt_func(x, y, f"{serial}.{serial_attr}", pt_file, attributes=attrs,
+                            encrypt_client=TEST_CLIENT_1, decrypt_client=TEST_CLIENT_2)
+                except Exception as e:
+                    logger.error("Exception with pass (%s => %s) %s", x, y, name, exc_info=True)
+                    failed += [f"{name} {x}=>{y}"]
+                finally:
+                    serial_attr += 1
+            serial += 1
+    return failed
+
+def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file, attributes=None):
     logger.info("--- run_cli_tests %s => %s", sdks_encrypt, sdks_decrypt)
     failed = []
 
@@ -212,7 +264,7 @@ def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file):
     for x in sdks_encrypt:
         for y in sdks_decrypt:
             try:
-                test_cross_roundtrip(x, y, serial, pt_file)
+                test_cross_roundtrip(x, y, serial, pt_file, attributes)
             except Exception as e:
                 logger.error("Exception with pass %s => %s", x, y, exc_info=True)
                 failed += [f"{x}=>{y}"]
@@ -222,7 +274,8 @@ def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file):
 
 # Test a roundtrip across the two referenced sdks.
 # Returns True if test succeeded, false otherwise.
-def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
+def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file, attributes=None,
+     encrypt_client=CLIENT_ID, decrypt_client=CLIENT_ID):
     logger.info(
         "--- Begin Test #%s: Roundtrip encrypt(%s) --> decrypt(%s)",
         serial,
@@ -235,9 +288,9 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
 
     # Do the roundtrip.
     logger.info("Encrypt %s", encrypt_sdk)
-    encrypt_sdk(pt_file, ct_file)
+    encrypt_sdk(pt_file, ct_file, attributes=attributes, client_id=encrypt_client)
     logger.info("Decrypt %s", decrypt_sdk)
-    decrypt_sdk(ct_file, rt_file)
+    decrypt_sdk(ct_file, rt_file, client_id=decrypt_client)
 
     # Verify the roundtripped result is the same as our initial plantext.
     if not filecmp.cmp(pt_file, rt_file):
@@ -246,6 +299,33 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file):
             % (serial, pt_file, rt_file)
         )
     logger.info("Test #%s, (%s->%s): Succeeded!", serial, encrypt_sdk, decrypt_sdk)
+
+
+def test_cross_roundtrip_failure(encrypt_sdk, decrypt_sdk, serial, pt_file, attributes=None,
+     encrypt_client=CLIENT_ID, decrypt_client=CLIENT_ID):
+    logger.info(
+        "--- Begin Test #%s: Roundtrip encrypt(%s) --> decrypt(%s)",
+        serial,
+        encrypt_sdk,
+        decrypt_sdk,
+    )
+
+    # Generate plaintext and files
+    ct_file, rt_file = gen_files(serial)
+
+    # Do the roundtrip.
+    logger.info("Encrypt %s", encrypt_sdk)
+    encrypt_sdk(pt_file, ct_file, attributes=attributes, client_id=encrypt_client)
+    logger.info("Decrypt %s", decrypt_sdk)
+    try:
+        decrypt_sdk(ct_file, rt_file, client_id=decrypt_client)
+    except:
+        logger.info("Test #%s, (%s->%s): Succeeded!", serial, encrypt_sdk, decrypt_sdk)
+    else:
+        raise Exception(
+            "Test #%s: (%s --> %s) FAIL -- decrypt should fail but succeeded)"
+            % (serial, encrypt_sdk, decrypt_sdk)
+        )
 
 
 def gen_pt(*, large):

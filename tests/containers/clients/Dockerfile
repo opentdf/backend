@@ -31,4 +31,4 @@ COPY ./tests/containers/clients /wrk
 ENV KAS_ENDPOINT http://host.docker.internal:65432/api/kas
 ENV OIDC_ENDPOINT http://host.docker.internal:65432
 
-CMD ["python3", "xtest.py"]
+CMD ["python3", "xtest.py", "--attrtest"]
