@@ -1,7 +1,7 @@
 import json
 import pytest
 
-import main
+from .. import main
 
 
 def test_get_entitlements(client_fixture, monkeypatch):
