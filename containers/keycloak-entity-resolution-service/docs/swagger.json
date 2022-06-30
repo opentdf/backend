@@ -1,0 +1,110 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "An implementation of a an entity resolution service for keycloak",
+        "title": "entitlement-resolution-service",
+        "contact": {
+            "name": "OpenTDF",
+            "url": "https://www.opentdf.io"
+        },
+        "license": {
+            "name": "BSD 3-Clause",
+            "url": "https://opensource.org/licenses/BSD-3-Clause"
+        },
+        "version": "0.0.1"
+    },
+    "paths": {
+        "/healthz": {
+            "get": {
+                "tags": [
+                    "Service Health"
+                ],
+                "summary": "Check service status",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/resolve": {
+            "post": {
+                "description": "Provide an attribute type and attribute label list\nand receive a list of entity idenitifiers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Resolve a set of entity labels to their keycloak identifiers",
+                "parameters": [
+                    {
+                        "description": "Entity Identifiers to be resolved",
+                        "name": "Request\"",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.EntityResolutionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.EntityResolution"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.EntityResolution": {
+            "type": "object",
+            "properties": {
+                "entity_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "XUX-ASDF-ASDFSD"
+                    ]
+                },
+                "identifier": {
+                    "type": "string",
+                    "example": "bob@sample.org"
+                }
+            }
+        },
+        "handlers.EntityResolutionRequest": {
+            "type": "object",
+            "properties": {
+                "identifiers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "bob@sample.org"
+                    ]
+                },
+                "type": {
+                    "description": "enum: email,username",
+                    "type": "string",
+                    "example": "email"
+                }
+            }
+        }
+    }
+}
