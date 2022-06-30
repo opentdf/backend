@@ -67,10 +67,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/handlers.EntityResolution"
-                            }
+                            "$ref": "#/definitions/handlers.EntityResolutionResponse"
                         }
                     }
                 }
@@ -110,6 +107,21 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "enum: email,username",
+                    "type": "string",
+                    "example": "email"
+                }
+            }
+        },
+        "handlers.EntityResolutionResponse": {
+            "type": "object",
+            "properties": {
+                "entity_resolutions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.EntityResolution"
+                    }
+                },
+                "type": {
                     "type": "string",
                     "example": "email"
                 }
