@@ -12,7 +12,7 @@ The following is a set of guidelines for contributing to [Virtru](virtru) openso
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Virtru Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [developers@virtru.com](email-developers).
+This project and everyone participating in it is governed by the [Virtru Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [support@opentdf.io](email-developers).
 
 ## I Have Questions. Where Do I Go?
 
@@ -33,4 +33,4 @@ Please respect the code style and try to ensure your changes have tests.
 [slack]: https://docs.google.com/forms/d/e/1FAIpQLSfCx5tSl9hGQSZ-H-ZIzNw6uWIPN3_HSpMtYssKQ9jytj9yQQ/viewform
 [support-ticket]: https://support.virtru.com/hc/en-us/requests/new?ticket_form_id=360001419954
 [virtru]: https://www.virtru.com/
-[email-developers]: mailto:developers@virtru.com
+[email-developers]: mailto:support@opentdf.io

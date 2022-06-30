@@ -18,6 +18,11 @@ policypush: policybuild
 	@echo "Pushing '$(BUNDLETAG):$(POLICYVERSION)' OCI policy bundle to registry"
 	@policy push $(BUNDLETAG):$(POLICYVERSION)
 
+.PHONY: policypushinsecure
+policypushinsecure: policybuild
+	@echo "Pushing (without TLS verification, this is insecure and not recommended) '$(BUNDLETAG):$(POLICYVERSION)' OCI policy bundle to registry"
+	@policy push --insecure $(BUNDLETAG):$(POLICYVERSION)
+
 .PHONY: test
 test: localprep
 	@echo "Running all OPA tests"
