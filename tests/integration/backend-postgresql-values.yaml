@@ -39,12 +39,13 @@ initdbScripts:
         namespace_id INTEGER NOT NULL REFERENCES tdf_attribute.attribute_namespace,
         state        VARCHAR NOT NULL,
         rule         VARCHAR NOT NULL,
-        name         VARCHAR NOT NULL UNIQUE, -- ??? COLLATE NOCASE
+        name         VARCHAR NOT NULL, -- ??? COLLATE NOCASE
         description  VARCHAR,
         values_array TEXT[],
         group_by_attr INTEGER REFERENCES tdf_attribute.attribute(id),
         group_by_attrval VARCHAR,
-        CONSTRAINT no_attrval_without_attrid CHECK(group_by_attrval is not null or group_by_attr is null)
+        CONSTRAINT no_attrval_without_attrid CHECK(group_by_attrval is not null or group_by_attr is null),
+        CONSTRAINT namespase_id_name_unique UNIQUE (namespace_id, name)
     );
 
     CREATE SCHEMA IF NOT EXISTS tdf_entitlement;
@@ -98,4 +99,4 @@ initdbScripts:
     ALTER TABLE tdf_attribute.attribute ADD COLUMN IF NOT EXISTS group_by_attr INTEGER REFERENCES tdf_attribute.attribute(id);
     ALTER TABLE tdf_attribute.attribute ADD COLUMN IF NOT EXISTS group_by_attrval VARCHAR;
     ALTER TABLE tdf_attribute.attribute DROP CONSTRAINT IF EXISTS no_attrval_without_attrid;
-    ALTER TABLE tdf_attribute.attribute ADD CONSTRAINT no_attrval_without_attrid CHECK(group_by_attrval is not null or group_by_attr is null)
+    ALTER TABLE tdf_attribute.attribute ADD CONSTRAINT no_attrval_without_attrid CHECK(group_by_attrval is not null or group_by_attr is null);

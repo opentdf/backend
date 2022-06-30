@@ -98,7 +98,7 @@ jobs:
     strategy:
       matrix:
         repo:
-          - entitlement-store
+          - entitlement_store
           - attributes
           - entitlements
     timeout-minutes: 30
@@ -411,7 +411,7 @@ jobs:
     strategy:
       matrix:
         repo:
-          - entitlement-store
+          - entitlement_store
           - attributes
           - entitlements
     steps:

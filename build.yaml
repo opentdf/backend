@@ -25,7 +25,7 @@ services:
 
   entitlement-store:
     build:
-      context: ./containers/entitlement-store
+      context: ./containers/entitlement_store
       args:
         - PY_VERSION=${PY_VERSION:-3.10}
       dockerfile: Dockerfile
