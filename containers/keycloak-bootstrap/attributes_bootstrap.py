@@ -22,41 +22,41 @@ def createAttributes(attribute_host, preloaded_attributes, authToken):
         # to decide if we should POST (not there) or PUT (already there)
         get_response = requests.get(loc, headers={"Authorization": f"Bearer {authToken}"}, params=q_params)
         # POST - add new
-        if get_response.status_code == 404:
+        if get_response.status_code == 404 or (get_response.status_code == 200 and not get_response.json()) :
             logger.info(f"Adding attribute definition {definition}")
-            logger.debug("Using auth JWT: [%s]", authToken)
-
-            response = requests.post(
-                loc,
-                json=definition,
-                headers={"Authorization": f"Bearer {authToken}"},
-            )
-            if response.status_code != 200:
-                logger.error(
-                    "Unexpected code [%s] from attributes service when attempting to CREATE attribute definition! [%s]",
-                    response.status_code,
-                    response.text,
-                    exc_info=True,
-                )
-                exit(1)
+            http_call = requests.post
+            
         # PUT - update existing
         elif get_response.status_code < 400:
             logger.info(f"Updating attribute definition {definition}")
-            logger.debug("Using auth JWT: [%s]", authToken)
+            http_call = requests.put
 
-            response = requests.put(
-                loc,
-                json=definition,
-                headers={"Authorization": f"Bearer {authToken}"},
+        else:
+            # catch and weird codes from attribtues service
+            logger.error(
+                "Unexpected code [%s] from attributes service when attempting to GET attribute definition! [%s]",
+                get_response.status_code,
+                get_response.text,
+                exc_info=True,
             )
-            if response.status_code != 200:
-                logger.error(
-                    "Unexpected code [%s] from attributes service when attempting to UPDATE attribute definition! [%s]",
-                    response.status_code,
-                    response.text,
-                    exc_info=True,
-                )
-                exit(1)
+            exit(1)
+
+        logger.debug("Using auth JWT: [%s]", authToken)
+        response = http_call(
+            loc,
+            json=definition,
+            headers={"Authorization": f"Bearer {authToken}"},
+        )
+        if response.status_code != 200:
+            logger.error(
+                "Unexpected code [%s] from attributes service! [%s]",
+                response.status_code,
+                response.text,
+                exc_info=True,
+            )
+            exit(1)
+        else:
+            logger.info("Attribute created/updated successfully")
 
 
 def createAuthorities(attribute_host, preloaded_authorities, authToken):
