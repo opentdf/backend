@@ -4,7 +4,7 @@ import os
 import sys
 import requests
 from enum import Enum
-from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR
+from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR, NOT_FOUND
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
@@ -257,7 +257,6 @@ async def add_response_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 
-
 # OpenAPI
 tags_metadata = [
     {
@@ -505,7 +504,21 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
         }
     },
 )
+# This is an alias endpoint for the same handler, as used by KAS
+# This is because KAS needs something that does *exactly* the same thing as `GET /definitions/attributes`,
+# just without JWT auth or pagination.
+#
+# JWT auth can be disabled for the aliased route and pagination can be selectively employed, so do that to
+# avoid functionally-identical-yet-parallel handlers and object models.
+#
+# When JWT auth is removed from service code and implemented at the Ingress level on specific routes,
+# where it belongs, and KAS's attribute authority client code is made to grok pagination,
+# then we won't need this endpoint alias anymore and can drop it
+# (since KAS<->attribute service is east-west traffic)
+# For now, let's at least just alias the deprecated endpoint to the same implementation to avoid confusing people.
+@app.get("/v1/attrName", response_model=List[AttributeDefinition], include_in_schema=False)
 async def read_attributes_definitions(
+        request: Request,
         authority: Optional[AuthorityUrl] = None,
         name: Optional[str] = None,
         rule: Optional[str] = None,
@@ -582,7 +595,21 @@ async def read_attributes_definitions(
             attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
-    return pager.paginate(attributes)
+    
+    if not attributes:
+        raise HTTPException(status_code=NOT_FOUND, detail="No attribute definitions found that satisfy given criteria")
+
+    # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just
+    # the latter has pagination and JWT auth, and the former does not.
+    # JWT auth is something that can be included or excluded in the route decorator,
+    # but our DIY pager cannot be handled at the decorator level.
+    # So we do this - this conditional can be removed when we
+    # stop doing JWT auth at the service level and add pagination in KAS's client code
+    # and drop this alias.
+    if "v1/attrName" in request.url.path:
+        return attributes
+    else:
+        return pager.paginate(attributes)
 
 
 @app.post(
@@ -956,40 +983,3 @@ def check_duplicates(hierarchy_list):
         return False
     else:
         return True
-
-
-class Attribute(BaseModel):
-    authorityNamespace: AnyUrl
-    name: str
-    order: list
-    rule: RuleEnum
-    state: Optional[str]
-
-
-# Used by KAS, endpoint appended to ATTR_AUTHORITY_HOST
-@app.post("/v1/attrName", response_model=List[Attribute], include_in_schema=False)
-async def read_attribute():
-    # return all for now body: List[HttpUrl]
-    query = table_attribute.select()
-    result = await database.fetch_all(query)
-    authorities = await read_authorities_crud()
-    attributes: List[Attribute] = []
-    for row in result:
-        try:
-            attributes.append(
-                Attribute(
-                    authorityNamespace=authorities[row.namespace_id],
-                    name=row.get(table_attribute.c.name),
-                    order=row.get("values_array"),
-                    values=row.get("values_array"),
-                    rule=row.get(table_attribute.c.rule),
-                    state=row.get(table_attribute.c.state),
-                )
-            )
-        except ValidationError as e:
-            logging.error(e)
-    return attributes
-
-
-if __name__ == "__main__":
-    print(json.dumps(app.openapi()), file=sys.stdout)
