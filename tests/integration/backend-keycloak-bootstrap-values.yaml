@@ -25,6 +25,7 @@ attributes:
   password: testuser123
   preloadedAuthorities:
     - http://testing123.fun
+    - https://example.com
   preloadedAttributes:
   - authority: http://testing123.fun
     name: Color
@@ -44,7 +45,16 @@ attributes:
     - english
     - spanish
     - portuguese
-       
+  - authority: https://example.com
+    name: Classification
+    rule: hierarchy
+    state: published
+    order: 
+    - TS
+    - S
+    - C
+    - U
+
 entitlements:
   hostname: http://opentdf-entitlements:4030
   realms:
@@ -84,8 +94,11 @@ entitlements:
         - https://example.com/attr/COI/value/PRX
       test-client-1:
         - http://testing123.fun/attr/Language/value/french
+        - http://testing123.fun/attr/Language/value/spanish
         - http://testing123.fun/attr/Color/value/green
+        - https://example.com/attr/Classification/value/TS
       test-client-2:
+        - https://example.com/attr/Classification/value/C
         - http://testing123.fun/attr/Language/value/spanish
         - http://testing123.fun/attr/Color/value/green
       
