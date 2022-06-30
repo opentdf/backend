@@ -235,7 +235,7 @@ docker_build(
     ],
 )
 
-for microservice in ["attributes", "entitlements", "entitlement-store"]:
+for microservice in ["attributes", "entitlements", "entitlement_store"]:
     image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
     docker_build(
         image_name,

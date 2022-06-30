@@ -10,23 +10,23 @@ ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 WORKDIR /build
 # Install application dependencies
-COPY entitlement-store/requirements.txt entitlement-store/requirements.txt
+COPY entitlement_store/requirements.txt entitlement_store/requirements.txt
 COPY python_base/requirements.txt python_base/requirements.txt
 RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
-    pip3 install --no-cache-dir --requirement entitlement-store/requirements.txt
+    pip3 install --no-cache-dir --requirement entitlement_store/requirements.txt
 # Install application into WORKDIR
 COPY python_base/*.py python_base/
-COPY entitlement-store/*.py entitlement-store/
-COPY entitlement-store/VERSION entitlement-store/
+COPY entitlement_store/*.py entitlement_store/
+COPY entitlement_store/VERSION entitlement_store/
 
 # Compile application
 RUN python3 -m compileall .
 
 # Validate openapi
-COPY entitlement-store/openapi.json entitlement-store/
+COPY entitlement_store/openapi.json entitlement_store/
 
 FROM build AS validate-openapi
-RUN diff <(python3 -m entitlement-store.main) entitlement-store/openapi.json
+RUN diff <(python3 -m entitlement_store.main) entitlement_store/openapi.json
 
 # stage - production server
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
@@ -62,4 +62,4 @@ ENTRYPOINT python3 -m uvicorn \
     --no-use-colors \
     --no-server-header \
     --log-level error \
-    entitlement-store.main:app
+    entitlement_store.main:app

@@ -25,10 +25,10 @@ CREATE TABLE IF NOT EXISTS tdf_attribute.attribute
     rule         VARCHAR NOT NULL,
     name         VARCHAR NOT NULL, -- ??? COLLATE NOCASE
     description  VARCHAR,
-    values_array       TEXT[],
+    values_array       TEXT[]
     group_by_attr     INTEGER REFERENCES tdf_attribute.attribute(id),
     group_by_attrval  VARCHAR,
-    CHECK(group_by_attrval is not null or group_by_attr is null)
+    CHECK(group_by_attrval is not null or group_by_attr is null),
     CONSTRAINT namespase_id_name_unique UNIQUE (namespace_id, name)
 );
 
