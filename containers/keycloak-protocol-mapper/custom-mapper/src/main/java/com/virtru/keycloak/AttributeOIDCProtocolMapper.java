@@ -223,7 +223,10 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper impl
         formattedParameters.put("secondary_entity_ids", clientIds);
 
         ObjectMapper objectMapper = new ObjectMapper();
+        token.setOtherClaims("userAttributes", user.getAttributes());
         formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+
+        logger.info("Final entitlement_context_obj" + objectMapper.writeValueAsString(token));
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always include full claimset
