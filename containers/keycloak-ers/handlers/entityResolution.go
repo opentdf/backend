@@ -45,6 +45,7 @@ type KeyCloakConfg struct {
 	ClientId     string
 	ClientSecret string
 	AuthPath     bool `default:"true"`
+	SubGroups    bool `default:"false"`
 }
 
 // GetEntitlements godoc
@@ -96,7 +97,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 		}
 
 		var resolvedEntities []EntityResolution
-		logger.Infof("Received payload", payload)
+		logger.Debugf("Received payload", payload)
 
 		kcConnector, err := getKCClient(kcConfig, logger)
 		if err != nil {
@@ -108,7 +109,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 		for i := 0; i < len(payload.EntityIdentifiers); i++ {
 			entityIdentifier := payload.EntityIdentifiers[i]
 			var entityIdentifiers []string
-			logger.Infof("Lookup entity %s/%s", payload.AttributeType, entityIdentifier)
+			logger.Debugf("Lookup entity %s/%s", payload.AttributeType, entityIdentifier)
 			var getUserParams gocloak.GetUsersParams
 			if payload.AttributeType == "email" {
 				getUserParams = gocloak.GetUsersParams{Email: &entityIdentifier}
@@ -116,16 +117,36 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 				getUserParams = gocloak.GetUsersParams{Username: &entityIdentifier}
 			}
 			users, userErr := kcConnector.client.GetUsers(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, getUserParams)
-			logger.Info("userError is nil", userErr == nil)
-			logger.Infof("user leng %d", len(users))
 			if userErr != nil {
 				logger.Error("Error getting user", userErr)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
 			} else if len(users) == 1 {
 				user := users[0]
-				logger.Infof("User %s found for %s ", *user.ID, entityIdentifier)
+				logger.Debugf("User %s found for %s ", *user.ID, entityIdentifier)
 				entityIdentifiers = append(entityIdentifiers, *user.ID)
 			} else {
 				logger.Debug("No user found for ", entityIdentifier)
+				if payload.AttributeType == "email" {
+					//try by group
+					groups, groupErr := kcConnector.client.GetGroups(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, gocloak.GetGroupsParams{Search: &entityIdentifier})
+					if groupErr != nil {
+						logger.Error("Error getting group", groupErr)
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					} else if len(groups) == 1 {
+						logger.Debug("Group found for ", entityIdentifier)
+						group := groups[0]
+						expandedIds, exErr := expandGroup(entityIdentifiers, *group.ID, kcConnector,
+							&kcConfig, ctxb, logger)
+						if exErr != nil {
+							w.WriteHeader(http.StatusInternalServerError)
+							return
+						} else {
+							entityIdentifiers = expandedIds
+						}
+					}
+				}
 			}
 			resolvedEntities = append(resolvedEntities, EntityResolution{Identifier: entityIdentifier, EntityIdentifiers: entityIdentifiers})
 		}
@@ -141,6 +162,34 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 	}
 
 	return http.HandlerFunc(entityResolutionHandler)
+}
+
+func expandGroup(entityIdentifiers []string, groupID string, kcConnector *KeyCloakConnector,
+	kcConfig *KeyCloakConfg, ctx ctx.Context, logger *zap.SugaredLogger) ([]string, error) {
+	logger.Debugf("Add members of group %s", groupID)
+	grp, err := kcConnector.client.GetGroup(ctx, kcConnector.token.AccessToken, kcConfig.Realm, groupID)
+	if err == nil {
+		grpMembers, memberErr := kcConnector.client.GetGroupMembers(ctx, kcConnector.token.AccessToken, kcConfig.Realm,
+			*grp.ID, gocloak.GetGroupsParams{})
+		if memberErr == nil {
+			logger.Debugf("Adding members %d members from group %s", len(grpMembers), *grp.Name)
+			for i := 0; i < len(grpMembers); i++ {
+				user := grpMembers[i]
+				entityIdentifiers = append(entityIdentifiers, *user.ID)
+			}
+		} else {
+			logger.Error("Error getting group members", memberErr)
+			err = memberErr
+		}
+		// TODO crawl sub groups?
+
+		// if kcConfig.SubGroups {
+
+		// }
+	} else {
+		logger.Error("Error getting group", err)
+	}
+	return entityIdentifiers, err
 }
 
 func getKCClient(kcConfig KeyCloakConfg, logger *zap.SugaredLogger) (*KeyCloakConnector, error) {
