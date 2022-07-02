@@ -1,0 +1,82 @@
+definitions:
+  handlers.EntityResolution:
+    properties:
+      entity_ids:
+        example:
+        - XUX-ASDF-ASDFSD
+        items:
+          type: string
+        type: array
+      identifier:
+        example: bob@sample.org
+        type: string
+    type: object
+  handlers.EntityResolutionRequest:
+    properties:
+      identifiers:
+        example:
+        - bob@sample.org
+        items:
+          type: string
+        type: array
+      type:
+        description: 'enum: email,username'
+        example: email
+        type: string
+    type: object
+  handlers.EntityResolutionResponse:
+    properties:
+      entity_resolutions:
+        items:
+          $ref: '#/definitions/handlers.EntityResolution'
+        type: array
+      type:
+        example: email
+        type: string
+    type: object
+info:
+  contact:
+    name: OpenTDF
+    url: https://www.opentdf.io
+  description: An implementation of a an entity resolution service for keycloak
+  license:
+    name: BSD 3-Clause
+    url: https://opensource.org/licenses/BSD-3-Clause
+  title: entitlement-resolution-service
+  version: 0.0.1
+paths:
+  /healthz:
+    get:
+      responses:
+        "200":
+          description: ""
+        "503":
+          description: Service Unavailable
+          schema:
+            type: string
+      summary: Check service status
+      tags:
+      - Service Health
+  /resolve:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Provide an attribute type and attribute label list
+        and receive a list of entity idenitifiers
+      parameters:
+      - description: Entity Identifiers to be resolved
+        in: body
+        name: Request"
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.EntityResolutionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.EntityResolutionResponse'
+      summary: Resolve a set of entity labels to their keycloak identifiers
+swagger: "2.0"
