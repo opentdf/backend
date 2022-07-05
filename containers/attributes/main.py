@@ -4,7 +4,7 @@ import os
 import sys
 import requests
 from enum import Enum
-from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR, NOT_FOUND
+from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
@@ -595,9 +595,6 @@ async def read_attributes_definitions(
             attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
-    
-    if not attributes:
-        raise HTTPException(status_code=NOT_FOUND, detail="No attribute definitions found that satisfy given criteria")
 
     # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just
     # the latter has pagination and JWT auth, and the former does not.
