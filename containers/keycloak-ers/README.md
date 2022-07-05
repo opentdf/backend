@@ -9,10 +9,17 @@ The service authenticates using an OIDC Client Credentials flow.  A keycloak cli
 - Service Account Enabled = On
 - Service Account Roles -> Client Roles:
   -  realm-management -> manage-users
-  keycloakAuthInPath: {{ .Values.config.keycloakAuthInPath | quote }}
-  keycloakClientId: {{ .Values.config.keycloakClientId | quote }}
-  keycloakRealm: {{ .Values.config.keycloakRealm | quote }}
-  keycloakUrl: {{ .Values.config.keycloakRealm | quote }}
+  
+Environment Variables / Configuration:  
+- KeycloakUrl: Base Url (host + port) to access keycloak
+- KeycloakRealm: Keycloak Realm used for integration
+- KeycloakClientId: OIDC Client ID used by Entity Resolution Service
+- KeycloakClientSecret: OIDC Client Secret used by Entity Resolution Service
+- KeycloakAuthPath: Is "/auth" in the Url path for Keycloak.  e.g. Keycloak 18 /auth is not in the url path by default
+- ListenPort: Service listen port, default = 7070
+- ExternalHost 
+- Verbose : Verbose logging; false/true
+- DisableTracing: Disable telemetry tracing
 
 ## API
 See [Swagger Docs](./docs/swagger.yaml)  
