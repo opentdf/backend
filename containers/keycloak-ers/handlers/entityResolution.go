@@ -61,7 +61,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 	//Try initial login
 	c, err := getKCClient(kcConfig, logger)
 	if err != nil {
-		logger.Fatal("Error connecting to keycloakd")
+		logger.Fatal("Error connecting to keycloak")
 	}
 	logger.Debug("client token", c.token.AccessToken)
 
