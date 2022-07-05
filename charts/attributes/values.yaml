@@ -26,6 +26,7 @@ oidc:
   internalHost: http://keycloak-http/auth
   externalHost: http://localhost:65432/auth
   clientId: tdf-attributes
+  scopes: profile
 
 # Configure the container image to use in the deployment.
 image:
