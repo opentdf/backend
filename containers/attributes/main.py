@@ -538,7 +538,7 @@ async def read_attributes_definitions(
             filter_args["namespace_id"] = list(authorities.keys())[
                 list(authorities.values()).index(authority)
             ]
-        except:
+        except ValueError:
             raise HTTPException(status_code=NOT_FOUND, detail=f"Authority {authority} does not exist") 
     if name:
         filter_args["name"] = name
