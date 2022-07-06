@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  annotations:
+    proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+  labels:
+    app: {{ .Values.name }}
+    chart: {{ template "entityresolution.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.name }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        env:
+          - name: LISTEN_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: listenPort
+          - name: EXTERNAL_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: externalHost
+          - name: VERBOSE
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: verbose
+          - name: DISABLE_TRACING
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: disableTracing
+          - name: OTLP_COLLECTOR_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: otlpCollectorEndpoint
+          - name: KEYCLOAK_URL
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: keycloakUrl
+          - name: KEYCLOAK_REALM
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: keycloakRealm
+          - name: KEYCLOAK_CLIENT_ID
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: keycloakClientId
+          - name: KEYCLOAK_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.name }}-keycloak-client-secret
+                key: keycloakClientSecret
+        ports:
+          - containerPort: {{ .Values.config.listenPort }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 1
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 30
+          periodSeconds: 10
+      {{- if .Values.useImagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.name }}-pull-secret
+      {{- end }}
