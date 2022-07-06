@@ -418,6 +418,30 @@ def createTestClientForAbacusWebAuth(keycloak_admin):
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
 
+def createTestClientForAbacusLocalAuth(keycloak_admin):
+    client_id = "abacus-localhost"
+    logger.debug("Creating client %s configured for Abacus auth flow", client_id)
+    keycloak_admin.create_client(
+        payload={
+            "clientId": client_id,
+            "publicClient": "true",
+            "standardFlowEnabled": "true",
+            "clientAuthenticatorType": "client-secret",
+            "serviceAccountsEnabled": "true",
+            "protocol": "openid-connect",
+            "redirectUris": ["http://localhost:3000/*"],
+            "webOrigins": ["+"],
+        },
+        skip_exists=True,
+    )
+
+    keycloak_client_id = keycloak_admin.get_client_id(client_id)
+    logger.info("Created client %s", keycloak_client_id)
+
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
+
+
 def createTestClientForDCRAuth(keycloak_admin):
     client_id = "dcr-test"
     client_secret = "123-456"
@@ -612,6 +636,7 @@ def updateMasterRealm(kc_admin_user, kc_admin_pass, kc_url):
 
     # Create test client in `master` configured for Abacus cross-realm user/client queries
     createTestClientForAbacusWebAuth(keycloak_admin)
+    createTestClientForAbacusLocalAuth(keycloak_admin)
 
 
 def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, preloaded_users):
@@ -670,6 +695,7 @@ def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, prel
     createTestClientTDFClient(keycloak_admin)
 
     createTestClientForAbacusWebAuth(keycloak_admin)
+    createTestClientForAbacusLocalAuth(keycloak_admin)
 
     #create preloaded clients
     if preloaded_clients is not None:
@@ -724,6 +750,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, p
     createTestClientForBrowserAuthFlow(keycloak_admin)
 
     createTestClientForAbacusWebAuth(keycloak_admin)
+    createTestClientForAbacusLocalAuth(keycloak_admin)
 
     if pki_direct == "true":
         # X.509 Client Certificate Authentication to a Direct Grant Flow
