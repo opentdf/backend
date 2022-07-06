@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-config
+  labels:
+    app: {{ .Values.name }}
+    chart: {{ template "entityresolution.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  listenPort: {{ .Values.config.listenPort | quote }}
+  externalHost: {{ .Values.config.externalHost | quote }}
+  verbose: {{ .Values.config.verbose | quote }}
+  disableTracing: {{ .Values.config.disableTracing | quote }}
+  otlpCollectorEndpoint: {{ .Values.config.otlpCollectorEndpoint | quote }}
+  keycloakUrl: {{ .Values.config.keycloak.url | quote }}
+  keycloakRealm: {{ .Values.config.keycloak.realm | quote }}
+  keycloakClientId: {{ .Values.config.keycloak.clientId | quote }}
