@@ -15,7 +15,7 @@ serverPublicName: "entitlement-store"
 image:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
-  repo: ghcr.io/opentdf/entitlement-store
+  repo: ghcr.io/opentdf/entitlement_store
   # Chart.AppVersion will be used for image tag, override here if needed
   # tag: main
   # The container's `imagePullPolicy`
