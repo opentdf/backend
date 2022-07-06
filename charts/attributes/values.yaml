@@ -14,6 +14,9 @@ serverPublicName: "Attribute Authority"
 # same origin, e.g. using an ingress with prefix mapping as suggested below.
 serverRootPath: /
 
+# Allowed origins for CORS
+serverCorsOrigins: ""
+
 # Set to enable openapi endpoint
 openapiUrl: ""
 
@@ -26,6 +29,7 @@ oidc:
   internalHost: http://keycloak-http/auth
   externalHost: http://localhost:65432/auth
   clientId: tdf-attributes
+  scopes: email
 
 # Configure the container image to use in the deployment.
 image:
