@@ -4,7 +4,7 @@ import os
 import sys
 import requests
 from enum import Enum
-from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR
+from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR, NOT_FOUND
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
@@ -534,9 +534,12 @@ async def read_attributes_definitions(
     if authority:
         # lookup authority by value and get id (namespace_id)
         authorities = await read_authorities_crud()
-        filter_args["namespace_id"] = list(authorities.keys())[
-            list(authorities.values()).index(authority)
-        ]
+        try:
+            filter_args["namespace_id"] = list(authorities.keys())[
+                list(authorities.values()).index(authority)
+            ]
+        except:
+            raise HTTPException(status_code=NOT_FOUND, detail=f"Authority {authority} does not exist") 
     if name:
         filter_args["name"] = name
     if order:
