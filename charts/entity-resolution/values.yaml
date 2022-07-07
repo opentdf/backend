@@ -27,5 +27,5 @@ config:
     url: "http://keycloak-http"
     realm: "tdf"
     clientId: "tdf-entity-resolution-service"
-    #See https://github.com/Nerzal/gocloak/issues/346
+    # See https://github.com/Nerzal/gocloak/issues/346
     legacy: false
