@@ -279,6 +279,7 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	for _, ident := range payload.EntityIdentifiers {
 		switch ident.Type {
 		case TypeEmail:
+			fallthrough
 		case TypeUsername:
 			return &payload, nil
 		case "":
