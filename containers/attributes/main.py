@@ -534,9 +534,12 @@ async def read_attributes_definitions(
     if authority:
         # lookup authority by value and get id (namespace_id)
         authorities = await read_authorities_crud()
-        filter_args["namespace_id"] = list(authorities.keys())[
-            list(authorities.values()).index(authority)
-        ]
+        try:
+            filter_args["namespace_id"] = list(authorities.keys())[
+                list(authorities.values()).index(authority)
+            ]
+        except ValueError:
+            raise HTTPException(status_code=NOT_FOUND, detail=f"Authority {authority} does not exist") 
     if name:
         filter_args["name"] = name
     if order:
@@ -595,9 +598,6 @@ async def read_attributes_definitions(
             attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
-    
-    if not attributes:
-        raise HTTPException(status_code=NOT_FOUND, detail="No attribute definitions found that satisfy given criteria")
 
     # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just
     # the latter has pagination and JWT auth, and the former does not.
