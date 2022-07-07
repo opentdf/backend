@@ -116,11 +116,14 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 			var entityIdentifiers []string
 			logger.Debugf("Lookup entity %s/%s", payload.AttributeType, entityIdentifier)
 			var getUserParams gocloak.GetUsersParams
-			if payload.AttributeType == TypeEmail {
+
+			switch payload.AttributeType {
+			case TypeEmail:
 				getUserParams = gocloak.GetUsersParams{Email: &entityIdentifier}
-			} else if payload.AttributeType == TypeUsername {
+			case TypeUsername:
 				getUserParams = gocloak.GetUsersParams{Username: &entityIdentifier}
 			}
+
 			users, userErr := kcConnector.client.GetUsers(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, getUserParams)
 			if userErr != nil {
 				logger.Error("Error getting user", userErr)
@@ -230,15 +233,16 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 		return nil, err
 	}
 	//Validate acceptable "type"
-	attrType := payload.AttributeType
-	if attrType == "" {
+	switch payload.AttributeType {
+	case TypeEmail:
+	case TypeUsername:
+		return &payload, nil
+	case "":
 		err = errors.New("type required")
-		return nil, err
-	} else if !(attrType == TypeEmail || attrType == TypeUsername) {
-		logger.Warn("Unknown type ", attrType)
-		err = fmt.Errorf("Unknown Type %s", attrType)
 		return nil, err
 	}
 
-	return &payload, nil
+	err = fmt.Errorf("Unknown Type %s", payload.AttributeType)
+	logger.Warn(err)
+	return nil, err
 }
