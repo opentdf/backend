@@ -163,11 +163,11 @@ func Test_ByEmail(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(deserializedResp))
 	assert.Equal(t, "bob@sample.org", deserializedResp[0].OriginalIdentifier.Identifier)
-	assert.Equal(t, 1, len(deserializedResp[0].CanonicalIdentifiers))
-	assert.Equal(t, "bobid", deserializedResp[0].CanonicalIdentifiers[0])
-	assert.Equal(t, "alice@sample.org", deserializedResp[0].OriginalIdentifier.Identifier)
-	assert.Equal(t, 1, len(deserializedResp[1].CanonicalIdentifiers))
-	assert.Equal(t, "aliceid", deserializedResp[1].CanonicalIdentifiers[0])
+	assert.Equal(t, 1, len(deserializedResp[0].EntityRepresentations))
+	assert.Equal(t, "bobid", deserializedResp[0].EntityRepresentations[0]["id"])
+	assert.Equal(t, "alice@sample.org", deserializedResp[1].OriginalIdentifier.Identifier)
+	assert.Equal(t, 1, len(deserializedResp[1].EntityRepresentations))
+	assert.Equal(t, "aliceid", deserializedResp[1].EntityRepresentations[0]["id"])
 }
 
 func Test_ByGroupEmail(t *testing.T) {
@@ -185,7 +185,7 @@ func Test_ByGroupEmail(t *testing.T) {
 	defer server.Close()
 
 	testReq := httptest.NewRequest(http.MethodPost, "http://test",
-		strings.NewReader(`{"type": "email","identifiers": ["group1@sample.org"]}`))
+		strings.NewReader(`{"entity_identifiers": [{"type": "email","identifier": "group1@sample.org"}]}`))
 	handler := GetEntityResolutionHandler(test_keycloakConfig(server), zapLog.Sugar())
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, testReq)
@@ -193,16 +193,16 @@ func Test_ByGroupEmail(t *testing.T) {
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var deserializedResp EntityResolutionResponse
+	var deserializedResp []EntityResolution
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	err = json.Unmarshal(body, &deserializedResp)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(deserializedResp.EntityResolutions))
-	assert.Equal(t, "group1@sample.org", deserializedResp.EntityResolutions[0].Identifier)
-	assert.Equal(t, 2, len(deserializedResp.EntityResolutions[0].EntityIdentifiers))
-	assert.Equal(t, "bobid", deserializedResp.EntityResolutions[0].EntityIdentifiers[0])
-	assert.Equal(t, "aliceid", deserializedResp.EntityResolutions[0].EntityIdentifiers[1])
+	assert.Equal(t, 1, len(deserializedResp))
+	assert.Equal(t, "group1@sample.org", deserializedResp[0].OriginalIdentifier.Identifier)
+	assert.Equal(t, 2, len(deserializedResp[0].EntityRepresentations))
+	assert.Equal(t, "bobid", deserializedResp[0].EntityRepresentations[0]["id"])
+	assert.Equal(t, "aliceid", deserializedResp[0].EntityRepresentations[1]["id"])
 }
 
 func Test_ByUsername(t *testing.T) {
@@ -213,7 +213,7 @@ func Test_ByUsername(t *testing.T) {
 	}, nil, nil, nil)
 	defer server.Close()
 
-	testReq := httptest.NewRequest(http.MethodPost, "http://test", strings.NewReader(`{"type": "username","identifiers": ["bob.smith"]}`))
+	testReq := httptest.NewRequest(http.MethodPost, "http://test", strings.NewReader(`{"entity_identifiers": [{"type": "username","identifier": "bob.smith"}]}`))
 	handler := GetEntityResolutionHandler(test_keycloakConfig(server), zapLog.Sugar())
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, testReq)
@@ -221,13 +221,13 @@ func Test_ByUsername(t *testing.T) {
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var deserializedResp EntityResolutionResponse
+	var deserializedResp []EntityResolution
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	err = json.Unmarshal(body, &deserializedResp)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, len(deserializedResp.EntityResolutions))
-	assert.Equal(t, "bob.smith", deserializedResp.EntityResolutions[0].Identifier)
-	assert.Equal(t, 1, len(deserializedResp.EntityResolutions[0].EntityIdentifiers))
-	assert.Equal(t, "bobid", deserializedResp.EntityResolutions[0].EntityIdentifiers[0])
+	assert.Equal(t, 1, len(deserializedResp))
+	assert.Equal(t, "bob.smith", deserializedResp[0].OriginalIdentifier.Identifier)
+	assert.Equal(t, 1, len(deserializedResp[0].EntityRepresentations))
+	assert.Equal(t, "bobid", deserializedResp[0].EntityRepresentations[0]["id"])
 }
