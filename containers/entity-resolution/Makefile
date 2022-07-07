@@ -1,5 +1,5 @@
 IMAGEVERSION?=$(shell cat VERSION)
-IMAGETAG?=ghcr.io/opentdf/keycloak-ers
+IMAGETAG?=ghcr.io/opentdf/entity-resolution
 PLATFORMS?=linux/arm64,linux/amd64
 CGO_ENABLED=0
 COVERAGE_THRESH_PCT=55
