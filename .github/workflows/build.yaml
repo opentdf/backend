@@ -324,7 +324,7 @@ jobs:
       matrix:
         repo:
           - entitlement-pdp
-          - keycloak-ers
+          - entity-resolution
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
