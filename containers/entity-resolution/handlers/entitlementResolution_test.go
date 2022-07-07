@@ -43,11 +43,11 @@ const group_resp = `{
 
 func test_keycloakConfig(server *httptest.Server) KeyCloakConfg {
 	return KeyCloakConfg{
-		Url:          server.URL,
-		ClientId:     "c1",
-		ClientSecret: "cs",
-		Realm:        "tdf",
-		AuthPath:     false,
+		Url:            server.URL,
+		ClientId:       "c1",
+		ClientSecret:   "cs",
+		Realm:          "tdf",
+		LegacyKeycloak: false,
 	}
 }
 

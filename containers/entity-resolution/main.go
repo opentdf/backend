@@ -22,7 +22,7 @@ type EnvConfig struct {
 	KeycloakRealm        string `env:"KEYCLOAK_REALM" envDefault:"tdf"`
 	KeycloakClientId     string `env:"KEYCLOAK_CLIENT_ID" envDefault:"tdf-entity-resolution-service"`
 	KeycloakClientSecret string `env:"KEYCLOAK_CLIENT_SECRET"`
-	KeycloakAuthPath     bool   `env:"KEYCLOAK_AUTH_PATH" envDefault:"false"`
+	LegacyKeycloak       bool   `env:"KEYCLOAK_LEGACY" envDefault:"false"`
 	ListenPort           string `env:"LISTEN_PORT" envDefault:"7070"`
 	ExternalHost         string `env:"EXTERNAL_HOST" envDefault:""`
 	Verbose              bool   `env:"VERBOSE" envDefault:"false"`
@@ -85,11 +85,11 @@ func main() {
 	http.Handle("/healthz", otelhttp.NewHandler(handlers.GetHealthzHandler(), "HealthZHandler"))
 	http.Handle("/resolve", otelhttp.NewHandler(handlers.GetEntityResolutionHandler(
 		handlers.KeyCloakConfg{
-			Url:          cfg.KeycloakUrl,
-			Realm:        cfg.KeycloakRealm,
-			AuthPath:     cfg.KeycloakAuthPath,
-			ClientId:     cfg.KeycloakClientId,
-			ClientSecret: cfg.KeycloakClientSecret}, logger), "EntityResolutionHandler"))
+			Url:            cfg.KeycloakUrl,
+			Realm:          cfg.KeycloakRealm,
+			LegacyKeycloak: cfg.LegacyKeycloak,
+			ClientId:       cfg.KeycloakClientId,
+			ClientSecret:   cfg.KeycloakClientSecret}, logger), "EntityResolutionHandler"))
 
 	logger.Info("Starting server", zap.String("address", server.Addr))
 
