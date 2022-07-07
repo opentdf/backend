@@ -200,6 +200,7 @@ func expandGroup(entityIdentifiers []string, groupID string, kcConnector *KeyClo
 func getKCClient(kcConfig KeyCloakConfg, logger *zap.SugaredLogger) (*KeyCloakConnector, error) {
 	//TODO cache token / refresh...using oauth2/oidc provider
 	var client gocloak.GoCloak
+	//See https://github.com/Nerzal/gocloak/issues/346
 	if kcConfig.LegacyKeycloak {
 		client = gocloak.NewClient(kcConfig.Url)
 	} else {
