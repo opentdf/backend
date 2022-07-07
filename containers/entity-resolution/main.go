@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/caarlos0/env"
-	"github.com/opentdf/v2/keycloak-ers/handlers"
+	"github.com/opentdf/v2/entity-resolution/handlers"
 
 	"go.uber.org/zap"
 
@@ -15,7 +15,7 @@ import (
 )
 
 var cfg EnvConfig
-var svcName = "keycloak-ers"
+var svcName = "entity-resolution"
 
 type EnvConfig struct {
 	KeycloakUrl          string `env:"KEYCLOAK_URL" envDefault:"http://localhost:8080"`
