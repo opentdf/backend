@@ -16,3 +16,4 @@ data:
   keycloakUrl: {{ .Values.config.keycloak.url | quote }}
   keycloakRealm: {{ .Values.config.keycloak.realm | quote }}
   keycloakClientId: {{ .Values.config.keycloak.clientId | quote }}
+  keycloakLegacy: {{ .Values.config.keycloak.legacy | quote }}

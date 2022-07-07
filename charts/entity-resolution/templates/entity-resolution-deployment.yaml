@@ -63,6 +63,11 @@ spec:
               configMapKeyRef:
                 name: {{ .Values.name }}-config
                 key: keycloakRealm
+          - name: KEYCLOAK_LEGACY
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Values.name }}-config
+                key: keycloakLegacy
           - name: KEYCLOAK_CLIENT_ID
             valueFrom:
               configMapKeyRef:

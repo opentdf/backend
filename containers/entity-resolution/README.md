@@ -15,7 +15,7 @@ Environment Variables / Configuration:
 - KeycloakRealm: Keycloak Realm used for integration
 - KeycloakClientId: OIDC Client ID used by Entity Resolution Service
 - KeycloakClientSecret: OIDC Client Secret used by Entity Resolution Service
-- KeycloakAuthPath: Is "/auth" in the Url path for Keycloak.  e.g. Keycloak 18 /auth is not in the url path by default
+- LegacyKeycloak: Is "/auth" in the Url path for Keycloak.  e.g. Keycloak 17+ /auth is not in the url path by default. Defaults to False, see [gocloak bug](https://github.com/Nerzal/gocloak/issues/346) for reference/context.
 - ListenPort: Service listen port, default = 7070
 - ExternalHost 
 - Verbose : Verbose logging; false/true

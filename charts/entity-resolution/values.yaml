@@ -27,3 +27,4 @@ config:
     url: "http://keycloak-http"
     realm: "tdf"
     clientId: "tdf-entity-resolution-service"
+    legacy: false

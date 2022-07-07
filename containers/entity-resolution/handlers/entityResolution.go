@@ -15,6 +15,11 @@ import (
 
 var tracer = otel.Tracer("handlers")
 
+const (
+	TypeEmail    = "email"
+	TypeUsername = "username"
+)
+
 // EntityResolution Model
 type EntityResolution struct {
 	Identifier        string   `json:"identifier" example:"bob@sample.org"`
@@ -40,12 +45,12 @@ type KeyCloakConnector struct {
 }
 
 type KeyCloakConfg struct {
-	Url          string
-	Realm        string
-	ClientId     string
-	ClientSecret string
-	AuthPath     bool `default:"true"`
-	SubGroups    bool `default:"false"`
+	Url            string
+	Realm          string
+	ClientId       string
+	ClientSecret   string
+	LegacyKeycloak bool `default:"false"`
+	SubGroups      bool `default:"false"`
 }
 
 // GetEntitlements godoc
@@ -111,9 +116,9 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 			var entityIdentifiers []string
 			logger.Debugf("Lookup entity %s/%s", payload.AttributeType, entityIdentifier)
 			var getUserParams gocloak.GetUsersParams
-			if payload.AttributeType == "email" {
+			if payload.AttributeType == TypeEmail {
 				getUserParams = gocloak.GetUsersParams{Email: &entityIdentifier}
-			} else if payload.AttributeType == "username" {
+			} else if payload.AttributeType == TypeUsername {
 				getUserParams = gocloak.GetUsersParams{Username: &entityIdentifier}
 			}
 			users, userErr := kcConnector.client.GetUsers(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, getUserParams)
@@ -127,7 +132,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 				entityIdentifiers = append(entityIdentifiers, *user.ID)
 			} else {
 				logger.Debug("No user found for ", entityIdentifier)
-				if payload.AttributeType == "email" {
+				if payload.AttributeType == TypeEmail {
 					//try by group
 					groups, groupErr := kcConnector.client.GetGroups(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, gocloak.GetGroupsParams{Search: &entityIdentifier})
 					if groupErr != nil {
@@ -194,8 +199,8 @@ func expandGroup(entityIdentifiers []string, groupID string, kcConnector *KeyClo
 
 func getKCClient(kcConfig KeyCloakConfg, logger *zap.SugaredLogger) (*KeyCloakConnector, error) {
 	//TODO cache token / refresh...using oauth2/oidc provider
-	var client gocloak.GoCloak = nil
-	if kcConfig.AuthPath {
+	var client gocloak.GoCloak
+	if kcConfig.LegacyKeycloak {
 		client = gocloak.NewClient(kcConfig.Url)
 	} else {
 		client = gocloak.NewClient(kcConfig.Url, gocloak.SetAuthAdminRealms("admin/realms"), gocloak.SetAuthRealms("realms"))
@@ -205,6 +210,7 @@ func getKCClient(kcConfig KeyCloakConfg, logger *zap.SugaredLogger) (*KeyCloakCo
 	token, err := client.LoginClient(ctxb, kcConfig.ClientId, kcConfig.ClientSecret, kcConfig.Realm)
 	if err != nil {
 		logger.Warn("Error connecting to keycloak!", zap.Error(err))
+		return nil, err
 	}
 	keycloakConnector := KeyCloakConnector{token: token, client: client}
 	return &keycloakConnector, err
@@ -227,7 +233,7 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	if attrType == "" {
 		err = errors.New("type required")
 		return nil, err
-	} else if !(attrType == "email" || attrType == "username") {
+	} else if !(attrType == TypeEmail || attrType == TypeUsername) {
 		logger.Warn("Unknown type ", attrType)
 		err = fmt.Errorf("Unknown Type %s", attrType)
 		return nil, err
