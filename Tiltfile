@@ -266,7 +266,7 @@ if isPKItest:
 
 helm_remote(
     "keycloak",
-    version="17.0.1",
+    version="18.1.1",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
@@ -333,7 +333,7 @@ k8s_yaml(
         "charts/entitlement-store",
         "opentdf-entitlement-store",
         set=[
-            "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement-store",
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/entitlement_store",
             "secretRef.name=postgres-password",
         ],
         values=["tests/integration/backend-entitlement-store-values.yaml"],
