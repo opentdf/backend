@@ -96,8 +96,9 @@ func Test_BadRequest_Get(t *testing.T) {
 	server := test_server(t, map[string]string{}, nil, nil, nil)
 	defer server.Close()
 
+	validBody := `{"entity_identifiers": [{"identifier": "bob@sample.org", "type": "email"}]}`
 	testReq := httptest.NewRequest(http.MethodGet, "http://test",
-		strings.NewReader(`{"type": "email","identifiers": ["bob@sample.org"]}`))
+		strings.NewReader(validBody))
 	handler := GetEntityResolutionHandler(test_keycloakConfig(server), zapLog.Sugar())
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, testReq)
@@ -114,8 +115,9 @@ func Test_BadRequestPost(t *testing.T) {
 	defer server.Close()
 
 	// invalid type
+	badBody := `{"entity_identifiers": [{"identifier": "bob@sample.org", "type": "somebadtype"}]}`
 	testReq := httptest.NewRequest(http.MethodPost, "http://test",
-		strings.NewReader(`{"type": "somebadtype","identifiers": ["bob@sample.org"]}`))
+		strings.NewReader(badBody))
 	handler := GetEntityResolutionHandler(test_keycloakConfig(server), zapLog.Sugar())
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, testReq)
@@ -124,8 +126,9 @@ func Test_BadRequestPost(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	// no type
+	badBody = `{"entity_identifiers": [{"identifier": "bob@sample.org"}]}`
 	testReq2 := httptest.NewRequest(http.MethodPost, "http://test",
-		strings.NewReader(`{"identifiers": ["bob@sample.org"]}`))
+		strings.NewReader(badBody))
 	handler2 := GetEntityResolutionHandler(test_keycloakConfig(server), zapLog.Sugar())
 	w2 := httptest.NewRecorder()
 	handler2.ServeHTTP(w2, testReq2)
@@ -143,8 +146,9 @@ func Test_ByEmail(t *testing.T) {
 	}, nil, nil, nil)
 	defer server.Close()
 
+	validBody := `{"entity_identifiers": [{"identifier": "bob@sample.org", "type": "email"},{"identifier": "alice@sample.org", "type": "email"}]}`
 	testReq := httptest.NewRequest(http.MethodPost, "http://test",
-		strings.NewReader(`{"type": "email","identifiers": ["bob@sample.org","alice@sample.org"]}`))
+		strings.NewReader(validBody))
 	handler := GetEntityResolutionHandler(test_keycloakConfig(server), zapLog.Sugar())
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, testReq)
@@ -152,18 +156,18 @@ func Test_ByEmail(t *testing.T) {
 	resp := w.Result()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var deserializedResp EntityResolutionResponse
+	var deserializedResp []EntityResolution
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	err = json.Unmarshal(body, &deserializedResp)
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(deserializedResp.EntityResolutions))
-	assert.Equal(t, "bob@sample.org", deserializedResp.EntityResolutions[0].Identifier)
-	assert.Equal(t, 1, len(deserializedResp.EntityResolutions[0].EntityIdentifiers))
-	assert.Equal(t, "bobid", deserializedResp.EntityResolutions[0].EntityIdentifiers[0])
-	assert.Equal(t, "alice@sample.org", deserializedResp.EntityResolutions[1].Identifier)
-	assert.Equal(t, 1, len(deserializedResp.EntityResolutions[1].EntityIdentifiers))
-	assert.Equal(t, "aliceid", deserializedResp.EntityResolutions[1].EntityIdentifiers[0])
+	assert.Equal(t, 2, len(deserializedResp))
+	assert.Equal(t, "bob@sample.org", deserializedResp[0].OriginalIdentifier.Identifier)
+	assert.Equal(t, 1, len(deserializedResp[0].CanonicalIdentifiers))
+	assert.Equal(t, "bobid", deserializedResp[0].CanonicalIdentifiers[0])
+	assert.Equal(t, "alice@sample.org", deserializedResp[0].OriginalIdentifier.Identifier)
+	assert.Equal(t, 1, len(deserializedResp[1].CanonicalIdentifiers))
+	assert.Equal(t, "aliceid", deserializedResp[1].CanonicalIdentifiers[0])
 }
 
 func Test_ByGroupEmail(t *testing.T) {
