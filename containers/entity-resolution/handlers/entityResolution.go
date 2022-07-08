@@ -276,6 +276,7 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 		return nil, err
 	}
 	//Validate acceptable "type"
+	var typeErr error
 	for _, ident := range payload.EntityIdentifiers {
 		switch ident.Type {
 		case TypeEmail:
@@ -283,12 +284,13 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 		case TypeUsername:
 			return &payload, nil
 		case "":
-			err = errors.New("type required")
-			return nil, err
+			typeErr = errors.New("type required")
+			logger.Warn(typeErr)
+		default:
+			typeErr = fmt.Errorf("Unknown Type %s for identifier %s", ident.Type, ident.Identifier)
+			logger.Warn(typeErr)
 		}
 	}
 
-	err = fmt.Errorf("Unknown Type %s for identifier %s", ident.Type, ident.Identifier)
-	logger.Warn(err)
-	return nil, err
+	return nil, typeErr
 }
