@@ -23,11 +23,11 @@ type EnvConfig struct {
 	KeycloakClientId     string `env:"KEYCLOAK_CLIENT_ID" envDefault:"tdf-entity-resolution-service"`
 	KeycloakClientSecret string `env:"KEYCLOAK_CLIENT_SECRET"`
 	//See https://github.com/Nerzal/gocloak/issues/346
-	LegacyKeycloak       bool   `env:"KEYCLOAK_LEGACY" envDefault:"false"`
-	ListenPort           string `env:"LISTEN_PORT" envDefault:"7070"`
-	ExternalHost         string `env:"EXTERNAL_HOST" envDefault:""`
-	Verbose              bool   `env:"VERBOSE" envDefault:"false"`
-	DisableTracing       bool   `env:"DISABLE_TRACING" envDefault:"false"`
+	LegacyKeycloak bool   `env:"KEYCLOAK_LEGACY" envDefault:"false"`
+	ListenPort     string `env:"LISTEN_PORT" envDefault:"7070"`
+	ExternalHost   string `env:"EXTERNAL_HOST" envDefault:""`
+	Verbose        bool   `env:"VERBOSE" envDefault:"false"`
+	DisableTracing bool   `env:"DISABLE_TRACING" envDefault:"false"`
 }
 
 // @title entitlement-resolution-service

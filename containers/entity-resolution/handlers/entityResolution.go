@@ -77,7 +77,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 	//Try initial login
 	c, err := getKCClient(kcConfig, logger)
 	if err != nil {
-		logger.Fatal("Error connecting to keycloak")
+		logger.Fatalf("Error connecting to keycloak at %s", kcConfig.Url)
 	}
 	logger.Debug("client token", c.token.AccessToken)
 
@@ -117,7 +117,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 
 		kcConnector, err := getKCClient(kcConfig, logger)
 		if err != nil {
-			logger.Errorf("Error connecting to keycloak %s", err)
+			logger.Fatalf("Error connecting to keycloak %s at url %s", err, kcConfig.Url)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -248,6 +248,7 @@ func getKCClient(kcConfig KeyCloakConfg, logger *zap.SugaredLogger) (*KeyCloakCo
 	var client gocloak.GoCloak
 	//See https://github.com/Nerzal/gocloak/issues/346
 	if kcConfig.LegacyKeycloak {
+		logger.Warn("Using legacy connection mode for Keycloak < 17.x.x")
 		client = gocloak.NewClient(kcConfig.Url)
 	} else {
 		client = gocloak.NewClient(kcConfig.Url, gocloak.SetAuthAdminRealms("admin/realms"), gocloak.SetAuthRealms("realms"))
