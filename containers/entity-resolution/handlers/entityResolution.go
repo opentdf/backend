@@ -286,10 +286,9 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 			err = errors.New("type required")
 			return nil, err
 		}
-		err = fmt.Errorf("Unknown Type %s for identifier %s", ident.Type, ident.Identifier)
-		logger.Warn(err)
-		return nil, err
 	}
 
-	return &payload, nil
+	err = fmt.Errorf("Unknown Type %s for identifier %s", ident.Type, ident.Identifier)
+	logger.Warn(err)
+	return nil, err
 }

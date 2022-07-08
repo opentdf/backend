@@ -218,6 +218,11 @@ docker_build(
 )
 
 docker_build(
+    CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+    context="./containers/entity-resolution",
+)
+
+docker_build(
     CONTAINER_REGISTRY + "/opentdf/kas",
     build_args={
         "ALPINE_VERSION": ALPINE_VERSION,
@@ -330,6 +335,17 @@ k8s_yaml(
 
 k8s_yaml(
     helm(
+        "charts/entity-resolution",
+        "opentdf-entity-resolution",
+        set= [
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+            "useImagePullSecret=false",
+        ],
+    )
+)
+
+k8s_yaml(
+    helm(
         "charts/entitlement-store",
         "opentdf-entitlement-store",
         set=[
@@ -405,8 +421,13 @@ k8s_resource(
     labels=["Backend"]
 )
 k8s_resource(
+    "opentdf-entity-resolution",
+    resource_deps=["keycloak"],
+    labels=["Backend"]
+)
+k8s_resource(
     "opentdf-entitlement-pdp",
-    resource_deps=["opentdf-entitlement-store"],
+    resource_deps=["opentdf-entitlement-store", "opentdf-entity-resolution"],
     labels=["Backend"]
 )
 k8s_resource(
