@@ -107,6 +107,17 @@ keycloak:
         name: Virtru OIDC Auth Mapper
         protocolMapper: virtru-oidc-protocolmapper
     - payload:
+        clientId: tdf-entity-resolution-service
+        directAccessGrantsEnabled: "true"
+        clientAuthenticatorType: client-secret
+        secret: '123-456'
+        serviceAccountsEnabled: "true"
+        publicClient: "false"
+        redirectUris:
+        - "{{ externalUrl }}/*"
+        attributes:
+          user.info.response.signature.alg: RS256
+    - payload:
         clientId: exchange-target
         directAccessGrantsEnabled: "true"
         clientAuthenticatorType: client-secret
