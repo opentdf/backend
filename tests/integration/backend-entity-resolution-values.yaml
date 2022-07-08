@@ -1,0 +1,4 @@
+config:
+  keycloak:
+    # See https://github.com/Nerzal/gocloak/issues/346
+    legacy: true

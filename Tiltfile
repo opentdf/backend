@@ -341,6 +341,7 @@ k8s_yaml(
             "image.name=" + CONTAINER_REGISTRY + "/opentdf/entity-resolution",
             "useImagePullSecret=false",
         ],
+        values=["tests/integration/backend-entity-resolution-values.yaml"],
     )
 )
 
