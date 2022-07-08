@@ -20,7 +20,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Select keycloak base version
         run: | 
-          echo "::set-output name=KEYCLOAK_BASE_VERSION::$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
+          KEYCLOAK_BASE_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
+          echo "::set-output name=KEYCLOAK_BASE_VERSION::$KEYCLOAK_BASE_VERSION"
           echo $KEYCLOAK_BASE_VERSION
         id: keycloak-base-version
       - name: Set output modified image version
