@@ -246,6 +246,7 @@ func expandGroup(groupID string, kcConnector *KeyCloakConnector,
 func getKCClient(kcConfig KeyCloakConfg, logger *zap.SugaredLogger) (*KeyCloakConnector, error) {
 	//TODO cache token / refresh...using oauth2/oidc provider
 	var client gocloak.GoCloak
+	logger.Debugf("Connecting to keycloak using URL: %s and Realm: %s", kcConfig.Url, kcConfig.Realm)
 	//See https://github.com/Nerzal/gocloak/issues/346
 	if kcConfig.LegacyKeycloak {
 		logger.Warn("Using legacy connection mode for Keycloak < 17.x.x")
