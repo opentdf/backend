@@ -15,7 +15,10 @@ To grant an existing Keycloak client the permissions to query the Keycloak user 
 - Access Type = confidential
 - Service Account Enabled = On
 - Service Account Roles -> Client Roles:
-  - realm-management -> manage-users
+  - realm-management -> query-users
+  - realm-management -> view-users
+  - realm-management -> query-clients
+  - realm-management -> view-clients
   
 ## Environment variables
 
