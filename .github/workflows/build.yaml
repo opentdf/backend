@@ -19,10 +19,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Select keycloak base version
-        run: echo '::set-output name=KEYCLOAK_BASE_VERSION::'$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)
+        run: | 
+          KEYCLOAK_BASE_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
+          echo "::set-output name=KEYCLOAK_BASE_VERSION::$KEYCLOAK_BASE_VERSION"
         id: keycloak-base-version
       - name: Set output modified image version
-        run: echo '::set-output name=KEYCLOAK_OTDF_VERSION::'$(<containers/keycloak-protocol-mapper/VERSION)
+        run: |
+          KEYCLOAK_OTDF_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
+          echo "::set-output name=KEYCLOAK_OTDF_VERSION::$KEYCLOAK_OTDF_VERSION"
         id: keycloak-otdf-version
 
   lint:
@@ -455,6 +459,7 @@ jobs:
     # and we don't need to rebuild unless there's a major Keycloak version bump
     # so at least skip this for non-main builds
     needs:
+      - config
       - integration-test
     permissions:
       contents: read
@@ -500,6 +505,7 @@ jobs:
   custom-keycloak-image:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
+      - config
       - keycloak-image-base
     permissions:
       contents: read
