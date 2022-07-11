@@ -5,6 +5,7 @@ import data.opentdf.entitlement_ersvc
 import future.keywords.in
 import input.entitlement_context
 
+default get_entitlements_from_otdfids = []
 default get_entitlements_from_emails = []
 default get_entitlements_from_usernames = []
 
@@ -14,7 +15,7 @@ custom_attribute_names := attribute_names {
 
 generated_entitlements := newEntitlements {
 	# Fetch entitlements from user ids
-	ids_entitlements := entitlementsvc.entitlements_fetch_success
+	ids_entitlements := get_entitlements_from_otdfids
 
 	# Fetch entitlements from email addresses
 	email_entitlements := get_entitlements_from_emails
@@ -86,8 +87,15 @@ find_original_id_from_otdfid(otdf_id, map) := my_id {
 	my_id := map[i].original_id.identifier
 }
 
-get_entitlements_from_emails = entitlements_from_emails {
+get_entitlements_from_otdfids = entitlements_from_ids {
+	# only do this if emails and usernames is empty!
+	count(input.entitlement_context["entity_emails"]) == 0
+	count(input.entitlement_context["entity_usernames"]) = 0
 
+	entitlements_from_ids := entitlementsvc.entitlements_fetch_success
+}
+
+get_entitlements_from_emails = entitlements_from_emails {
 	# basic checks that we need to check email addresses
 	input.entitlement_context["entity_emails"]
 	count(input.entitlement_context["entity_emails"]) != 0
@@ -107,10 +115,11 @@ get_entitlements_from_emails = entitlements_from_emails {
 		entityItem := entity_rep.id                          # add the ID to the list
 	]
 
-    # Do the Entitlements lookup using the list of OpenTDF IDs as "Secondary Entities".
-	# The Primary Entity remains the unchanged (i.e. the client which created this request).
+    # Entitlements lookup using the list of OpenTDF IDs as "Secondary Entities".
+	# The Primary Entity isn't used here.
 	# Gets back: entitlements_from_IDs= [ {"entity_attributes": [{"attribute": "attr1", "displayName": "DN"}], "entity_identifier": "XXX-YYY-ZZZ"}, ... ]
 	entitlements_from_IDs := entitlementsvc.entitlements_fetch_success
+		with input.primary_entity as ""
 		with input.secondary_entities as entity_ids
 
 	# Add email address to each entry
@@ -134,7 +143,6 @@ get_entitlements_from_emails = entitlements_from_emails {
 }
 
 get_entitlements_from_usernames = entitlements_from_usernames {
-
 	# basic checks that we need to check usernames
 	input.entitlement_context["entity_usernames"]
 	count(input.entitlement_context["entity_usernames"]) != 0
@@ -154,10 +162,11 @@ get_entitlements_from_usernames = entitlements_from_usernames {
 		entityItem := entity_rep.id                          # add the ID to the list
 	]
 
-    # Do the Entitlements lookup using the list of OpenTDF IDs as "Secondary Entities".
-	# The Primary Entity remains the unchanged (i.e. the client which created this request).
+    # Entitlements lookup using the list of OpenTDF IDs as "Secondary Entities".
+	# The Primary Entity isn't used here.
 	# Gets back: entitlements_from_IDs= [ {"entity_attributes": [{"attribute": "attr1", "displayName": "DN"}], "entity_identifier": "XXX-YYY-ZZZ"}, ... ]
 	entitlements_from_IDs := entitlementsvc.entitlements_fetch_success
+		with input.primary_entity as ""
 		with input.secondary_entities as entity_ids
 
 	# Add username to each entry
