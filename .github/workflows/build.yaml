@@ -505,7 +505,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   custom-keycloak-image:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' }}
+    # && github.ref == 'refs/heads/main' }}
     needs:
       - config
       - keycloak-image-base
