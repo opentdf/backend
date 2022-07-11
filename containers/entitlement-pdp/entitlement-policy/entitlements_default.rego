@@ -130,7 +130,7 @@ get_entitlements_from_emails = entitlements_from_emails {
 
 		# create the email address attribute
 		email_attribute := {
-			"attribute": concat("", ["https://example.com/attr/entity_email/value/", find_original_id_from_otdfid(entity_id, email_entity_ids)]),
+			"attribute": concat("", ["http://entitlement-pdp/attr/entity_email/value/", find_original_id_from_otdfid(entity_id, email_entity_ids)]),
 			"displayName": "Email"
 		}
 
@@ -177,7 +177,7 @@ get_entitlements_from_usernames = entitlements_from_usernames {
 
 		# create the username attribute
 		username_attribute := {
-			"attribute": concat("", ["https://example.com/attr/entity_username/value/", find_original_id_from_otdfid(entity_id, username_entity_ids)]),
+			"attribute": concat("", ["http://entitlement-pdp/attr/entity_username/value/", find_original_id_from_otdfid(entity_id, username_entity_ids)]),
 			"displayName": "Username"
 		}
 
