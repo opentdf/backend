@@ -462,6 +462,7 @@ jobs:
     # and we don't need to rebuild unless there's a major Keycloak version bump
     # so at least skip this for non-main builds
     needs:
+      - config
       - integration-test
     permissions:
       contents: read
