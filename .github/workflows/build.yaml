@@ -9,7 +9,6 @@ on:
   push:
     branches:
       - main
-      - PLAT-1909-keycloak-image-failure
 jobs:
   config:
     runs-on: ubuntu-latest
@@ -405,8 +404,7 @@ jobs:
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
 
   build-and-publish-with-shared-base:
-    if: ${{ github.event_name == 'push' }}
-    # && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
     timeout-minutes: 90
@@ -456,8 +454,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   keycloak-image-base:
-    if: ${{ github.event_name == 'push' }}
-    ## && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     # We're literally building upstream Keycloak as-is
     # and we don't need to rebuild unless there's a major Keycloak version bump
     # so at least skip this for non-main builds
@@ -507,8 +504,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
 
   custom-keycloak-image:
-    if: ${{ github.event_name == 'push' }}
-    # && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' }} && github.ref == 'refs/heads/main' }}
     needs:
       - config
       - keycloak-image-base
