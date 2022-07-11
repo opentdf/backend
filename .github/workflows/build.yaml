@@ -404,7 +404,8 @@ jobs:
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
 
   build-and-publish-with-shared-base:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' }}
+    # && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
     timeout-minutes: 90
@@ -504,6 +505,7 @@ jobs:
   custom-keycloak-image:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
+      - config
       - keycloak-image-base
     permissions:
       contents: read
