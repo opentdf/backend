@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - PLAT-1909-keycloak-image-failure
 jobs:
   config:
     runs-on: ubuntu-latest
