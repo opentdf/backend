@@ -8,7 +8,7 @@ from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
 
-from .plugins import opentdf_attr_authority_plugin, revocation_plugin
+from .plugins import opentdf_attr_authority_plugin, revocation_plugin, ethereum_plugin
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +28,12 @@ def configure_filters(kas):
     blocks = str_to_list("EO_BLOCK_LIST")
     if not (allows or blocks):
         return
+    ethereum_check_plugin = ethereum_plugin.EthereumPlugin()
     filter_plugin = revocation_plugin.RevocationPlugin(allows=allows, blocks=blocks)
     kas.use_rewrap_plugin(filter_plugin)
     kas.use_upsert_plugin(filter_plugin)
     if USE_KEYCLOAK:
-        # filter_plugin = revocation_plugin.RevocationPluginV2(allows=allows, blocks=blocks)
+        kas.use_rewrap_plugin_v2(ethereum_check_plugin)
         kas.use_rewrap_plugin_v2(filter_plugin)
         kas.use_upsert_plugin_v2(filter_plugin)
 
