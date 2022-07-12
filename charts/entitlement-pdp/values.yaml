@@ -29,6 +29,12 @@ opaConfig:
     bundleRepo: "ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle"
     # `bundleTag` will default to `.Chart.AppVersion` if unset
     # bundleTag: 0.0.6
+
+    # This will tell OPA to ignore TLS errors (bad cert, self-signed cert, etc)
+    # when downloading an OCI policy bundle from an OCI registry.
+    #
+    # Unsuitable for production, used for testing with `localhost` registries
+    allowInsecureTLS: false
     updatePolling:
       minDelay: 60
       maxDelay: 120
