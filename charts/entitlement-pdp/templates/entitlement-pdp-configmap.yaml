@@ -20,7 +20,7 @@ data:
   opa-config.yaml: |-
     services:
       policy-registry:
-        {{- if .Values.opaConfig.policy.allowInsecureTLS}}
+        {{- if .Values.opaConfig.policy.allowInsecureTLS }}
         allow_insecure_tls: true
         {{- end }}
         url: {{ $.Values.opaConfig.policy.OCIRegistryUrl }}
