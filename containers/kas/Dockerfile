@@ -72,7 +72,8 @@ ENV GUNICORN_BIND :8000
 
 ENV LEGACY_NANOTDF_IV=1
 
-
+ENV JSON_LOGGER False
+ENV PLUGIN_ETH_URL "http://localhost:8088/confirmTransaction"
 # Environment variables used for CORS configuration
 # See https://github.com/may-day/wsgicors for more info.
 ENV WSGI_CORS_HEADERS *

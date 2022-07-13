@@ -24,11 +24,14 @@ def configure_filters(kas):
             return None
         return s.split(",")
 
+    logger.info("ethereum_check_plugin")
+    ethereum_check_plugin = ethereum_plugin.EthereumPlugin()
+    kas.use_rewrap_plugin_v2(ethereum_check_plugin)
+
     allows = str_to_list("EO_ALLOW_LIST")
     blocks = str_to_list("EO_BLOCK_LIST")
     if not (allows or blocks):
         return
-    ethereum_check_plugin = ethereum_plugin.EthereumPlugin()
     filter_plugin = revocation_plugin.RevocationPlugin(allows=allows, blocks=blocks)
     kas.use_rewrap_plugin(filter_plugin)
     kas.use_upsert_plugin(filter_plugin)

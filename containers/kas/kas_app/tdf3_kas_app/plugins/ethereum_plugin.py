@@ -1,10 +1,13 @@
+import logging
+import os
+
+import requests
 import jwt as jwt
 
 from tdf3_kas_core.abstractions import AbstractRewrapPlugin
-from tdf3_kas_core.authorized import looks_like_jwt
-from tdf3_kas_core.errors import UnauthorizedError
+from tdf3_kas_core import Policy
 
-from containers.kas.kas_core.tdf3_kas_core import Policy
+logger = logging.getLogger(__name__)
 
 
 def get_entity_pubkey(access_jwt):
@@ -14,37 +17,40 @@ def get_entity_pubkey(access_jwt):
         options={"verify_signature": False, "verify_aud": False},
         algorithms=["RS256", "ES256", "ES384", "ES512"],
     )
-    print(decoded_jwt)
+    logger.debug(decoded_jwt)
     return decoded_jwt["entity-pubkey"]
 
 
 class EthereumPlugin(AbstractRewrapPlugin):
     def update(self, req, res):
-        print(req)
         # entity_pubkey from bearer token
-        try:
-            auth_token = req.context.data["Authorization"]
-            bearer, _, idp_jwt = auth_token.partition(" ")
-        except KeyError as e:
-            raise UnauthorizedError("Missing auth header") from e
-        else:
-            if bearer != "Bearer" or not looks_like_jwt(idp_jwt):
-                raise UnauthorizedError("Invalid auth header")
+        global tdf_pubkey, tdf_content_tier
+        auth_token = req["context"].data["Authorization"]
+        bearer, _, idp_jwt = auth_token.partition(" ")
         entity_pubkey = get_entity_pubkey(idp_jwt)
-        print("~~~~~~~~~")
-        print(entity_pubkey)
-        print("~~~~~~~~~")
-        # attributes from policy
-        data = req.json()
-        decoded_tdf_request = jwt.decode(
-            data["signedRequestToken"],
-            options={"verify_signature": False, "verify_aud": False},
-            algorithms=["RS256", "ES256", "ES384", "ES512"],
-        )
-        print(decoded_tdf_request)
-        canonical_policy = data["policy"]
-        original_policy = Policy.construct_from_raw_canonical(canonical_policy)
-        print("^^^^^^^^")
-        print(original_policy.data_attributes)
-        print("^^^^^^^^")
+        logger.debug("~~~~~~~~~")
+        logger.debug(entity_pubkey)
+        logger.debug("~~~~~~~~~")
+        # tdf_pubkey and tdf_amount from TDF data attributes
+        canonical_policy: Policy = req["policy"]
+        for _, data_attribute in enumerate(canonical_policy.data_attributes.clusters):
+            if data_attribute.namespace.startswith("https://kovan.network/attr/Wallet"):
+                for _, values in enumerate(data_attribute.values):
+                    tdf_pubkey = values.value
+                    logger.debug("*********")
+                    logger.debug(tdf_pubkey)
+                    logger.debug("*********")
+            if data_attribute.namespace.startswith("https://virtru.com/attr/ContentExclusivity"):
+                for _, values in enumerate(data_attribute.values):
+                    tdf_content_tier = values.value
+                    logger.debug(".........")
+                    logger.debug(tdf_content_tier)
+                    logger.debug(".........")
+        # make call to eth-pdp
+        eth_pdp_url = os.getenv("PLUGIN_ETH_URL")
+        url = f"{eth_pdp_url}?tier={tdf_content_tier}&senderAddress={entity_pubkey}&recipientAddress={tdf_pubkey}&value=0.01"
+        logger.debug(url)
+        response = requests.request("GET", url, headers={}, data={})
+        print(response.status_code)
+
         return req, res
