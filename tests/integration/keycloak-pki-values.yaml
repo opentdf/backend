@@ -3,9 +3,18 @@ image:
   repository: ghcr.io/opentdf/keycloak
   tag: head
   pullPolicy: Never # We expect Tilt to cache these
+command:
+  - "/opt/keycloak/bin/kc.sh"
+  - "--verbose"
+  - "start-dev"
+  - "--http-port=8080"
 postgresql:
   enabled: false
 extraEnv: |
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
   - name: KEYCLOAK_LOGLEVEL
     value: INFO
   - name: KEYCLOAK_USER
@@ -28,6 +37,8 @@ extraEnv: |
     value: "https://keycloakx-http:4567/auth"
   - name: X509_CA_BUNDLE
     value: /etc/x509/https/ca.crt
+  - name: JAVA_OPTS_APPEND
+      value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
 extraEnvFrom: |
   - secretRef:
       name: '{{ include "keycloak.fullname" . }}-db'
