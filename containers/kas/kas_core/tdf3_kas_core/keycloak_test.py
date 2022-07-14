@@ -34,7 +34,7 @@ fakeDecodedToken = """
   "session_state": "423b06ff-fc8d-4f9f-8266-57b07ce340dd",
   "acr": "1",
   "allowed-origins": [
-    "http://keycloak-http"
+    "http://keycloakx-http"
   ],
   "realm_access": {
     "roles": [
@@ -85,7 +85,7 @@ class MockResponse:
 
 def mocked_requests_get(*args, **kwargs):
     fakeKeycloakPKResp = json.loads(
-        '{"realm":"tdf","public_key":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj/QUmaMS/4ANsz3OKRH8vU8Dw+iyVEnvgkA1Z6a9twaZglQUDegOVZwqSImI6UNsESmJMcU1l0zHNsxM/C9d+ttuZOIdnWDtQL6IrX5FBMXA+AFAIAf/SpCDZEkrjVjfhn5fH76dI7lETZrMtWpS3O0fXId63yKaOe4+HddSZ+l7J2meAuHqpBkTC60MOmFiwgCJ11xFIEKEUne10smBBtsND5uB75oceZSF/gNdEltk2u7AQLzToL50Jcnp9CV1fOQ8bbe0J2NwKyaYUX2/qBKhGOB1k0y/eHFsJ2ceQEfWzLr1z/cuH208/TAxAq2QjggokIRIm2DpnwcntSFpkQIDAQAB","token-service":"http://keycloak-http:80/auth/realms/tdf/protocol/openid-connect","account-service":"http://keycloak-http:80/auth/realms/tdf/account","tokens-not-before":0}'
+        '{"realm":"tdf","public_key":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj/QUmaMS/4ANsz3OKRH8vU8Dw+iyVEnvgkA1Z6a9twaZglQUDegOVZwqSImI6UNsESmJMcU1l0zHNsxM/C9d+ttuZOIdnWDtQL6IrX5FBMXA+AFAIAf/SpCDZEkrjVjfhn5fH76dI7lETZrMtWpS3O0fXId63yKaOe4+HddSZ+l7J2meAuHqpBkTC60MOmFiwgCJ11xFIEKEUne10smBBtsND5uB75oceZSF/gNdEltk2u7AQLzToL50Jcnp9CV1fOQ8bbe0J2NwKyaYUX2/qBKhGOB1k0y/eHFsJ2ceQEfWzLr1z/cuH208/TAxAq2QjggokIRIm2DpnwcntSFpkQIDAQAB","token-service":"http://keycloakx-http:80/auth/realms/tdf/protocol/openid-connect","account-service":"http://keycloak-http:80/auth/realms/tdf/account","tokens-not-before":0}'
     )
     if "/auth/realms/" in args[0]:
         return MockResponse(fakeKeycloakPKResp, 200)

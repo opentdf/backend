@@ -10,13 +10,13 @@ else
 
   openssl genrsa -aes256 -out $CERTS_DIR/rootca_kc.key -passout env:PASSPHRASE 2048
 
-  openssl req -x509 -new -nodes -key $CERTS_DIR/rootca_kc.key -sha256 -days 1024 -out $CERTS_DIR/rootca_kc.crt -subj "/C=US/ST=Home/L=Home/O=mycorp/OU=myorg/CN=caroot.keycloak-http" -passin env:PASSPHRASE
+  openssl req -x509 -new -nodes -key $CERTS_DIR/rootca_kc.key -sha256 -days 1024 -out $CERTS_DIR/rootca_kc.crt -subj "/C=US/ST=Home/L=Home/O=mycorp/OU=myorg/CN=caroot.keycloakx-http" -passin env:PASSPHRASE
 
   openssl genrsa -out  $CERTS_DIR/tls.key 2048
 
-  openssl req -new -key  $CERTS_DIR/tls.key -out  $CERTS_DIR/keycloak-http.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloak-http"
+  openssl req -new -key  $CERTS_DIR/tls.key -out  $CERTS_DIR/keycloakx-http.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloakx-http"
 
-  openssl x509 -req -extfile <(printf "subjectAltName=DNS:keycloak-http") -in $CERTS_DIR/keycloak-http.csr -CA $CERTS_DIR/rootca_kc.crt -CAkey $CERTS_DIR/rootca_kc.key -CAcreateserial -out $CERTS_DIR/tls.crt -days 500 -sha256 -passin env:PASSPHRASE
+  openssl x509 -req -extfile <(printf "subjectAltName=DNS:keycloakx-http") -in $CERTS_DIR/keycloakx-http.csr -CA $CERTS_DIR/rootca_kc.crt -CAkey $CERTS_DIR/rootca_kc.key -CAcreateserial -out $CERTS_DIR/tls.crt -days 500 -sha256 -passin env:PASSPHRASE
 
 
 #Generate Client certificate

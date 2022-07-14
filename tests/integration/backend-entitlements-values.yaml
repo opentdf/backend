@@ -3,7 +3,7 @@ serverPublicName: "Entitlements"
 serverRootPath: /api/entitlements
 oidc:
   realm: tdf
-  internalHost: http://keycloak-http/auth
+  internalHost: http://keycloakx-http/auth
   externalHost: http://localhost:65432/auth
   clientId: tdf-entitlement
 

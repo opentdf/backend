@@ -1,5 +1,5 @@
-keycloak:
-  hostname: http://keycloak-http
+keycloakx:
+  hostname: http://keycloakx-http
   adminUsername: keycloakadmin
   adminPassword: mykeycloakpassword
   customConfig:

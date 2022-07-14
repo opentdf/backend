@@ -162,7 +162,7 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
-          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
           tilt ci integration-test pki-test
       - name: Quick check - run/validate local deployment Tiltfile

@@ -12,8 +12,8 @@ docker-buildx-armclean:
 # Clone the Keycloak upstream docker image repo
 .PHONY: keycloak-repo-clone
 keycloak-repo-clone: docker-buildx-armclean
-	rm -rf keycloak-containers
-	git clone -b $(KEYCLOAK_BASE_VERSION) https://github.com/keycloak/keycloak-containers.git
+	rm -rf keycloak
+	git clone -b $(KEYCLOAK_BASE_VERSION) https://github.com/keycloak/keycloak.git
 
 # Set up a custom buildx context that supports building a multi-arch image
 .PHONY: docker-buildx-armsetup
@@ -28,8 +28,8 @@ docker-buildx-armsetup: docker-buildx-armclean
 # https://docs.docker.com/engine/reference/commandline/buildx_build/#output
 .PHONY: keycloak-base-buildpush
 keycloak-base-buildpush: docker-buildx-armsetup keycloak-repo-clone
-	cd keycloak-containers/server && \
-		docker buildx build --platform linux/arm64,linux/amd64 -t ${KEYCLOAK_BASE_IMAGE}:${KEYCLOAK_BASE_VERSION} --push .
+	cd keycloak/quarkus/container/ && \
+		docker buildx build --platform linux/arm64,linux/amd64 -t ${KEYCLOAK_BASE_IMAGE}:${KEYCLOAK_BASE_VERSION} --load .
 
 .PHONY: dockerbuild
 dockerbuild:

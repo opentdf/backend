@@ -92,7 +92,7 @@ all_secrets = {
 }
 
 if not os.path.exists(
-    "./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"
+    "./containers/keycloak-protocol-mapper/keycloak/quarkus/container/Dockerfile"
 ):
     local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
 
@@ -194,7 +194,7 @@ docker_build(
 
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
-    "./containers/keycloak-protocol-mapper/keycloak-containers/server",
+    "./containers/keycloak-protocol-mapper/keycloak/quarkus/container",
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
     },
@@ -265,8 +265,8 @@ if isPKItest:
     keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
 helm_remote(
-    "keycloak",
-    version="18.1.1",
+    "keycloakx",
+    version="1.3.2",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
@@ -467,14 +467,14 @@ docker_build(
 )
 
 k8s_resource(
-    "keycloak",
+    "keycloakx",
     links=[link("http://localhost:65432/auth/", "Keycloak admin console")],
     labels=["Third-party"]
 )
 
 k8s_resource(
     "keycloak-bootstrap",
-    resource_deps=["keycloak", "opentdf-entitlements", "opentdf-attributes"],
+    resource_deps=["keycloakx", "opentdf-entitlements", "opentdf-attributes"],
     labels="Utility"
 )
 
@@ -497,7 +497,7 @@ k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
     "opentdf-xtest",
-    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
+    resource_deps=["keycloak-bootstrap", "keycloakx", "opentdf-kas", "opentdf-entitlement-pdp"],
 )
 
 if isPKItest:

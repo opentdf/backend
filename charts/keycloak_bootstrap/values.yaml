@@ -15,8 +15,8 @@ externalUrl:
 pki:
   directGrantEnable: "true"
   browserEnable: "true"
-keycloak:
-  hostname: http://keycloak-http
+keycloakx:
+  hostname: http://keycloakx-http
   clientId: tdf-client
   clientSecret: 123-456
   username: keycloakadmin
