@@ -58,11 +58,11 @@ for arg in cfg.get("to-run", []):
         isIntegrationTest = True
     if arg in groups:
         resources += groups[arg]
-    else:
-        if arg == "pki-test":
-            isPKItest = False
+    #else:
+    #    if arg == "pki-test":
+    #        isPKItest = False
         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
-        resources.append(arg)
+    #    resources.append(arg)
 
 config.set_enabled_resources(resources)
 
