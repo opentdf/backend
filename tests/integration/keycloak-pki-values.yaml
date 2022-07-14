@@ -38,7 +38,7 @@ extraEnv: |
   - name: X509_CA_BUNDLE
     value: /etc/x509/https/ca.crt
   - name: JAVA_OPTS_APPEND
-      value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
+    value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
 extraEnvFrom: |
   - secretRef:
       name: '{{ include "keycloak.fullname" . }}-db'
