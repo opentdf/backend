@@ -2,9 +2,6 @@
 	"opentdf": {
 		"entitlements_service": {
 			"url": "http://opentdf-entitlement-store:5000/entitle"
-		},
-		"entity_resolution_service": {
-			"url": "http://opentdf-entity-resolution:7070/resolve"
 		}
 	}
 }
