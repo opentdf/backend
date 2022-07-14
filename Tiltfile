@@ -60,7 +60,7 @@ for arg in cfg.get("to-run", []):
         resources += groups[arg]
     else:
         if arg == "pki-test":
-            isPKItest = True
+            isPKItest = False
         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
         resources.append(arg)
 
