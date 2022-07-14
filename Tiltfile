@@ -31,7 +31,7 @@ to_edit = cfg.get("to-edit", [])
 
 groups = {
     "integration-test": [
-        "keycloak",
+        "keycloakx",
         "keycloak-bootstrap",
         "ingress-nginx-controller",
         "ingress-nginx-admission-create",
