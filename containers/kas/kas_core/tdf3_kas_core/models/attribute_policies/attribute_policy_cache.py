@@ -2,7 +2,6 @@
 import logging
 
 from tdf3_kas_core.errors import InvalidAttributeError
-from tdf3_kas_core.server_timing import Timing
 
 from .attribute_policy import AttributePolicy
 from .attribute_policy import HIERARCHY
@@ -31,7 +30,6 @@ class AttributePolicyCache(object):
         if not attribute_policy_config:
             logger.warn("No attribute configs found")
             return
-        Timing.start("attribute_load")
         logger.debug(
             "--- Fetch attribute_policy_config  [attribute = %s] ---",
             attribute_policy_config,
@@ -68,7 +66,6 @@ class AttributePolicyCache(object):
             logger.debug("--- cached  [policy = %s] ---", str(policy))
             if policy is not None:
                 self.__policies[attribute_name_object] = policy
-        Timing.stop("attribute_load")
 
     def get(self, namespace):
         """Get an AttributePolicy."""

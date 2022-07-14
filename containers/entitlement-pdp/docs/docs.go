@@ -11,8 +11,8 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "Virtru",
-            "url": "https://www.virtru.com"
+            "name": "OpenTDF",
+            "url": "https://www.opentdf.io"
         },
         "license": {
             "name": "BSD 3-Clause",
@@ -103,20 +103,25 @@ const docTemplate = `{
             "description": "Request containing entity identifiers seeking entitlement. At least one entity (primary requestor) is required The Entitlements PDP is expected to be invoked directly by an identity provider and with contextual entity information attested to and possessed by that identity provider",
             "type": "object",
             "properties": {
-                "idp_context_obj": {
-                    "description": "Optional, may be left empty.\nA free-form, (valid, escaped) JSON object in string format, containing any additional IdP context around and from\nthe entity authentication process. This JSON object will be checked as a valid, generic JSON document,\nand then passed to the PDP engine as-is, as an input document.",
-                    "type": "string"
+                "entitlement_context_obj": {
+                    "description": "Optional, may be left empty.\nA free-form, (valid, escaped) JSON object in string format, containing any additional IdP/input context around and from\nthe entity authentication process. This JSON object will be checked as a valid, generic JSON document,\nand then passed to the PDP engine as-is, as an input document.",
+                    "type": "string",
+                    "example": "{\"somekey\":\"somevalue\"}"
                 },
                 "primary_entity_id": {
                     "description": "The identifier for the primary entity seeking entitlement.\nFor PE auth, this will be a PE ID. For NPE/direct grant auth, this will be an NPE ID.",
-                    "type": "string"
+                    "type": "string",
+                    "example": "bc03f40c-a7af-4507-8198-d5334e2823e6"
                 },
                 "secondary_entity_ids": {
                     "description": "Optional, may be left empty.\nFor PE auth, this will be one or more NPE IDs (client-on-behalf-of-user).\nFor NPE/direct grant auth,\nthis may be either empty (client-on-behalf-of-itself) or populated with one\nor more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)",
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "4f6636ca-c60c-40d1-9f3f-015086303f74"
+                    ]
                 }
             }
         },
@@ -126,11 +131,13 @@ const docTemplate = `{
             "properties": {
                 "attribute": {
                     "description": "Attribute, in URI format, e.g.: \"https://example.org/attr/Classification/value/COI\"",
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://example.org/attr/OPA/value/AddedByOPA"
                 },
                 "displayName": {
                     "description": "Optional display name for the attribute",
-                    "type": "string"
+                    "type": "string",
+                    "example": "Added By OPA"
                 }
             }
         },
@@ -144,7 +151,8 @@ const docTemplate = `{
                     }
                 },
                 "entity_identifier": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "bc03f40c-a7af-4507-8198-d5334e2823e6"
                 }
             }
         }
@@ -155,7 +163,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.0.1",
 	Host:             "",
-	BasePath:         "/v1",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "entitlement-pdp",
 	Description:      "An implementation of a Policy Decision Point",

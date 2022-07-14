@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
-	"github.com/virtru/v2/entitlement-pdp/handlers"
+	"github.com/opentdf/v2/entitlement-pdp/handlers"
 )
 
 var tracer = otel.Tracer("pdp")
@@ -24,9 +24,9 @@ type OPAPDPEngine struct {
 }
 
 type entitlementDecisionInputDocument struct {
-	PrimaryEntity     string                 `json:"primary_entity"`
-	SecondaryEntities []string               `json:"secondary_entities"`
-	IdpContext        map[string]interface{} `json:"idp_context,omitempty"`
+	PrimaryEntity      string                 `json:"primary_entity"`
+	SecondaryEntities  []string               `json:"secondary_entities"`
+	EntitlementContext map[string]interface{} `json:"entitlement_context,omitempty"`
 }
 
 type Decision struct {
@@ -83,14 +83,14 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, logger *zap.SugaredLo
 	return OPAPDPEngine{logger, opa}, shutdownFunc
 }
 
-func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, idpContextJSON string, parentCtx ctx.Context) ([]handlers.EntityEntitlement, error) {
+func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, entitlementContextJSON string, parentCtx ctx.Context) ([]handlers.EntityEntitlement, error) {
 	pdp.logger.Debug("ApplyEntitlementPolicy")
 	evalCtx, evalSpan := tracer.Start(parentCtx, "ApplyEntitlementPolicy")
 	defer evalSpan.End()
 
-	pdp.logger.Debug("IDP CONTEXT JSON: %s", idpContextJSON)
+	pdp.logger.Debug("ENTITLEMENT CONTEXT JSON: %s", entitlementContextJSON)
 
-	inputDoc, err := pdp.buildInputDoc(primaryEntity, secondaryEntities, idpContextJSON)
+	inputDoc, err := pdp.buildInputDoc(primaryEntity, secondaryEntities, entitlementContextJSON)
 	if err != nil {
 		pdp.logger.Errorf("Error constructing input document, error was %s", err)
 		return nil, err
@@ -100,7 +100,7 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 
 	decisionReq := sdk.DecisionOptions{
 		Now:   time.Now(),
-		Path:  "virtru/entitlement/generated_entitlements",
+		Path:  "opentdf/entitlement/generated_entitlements",
 		Input: inputDoc,
 	}
 
@@ -143,27 +143,27 @@ func (pdp *OPAPDPEngine) deserializeEntitlementsFromResult(rawResult *sdk.Decisi
 	return &decis, nil
 }
 
-func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities []string, idpContextJSON string) (map[string]interface{}, error) {
+func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities []string, entitlementContextJSON string) (map[string]interface{}, error) {
 	//The unstructured input must be first deserialized into a generic-but-concrete type, so we can embed it
 	// as such as a subfield in the larger input document.
 	//
 	// Can't skip this step, because otherwise JSON encoding will rightly treat it as an escaped JSON string -
 	// this, even though it feels redundant, is the safest and most foolproof approach.
-	var idpContext map[string]interface{}
+	var entitlementContext map[string]interface{}
 
 	//If this was not defined, use empty JSON object
-	if idpContextJSON == "" {
-		idpContextJSON = "{}"
+	if entitlementContextJSON == "" {
+		entitlementContextJSON = "{}"
 	}
 
-	err := json.Unmarshal([]byte(idpContextJSON), &idpContext)
+	err := json.Unmarshal([]byte(entitlementContextJSON), &entitlementContext)
 	if err != nil {
-		pdp.logger.Errorf("Could not deserialize generic IdP context JSON input document! Error was %s", err)
+		pdp.logger.Errorf("Could not deserialize generic entitlement context JSON input document! Error was %s", err)
 		return nil, err
 	}
 
 	//Build the toplevel input doc.
-	inputDoc := entitlementDecisionInputDocument{primaryEntity, secondaryEntities, idpContext}
+	inputDoc := entitlementDecisionInputDocument{primaryEntity, secondaryEntities, entitlementContext}
 
 	//Marshal that entire doc BACK to a string.
 	tmpDoc, err := json.Marshal(inputDoc)

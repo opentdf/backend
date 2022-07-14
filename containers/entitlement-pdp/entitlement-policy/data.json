@@ -1,5 +1,5 @@
 {
-	"virtru": {
+	"opentdf": {
 		"entitlements_service": {
 			"url": "http://opentdf-entitlement-store:5000/entitle"
 		}

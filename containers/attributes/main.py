@@ -4,7 +4,7 @@ import os
 import sys
 import requests
 from enum import Enum
-from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED
+from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR, NOT_FOUND
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
@@ -218,16 +218,20 @@ table_attribute = sqlalchemy.Table(
     "attribute",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column(
-        "namespace_id",
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("attribute_namespace.id"),
-    ),
+    sqlalchemy.Column("namespace_id",
+                      sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey("attribute_namespace.id"),
+                      ),
     sqlalchemy.Column("state", sqlalchemy.VARCHAR),
     sqlalchemy.Column("rule", sqlalchemy.VARCHAR),
     sqlalchemy.Column("name", sqlalchemy.VARCHAR),
     sqlalchemy.Column("description", sqlalchemy.VARCHAR),
     sqlalchemy.Column("values_array", sqlalchemy.ARRAY(sqlalchemy.TEXT)),
+    sqlalchemy.Column("group_by_attr",
+                      sqlalchemy.Integer,
+                      sqlalchemy.ForeignKey("attribute.id")
+                      ),
+    sqlalchemy.Column("group_by_attrval", sqlalchemy.TEXT),
 )
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
@@ -253,12 +257,11 @@ async def add_response_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 
-
 # OpenAPI
 tags_metadata = [
     {
         "name": "Attributes",
-        "description": """Operations to view data attributes. TDF protocol supports ABAC (Attribute Based Access Control). 
+        "description": """Operations to view data attributes. TDF protocol supports ABAC (Attribute Based Access Control).
         This allows TDF protocol to implement policy driven and highly scalable access control mechanism.""",
     },
     {
@@ -304,6 +307,19 @@ class RuleEnum(str, Enum):
 class AuthorityUrl(AnyUrl):
     max_length = 2000
 
+class AttributeInstance(BaseModel):
+    authority: AuthorityUrl
+    name: Annotated[str, Field(max_length=2000)]
+    value: Annotated[str, Field(max_length=2000)]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "value": "Proprietary"
+            }
+        }
 
 class AttributeDefinition(BaseModel):
     authority: AuthorityUrl
@@ -314,6 +330,7 @@ class AttributeDefinition(BaseModel):
     ]
     rule: RuleEnum
     state: Annotated[Optional[str], Field(max_length=64)]
+    group_by: Optional[AttributeInstance] = None
 
     class Config:
         schema_extra = {
@@ -323,6 +340,11 @@ class AttributeDefinition(BaseModel):
                 "rule": "hierarchy",
                 "state": "published",
                 "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+                "group_by": {
+                    "authority": "https://opentdf.io",
+                    "name": "ClassificationUS",
+                    "value": "Proprietary"
+                }
             }
         }
 
@@ -385,16 +407,16 @@ oidc_scheme = OpenIdConnect(
     },
 )
 async def read_attributes(
-    authority: Optional[AuthorityUrl] = None,
-    name: Optional[str] = None,
-    rule: Optional[str] = None,
-    order: Optional[str] = None,
-    sort: Optional[str] = Query(
-        "",
-        regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
-    ),
-    db: Session = Depends(get_db),
-    pager: Pagination = Depends(Pagination),
+        authority: Optional[AuthorityUrl] = None,
+        name: Optional[str] = None,
+        rule: Optional[str] = None,
+        order: Optional[str] = None,
+        sort: Optional[str] = Query(
+            "",
+            regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
+        ),
+        db: Session = Depends(get_db),
+        pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
@@ -470,6 +492,11 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
                                 "BusinessSensitive",
                                 "Open",
                             ],
+                            "group_by": {
+                                "authority": "https://opentdf.io",
+                                "name": "ClassificationUS",
+                                "value": "Proprietary"
+                            }
                         }
                     ]
                 }
@@ -477,25 +504,42 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
         }
     },
 )
+# This is an alias endpoint for the same handler, as used by KAS
+# This is because KAS needs something that does *exactly* the same thing as `GET /definitions/attributes`,
+# just without JWT auth or pagination.
+#
+# JWT auth can be disabled for the aliased route and pagination can be selectively employed, so do that to
+# avoid functionally-identical-yet-parallel handlers and object models.
+#
+# When JWT auth is removed from service code and implemented at the Ingress level on specific routes,
+# where it belongs, and KAS's attribute authority client code is made to grok pagination,
+# then we won't need this endpoint alias anymore and can drop it
+# (since KAS<->attribute service is east-west traffic)
+# For now, let's at least just alias the deprecated endpoint to the same implementation to avoid confusing people.
+@app.get("/v1/attrName", response_model=List[AttributeDefinition], include_in_schema=False)
 async def read_attributes_definitions(
-    authority: Optional[AuthorityUrl] = None,
-    name: Optional[str] = None,
-    rule: Optional[str] = None,
-    order: Optional[str] = None,
-    sort: Optional[str] = Query(
-        "",
-        regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
-    ),
-    db: Session = Depends(get_db),
-    pager: Pagination = Depends(Pagination),
+        request: Request,
+        authority: Optional[AuthorityUrl] = None,
+        name: Optional[str] = None,
+        rule: Optional[str] = None,
+        order: Optional[str] = None,
+        sort: Optional[str] = Query(
+            "",
+            regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
+        ),
+        db: Session = Depends(get_db),
+        pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
         # lookup authority by value and get id (namespace_id)
         authorities = await read_authorities_crud()
-        filter_args["namespace_id"] = list(authorities.keys())[
-            list(authorities.values()).index(authority)
-        ]
+        try:
+            filter_args["namespace_id"] = list(authorities.keys())[
+                list(authorities.values()).index(authority)
+            ]
+        except ValueError:
+            raise HTTPException(status_code=NOT_FOUND, detail=f"Authority {authority} does not exist") 
     if name:
         filter_args["name"] = name
     if order:
@@ -511,18 +555,61 @@ async def read_attributes_definitions(
     attributes: List[AttributeDefinition] = []
     for row in results:
         try:
-            attributes.append(
-                AttributeDefinition(
-                    authority=authorities[row.namespace_id],
-                    name=row.name,
-                    order=row.values_array,
-                    rule=row.rule,
-                    state=row.state,
-                )
+            attr_def = AttributeDefinition(
+                authority=authorities[row.namespace_id],
+                name=row.name,
+                order=row.values_array,
+                rule=row.rule,
+                state=row.state,
             )
+            # If this attribute definition has a "groupby AttributeInstance"
+            # that is, it has a non-null reference to another attribute definition
+            # and a specific grouping value, then look for and return that
+            if row.group_by_attr:
+                groupby_attr_q = table_attribute.select().where(
+                    table_attribute.c.id == row.group_by_attr
+                )
+
+                groupby_attr = await database.fetch_one(groupby_attr_q)
+
+                # If this happens, we have not been properly maintaining the integrity of the
+                # attribute store - we're referencing an attr ID that no longer exists in this table.
+                if not groupby_attr:
+                    raise HTTPException(
+                        status_code=INTERNAL_SERVER_ERROR,
+                        detail=f"Groupby attribute {groupby_attr} not found",
+                    )
+                # If this attr has a group_by, get the name of the authority
+                # TODO there is probably a nicer SQL query that does all this in one go.
+                # For the sake of clarity, doing it individually.
+                groupby_authority_q = table_authority.select().where(table_authority.c.id == groupby_attr.namespace_id)
+                groupby_authority = await database.fetch_one(groupby_authority_q)
+                if not groupby_authority:
+                    raise HTTPException(
+                        status_code=INTERNAL_SERVER_ERROR,
+                        detail=f"Group-by attribute authority {groupby_attr.namespace_id} does not exist")
+
+                attr_def.group_by = AttributeInstance(
+                    authority=groupby_authority.name,
+                    name=groupby_attr.name,
+                    value=row.group_by_attrval
+                )
+
+            attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
-    return pager.paginate(attributes)
+
+    # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just
+    # the latter has pagination and JWT auth, and the former does not.
+    # JWT auth is something that can be included or excluded in the route decorator,
+    # but our DIY pager cannot be handled at the decorator level.
+    # So we do this - this conditional can be removed when we
+    # stop doing JWT auth at the service level and add pagination in KAS's client code
+    # and drop this alias.
+    if "v1/attrName" in request.url.path:
+        return attributes
+    else:
+        return pager.paginate(attributes)
 
 
 @app.post(
@@ -545,6 +632,11 @@ async def read_attributes_definitions(
                             "BusinessSensitive",
                             "Open",
                         ],
+                        "group_by": {
+                            "authority": "https://opentdf.io",
+                            "name": "ClassificationUS",
+                            "value": "Proprietary"
+                        }
                     }
                 }
             }
@@ -552,16 +644,21 @@ async def read_attributes_definitions(
     },
 )
 async def create_attributes_definitions(
-    request: AttributeDefinition = Body(
-        ...,
-        example={
-            "authority": "https://opentdf.io",
-            "name": "IntellectualProperty",
-            "rule": "hierarchy",
-            "state": "published",
-            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-        },
-    )
+        request: AttributeDefinition = Body(
+            ...,
+            example={
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "rule": "hierarchy",
+                "state": "published",
+                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+                "group_by": {
+                    "authority": "https://opentdf.io",
+                    "name": "ClassificationUS",
+                    "value": "Proprietary"
+                }
+            },
+        )
 ):
     return await create_attributes_definitions_crud(request)
 
@@ -569,32 +666,63 @@ async def create_attributes_definitions(
 async def create_attributes_definitions_crud(request):
     # lookup
     query = table_authority.select().where(table_authority.c.name == request.authority)
-    result = await database.fetch_one(query)
-    if result:
-        if request.rule == RuleEnum.hierarchy:
-            is_duplicated = check_duplicates(request.order)
-            if is_duplicated:
-                raise HTTPException(
-                    status_code=BAD_REQUEST,
-                    detail="Duplicated items when Rule is Hierarchy",
-                )
-        namespace_id = result.get(table_authority.c.id)
-        # insert
-        query = table_attribute.insert().values(
-            name=request.name,
-            namespace_id=namespace_id,
-            values_array=request.order,
-            state=request.state,
-            rule=request.rule,
-        )
-        try:
-            await database.execute(query)
-        except UniqueViolationError as e:
-            raise HTTPException(
-                status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
-            ) from e
-    else:
+    ns_result = await database.fetch_one(query)
+    if not ns_result:
         raise HTTPException(status_code=BAD_REQUEST, detail=f"namespace not found")
+    namespace_id = ns_result.get(table_authority.c.id)
+
+    group_attr_id = None
+    if request.group_by:
+        # Groupby
+        group_authority_query = table_authority.select().where(table_authority.c.name == request.group_by.authority)
+        group_authority = await database.fetch_one(group_authority_query)
+        if not group_authority:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Group-by attribute authority does not exist",
+            )
+
+        attr_def_q = table_attribute.select().where(
+            and_(
+                table_attribute.c.namespace_id == group_authority.id,
+                table_attribute.c.name == request.group_by.name
+            )
+        )
+
+        group_attr = await database.fetch_one(attr_def_q)
+
+        if request.group_by.value not in group_attr.values_array:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Specified an invalid value for group-by attribute",
+            )
+
+        group_attr_id = group_attr.id
+
+    if request.rule == RuleEnum.hierarchy:
+        is_duplicated = check_duplicates(request.order)
+        if is_duplicated:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Duplicated items when Rule is Hierarchy",
+            )
+
+    # insert
+    query = table_attribute.insert().values(
+        name=request.name,
+        namespace_id=namespace_id,
+        values_array=request.order,
+        state=request.state,
+        rule=request.rule,
+        group_by_attr=group_attr_id,
+        group_by_attrval=(request.group_by.value if group_attr_id else None)
+    )
+    try:
+        await database.execute(query)
+    except UniqueViolationError as e:
+        raise HTTPException(
+            status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
+        ) from e
     return request
 
 
@@ -625,16 +753,21 @@ async def create_attributes_definitions_crud(request):
     },
 )
 async def update_attribute_definition(
-    request: AttributeDefinition = Body(
-        ...,
-        example={
-            "authority": "https://opentdf.io",
-            "name": "IntellectualProperty",
-            "rule": "hierarchy",
-            "state": "published",
-            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-        },
-    )
+        request: AttributeDefinition = Body(
+            ...,
+            example={
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "rule": "hierarchy",
+                "state": "published",
+                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+                "group_by": {
+                    "authority": "https://opentdf.io",
+                    "name": "ClassificationUS",
+                    "value": "Proprietary"
+                }
+            },
+        )
 ):
     return await update_attribute_definition_crud(request)
 
@@ -657,6 +790,34 @@ async def update_attribute_definition_crud(request):
                 detail="Duplicated items when Rule is Hierarchy",
             )
 
+    group_attr_id = None
+    if request.group_by:
+        # Groupby
+        group_authority_query = table_authority.select().where(table_authority.c.name == request.group_by.authority)
+        group_authority = await database.fetch_one(group_authority_query)
+        if not group_authority:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Group-by attribute authority does not exist",
+            )
+
+        attr_def_q = table_attribute.select().where(
+            and_(
+                table_attribute.c.namespace_id == group_authority.id,
+                table_attribute.c.name == request.group_by.name
+            )
+        )
+
+        group_attr = await database.fetch_one(attr_def_q)
+
+        if request.group_by.value not in group_attr.values_array:
+            raise HTTPException(
+                status_code=BAD_REQUEST,
+                detail="Specified an invalid value for group-by attribute",
+            )
+
+        group_attr_id = group_attr.id
+
     query = table_attribute.update().where(
         and_(
             table_authority.c.name == request.authority,
@@ -665,6 +826,8 @@ async def update_attribute_definition_crud(request):
     ).values(
         values_array=request.order,
         rule=request.rule,
+        group_by_attr=group_attr_id,
+        group_by_attrval=(request.group_by.value if group_attr_id else None)
     )
 
     await database.execute(query)
@@ -685,16 +848,16 @@ async def update_attribute_definition_crud(request):
     },
 )
 async def delete_attributes_definitions(
-    request: AttributeDefinition = Body(
-        ...,
-        example={
-            "authority": "https://opentdf.io",
-            "name": "IntellectualProperty",
-            "rule": "hierarchy",
-            "state": "published",
-            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-        },
-    )
+        request: AttributeDefinition = Body(
+            ...,
+            example={
+                "authority": "https://opentdf.io",
+                "name": "IntellectualProperty",
+                "rule": "hierarchy",
+                "state": "published",
+                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+            },
+        )
 ):
     return await delete_attributes_definitions_crud(request)
 
@@ -750,9 +913,9 @@ async def read_authorities_crud():
     },
 )
 async def create_authorities(
-    request: AuthorityDefinition = Body(
-        ..., example={"authority": "https://opentdf.io"}
-    )
+        request: AuthorityDefinition = Body(
+            ..., example={"authority": "https://opentdf.io"}
+        )
 ):
     return await create_authorities_crud(request)
 
@@ -775,46 +938,48 @@ async def create_authorities_crud(request):
     return namespaces
 
 
+@app.delete(
+    "/authorities",
+    tags=["Authorities"],
+    dependencies=[Depends(get_auth)],
+    status_code=NO_CONTENT,
+    responses={
+        202: {
+            "description": "No Content",
+            "content": {"application/json": {"example": {"detail": "Item deleted"}}},
+        }
+    },
+)
+async def delete_authorities(
+        request: AuthorityDefinition = Body(
+            ..., example={"authority": "https://opentdf.io"}
+        )
+):
+    return await delete_authorities_crud(request)
+
+
+async def delete_authorities_crud(request):
+    query = table_authority.select().where(table_authority.c.name == request.authority)
+    result = await database.fetch_one(query)
+
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Record not found"
+        )
+
+    statement = table_authority.delete().where(
+        and_(
+            table_authority.c.name == request.authority
+        )
+    )
+    await database.execute(statement)
+    return {}
+
+
 # Check for duplicated items when rule is Hierarchy
 def check_duplicates(hierarchy_list):
     if len(hierarchy_list) == len(set(hierarchy_list)):
         return False
     else:
         return True
-
-
-class Attribute(BaseModel):
-    authorityNamespace: AnyUrl
-    name: str
-    order: list
-    rule: RuleEnum
-    state: Optional[str]
-
-
-# Used by KAS, endpoint appended to ATTR_AUTHORITY_HOST
-@app.post("/v1/attrName", response_model=List[Attribute], include_in_schema=False)
-async def read_attribute():
-    # return all for now body: List[HttpUrl]
-    query = table_attribute.select()
-    result = await database.fetch_all(query)
-    authorities = await read_authorities_crud()
-    attributes: List[Attribute] = []
-    for row in result:
-        try:
-            attributes.append(
-                Attribute(
-                    authorityNamespace=authorities[row.namespace_id],
-                    name=row.get(table_attribute.c.name),
-                    order=row.get("values_array"),
-                    values=row.get("values_array"),
-                    rule=row.get(table_attribute.c.rule),
-                    state=row.get(table_attribute.c.state),
-                )
-            )
-        except ValidationError as e:
-            logging.error(e)
-    return attributes
-
-
-if __name__ == "__main__":
-    print(json.dumps(app.openapi()), file=sys.stdout)

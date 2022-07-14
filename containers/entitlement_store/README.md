@@ -45,7 +45,7 @@ docker run --rm -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=myPo
 ### build image
 ```shell
 # from project root
-docker build --no-cache --tag opentdf/entitlement-store:0.2.0 entitlement-store
+docker build --no-cache --tag opentdf/entitlement_store:0.2.0 entitlement_store
 ```
 
 ### secrets

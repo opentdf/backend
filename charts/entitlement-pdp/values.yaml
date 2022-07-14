@@ -19,11 +19,22 @@ opaConfigMountPath: "/etc/opa/config"
 
 opaConfig:
   policy:
+    # If `useStaticPolicy` is set to `true`, then an OPA config will be generated
+    # that forces the use of a policy bundle that was built and packed into the `entitlement-pdp`
+    # container at *build* time, and no policy bundle will be fetched dynamically from the registry
+    # on startup.
+    # This is not a desirable default, but it is useful in offline deployments.
     useStaticPolicy: false
     OCIRegistryUrl: "https://ghcr.io"
     bundleRepo: "ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle"
     # `bundleTag` will default to `.Chart.AppVersion` if unset
     # bundleTag: 0.0.6
+
+    # This will tell OPA to ignore TLS errors (bad cert, self-signed cert, etc)
+    # when downloading an OCI policy bundle from an OCI registry.
+    #
+    # Unsuitable for production, used for testing with `localhost` registries
+    allowInsecureTLS: false
     updatePolling:
       minDelay: 60
       maxDelay: 120

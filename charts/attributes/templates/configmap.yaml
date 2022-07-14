@@ -11,6 +11,7 @@ data:
   OIDC_REALM: {{ .Values.oidc.realm | quote  }}
   OIDC_SERVER_URL: {{ .Values.oidc.internalHost | quote  }}
   OIDC_TOKEN_URL: {{ .Values.oidc.externalHost }}/realms/{{ .Values.oidc.realm}}/protocol/openid-connect/token
+  OIDC_SCOPES: {{ .Values.oidc.scopes | quote  }}
   OPENAPI_URL: {{ .Values.openapiUrl | quote }}
   POSTGRES_DATABASE: {{ .Values.postgres.database | quote  }}
   POSTGRES_HOST: {{ .Values.postgres.host | quote  }}
@@ -19,3 +20,4 @@ data:
   SERVER_LOG_LEVEL: {{ .Values.logLevel | quote }}
   SERVER_PUBLIC_NAME: {{ .Values.serverPublicName | quote  }}
   SERVER_ROOT_PATH: {{ .Values.serverRootPath | quote  }}
+  SERVER_CORS_ORIGINS: {{ .Values.serverCorsOrigins | quote  }}

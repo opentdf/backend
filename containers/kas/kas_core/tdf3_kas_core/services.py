@@ -63,8 +63,6 @@ from tdf3_kas_core.models.nanotdf import ResourceLocator
 from tdf3_kas_core.models.nanotdf import ECCMode
 from tdf3_kas_core.models.nanotdf import SymmetricAndPayloadConfig
 
-from tdf3_kas_core.server_timing import Timing
-
 from tdf3_kas_core.authorized import authorized
 from tdf3_kas_core.authorized import authorized_v2
 from tdf3_kas_core.authorized import looks_like_jwt
@@ -479,7 +477,6 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     """
     Handle rewrap request for tdf3 type.
     """
-    Timing.start("_nano_tdf_rewrap")
     try:
         key_access = data["keyAccess"]
 
@@ -621,7 +618,6 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         "entityWrappedKey": encrypted_symmetric_kak_base64,
         "sessionPublicKey": ephemeral_rewrap_public_key,
     }
-    Timing.stop("_nano_tdf_rewrap")
     return res
 
 

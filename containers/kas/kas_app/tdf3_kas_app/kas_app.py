@@ -7,7 +7,6 @@ from importlib import metadata
 from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
-from tdf3_kas_core.server_timing import Timing
 
 from .plugins import opentdf_attr_authority_plugin, revocation_plugin
 
@@ -134,12 +133,4 @@ def app(name):
         kas.set_key_pem("AA-PUBLIC", "PUBLIC", aa_certificate)
 
     # Get a Flask app from the KAS instance
-    running_app = kas.app()
-    # set profiler
-    Timing(
-        running_app,
-        os.environ.get("STATSD_HOST"),
-        os.environ.get("STATSD_PORT"),
-        "service.kas.flask",
-    )
-    return running_app
+    return kas.app()

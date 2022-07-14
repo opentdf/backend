@@ -75,7 +75,54 @@ def test_create_attributes_definitions(test_app, monkeypatch):
         "Proprietary",
         "BusinessSensitive",
         "Open"
-      ]
+      ],
+      "group_by": None
+    }
+
+    async def mock_create_attributes_definitions_crud(request):
+        return test_response
+
+    monkeypatch.setattr(main, "create_attributes_definitions_crud", mock_create_attributes_definitions_crud)
+
+    response = test_app.post("/definitions/attributes", data=json.dumps(test_payload))
+    assert response.status_code == 200
+    assert response.json() == test_response
+
+def test_create_attributes_definitions_groupby(test_app, monkeypatch):
+    test_payload = {
+      "authority": "https://opentdf.io",
+      "name": "IntellectualProperty",
+      "rule": "hierarchy",
+      "state": "published",
+      "order": [
+        "TradeSecret",
+        "Proprietary",
+        "BusinessSensitive",
+        "Open"
+      ],
+      "group_by": {
+        "authority": "https://opentdf.io",
+        "name": "ClassificationUS",
+        "value": "Proprietary"
+      }
+    }
+
+    test_response = {
+      "authority": "https://opentdf.io",
+      "name": "IntellectualProperty",
+      "rule": "hierarchy",
+      "state": "published",
+      "order": [
+        "TradeSecret",
+        "Proprietary",
+        "BusinessSensitive",
+        "Open"
+      ],
+      "group_by": {
+        "authority": "https://opentdf.io",
+        "name": "ClassificationUS",
+        "value": "Proprietary"
+      }
     }
 
     async def mock_create_attributes_definitions_crud(request):
@@ -111,7 +158,8 @@ def test_update_attribute_definition(test_app, monkeypatch):
         "Proprietary",
         "BusinessSensitive",
         "Open"
-      ]
+      ],
+      "group_by": None
     }
 
     async def mock_update_attribute_definition_crud(request):
@@ -122,6 +170,54 @@ def test_update_attribute_definition(test_app, monkeypatch):
     response = test_app.put("/definitions/attributes", data=json.dumps(test_payload))
     assert response.status_code == 200
     assert response.json() == test_response
+
+
+def test_update_attribute_definition_groupby(test_app, monkeypatch):
+    test_payload = {
+      "authority": "https://opentdf.io",
+      "name": "IntellectualProperty",
+      "rule": "hierarchy",
+      "state": "published",
+      "order": [
+        "TradeSecret",
+        "Proprietary",
+        "BusinessSensitive",
+        "Open"
+      ],
+      "group_by": {
+        "authority": "https://opentdf.io",
+        "name": "ClassificationUS",
+        "value": "Proprietary"
+      }
+    }
+
+    test_response = {
+      "authority": "https://opentdf.io",
+      "name": "IntellectualProperty",
+      "rule": "hierarchy",
+      "state": "published",
+      "order": [
+        "TradeSecret",
+        "Proprietary",
+        "BusinessSensitive",
+        "Open"
+      ],
+      "group_by": {
+        "authority": "https://opentdf.io",
+        "name": "ClassificationUS",
+        "value": "Proprietary"
+      }
+    }
+
+    async def mock_update_attribute_definition_crud(request):
+        return test_response
+
+    monkeypatch.setattr(main, "update_attribute_definition_crud", mock_update_attribute_definition_crud)
+
+    response = test_app.put("/definitions/attributes", data=json.dumps(test_payload))
+    assert response.status_code == 200
+    assert response.json() == test_response
+
 
 def test_delete_attributes_definitions(test_app, monkeypatch):
     test_payload = {
