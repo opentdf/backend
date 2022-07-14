@@ -5,10 +5,11 @@
 *.sqlite
 *.swp
 *.tmp
+*.DS_Store
 *~
-.DS_Store
 node_modules
 
+.DS_Store
 .pytest_cache
 .scannerwork
 .venv*
