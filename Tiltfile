@@ -261,8 +261,8 @@ postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
 keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 # Override Keycloak chart values for PKI
-if isPKItest:
-    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
+#if isPKItest:
+#    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
 helm_remote(
     "keycloakx",
@@ -500,12 +500,12 @@ k8s_resource(
     resource_deps=["keycloak-bootstrap", "keycloakx", "opentdf-kas", "opentdf-entitlement-pdp"],
 )
 
-if isPKItest:
-    local_resource(
-        "pki-test",
-        "python3 tests/integration/pki-test/client_pki_test.py",
-        resource_deps=["keycloak-bootstrap", "keycloakx", "opentdf-kas", "opentdf-entitlement-pdp"],
-    )
+#if isPKItest:
+#    local_resource(
+#        "pki-test",
+#        "python3 tests/integration/pki-test/client_pki_test.py",
+#        resource_deps=["keycloak-bootstrap", "keycloakx", "opentdf-kas", "opentdf-entitlement-pdp"],
+#    )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
 # This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.
