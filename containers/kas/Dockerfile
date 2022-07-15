@@ -23,13 +23,16 @@ RUN apk add --no-cache --upgrade \
     openssl-dev \
     python3-dev
 
-# Install application
-COPY kas_app /kas_app
-COPY kas_core /kas_core
-
-# Compile application
+# Install application dependencies
+COPY kas_app/Pipfile* /kas_app/
+COPY kas_app/setup.py /kas_app/
+COPY kas_core/Pipfile* /kas_core/
+COPY kas_core/setup.py /kas_core/
 RUN pip3 install --no-cache-dir --upgrade pip setuptools pipenv && \
   pipenv install --dev --system --deploy --ignore-pipfile
+# Install and compiile application
+COPY kas_app /kas_app/
+COPY kas_core /kas_core/
 RUN python3 -m compileall .
 
 # stage - production server
