@@ -271,7 +271,7 @@ if isPKItest:
 
 helm_remote(
     "keycloak",
-    version="18.1.1",
+    version="17.0.1",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
