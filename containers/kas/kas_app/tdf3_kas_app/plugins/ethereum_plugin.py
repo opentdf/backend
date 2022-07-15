@@ -6,6 +6,7 @@ import jwt as jwt
 
 from tdf3_kas_core.abstractions import AbstractRewrapPlugin
 from tdf3_kas_core import Policy
+from tdf3_kas_core.errors import BadRequestError
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,10 @@ class EthereumPlugin(AbstractRewrapPlugin):
         logger.debug("~~~~~~~~~")
         # tdf_pubkey and tdf_amount from TDF data attributes
         canonical_policy: Policy = req["policy"]
+        found = False
         for _, data_attribute in enumerate(canonical_policy.data_attributes.clusters):
             if data_attribute.namespace.startswith("https://kovan.network/attr/Wallet"):
+                found = True
                 for _, values in enumerate(data_attribute.values):
                     tdf_pubkey = values.value
                     logger.debug("*********")
@@ -47,10 +50,12 @@ class EthereumPlugin(AbstractRewrapPlugin):
                     logger.debug(tdf_content_tier)
                     logger.debug(".........")
         # make call to eth-pdp
-        eth_pdp_url = os.getenv("PLUGIN_ETH_URL")
-        url = f"{eth_pdp_url}?tier={tdf_content_tier}&senderAddress={entity_pubkey}&recipientAddress={tdf_pubkey}&value=0.01"
-        logger.debug(url)
-        response = requests.request("GET", url, headers={}, data={})
-        print(response.status_code)
+        if found:
+            eth_pdp_url = os.getenv("PLUGIN_ETH_URL")
+            url = f"{eth_pdp_url}?tier={tdf_content_tier}&senderAddress={entity_pubkey}&recipientAddress={tdf_pubkey}&value=0.01"
+            logger.debug(url)
+            response = requests.request("GET", url, headers={}, data={})
+            if response.status_code is not 200:
+                raise BadRequestError("payment not found")
 
         return req, res

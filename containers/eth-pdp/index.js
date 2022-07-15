@@ -6,14 +6,14 @@ import axios from 'axios';
 // ETH Configs (main, kovan)
 const ETH_CHAIN = 'main'; // TODO: make into an enum
 
-const hostname = 'localhost';
+const hostname = '0.0.0.0';
 const ethHostMain = 'https://api.ethplorer.io';
 const ethHostKovan = 'https://kovan-api.ethplorer.io';
 let ethHost = undefined;
 const ethplorerApiKey = 'EK-ujRCx-M4SpUWd-Wm1wQ';
 
 // App setup
-const port = process.env.PORT || 8088;
+const port = process.env.PORT || 8080;
 const app = express() // setup express application
 const server = http.createServer(app);
 
