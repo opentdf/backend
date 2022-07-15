@@ -15,4 +15,4 @@ RUN mvn -f  /usr/src/custom-mapper/pom.xml clean package
 FROM ${KEYCLOAK_BASE_IMAGE}:${KEYCLOAK_BASE_VERSION}
 
 # Pack this Java mapper binary into the Keycloak container
-COPY --from=claimsmapperbuild /usr/src/custom-mapper/target/*.jar /opt/jboss/keycloak/standalone/deployments/
+COPY --from=claimsmapperbuild /usr/src/custom-mapper/target/*.jar /opt/keycloak/providers/
