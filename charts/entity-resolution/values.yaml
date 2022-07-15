@@ -1,0 +1,31 @@
+name: 'opentdf-entity-resolution'
+replicaCount: 1
+image:
+  repo: ghcr.io/opentdf/entity-resolution
+  # tag: 0.0.5 # Chart AppVersion will be used if this is not explicitly set.
+  pullPolicy: IfNotPresent
+
+useImagePullSecret: false
+# imageCredentials:
+#   registry: ghcr.io
+#   username: username
+#   password: password
+#   email: nope@nah.com
+
+createKeycloakClientSecret: true
+secret:
+  keycloak:
+    clientSecret: "REPLACE_AT_INSTALL_TIME"
+
+config:
+  listenPort: 7070
+  externalHost: ""
+  verbose: "false"
+  disableTracing: "false"
+  otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
+  keycloak:
+    url: "http://keycloak-http"
+    realm: "tdf"
+    clientId: "tdf-entity-resolution-service"
+    # See https://github.com/Nerzal/gocloak/issues/346
+    legacy: false
