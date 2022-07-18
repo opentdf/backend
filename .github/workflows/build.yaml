@@ -164,7 +164,8 @@ jobs:
         run: |-
           echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
-          tilt ci integration-test pki-test
+          tilt ci integration-test 
+          # pki-test
       - name: Quick check - run/validate local deployment Tiltfile
         run: |-
           tilt ci

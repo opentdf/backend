@@ -16,7 +16,7 @@ extraEnv: |
   - name: KEYCLOAK_ADMIN_PASSWORD
     value: admin
   - name: KC_LOG_LEVEL
-    value: DEBUG
+    value: INFO
   - name: KEYCLOAK_USER
     value: keycloakadmin
   - name: KEYCLOAK_PASSWORD
