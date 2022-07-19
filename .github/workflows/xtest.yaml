@@ -52,5 +52,5 @@ jobs:
       - name: tilt-ci
         run: |-
           kubectl version
-          timeout 15m tilt ci integration-test pki-test
+          tilt ci integration-test pki-test
           kubectl get pods
