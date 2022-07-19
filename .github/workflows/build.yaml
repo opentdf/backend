@@ -159,15 +159,15 @@ jobs:
           cd tests/containers/clients
           echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
+      - name: Quick check - run/validate local deployment Tiltfile
+        run: |-
+          timeout 30m tilt ci
       - name: Run integration test Tiltfile
         run: |-
           echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
-          timeout 15m tilt ci integration-test
+          timeout 30m tilt ci integration-test
           kubectl get pods
-      - name: Quick check - run/validate local deployment Tiltfile
-        run: |-
-          tilt ci
 
   publish-helm-charts:
     runs-on: ubuntu-latest
@@ -188,7 +188,7 @@ jobs:
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
         with:
           setup-tools: helm
-          helm: "3.8.0"
+          helm: "3.9.1"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
@@ -388,7 +388,7 @@ jobs:
       - name: Setup policy OCI bundler tool
         uses: actions/setup-go@v3
         with:
-          go-version: '>=1.17.0'
+          go-version: '>=1.18.0'
       - name: Build policy bundle
         if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
