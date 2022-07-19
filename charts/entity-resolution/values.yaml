@@ -24,7 +24,7 @@ config:
   disableTracing: "false"
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   keycloak:
-    url: "http://keycloak-http"
+    url: "http://keycloakx-http"
     realm: "tdf"
     clientId: "tdf-entity-resolution-service"
     # See https://github.com/Nerzal/gocloak/issues/346
