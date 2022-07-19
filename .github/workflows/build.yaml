@@ -159,9 +159,6 @@ jobs:
           cd tests/containers/clients
           echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
-      - name: Quick check - run/validate local deployment Tiltfile
-        run: |-
-          timeout 30m tilt ci
       - name: Run integration test Tiltfile
         run: |-
           echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
