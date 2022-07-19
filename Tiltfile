@@ -193,19 +193,10 @@ docker_build(
 )
 
 docker_build(
-    CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
-    "./containers/keycloak-protocol-mapper/keycloak/quarkus/container",
-    build_args={
-        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-    },
-)
-
-docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak",
     context="./containers/keycloak-protocol-mapper",
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-        "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
         "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
@@ -271,7 +262,7 @@ keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 helm_remote(
     "keycloakx",
-    version="18.1.1",
+    version="1.3.2",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
@@ -428,7 +419,7 @@ k8s_resource(
 )
 k8s_resource(
     "opentdf-entitlement-pdp",
-    resource_deps=["opentdf-entitlement-store", "opentdf-entity-resolution"],
+    resource_deps=["opentdf-entitlement-store"],
     labels=["Backend"]
 )
 k8s_resource(
