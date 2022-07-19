@@ -91,11 +91,6 @@ all_secrets = {
     ]
 }
 
-if not os.path.exists(
-    "./containers/keycloak-protocol-mapper/keycloak/quarkus/container/Dockerfile"
-):
-    local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
-
 all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
 all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
 all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
