@@ -218,6 +218,11 @@ docker_build(
 )
 
 docker_build(
+    CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+    context="./containers/entity-resolution",
+)
+
+docker_build(
     CONTAINER_REGISTRY + "/opentdf/kas",
     build_args={
         "ALPINE_VERSION": ALPINE_VERSION,
@@ -266,7 +271,7 @@ keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 helm_remote(
     "keycloakx",
-    version="1.3.2",
+    version="18.1.1",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
@@ -325,6 +330,18 @@ k8s_yaml(
             "opaConfig.policy.useStaticPolicy=true",
         ],
         values=["tests/integration/backend-entitlement-pdp-values.yaml"],
+    )
+)
+
+k8s_yaml(
+    helm(
+        "charts/entity-resolution",
+        "opentdf-entity-resolution",
+        set= [
+            "image.name=" + CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+            "useImagePullSecret=false",
+        ],
+        values=["tests/integration/backend-entity-resolution-values.yaml"],
     )
 )
 
@@ -405,8 +422,13 @@ k8s_resource(
     labels=["Backend"]
 )
 k8s_resource(
+    "opentdf-entity-resolution",
+    resource_deps=["keycloakx"],
+    labels=["Backend"]
+)
+k8s_resource(
     "opentdf-entitlement-pdp",
-    resource_deps=["opentdf-entitlement-store"],
+    resource_deps=["opentdf-entitlement-store", "opentdf-entity-resolution"],
     labels=["Backend"]
 )
 k8s_resource(

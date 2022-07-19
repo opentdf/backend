@@ -329,6 +329,7 @@ jobs:
       matrix:
         repo:
           - entitlement-pdp
+          - entity-resolution
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
