@@ -395,6 +395,47 @@ def createTestClientTDFEntitlements(keycloak_admin):
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
 
+def createTestClientTDFEntityResolution(keycloak_admin):
+    client_id = "tdf-entity-resolution-service"
+    client_secret = "123-456"
+    logger.debug("Creating client %s configured for entity resolution", client_id)
+    keycloak_admin.create_client(
+        payload={
+            "clientId": client_id,
+            "secret": client_secret,
+            "directAccessGrantsEnabled": "true",
+            "clientAuthenticatorType": "client-secret",
+            "serviceAccountsEnabled":  "true",
+            "standardFlowEnabled": "true",
+            "protocol": "openid-connect",
+            "publicClient": "false",
+            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "webOrigins": ["+"],
+            "attributes": {
+            "user.info.response.signature.alg": "RS256"
+            },  # Needed to make UserInfo return signed JWT
+        },
+        skip_exists=True,
+    )
+
+    keycloak_client_id = keycloak_admin.get_client_id(client_id)
+    logger.info("Created client %s", keycloak_client_id)
+
+    realmManagerClient = keycloak_admin.get_client_id("realm-management")
+    queryUsers = keycloak_admin.get_client_role(realmManagerClient, "query-users")
+    viewUsers = keycloak_admin.get_client_role(realmManagerClient, "view-users")
+    queryClients = keycloak_admin.get_client_role(realmManagerClient, "query-clients")
+    viewClients = keycloak_admin.get_client_role(realmManagerClient, "view-clients")
+
+    serviceAcctUser = keycloak_admin.get_client_service_account_user(keycloak_client_id)
+    serviceAcctUserId = serviceAcctUser["id"]
+    logger.info("Client %s, Service Account User ID=%s", realmManagerClient, serviceAcctUserId)
+
+
+    # Add role mappings for client
+    keycloak_admin.assign_client_role(serviceAcctUserId, realmManagerClient, [queryUsers, viewUsers, queryClients, viewClients])
+
+
 
 def createTestClientForAbacusWebAuth(keycloak_admin):
     client_id = "abacus-web"
@@ -693,6 +734,9 @@ def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, prel
 
     # Create entitlements test client
     createTestClientTDFEntitlements(keycloak_admin)
+
+    # Create entity resolution client
+    createTestClientTDFEntityResolution(keycloak_admin)
 
     createTestClientTDFClient(keycloak_admin)
 
