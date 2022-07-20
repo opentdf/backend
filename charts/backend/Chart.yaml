@@ -1,9 +1,5 @@
 apiVersion: v2
 appVersion: main
-dependencies:
-- name: attributes
-  repository: file://../attributes
-  version: 0.0.1
 description: Minimal deployment of OpenTDF backend services
 icon: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
 maintainers:
@@ -16,44 +12,33 @@ dependencies:
   - name: attributes
     repository: file://../attributes
     version: 0.0.1
-
   - name: entitlement-pdp
     repository: file://../entitlement-pdp
     version: 0.0.9
-  
-  - name:  entitlement-store
+  - name: entitlement-store
     repository: file://../entitlement-store
     version: 0.0.1
-
-  - name:  entitlements
+  - name: entitlements
     repository: file://../entitlements
     version: 0.0.1
-
-  - name:  entity-resolution
+  - name: entity-resolution
     repository: file://../entity-resolution
-    version: 0.0.1    
-
-  - name:  kas
+    version: 0.0.1
+  - name: kas
     repository: file://../kas
-    version: 0.0.1      
-
+    version: 0.0.1
   - name: postgresql
     repository: https://charts.bitnami.com/bitnami
     version: 10.16.2
     condition: embedded.postgresql
     tags: ["third-party"]
-
   - name: keycloak
     repository: https://codecentric.github.io/helm-charts
     version: 18.1.1
     condition: embedded.keycloak
-    tags: ["third-party","identity"]
-
+    tags: ["third-party", "identity"]
   - name: keycloak-bootstrap
     repository: file://../keycloak_bootstrap
     version: 0.4.4
-    condition: boostrapKeycloak   
-    tags: ["utility"] 
-
-
-
+    condition: boostrapKeycloak
+    tags: ["utility"]

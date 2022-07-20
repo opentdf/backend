@@ -205,6 +205,7 @@ jobs:
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Setting Chart.yaml version to ${short_ver}..."
                 sed -i "s/version\: .*/version\: $escaped_version/" $d/Chart.yaml
+                helm dependency update
                 echo "Packaging Helm chart $d..."
                 helm package $d --app-version="${short_ver}"
                 echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
