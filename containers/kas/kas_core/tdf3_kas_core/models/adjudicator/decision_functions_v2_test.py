@@ -20,7 +20,7 @@ def compose_jwt(primary_ent, entity_bundles):
         "exp": 1638810866,
         "iat": 1638810566,
         "jti": "64770e73-b670-4a4d-9ad0-a0f2fd61a0b1",
-        "iss": "http://keycloak-http/auth/realms/tdf-pki/realms/tdf-pki",
+        "iss": "http://keycloakx-http/auth/realms/tdf-pki/realms/tdf-pki",
         "aud": [
             "realm-management",
             "account"

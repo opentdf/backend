@@ -1,6 +1,5 @@
 name: Build Backend
 env:
-  KEYCLOAK_BASE_IMAGE: ghcr.io/opentdf/keycloak-multiarch-base
   CONTAINER_ARCHS: linux/amd64,linux/arm64
 
 on:
@@ -128,7 +127,7 @@ jobs:
       - pytest
       - kas-unittest
       - config
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
@@ -138,9 +137,9 @@ jobs:
             helm
             tilt
           # This should be in sync with the minikube-deployed kube version below
-          kubectl: "1.23.3"
-          helm: "3.8.0"
-          tilt: "0.25.2"
+          kubectl: "1.24.1"
+          helm: "3.9.1"
+          tilt: "0.30.4"
       - run: |
           kustomize version
           tilt version
@@ -148,9 +147,9 @@ jobs:
         id: minikube
         uses: medyagh/setup-minikube@latest
         with:
-          minikube-version: 1.25.2
+          minikube-version: 1.26.0
           # This should be in sync with the setup-tools version above
-          kubernetes-version: 1.23.3
+          kubernetes-version: 1.24.1
       - name: Get cluster versions
         run: |-
           kubectl version
@@ -162,12 +161,10 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
-          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
-          tilt ci integration-test pki-test
-      - name: Quick check - run/validate local deployment Tiltfile
-        run: |-
-          tilt ci
+          timeout 30m tilt ci integration-test
+          kubectl get pods
 
   publish-helm-charts:
     runs-on: ubuntu-latest
@@ -188,7 +185,7 @@ jobs:
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
         with:
           setup-tools: helm
-          helm: "3.8.0"
+          helm: "3.9.1"
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
@@ -388,7 +385,7 @@ jobs:
       - name: Setup policy OCI bundler tool
         uses: actions/setup-go@v3
         with:
-          go-version: '>=1.17.0'
+          go-version: '>=1.18.0'
       - name: Build policy bundle
         if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
@@ -454,60 +451,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  keycloak-image-base:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    # We're literally building upstream Keycloak as-is
-    # and we don't need to rebuild unless there's a major Keycloak version bump
-    # so at least skip this for non-main builds
-    needs:
-      - config
-      - integration-test
-    permissions:
-      contents: read
-      packages: write
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - name: Checkout upstream Keycloak image repo
-        uses: actions/checkout@v3
-        with:
-          repository: 'keycloak/keycloak-containers'
-          ref: ${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
-      - name: Set up QEMU (required for crossbuild)
-        uses: docker/setup-qemu-action@v1
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.KEYCLOAK_BASE_IMAGE }}
-          tags: |
-            type=ref,event=branch
-            type=sha
-            type-raw,value=${{ needs.config.outputs.KEYCLOAK_OTDF_VERSION }}
-      - name: Set up Docker BuildX
-        uses: docker/setup-buildx-action@v1
-        with:
-          install: true
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish upstream Keycloak base image as multi-arch image
-        uses: docker/build-push-action@v3
-        with:
-          context: ./server
-          file: ./server/Dockerfile
-          platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
-          tags: ${{ steps.meta.outputs.tags }}
-
   custom-keycloak-image:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - config
-      - keycloak-image-base
     permissions:
       contents: read
       packages: write
@@ -542,7 +489,6 @@ jobs:
             JDK_VERSION=11
             CONTAINER_REGISTRY=ghcr.io
             KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
-            KEYCLOAK_BASE_IMAGE=${{ env.KEYCLOAK_BASE_IMAGE }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}

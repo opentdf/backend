@@ -1,7 +1,7 @@
 logLevel: DEBUG
 endpoints:
   easHost: http://opentdf-attributes:4020
-  oidcPubkeyEndpoint: http://keycloak-http
+  oidcPubkeyEndpoint: http://keycloakx-http
   statsdHost: opentdf-statsd
 flaskDebug: "False"
 gunicornWorkers: "1"

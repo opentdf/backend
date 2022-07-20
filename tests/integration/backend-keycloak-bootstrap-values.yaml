@@ -1,5 +1,5 @@
-keycloak:
-  hostname: http://keycloak-http
+keycloakx:
+  hostname: http://keycloakx-http
   username: keycloakadmin
   password: mykeycloakpassword
   passwordUsers: testuser@virtru.com,user1,user2

@@ -4,8 +4,8 @@ serverRootPath: /
 openapiUrl: /
 oidc:
   realm: tdf
-  internalHost: http://keycloak-http/auth/
-  externalHost: http://keycloak-http/auth/
+  internalHost: http://keycloakx-http/auth/
+  externalHost: http://keycloakx-http/auth/
   clientId: tdf-attributes
 
 image:

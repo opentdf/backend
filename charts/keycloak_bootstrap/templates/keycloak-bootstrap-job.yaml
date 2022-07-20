@@ -38,25 +38,25 @@ spec:
             - name: OPENTDF_EXTERNAL_URL
               value: {{ required "Please define the abacus host URL for redirects" .Values.externalUrl }}
             - name: KEYCLOAK_INTERNAL_URL
-              value: {{ .Values.keycloak.hostname }}
+              value: {{ .Values.keycloakx.hostname }}
             - name: keycloak_admin_username
-              value: {{ .Values.keycloak.username }}
-            {{- with .Values.keycloak.password }}
+              value: {{ .Values.keycloakx.username }}
+            {{- with .Values.keycloakx.password }}
             - name: keycloak_admin_password
               value: {{ . }}
             {{- end }}
             - name: passwordUsers
-              value: {{ .Values.keycloak.passwordUsers }}
-            {{- with .Values.keycloak.clientId }}
+              value: {{ .Values.keycloakx.passwordUsers }}
+            {{- with .Values.keycloakx.clientId }}
             - name: CLIENT_ID
               value: {{ . }}
             {{- end }}
-            {{- with .Values.keycloak.clientSecret }}
+            {{- with .Values.keycloakx.clientSecret }}
             - name: CLIENT_SECRET
               value: {{ . }}
             {{- end }}
             - name: realm
-              value: {{ .Values.keycloak.realm }}
+              value: {{ .Values.keycloakx.realm }}
             - name: ATTRIBUTE_AUTHORITY_HOST
               value: {{ .Values.attributes.hostname }}
             - name: ENTITLEMENT_HOST

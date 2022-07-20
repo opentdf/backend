@@ -3,9 +3,18 @@ image:
   repository: ghcr.io/opentdf/keycloak
   tag: head
   pullPolicy: Never # We expect Tilt to cache these
+command:
+  - "/opt/keycloak/bin/kc.sh"
+  - "--verbose"
+  - "start-dev"
+  - "--http-port=8080"
 postgresql:
   enabled: false
 extraEnv: |
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
   - name: KEYCLOAK_LOGLEVEL
     value: INFO
   - name: KEYCLOAK_USER
@@ -25,9 +34,11 @@ extraEnv: |
   - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
     value: "true"
   - name: KEYCLOAK_FRONTEND_URL
-    value: "https://keycloak-http:4567/auth"
+    value: "https://keycloakx-http:4567/auth"
   - name: X509_CA_BUNDLE
     value: /etc/x509/https/ca.crt
+  - name: JAVA_OPTS_APPEND
+    value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
 extraEnvFrom: |
   - secretRef:
       name: '{{ include "keycloak.fullname" . }}-db'
@@ -41,7 +52,7 @@ ingress:
   servicePort: https
   rules:
     - # Ingress host
-      host: "keycloak-http"
+      host: "keycloakx-http"
       # Paths for the host
       paths:
         - path: /
@@ -60,10 +71,10 @@ ingress:
     nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
 
   hosts:
-    - keycloak-http
+    - keycloakx-http
   tls:
     - hosts:
-        - "keycloak-http"
+        - "keycloakx-http"
       secretName: x509-secret
 
 extraVolumes: |

@@ -4,37 +4,47 @@ image:
   repository: ghcr.io/opentdf/keycloak
   tag: head
   pullPolicy: Never # We expect Tilt to cache these
+command:
+  - "/opt/keycloak/bin/kc.sh"
+  - "--verbose"
+  - "start-dev"
 postgresql:
   enabled: false
 extraEnv: |
-  - name: KEYCLOAK_LOGLEVEL
-    value: DEBUG
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
+  - name: KC_LOG_LEVEL
+    value: INFO
   - name: KEYCLOAK_USER
     value: keycloakadmin
   - name: KEYCLOAK_PASSWORD
     value: mykeycloakpassword
   - name: CLAIMS_URL
     value: http://opentdf-entitlement-pdp:3355/entitlements
-  - name: DB_VENDOR
+  - name: KC_DB
     value: postgres
-  - name: DB_ADDR
+  - name: KC_DB_URL_HOST
     value: opentdf-postgresql
-  - name: DB_DATABASE
+  - name: KC_DB_URL_DATABASE
     value: keycloak_database
-  - name: DB_PORT
+  - name: KC_DB_URL_PORT
     value: "5432"
-  - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
-    value: "true"
+  - name: KC_PROXY
+    value: "edge"
   - name: KEYCLOAK_FRONTEND_URL
     value: "http://localhost:65432/auth"
+  - name: JAVA_OPTS_APPEND
+    value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
 extraEnvFrom: |
   - secretRef:
       name: '{{ include "keycloak.fullname" . }}-db'
 secrets:
   db:
     stringData:
-      DB_USER: postgres
-      DB_PASSWORD: otdf-pgsql-admin
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: otdf-pgsql-admin
 ingress:
   enabled: true
   ingressClassName: nginx

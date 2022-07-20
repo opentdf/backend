@@ -31,7 +31,7 @@ to_edit = cfg.get("to-edit", [])
 
 groups = {
     "integration-test": [
-        "keycloak",
+        "keycloakx",
         "keycloak-bootstrap",
         "ingress-nginx-controller",
         "ingress-nginx-admission-create",
@@ -58,11 +58,11 @@ for arg in cfg.get("to-run", []):
         isIntegrationTest = True
     if arg in groups:
         resources += groups[arg]
-    else:
-        if arg == "pki-test":
-            isPKItest = True
+    #else:
+    #    if arg == "pki-test":
+    #        isPKItest = False
         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
-        resources.append(arg)
+    #    resources.append(arg)
 
 config.set_enabled_resources(resources)
 
@@ -90,11 +90,6 @@ all_secrets = {
         "KAS_PRIVATE_KEY",
     ]
 }
-
-if not os.path.exists(
-    "./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"
-):
-    local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
 
 all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
 all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
@@ -193,19 +188,10 @@ docker_build(
 )
 
 docker_build(
-    CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
-    "./containers/keycloak-protocol-mapper/keycloak-containers/server",
-    build_args={
-        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-    },
-)
-
-docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak",
     context="./containers/keycloak-protocol-mapper",
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-        "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
         "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",
@@ -266,12 +252,12 @@ postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
 keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 # Override Keycloak chart values for PKI
-if isPKItest:
-    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
+#if isPKItest:
+#    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
 helm_remote(
-    "keycloak",
-    version="17.0.1",
+    "keycloakx",
+    version="1.3.2",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )
@@ -423,12 +409,12 @@ k8s_resource(
 )
 k8s_resource(
     "opentdf-entity-resolution",
-    resource_deps=["keycloak"],
+    resource_deps=["keycloakx"],
     labels=["Backend"]
 )
 k8s_resource(
     "opentdf-entitlement-pdp",
-    resource_deps=["opentdf-entitlement-store", "opentdf-entity-resolution"],
+    resource_deps=["opentdf-entitlement-store"],
     labels=["Backend"]
 )
 k8s_resource(
@@ -489,14 +475,14 @@ docker_build(
 )
 
 k8s_resource(
-    "keycloak",
+    "keycloakx",
     links=[link("http://localhost:65432/auth/", "Keycloak admin console")],
     labels=["Third-party"]
 )
 
 k8s_resource(
     "keycloak-bootstrap",
-    resource_deps=["keycloak", "opentdf-entitlements", "opentdf-attributes"],
+    resource_deps=["keycloakx", "opentdf-entitlements", "opentdf-attributes"],
     labels="Utility"
 )
 
@@ -519,15 +505,15 @@ k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
     "opentdf-xtest",
-    resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
+    resource_deps=["keycloak-bootstrap", "keycloakx", "opentdf-entitlement-pdp", "opentdf-kas"],
 )
 
-if isPKItest:
-    local_resource(
-        "pki-test",
-        "python3 tests/integration/pki-test/client_pki_test.py",
-        resource_deps=["keycloak-bootstrap", "keycloak", "opentdf-kas", "opentdf-entitlement-pdp"],
-    )
+#if isPKItest:
+#    local_resource(
+#        "pki-test",
+#        "python3 tests/integration/pki-test/client_pki_test.py",
+#        resource_deps=["keycloak-bootstrap", "keycloakx", "opentdf-kas", "opentdf-entitlement-pdp"],
+#    )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
 # This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.
