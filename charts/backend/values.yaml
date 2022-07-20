@@ -5,6 +5,8 @@ embedded:
 boostrapKeycloak: true
 
 secrets:
+  opaPolicyPullSecret:
+  oidcClientSecret:
   postgres:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin

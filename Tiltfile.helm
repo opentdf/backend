@@ -17,6 +17,10 @@ KEYCLOAK_BASE_VERSION = str(
 ).strip()
 
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
+POSTGRES_PASSWORD = "myPostgresPassword"
+OIDC_CLIENT_SECRET = "myclientsecret"
+opaPolicyPullSecret = os.environ.get("CR_PAT")
+
 
 def from_dotenv(path, key):
     # Read a variable from a `.env` file
@@ -31,12 +35,8 @@ to_edit = cfg.get("to-edit", [])
 
 groups = {
     "integration-test": [
-        "ingress-nginx-controller",
-        "ingress-nginx-admission-create",
-        "ingress-nginx-admission-patch",
         "backend",
-        "opentdf-xtest",
-        "opentdf-abacus"
+        "opentdf-xtest"
     ],
 }
 
@@ -88,57 +88,13 @@ if not os.path.exists(
 ):
     local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
 
-all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
-all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
 all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
-all_secrets["opaPolicyPullSecret"] = os.environ.get("CR_PAT")
 
 
 def only_secrets_named(*items):
     return {k: all_secrets[k] for k in items}
 
 
-k8s_yaml(
-    secret_from_dict(
-        "attributes-secrets",
-        inputs=only_secrets_named("OIDC_CLIENT_SECRET", "POSTGRES_PASSWORD"),
-    )
-)
-k8s_yaml(
-    secret_from_dict(
-        "keycloak-bootstrap-secrets",
-        inputs=only_secrets_named("OIDC_CLIENT_SECRET"),
-    )
-)
-k8s_yaml(
-        secret_from_dict(
-            "entitlement-store-secrets",
-            inputs=only_secrets_named("POSTGRES_PASSWORD"),
-        )
-    )
-k8s_yaml(
-    secret_from_dict(
-        "opentdf-entitlement-pdp-secret",
-        inputs=only_secrets_named(
-            "opaPolicyPullSecret",
-        ),
-    )
-)
-k8s_yaml(
-    secret_from_dict(
-        "postgres-password",
-        inputs=only_secrets_named("POSTGRES_PASSWORD"),
-    )
-)
-k8s_yaml(
-    secret_from_dict(
-        "entitlements-secrets",
-        inputs={
-            "OIDC_CLIENT_SECRET": all_secrets["OIDC_CLIENT_SECRET"],
-            "POSTGRES_PASSWORD": all_secrets["POSTGRES_PASSWORD"],
-        },
-    )
-)
 k8s_yaml(
     secret_from_dict(
         "kas-secrets",
@@ -163,16 +119,6 @@ k8s_yaml(
 #                                    d"     YD
 #                                    "Y88888P'
 #
-
-if "opentdf-abacus" in to_edit:
-    docker_build("opentdf/abacus", "../frontend")
-
-if "opentdf-abacus-client-web" in to_edit:
-    docker_build(
-        "opentdf/abacus",
-        "../frontend",
-        dockerfile="../frontend/DockerfileTests"
-    )
 
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/python-base",
@@ -261,42 +207,8 @@ for microservice in ["attributes", "entitlements", "entitlement_store"]:
                 trigger="./containers/" + microservice + "/requirements.txt",
             ),
         ],
-    )
-# postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
-# keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
+)
 
-# # Override Keycloak chart values for PKI
-# if isPKItest:
-#     keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
-
-# helm_remote(
-#     "keycloak",
-#     version="18.1.1",
-#     repo_url="https://codecentric.github.io/helm-charts",
-#     values=[keycloak_helm_values],
-# )
-
-# if "opentdf-abacus" in to_edit or "opentdf-abacus-client-web" in to_edit:
-#     k8s_yaml("tests/integration/frontend-local.yaml")
-# else:
-#     helm_resource(
-#         "opentdf-abacus",
-#         "oci://ghcr.io/opentdf/charts/abacus",
-#         flags=[
-#             "--version",
-#             "0.0.0-sha-d198639",
-#         ],
-#         labels="Frontend",
-#         resource_deps=["keycloak-bootstrap"],
-#     )
-
-# helm_remote(
-#     "postgresql",
-#     repo_url="https://charts.bitnami.com/bitnami",
-#     release_name="opentdf",
-#     version="10.16.2",
-#     values=[postgres_helm_values],
-# )
 
 #                                           o8o
 #                                           `"'
@@ -313,57 +225,34 @@ helm_resource(
     chart  =  "./charts/backend",
     image_deps = [ 
         CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-        CONTAINER_REGISTRY + "/opentdf/keycloak"
+        CONTAINER_REGISTRY + "/opentdf/keycloak",
+        CONTAINER_REGISTRY + "/opentdf/attributes",
+        CONTAINER_REGISTRY + "/opentdf/entitlements",
+        CONTAINER_REGISTRY + "/opentdf/entitlement_store",
+        CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+        CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+        CONTAINER_REGISTRY + "/opentdf/kas"
         ],
     image_keys=[
         ('keycloak-bootstrap.image.repository', 'keycloak-bootstrap.image.tag'),
         ('keycloak.image.repository', 'keycloak.image.tag'),
+        ('attributes.image.repository', 'attributes.image.tag'),
+        ('entitlements.image.repository', 'entitlements.image.tag'),
+        ('entitlement_store.image.repository', 'entitlement_store.image.tag'),
+        ('entitlement-pdp.image.repository', 'entitlement-pdp.image.tag'),
+        ('entitlement-resolution.image.repository', 'entitlement-resolution.image.tag'),
+        ('kas.image.repository', 'kas.image.tag')
         ],
     flags=[
         "-f",
         "./charts/backend/values.yaml",
-        "--set",
-        "keycloak.image.pullPolicy=Never",        
-        "--set",
-        "entity-resolution.secret.keycloak.clientSecret=123-456"
+        "--set", "keycloak.image.pullPolicy=Never",        
+        "--set", "entity-resolution.secret.keycloak.clientSecret=123-456",
+        "--set", "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
+        "--set", "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
+        "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD
     ],
     labels="opentdf"
-)
-
-#     o8o
-#     `"'
-#    oooo  ooo. .oo.    .oooooooo oooo d8b  .ooooo.   .oooo.o  .oooo.o
-#    `888  `888P"Y88b  888' `88b  `888""8P d88' `88b d88(  "8 d88(  "8
-#     888   888   888  888   888   888     888ooo888 `"Y88b.  `"Y88b.
-#     888   888   888  `88bod8P'   888     888    .o o.  )88b o.  )88b
-#    o888o o888o o888o `8oooooo.  d888b    `Y8bod8P' 8""888P' 8""888P'
-#                      d"     YD
-#                      "Y88888P'
-#
-# TODO should integrate with a service mesh and stop deploying our own ingress
-# We need to have big headers for the huge bearer tokens we pass around
-# https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-
-helm_repo(
-    "k8s-in",
-    "https://kubernetes.github.io/ingress-nginx",
-    labels="utility",
-)
-
-helm_resource(
-    "ingress-nginx",
-    "k8s-in/ingress-nginx",
-    flags=[
-        "--version",
-        "4.0.16",
-        "--set",
-        "controller.config.large-client-header-buffers=20 32k",
-        "--set",
-        "controller.admissionWebhooks.enabled=false",
-    ],
-    labels="third-party",
-    port_forwards="65432:80",
-    resource_deps=["k8s-in"],
 )
 
 #    db    db d888888b d88888b .d8888. d888888b
