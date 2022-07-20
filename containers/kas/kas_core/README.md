@@ -83,7 +83,7 @@ def make_my_kas_app(name):
 ### Publishing tdf3_kas_core
 
 We publish to a private PyPI managed by a Sonatype Nexus Repository Manager.
-This is at https://hub.nexus.virtru.com/. 
+This is at https://nexus.mgmt.virtru.com/. 
 To get user creds, you'll need to follow [the guide in our devops wiki](https://virtru.atlassian.net/wiki/spaces/ENG/pages/707788811/Getting+Started+With+Hub+Nexus).
 
 
@@ -94,10 +94,9 @@ To get user creds, you'll need to follow [the guide in our devops wiki](https://
 pipenv install --dev
 pipenv run python3 -m build
 
-TWINE_REPOSITORY_URL="https://nexus.hub.virtru.com/repository/pypi-private/" \
 TWINE_USERNAME=_DTGU7S2 \
 SOURCE_DATE_EPOCH=$(git show -s --format=%ct) \
-pipenv run python3 -m twine upload dist/*
+pipenv run python3 -m twine upload dist/* --repository-url https://nexus.mgmt.virtru.com/repository/pypi-private/
 ```
 
 ### Consuming this package
@@ -112,7 +111,7 @@ verify_ssl = true
 name = "pypi"
 
 [[source]]
-url = "https://nexus.hub.virtru.com/repository/pypi-private/simple"
+url = "https://nexus.mgmt.virtru.com/repository/pypi-private/simple"
 verify_ssl = true
 name = "virtru-pypi-private"
 
