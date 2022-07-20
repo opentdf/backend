@@ -69,7 +69,7 @@ keycloak:
         paths: *paths
       - host: opentdf.local
         paths: *paths
-    tls: null  
+    tls: null
 
 keycloak-bootstrap:
   externalUrl: http://localhost:65432
@@ -80,7 +80,7 @@ keycloak-bootstrap:
     password: mykeycloakpassword
     clientId: tdf-client
     clientSecret: 123-456
-    realm: tdf 
+    realm: tdf
 
   attributes:
     hostname: http://opentdf-attributes:4020
@@ -95,7 +95,7 @@ keycloak-bootstrap:
       name: Classification
       rule: hierarchy
       state: published
-      order: 
+      order:
       - TS
       - S
       - C
@@ -104,7 +104,7 @@ keycloak-bootstrap:
       name: COI
       rule: allOf
       state: published
-      order: 
+      order:
       - PRX
       - PRA
       - PRB
@@ -181,7 +181,7 @@ postgresql:
           id   SERIAL PRIMARY KEY,
           name VARCHAR COLLATE NOCASE NOT NULL UNIQUE
       );
-      
+
       CREATE TABLE IF NOT EXISTS tdf_attribute.attribute
       (
           id           SERIAL PRIMARY KEY,
