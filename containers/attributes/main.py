@@ -45,11 +45,12 @@ swagger_ui_init_oauth = {
     "realm": os.getenv("OIDC_REALM"),
     "appName": os.getenv("SERVER_PUBLIC_NAME"),
     "scopes": [os.getenv("OIDC_SCOPES")],
+    "authorizationUrl": os.getenv("OIDC_AUTHORIZATION_URL"),
 }
 
 
 class Settings(BaseSettings):
-    openapi_url: str = "/openapi.json"
+    openapi_url: str = os.getenv("SERVER_ROOT_PATH", "")+"/openapi.json"
     base_path: str = os.getenv("SERVER_ROOT_PATH", "")
 
 
@@ -61,6 +62,7 @@ app = FastAPI(
     servers=[{"url": settings.base_path}],
     swagger_ui_init_oauth=swagger_ui_init_oauth,
     openapi_url=settings.openapi_url,
+    swagger_ui_parameters={"url": os.getenv("SERVER_ROOT_PATH", "")+settings.openapi_url}
 )
 
 app.add_middleware(
@@ -291,6 +293,7 @@ def custom_openapi():
     openapi_schema["info"]["x-logo"] = {
         "url": "https://avatars.githubusercontent.com/u/90051847?s=200&v=4"
     }
+    openapi_schema["servers"] = [{"url": os.getenv("SERVER_ROOT_PATH", "")}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
