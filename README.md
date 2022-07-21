@@ -66,7 +66,7 @@ This quick start guide is primarily for development and testing the ABAC and KAS
 ./scripts/pre-reqs docker helm tilt kind
 ```
 
-### Generate local certs in certs/ directory
+1. Generate local certs in certs/ directory
 
 > You may need to manually clean the `certs` folder occasionally
 
@@ -74,26 +74,26 @@ This quick start guide is primarily for development and testing the ABAC and KAS
 ./scripts/genkeys-if-needed
 ```
 
-### Create cluster
+1. Create cluster
 
 ```shell
 ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf
 ```
 
-### Start cluster
+1. Start cluster
 
 > TODO([PLAT-1599](https://virtru.atlassian.net/browse/PLAT-1599)) Consolidate integration and root tiltfile.
 
-```shell
-tilt up [all/integration-test] [-- --to-edit opentdf-abacus/opentdf-abacus-tdf3]
 
-# 'tilt up all' will run tiltfile within root (e.g. root ./tiltfile)
-# 'tilt up integration-test' will run tiltfile within ci (e.g. ./tests/integration/tiltfile)
+`tilt up` will run tiltfile within root e.g. [./Tiltfile](./Tiltfile)
+```shell
+tilt up [-- --to-edit opentdf-abacus/opentdf-abacus-tdf3]
+
 # '-- --to-edit opentdf-abacus' will run local frontend container instead of deployed one
 # '-- --to-edit opentdf-abacus-tdf3' will run local frontend container instead of deployed one and use DockerfileTests config
 ```
 
-# Hit spacebar to open web UI
+1. Hit spacebar to open web UI
 
 ### Cleanup
 
@@ -155,7 +155,7 @@ Once a cluster is running, run `tests/security-test/helm-test.sh`
 
 ### Integration Tests
 
-> TODO Under Construction 
+Once a cluster is running, run `tests/integration/xtest.sh`
 
 ## Deployment
 

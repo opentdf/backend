@@ -1,0 +1,114 @@
+# Tiltfile for development of OpenTDF backend
+# reference https://docs.tilt.dev/api.html
+# extensions https://github.com/tilt-dev/tilt-extensions
+# helm remote usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
+
+load("ext://helm_remote", "helm_remote")
+load("ext://helm_resource", "helm_resource", "helm_repo")
+load("ext://secret", "secret_from_dict", "secret_yaml_generic")
+load("ext://min_tilt_version", "min_tilt_version")
+
+min_tilt_version("0.30")
+
+ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.15")
+PY_VERSION = os.environ.get("PY_VERSION", "3.10")
+KEYCLOAK_BASE_VERSION = str(
+    local('cut -d- -f1 < "{}"'.format("containers/keycloak-protocol-mapper/VERSION"))
+).strip()
+
+CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
+POSTGRES_PASSWORD = "myPostgresPassword"
+OIDC_CLIENT_SECRET = "myclientsecret"
+opaPolicyPullSecret = os.environ.get("CR_PAT")
+
+
+def from_dotenv(path, key):
+    # Read a variable from a `.env` file
+    return str(local('. "{}" && echo "${}"'.format(path, key))).strip()
+
+
+config.define_string_list("to-run", args=True)
+config.define_string_list("to-edit")
+cfg = config.parse()
+
+to_edit = cfg.get("to-edit", [])
+
+groups = {
+    "integration-test": [
+        "opentdf-xtest"
+    ],
+}
+
+resources = []
+
+isIntegrationTest = False
+isPKItest = False
+
+for arg in cfg.get("to-run", []):
+    if arg == "integration-test":
+        isIntegrationTest = True
+    if arg in groups:
+        resources += groups[arg]
+    else:
+        if arg == "pki-test":
+            isPKItest = True
+        # also support specifying individual services instead of groups, e.g. `tilt up a b d`
+        resources.append(arg)
+
+config.set_enabled_resources(resources)
+
+if isPKItest:
+    local("./tests/integration/pki-test/gen-keycloak-certs.sh")
+
+keycloak_helm_values = "tests/integration/backend-keycloak-values.xtest.yaml"
+
+# Override Keycloak chart values for PKI
+if isPKItest:
+    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
+
+
+#    db    db d888888b d88888b .d8888. d888888b
+#    `8b  d8' `~~88~~' 88'     88'  YP `~~88~~'
+#     `8bd8'     88    88ooooo `8bo.      88
+#     .dPYb.     88    88~~~~~   `Y8b.    88
+#    .8P  Y8.    88    88.     db   8D    88
+#    YP    YP    YP    Y88888P `8888Y'    YP
+
+
+
+docker_build(
+    "opentdf/tests-clients",
+    context="./",
+    dockerfile="./tests/containers/clients/Dockerfile",
+    # todo: (PLAT-1650) Force to x86 mode until we have a python built in arch64
+    platform="linux/amd64",
+)
+
+k8s_yaml("tests/integration/xtest.yaml")
+
+# Boostrap extra Test params.
+
+# k8s_resource(
+#     "xtest-keycloak-bootstrap",
+#     labels="xtest"
+# )
+
+
+k8s_resource(
+    "opentdf-xtest",
+    labels="xtest"
+)
+
+if isPKItest:
+    local_resource(
+        "pki-test",
+        "python3 tests/integration/pki-test/client_pki_test.py",
+    )
+
+# The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
+# This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.
+# Doing a `tilt down && kubectl delete pvc --all` will solve this
+# Tried to automate that teardown postcommand here with Tilt, and it works for everything but `tilt ci` which keeps
+# waiting for the no-op `apply_cmd` to stream logs as a K8S resource.
+# I have not figured out a clean way to run `down commands` with tilt
+# k8s_custom_deploy("Manual PVC Delete On Teardown", 'echo ""', "kubectl delete pvc --all", "")
