@@ -4,6 +4,11 @@ ARG PY_VERSION=3.10
 ARG CONTAINER_REGISTRY=docker.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 
+FROM golang:1.18-alpine AS gobuilder
+RUN apk add --no-cache git=~2
+RUN mkdir /dist
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@grpc
+
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 
 # Establish a working directory in the container for tdf3_kas. This directory
@@ -57,6 +62,17 @@ COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-pack
 # add any new deployable directories and files from the build stage here
 RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 
+# Add Tini ("tiny init" - https://github.com/krallin/tini)
+ENV TINI_VERSION=v0.19.0
+
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /bin/tini
+RUN chmod +x /bin/tini
+
+COPY tini-init.sh /
+RUN mkdir -p /opentdf/bin
+
+COPY --chown=kas:kas --from=gobuilder /dist/access-pdp /opentdf/bin/access-pdp-grpc-server
+
 # Run as kas instead of root
 USER kas
 
@@ -89,5 +105,8 @@ ENV STATSD_PORT "8125"
 
 EXPOSE 8000
 
-# Start green unicorn. It reads the environment variables set above.
-ENTRYPOINT gunicorn --statsd-host "${STATSD_HOST}:${STATSD_PORT}" --limit-request-field_size 65535 --statsd-prefix "service.kas" --config "gunicorn.conf.py" --bind ":8000" wsgi:app
+# Run program under Tini
+ENTRYPOINT ["/bin/tini", "--"]
+
+# Script to launch app
+CMD ["/tini-init.sh"]
