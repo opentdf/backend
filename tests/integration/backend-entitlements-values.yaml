@@ -1,6 +1,7 @@
 logLevel: DEBUG
 serverPublicName: "Entitlements"
 serverRootPath: /api/entitlements
+openapiUrl: /openapi
 oidc:
   realm: tdf
   internalHost: http://keycloak-http/auth
