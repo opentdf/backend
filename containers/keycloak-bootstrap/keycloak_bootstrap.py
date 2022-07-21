@@ -954,13 +954,13 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
 
         if "payload" in realm:
             createRealm(keycloak_admin, realm["name"], realm["payload"])
-            keycloak_admin = KeycloakAdmin(
-                server_url=kc_url,
-                username=kc_admin_user,
-                password=kc_admin_pass,
-                realm_name=realm["name"],
-                user_realm_name="master",
-            )
+        keycloak_admin = KeycloakAdmin(
+            server_url=kc_url,
+            username=kc_admin_user,
+            password=kc_admin_pass,
+            realm_name=realm["name"],
+            user_realm_name="master",
+        )            
         if "clients" in realm:
             for client in realm["clients"]:
                 logger.debug(f"Client {client}")

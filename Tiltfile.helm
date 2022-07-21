@@ -208,6 +208,11 @@ for microservice in ["attributes", "entitlements", "entitlement_store"]:
             ),
         ],
 )
+keycloak_helm_values = "tests/integration/backend-keycloak-values.xtest.yaml"
+
+# Override Keycloak chart values for PKI
+if isPKItest:
+    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
 
 
 #                                           o8o
@@ -220,39 +225,91 @@ for microservice in ["attributes", "entitlements", "entitlement_store"]:
 #
 # usage https://docs.tilt.dev/helm.html#helm-options
 
-helm_resource(
-    name = "backend",
-    chart  =  "./charts/backend",
-    image_deps = [ 
-        CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-        CONTAINER_REGISTRY + "/opentdf/keycloak",
-        CONTAINER_REGISTRY + "/opentdf/attributes",
-        CONTAINER_REGISTRY + "/opentdf/entitlements",
-        CONTAINER_REGISTRY + "/opentdf/entitlement_store",
-        CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-        CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-        CONTAINER_REGISTRY + "/opentdf/kas"
-        ],
-    image_keys=[
-        ('keycloak-bootstrap.image.repository', 'keycloak-bootstrap.image.tag'),
-        ('keycloak.image.repository', 'keycloak.image.tag'),
-        ('attributes.image.repository', 'attributes.image.tag'),
-        ('entitlements.image.repository', 'entitlements.image.tag'),
-        ('entitlement_store.image.repository', 'entitlement_store.image.tag'),
-        ('entitlement-pdp.image.repository', 'entitlement-pdp.image.tag'),
-        ('entitlement-resolution.image.repository', 'entitlement-resolution.image.tag'),
-        ('kas.image.repository', 'kas.image.tag')
-        ],
-    flags=[
-        "-f",
-        "./charts/backend/values.yaml",
-        "--set", "keycloak.image.pullPolicy=Never",        
-        "--set", "entity-resolution.secret.keycloak.clientSecret=123-456",
-        "--set", "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
-        "--set", "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
-        "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD
-    ],
-    labels="opentdf"
+# Using helm_resource doesn not allow for nice dependency use e.g. "backend" for xtest.#
+#
+#helm_resource(
+#    name = "backend",
+#    chart  =  "./charts/backend",
+#    image_deps = [ 
+#        CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
+#        CONTAINER_REGISTRY + "/opentdf/keycloak",
+#        CONTAINER_REGISTRY + "/opentdf/attributes",
+#        CONTAINER_REGISTRY + "/opentdf/entitlements",
+#        CONTAINER_REGISTRY + "/opentdf/entitlement_store",
+#        CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+#        CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+#        CONTAINER_REGISTRY + "/opentdf/kas"
+#        ],
+#    image_keys=[
+#        ('keycloak-bootstrap.image.repository', 'keycloak-bootstrap.image.tag'),
+#        ('keycloak.image.repository', 'keycloak.image.tag'),
+#        ('attributes.image.repository', 'attributes.image.tag'),
+#        ('entitlements.image.repository', 'entitlements.image.tag'),
+#        ('entitlement_store.image.repository', 'entitlement_store.image.tag'),
+#        ('entitlement-pdp.image.repository', 'entitlement-pdp.image.tag'),
+#        ('entitlement-resolution.image.repository', 'entitlement-resolution.image.tag'),
+#        ('kas.image.repository', 'kas.image.tag')
+#        ],
+#    flags=[
+#        "-f",
+#        "./charts/backend/values.yaml",
+#        "--set", "keycloak.image.pullPolicy=Never",        
+#        "--set", "entity-resolution.secret.keycloak.clientSecret=123-456",
+#        "--set", "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
+#        "--set", "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
+#        "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD
+#    ],
+#    labels="opentdf"
+#)
+
+k8s_yaml(
+    helm(
+        "charts/backend",
+        "backend",
+        values=["charts/backend/values.yaml"],
+        set=[
+            "entity-resolution.secret.keycloak.clientSecret=123-456",
+            "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
+            "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
+            "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD
+        ]
+    )
+)
+
+k8s_resource(
+    "opentdf-attributes",
+    resource_deps=["opentdf-postgresql"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entity-resolution",
+    resource_deps=["keycloak-bootstrap"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entitlement-pdp",
+    resource_deps=["opentdf-entitlement-store", "opentdf-entity-resolution"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entitlement-store",
+    resource_deps=["opentdf-postgresql"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-entitlements",
+    resource_deps=["opentdf-postgresql"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "opentdf-kas",
+    resource_deps=["opentdf-attributes"],
+    labels=["Backend"]
+)
+k8s_resource(
+    "keycloak-bootstrap",
+    resource_deps=["keycloak", "opentdf-entitlements", "opentdf-attributes"],
+    labels="Utility"
 )
 
 #    db    db d888888b d88888b .d8888. d888888b
@@ -261,6 +318,8 @@ helm_resource(
 #     .dPYb.     88    88~~~~~   `Y8b.    88
 #    .8P  Y8.    88    88.     db   8D    88
 #    YP    YP    YP    Y88888P `8888Y'    YP
+
+
 
 docker_build(
     "opentdf/tests-clients",
@@ -272,16 +331,37 @@ docker_build(
 
 k8s_yaml("tests/integration/xtest.yaml")
 
+# Boostrap extra Test params.
+
+k8s_yaml(
+    helm(
+        "charts/keycloak_bootstrap",
+        "xtest-keycloak-bootstrap",
+        values=["./tests/integration/backend-keycloak-bootstrap-values.xtest.yaml"],
+        set=[
+            "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET
+        ]
+    )
+)
+
+k8s_resource(
+    "xtest-keycloak-bootstrap",
+    resource_deps=["keycloak-bootstrap"],
+    labels="xtest"
+)
+
+
 k8s_resource(
     "opentdf-xtest",
-    resource_deps=["backend"],
+    resource_deps=["xtest-keycloak-bootstrap"],
+    labels="xtest"
 )
 
 if isPKItest:
     local_resource(
         "pki-test",
         "python3 tests/integration/pki-test/client_pki_test.py",
-        resource_deps=["backend"],
+        resource_deps=["xtest-keycloak-bootstrap"]
     )
 
 # The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
