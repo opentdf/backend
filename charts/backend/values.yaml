@@ -36,6 +36,10 @@ entity-resolution:
       legacy: true
 kas:
   fullnameOverride: opentdf-kas
+  endpoints:
+    easHost: http://opentdf-attributes:4020
+    oidcPubkeyEndpoint: http://keycloak-http
+    statsdHost: opentdf-statsd
 
 keycloak:
   fullnameOverride: keycloak
@@ -148,9 +152,6 @@ keycloak-bootstrap:
         user1:
           - https://example.com/attr/Classification/value/S
           - https://example.com/attr/COI/value/PRX
-
-  job:
-    backoffLimit: 20
 
 postgresql:
   #  configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
