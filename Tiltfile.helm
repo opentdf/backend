@@ -292,5 +292,3 @@ helm_resource(
 # So, we have to do nonsense like this, where we shell out to run a single, basic `kubectl` command to check a YAML propery.
 # This will wait for a named K8S job (that we know exists, and K8S knows exists, but Tilt doesn't) to have a success status,
 # before continuing.
-
-local("tests/integration/wait-for-ready.sh")
