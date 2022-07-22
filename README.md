@@ -154,8 +154,8 @@ scripts/monotest containers/kas/kas_core
 Once a cluster is running, run `tests/security-test/helm-test.sh`
 
 ### Integration Tests
-
-Once a cluster is running, run `tests/integration/xtest.sh`
+Once a cluster is running, in another terminal run:
+`tilt up -f --port 10351 Tiltfile.xtest integration-test`
 
 ## Deployment
 
