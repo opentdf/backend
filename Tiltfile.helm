@@ -281,5 +281,5 @@ helm_resource(
        "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD
    ],
    labels="opentdf",
-   resource_deps=["helm-dep-update"],
+   resource_deps=["helm-dep-update","ingress-nginx-controller"],
 )
