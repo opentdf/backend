@@ -42,7 +42,6 @@ groups = {
 resources = []
 
 isIntegrationTest = False
-isPKItest = False
 
 for arg in cfg.get("to-run", []):
     if arg == "integration-test":
@@ -50,9 +49,7 @@ for arg in cfg.get("to-run", []):
     if arg in groups:
         resources += groups[arg]
     else:
-        if arg == "pki-test":
-            isPKItest = True
-        # also support specifying individual services instead of groups, e.g. `tilt up a b d`
+         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
         resources.append(arg)
 
 config.set_enabled_resources(resources)
@@ -67,8 +64,7 @@ config.set_enabled_resources(resources)
 
 local("./scripts/genkeys-if-needed")
 
-if isPKItest:
-    local("./tests/integration/pki-test/gen-keycloak-certs.sh")
+local("./tests/integration/pki-test/gen-keycloak-certs.sh")
 
 all_secrets = {
     v: from_dotenv("./certs/.env", v)
@@ -207,14 +203,29 @@ for microservice in ["attributes", "entitlements", "entitlement_store"]:
             ),
         ],
 )
-keycloak_helm_values = "tests/integration/backend-keycloak-values.xtest.yaml"
-postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
+#     o8o
+#     `"'
+#    oooo  ooo. .oo.    .oooooooo oooo d8b  .ooooo.   .oooo.o  .oooo.o
+#    `888  `888P"Y88b  888' `88b  `888""8P d88' `88b d88(  "8 d88(  "8
+#     888   888   888  888   888   888     888ooo888 `"Y88b.  `"Y88b.
+#     888   888   888  `88bod8P'   888     888    .o o.  )88b o.  )88b
+#    o888o o888o o888o `8oooooo.  d888b    `Y8bod8P' 8""888P' 8""888P'
+#                      d"     YD
+#                      "Y88888P'
+#
+# TODO should integrate with a service mesh and stop deploying our own ingress
+# We need to have big headers for the huge bearer tokens we pass around
+# https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
 
-# Override Keycloak chart values for PKI
-if isPKItest:
-    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
+helm_remote(
+    "ingress-nginx",
+    repo_url="https://kubernetes.github.io/ingress-nginx",
+    set=["controller.config.large-client-header-buffers=20 32k"],
+    version="4.0.16",
+)
 
-
+k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
+k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
 #                                           o8o
 #                                           `"'
 #   .oooo.o  .ooooo.  oooo d8b oooo    ooo oooo   .ooooo.   .ooooo.   .oooo.o
@@ -261,6 +272,8 @@ helm_resource(
        "--dependency-update",
        "-f",
        "./charts/backend/values.yaml",
+       "-f",
+       "./charts/backend/keycloak-pki-values.yaml", 
        "--set", "keycloak.image.pullPolicy=Never",
        "--set", "entity-resolution.secret.keycloak.clientSecret=123-456",
        "--set", "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
