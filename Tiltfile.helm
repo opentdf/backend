@@ -208,6 +208,7 @@ for microservice in ["attributes", "entitlements", "entitlement_store"]:
         ],
 )
 keycloak_helm_values = "tests/integration/backend-keycloak-values.xtest.yaml"
+postgres_helm_values = "tests/integration/backend-postgresql-values.yaml"
 
 # Override Keycloak chart values for PKI
 if isPKItest:
