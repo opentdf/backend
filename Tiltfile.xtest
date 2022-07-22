@@ -57,16 +57,6 @@ for arg in cfg.get("to-run", []):
 
 config.set_enabled_resources(resources)
 
-if isPKItest:
-    local("./tests/integration/pki-test/gen-keycloak-certs.sh")
-
-keycloak_helm_values = "tests/integration/backend-keycloak-values.xtest.yaml"
-
-# Override Keycloak chart values for PKI
-if isPKItest:
-    keycloak_helm_values = "tests/integration/keycloak-pki-values.yaml"
-
-
 #    db    db d888888b d88888b .d8888. d888888b
 #    `8b  d8' `~~88~~' 88'     88'  YP `~~88~~'
 #     `8bd8'     88    88ooooo `8bo.      88
@@ -101,7 +91,7 @@ k8s_yaml(
     helm(
         "charts/keycloak_bootstrap",
         "xtest-keycloak-bootstrap",
-        values=["tests/integration/backend-keycloak-bootstrap-values.xtest.yaml"],
+        values=["./tests/integration/backend-keycloak-bootstrap-values.xtest.yaml"],
         set=[
             "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
             "image.name=" + CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap"
@@ -130,10 +120,3 @@ if isPKItest:
         "python3 tests/integration/pki-test/client_pki_test.py",
     )
 
-# The Postgres chart by default does not remove its Persistent Volume Claims: https://github.com/bitnami/charts/tree/master/bitnami/postgresql#uninstalling-the-chart
-# This means `tilt down && tilt up` will leave behind old PGSQL databases and volumes, causing weirdness.
-# Doing a `tilt down && kubectl delete pvc --all` will solve this
-# Tried to automate that teardown postcommand here with Tilt, and it works for everything but `tilt ci` which keeps
-# waiting for the no-op `apply_cmd` to stream logs as a K8S resource.
-# I have not figured out a clean way to run `down commands` with tilt
-# k8s_custom_deploy("Manual PVC Delete On Teardown", 'echo ""', "kubectl delete pvc --all", "")
