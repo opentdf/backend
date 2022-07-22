@@ -225,6 +225,15 @@ if isPKItest:
 #
 # usage https://docs.tilt.dev/helm.html#helm-options
 
+
+# Unfortunately, due to how Tilt (doesn't) work with Helm (a common refrain),
+# `helm upgrade --dependency-update` doesn't solve the issue like it does with plain Helm.
+# So, do it out of band as a shellout.
+local_resource(
+    "helm-dep-update",
+    "helm dependency update",
+    dir = "./charts/backend",
+)
 helm_resource(
    name = "backend",
    chart  =  "./charts/backend",
@@ -258,5 +267,6 @@ helm_resource(
        "--set", "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
        "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD
    ],
-   labels="opentdf"
+   labels="opentdf",
+   resource_deps=["helm-dep-update"],
 )
