@@ -86,14 +86,6 @@ docker_build(
 
 k8s_yaml("tests/integration/xtest.yaml")
 
-# Boostrap extra Test params.
-
-# k8s_resource(
-#     "xtest-keycloak-bootstrap",
-#     labels="xtest"
-# )
-
-
 k8s_resource(
     "opentdf-xtest",
     labels="xtest"
