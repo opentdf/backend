@@ -52,4 +52,6 @@ jobs:
       - name: tilt-ci
         run: |-
           kubectl version
-          tilt ci integration-test pki-test
+          tilt ci -f Tiltfile.helm
+          tests/integration/wait-for-ready.sh
+          tilt ci -f Tiltfile.xtest integration-test pki-test
