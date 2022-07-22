@@ -225,8 +225,6 @@ if isPKItest:
 #
 # usage https://docs.tilt.dev/helm.html#helm-options
 
-# Using helm_resource doesn not allow for nice dependency use e.g. "backend" for xtest.#
-#
 helm_resource(
    name = "backend",
    chart  =  "./charts/backend",
@@ -251,6 +249,7 @@ helm_resource(
        ('kas.image.repository', 'kas.image.tag')
        ],
    flags=[
+       "--dependency-update",
        "-f",
        "./charts/backend/values.yaml",
        "--set", "keycloak.image.pullPolicy=Never",
