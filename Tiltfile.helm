@@ -33,31 +33,6 @@ cfg = config.parse()
 
 to_edit = cfg.get("to-edit", [])
 
-# TODO check
-groups = {
-    "integration-test": [
-        "backend",
-        "ingress-nginx-controller",
-        "ingress-nginx-admission-create",
-        "ingress-nginx-admission-patch",
-    ],
-}
-
-resources = []
-
-isIntegrationTest = False
-
-for arg in cfg.get("to-run", []):
-    if arg == "integration-test":
-        isIntegrationTest = True
-    if arg in groups:
-        resources += groups[arg]
-    else:
-         # also support specifying individual services instead of groups, e.g. `tilt up a b d`
-        resources.append(arg)
-
-config.set_enabled_resources(resources)
-
 #                                                      .
 #                                                    .o8
 #   .oooo.o  .ooooo.   .ooooo.  oooo d8b  .ooooo.  .o888oo  .oooo.o
