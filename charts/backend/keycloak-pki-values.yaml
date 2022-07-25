@@ -1,6 +1,4 @@
 keycloak:
-  postgresql:
-    enabled: false
   extraEnv: |
     - name: KEYCLOAK_LOGLEVEL
       value: INFO
@@ -27,6 +25,7 @@ keycloak:
 
   ingress:
     enabled: true
+    ingressClassName: nginx
     servicePort: https
     rules:
       - # Ingress host

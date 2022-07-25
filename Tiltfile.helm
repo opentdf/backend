@@ -8,7 +8,7 @@ load("ext://helm_resource", "helm_resource", "helm_repo")
 load("ext://secret", "secret_from_dict", "secret_yaml_generic")
 load("ext://min_tilt_version", "min_tilt_version")
 
-min_tilt_version("0.25")
+min_tilt_version("0.30")
 
 ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.15")
 PY_VERSION = os.environ.get("PY_VERSION", "3.10")
@@ -33,9 +33,13 @@ cfg = config.parse()
 
 to_edit = cfg.get("to-edit", [])
 
+# TODO check
 groups = {
     "integration-test": [
-        "opentdf-xtest"
+        "backend",
+        "ingress-nginx-controller",
+        "ingress-nginx-admission-create",
+        "ingress-nginx-admission-patch",
     ],
 }
 
@@ -226,6 +230,10 @@ helm_remote(
 
 k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
 k8s_resource("ingress-nginx-controller", port_forwards="4567:443")
+
+# PKI tests need this, apparently
+k8s_yaml("tests/integration/ingress-class.yaml")
+
 #                                           o8o
 #                                           `"'
 #   .oooo.o  .ooooo.  oooo d8b oooo    ooo oooo   .ooooo.   .ooooo.   .oooo.o
