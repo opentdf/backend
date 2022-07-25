@@ -162,6 +162,7 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
+          # This is needed for PKI test
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
           # Tilt CI will fail to deploy with with complex helm charts
@@ -172,6 +173,8 @@ jobs:
           # and imposes strict non-normative service dependencies on a system
           # that explicitly does not have those in the way tilt wants to have them.
           tilt ci -f Tiltfile.helm || true
+          kubectl get deployments
+          kubectl get pods
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
           tilt ci -f Tiltfile.xtest integration-test pki-test
