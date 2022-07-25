@@ -65,21 +65,15 @@ RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 # Add Tini ("tiny init" - https://github.com/krallin/tini)
 ENV TINI_VERSION=v0.19.0
 
-# Note that this is automatically populated by `docker build/buildx` to be the correct target architecture (arm64/amd64)
-ARG BUILDARCH
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${BUILDARCH} /usr/local/bin/tini
-RUN chmod 755 /usr/local/bin/tini
+RUN apk add --no-cache tini
 
-RUN ls -lah /bin
-COPY tini-init.sh /usr/local/bin/
 RUN mkdir -p /opentdf/bin
+COPY tini-init.sh /opentdf/bin/
 
 COPY --chown=kas:kas --from=gobuilder /dist/access-pdp /opentdf/bin/access-pdp-grpc-server
 
 # Run as kas instead of root
 USER kas
-
-RUN ls -lah /usr/local/bin
 
 # Configure Gunicorn
 #
@@ -110,4 +104,4 @@ ENV STATSD_PORT "8125"
 EXPOSE 8000
 
 # # Run program under Tini
-# ENTRYPOINT ["/bin/tini", "--", "/tini-init.sh"]
+ENTRYPOINT ["/bin/tini", "--", "/tini-init.sh"]
