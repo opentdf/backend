@@ -128,5 +128,6 @@ if isPKItest:
     local_resource(
         "pki-test",
         "python3 tests/integration/pki-test/client_pki_test.py",
+        resource_deps=["xtest-keycloak-bootstrap"],
     )
 

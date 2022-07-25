@@ -271,8 +271,6 @@ helm_resource(
    flags=[
        "--dependency-update",
        "-f",
-       "./charts/backend/values.yaml",
-       "-f",
        "./charts/backend/keycloak-pki-values.yaml", 
        "--set", "keycloak.image.pullPolicy=Never",
        "--set", "entity-resolution.secret.keycloak.clientSecret=123-456",

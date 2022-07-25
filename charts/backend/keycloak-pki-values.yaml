@@ -1,58 +1,83 @@
-keycloak:
-  extraEnv: |
-    - name: KEYCLOAK_LOGLEVEL
-      value: INFO
-    - name: CLAIMS_URL
-      value: http://opentdf-entitlement-pdp:3355/entitlements
-    - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
-      value: "true"
-    - name: KEYCLOAK_FRONTEND_URL
-      value: "https://keycloak-http:4567/auth"
-    - name: X509_CA_BUNDLE
-      value: /etc/x509/https/ca.crt
-  ingress:
-    enabled: true
-    servicePort: https
-    rules:
-      - # Ingress host
-        host: "keycloak-http"
-        # Paths for the host
-        paths:
-          - path: /
-            pathType: Prefix
-    annotations:
-      kubernetes.io/tls-acme: "true"
-      ingress.kubernetes.io/affinity: cookie
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      nginx.ingress.kubernetes.io/proxy-ssl-secret: "default/x509-secret"
-      nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
-      nginx.ingress.kubernetes.io/proxy-ssl-verify-depth: "2"
-      nginx.ingress.kubernetes.io/auth-tls-secret: "default/x509-secret"
-      nginx.ingress.kubernetes.io/auth-tls-verify-client: "optional"
-      nginx.ingress.kubernetes.io/auth-tls-verify-depth: "2"
-      nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
+postgresql:
+  enabled: false
+extraEnv: |
+  - name: KEYCLOAK_LOGLEVEL
+    value: INFO
+  - name: KEYCLOAK_USER
+    value: keycloakadmin
+  - name: KEYCLOAK_PASSWORD
+    value: mykeycloakpassword
+  - name: CLAIMS_URL
+    value: http://opentdf-entitlement-pdp:3355/entitlements
+  - name: DB_VENDOR
+    value: postgres
+  - name: DB_ADDR
+    value: opentdf-postgresql
+  - name: DB_DATABASE
+    value: keycloak_database
+  - name: DB_PORT
+    value: "5432"
+  - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
+    value: "true"
+  - name: KEYCLOAK_FRONTEND_URL
+    value: "https://keycloak-http:4567/auth"
+  - name: X509_CA_BUNDLE
+    value: /etc/x509/https/ca.crt
+extraEnvFrom: |
+  - secretRef:
+      name: '{{ include "keycloak.fullname" . }}-db'
 
-    tls:
-      - hosts:
-          - "keycloak-http"
-        secretName: x509-secret
+secrets:
+db:
+  stringData:
+    DB_USER: postgres
+    DB_PASSWORD: otdf-pgsql-admin
+ingress:
+  enabled: true
+  servicePort: https
+  rules:
+    - # Ingress host
+      host: "keycloak-http"
+      # Paths for the host
+      paths:
+        - path: /
+          pathType: Prefix
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    ingress.kubernetes.io/affinity: cookie
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-ssl-secret: "default/x509-secret"
+    nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
+    nginx.ingress.kubernetes.io/proxy-ssl-verify-depth: "2"
+    nginx.ingress.kubernetes.io/auth-tls-secret: "default/x509-secret"
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "optional"
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: "2"
+    nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
 
-  extraVolumes: |
-    - name: x509
-      secret: 
-        secretName : x509-secret
-  extraVolumeMounts: |
-    - name: x509
-      mountPath: /etc/x509/https
-  startupScripts:
-    keycloak.cli: |
-      embed-server --server-config=standalone-ha.xml --std-out=echo
-      batch
-      /subsystem=keycloak-server/spi=x509cert-lookup:write-attribute(name=default-provider, value="nginx")            
-      /subsystem=keycloak-server/spi=x509cert-lookup/provider=default:remove
-      /subsystem=keycloak-server/spi=x509cert-lookup/provider=nginx:add(enabled=true,properties={sslClientCert => "ssl-client-cert", sslCertChainPrefix => "USELESS",     certificateChainLength => "2"})
-      /subsystem=logging/logger=org.keycloak.authentication.authenticators.x509/:add(category=org.keycloak.authentication.authenticators.x509,level=TRACE)
-      /subsystem=logging/logger=org.keycloak.services.x509/:add(category=org.keycloak.services.x509,level=TRACE)
-      /subsystem=logging/logger=com.virtru.keycloak.AttributeOIDCProtocolMapper/:add(category=com.virtru.keycloak.AttributeOIDCProtocolMapper,level=TRACE)
-      run-batch
-      stop-embedded-server
+  hosts:
+    - keycloak-http
+  tls:
+    - hosts:
+        - "keycloak-http"
+      secretName: x509-secret
+
+extraVolumes: |
+  - name: x509
+    secret:
+      secretName : x509-secret
+extraVolumeMounts: |
+  - name: x509
+    mountPath: /etc/x509/https
+startupScripts:
+  keycloak.cli: |
+    embed-server --server-config=standalone-ha.xml --std-out=echo
+    batch
+    /subsystem=keycloak-server/spi=x509cert-lookup:write-attribute(name=default-provider, value="nginx")
+    /subsystem=keycloak-server/spi=x509cert-lookup/provider=default:remove
+    /subsystem=keycloak-server/spi=x509cert-lookup/provider=nginx:add(enabled=true,properties={sslClientCert => "ssl-client-cert", sslCertChainPrefix => "USELESS",     certificateChainLength => "2"})
+    /subsystem=logging/logger=org.keycloak.authentication.authenticators.x509/:add(category=org.keycloak.authentication.authenticators.x509,level=TRACE)
+    /subsystem=logging/logger=org.keycloak.services.x509/:add(category=org.keycloak.services.x509,level=TRACE)
+    /subsystem=logging/logger=com.virtru.keycloak.AttributeOIDCProtocolMapper/:add(category=com.virtru.keycloak.AttributeOIDCProtocolMapper,level=TRACE)
+    run-batch
+    stop-embedded-server
