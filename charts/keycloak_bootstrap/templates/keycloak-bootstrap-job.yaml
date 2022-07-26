@@ -41,7 +41,6 @@ spec:
               while ! curl -s -f {{ .Values.keycloak.hostname}}/auth/realms/master; do sleep 1; done
               sleep 10 && python3 bootstrap.py
           {{- end }}
-
           env:
             - name: ENABLE_PKI_DIRECTGRANT
               value: {{ .Values.pki.directGrantEnable | quote }}
