@@ -81,7 +81,7 @@ jobs:
     needs:
       - lint
       - scriptcheck
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
         with:
@@ -105,7 +105,7 @@ jobs:
           - entitlement_store
           - attributes
           - entitlements
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - name: Checkout working branch
         uses: actions/checkout@v3
@@ -128,7 +128,7 @@ jobs:
       - pytest
       - kas-unittest
       - config
-    timeout-minutes: 40
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
@@ -235,7 +235,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx
@@ -292,7 +292,7 @@ jobs:
         repo:
           - kas
           - keycloak-bootstrap
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
@@ -340,7 +340,7 @@ jobs:
         repo:
           - entitlement-pdp
           - entity-resolution
-    timeout-minutes: 90
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
@@ -419,7 +419,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
-    timeout-minutes: 90
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -477,7 +477,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - name: Checkout upstream Keycloak image repo
         uses: actions/checkout@v3
@@ -523,7 +523,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
