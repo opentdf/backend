@@ -1,7 +1,7 @@
 name: "keycloak-bootstrap"
 replicaCount: 1
 job:
-  backoffLimit: 10
+  backoffLimit: 25
 image:
   repo: ghcr.io/opentdf/keycloak-bootstrap
   # Chart.AppVersion will be used for image tag, override here if needed
