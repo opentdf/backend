@@ -177,7 +177,7 @@ jobs:
           kubectl get pods
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
-          tilt ci -f Tiltfile.xtest integration-test pki-test
+          tilt ci -f Tiltfile.xtest integration-test
           kubectl get deployments
           kubectl get pods
 
