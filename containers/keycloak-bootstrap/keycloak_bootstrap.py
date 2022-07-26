@@ -925,8 +925,8 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
 
 
 def kc_bootstrap():
-    username = "admin" #os.getenv("keycloak_admin_username")
-    password = "admin" #os.getenv("keycloak_admin_password")
+    username = os.getenv("keycloak_admin_username")
+    password = os.getenv("keycloak_admin_password")
 
     keycloak_auth_url = kc_internal_url + "/auth/"
     logger.debug("ADMIN URL AUTH=%s, and internal=%s", keycloak_auth_url, kc_internal_url)

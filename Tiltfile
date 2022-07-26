@@ -257,7 +257,7 @@ keycloak_helm_values = "tests/integration/backend-keycloak-values.yaml"
 
 helm_remote(
     "keycloakx",
-    version="1.3.2",
+    version="1.4.2",
     repo_url="https://codecentric.github.io/helm-charts",
     values=[keycloak_helm_values],
 )

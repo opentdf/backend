@@ -110,8 +110,8 @@ def createPreloaded(keycloak_admin, realm, keycloak_auth_url,
 
 
 def attributes_bootstrap():
-    username = "admin" #os.getenv("keycloak_admin_username")
-    password = "admin" #os.getenv("keycloak_admin_password")
+    username = os.getenv("keycloak_admin_username")
+    password = os.getenv("keycloak_admin_password")
     keycloak_auth_url = kc_internal_url + "/auth/"
     attribute_realm = os.getenv("ATTRIBUTES_REALM")
 

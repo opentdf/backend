@@ -104,8 +104,8 @@ def insertEntitlementAttrsForRealm(
 
 
 def entitlements_bootstrap():
-    username = "admin" #os.getenv("keycloak_admin_username")
-    password = "admin" #os.getenv("keycloak_admin_password")
+    username = os.getenv("keycloak_admin_username")
+    password = os.getenv("keycloak_admin_password")
 
     keycloak_auth_url = kc_internal_url + "/auth/"
 
