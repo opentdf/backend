@@ -10,13 +10,18 @@ image:
   pullPolicy: IfNotPresent
   # Used for imagePullSecret, if set
   pullSecret:
-# URL of the abacus service. Used for redirect URIs, among others
-externalUrl:
+
 pki:
   directGrantEnable: "true"
   browserEnable: "true"
+
+opentdf:
+  common:
+    oidcExternalHost: http://keycloak-http
+    oidcInternalHost: http://localhost:65432
+    oidcUrlPath: auth
+
 keycloak:
-  hostname: http://keycloak-http
   clientId: tdf-client
   clientSecret: 123-456
   username: keycloakadmin

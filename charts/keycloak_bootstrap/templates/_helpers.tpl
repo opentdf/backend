@@ -41,14 +41,10 @@ Create chart name and version as used by the chart label.
 Create OIDC Internal Url from a common value (if it exists)   
 */}}
 {{- define "boostrap.oidc.internalUrl" }}
-{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
-{{- if .Values.global.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.common.oidcInternalHost .Values.global.common.oidcUrlPath }}
+{{- if .Values.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.opentdf.common.oidcInternalHost .Values.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.common.oidcInternalHost }}
-{{- end }}
-{{- else }}
-{{- default .Values.keycloak.hostname }}
+{{- default .Values.opentdf.common.oidcInternalHost }}
 {{- end }}
 {{- end }}
 
@@ -56,13 +52,9 @@ Create OIDC Internal Url from a common value (if it exists)
 Create OIDC External Url from a common value (if it exists)   
 */}}
 {{- define "boostrap.oidc.externalUrl" }}
-{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcExternalHost ) }}
-{{- if .Values.global.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.common.oidcExternalHost .Values.global.common.oidcUrlPath }}
+{{- if .Values.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" (required "Please define the abacus host URL for redirects" .Values.opentdf.common.oidcExternalHost) .Values.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.common.oidcExternalHost }}
-{{- end }}
-{{- else }}
-{{- default (required "Please define the abacus host URL for redirects" .Values.externalUrl) }}
+{{- default (required "Please define the abacus host URL for redirects" .Values.opentdf.common.oidcExternalHost) }}
 {{- end }}
 {{- end }}

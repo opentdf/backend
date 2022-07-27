@@ -14,6 +14,12 @@ serverPublicName: "Attribute Authority"
 # same origin, e.g. using an ingress with prefix mapping as suggested below.
 serverRootPath: /
 
+opentdf:
+  common:
+    oidcExternalHost: http://keycloak-http
+    oidcInternalHost: http://localhost:65432
+    oidcUrlPath: auth
+
 # Allowed origins for CORS
 serverCorsOrigins: ""
 
@@ -26,8 +32,6 @@ openapiUrl: ""
 # OIDC_CLIENT_SECRET: myclientsecret
 oidc:
   realm: tdf
-  internalHost: http://keycloak-http/auth
-  externalHost: http://localhost:65432/auth
   clientId: tdf-attributes
   scopes: email
 

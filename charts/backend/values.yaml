@@ -5,14 +5,15 @@ embedded:
 boostrapKeycloak: true
 
 global:
-  common:
-    externalUrl: http://localhost:65432
-    # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-    oidcInternalHost: http://keycloak-http
-    # The url path (no precedding / ) to keycloak
-    oidcUrlPath: auth
-    # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-    oidcExternalHost: http://localhost:65432
+  opentdf:
+    common:
+      externalUrl: http://localhost:65432
+      # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+      oidcInternalHost: http://keycloak-http
+      # The url path (no precedding / ) to keycloak
+      oidcUrlPath: auth
+      # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+      oidcExternalHost: http://localhost:65432
 
 secrets:
   opaPolicyPullSecret:
