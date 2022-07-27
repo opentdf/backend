@@ -4,6 +4,16 @@ embedded:
 
 boostrapKeycloak: true
 
+global:
+  common:
+    externalUrl: http://localhost:65432
+    # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+    oidcInternalHost: http://keycloak-http
+    # The url path (no precedding / ) to keycloak
+    oidcUrlPath: auth
+    # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+    oidcExternalHost: http://localhost:65432
+
 secrets:
   opaPolicyPullSecret:
   oidcClientSecret:
@@ -38,7 +48,6 @@ kas:
   fullnameOverride: opentdf-kas
   endpoints:
     easHost: http://opentdf-attributes:4020
-    oidcPubkeyEndpoint: http://keycloak-http
     statsdHost: opentdf-statsd
 
 keycloak:
@@ -79,7 +88,6 @@ keycloak-bootstrap:
   externalUrl: http://localhost:65432
 
   keycloak:
-    hostname: http://keycloak-http
     username: keycloakadmin
     password: mykeycloakpassword
     clientId: tdf-client

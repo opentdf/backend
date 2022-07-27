@@ -35,3 +35,14 @@ Create chart name and version as used by the chart label.
 {{- define "entityresolution.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*
+Create OIDC Internal Url from a common value (if it exists)   
+*/}}
+{{- define "entityresolution.keycloakUrl" }}
+{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
+{{- default .Values.global.common.oidcInternalHost }}
+{{- else }}
+{{- default .Values.config.keycloak.url }}
+{{- end }}
+{{- end }}

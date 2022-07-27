@@ -35,3 +35,19 @@ Create chart name and version as used by the chart label.
 {{- define "keycloak-bootstrap.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+
+{{/*
+Create OIDC Internal Url from a common value (if it exists)   
+*/}}
+{{- define "boostrap.oidc.internalUrl" }}
+{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
+{{- if .Values.global.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.common.oidcInternalHost .Values.global.common.oidcUrlPath }}
+{{- else }}
+{{- default .Values.global.common.oidcInternalHost }}
+{{- end }}
+{{- else }}
+{{- default .Values.keycloak.hostname }}
+{{- end }}
+{{- end }}

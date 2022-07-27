@@ -60,3 +60,22 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Create oidc endpoint from a common value (if it exists)   
+*/}}
+{{- define "kas.oidcPubkeyEndpoint" }}
+{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
+{{- if .Values.global.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.common.oidcInternalHost .Values.global.common.oidcUrlPath }}
+{{- else }}
+{{- default .Values.global.common.oidcInternalHost }}
+{{- end }}
+{{- else }}
+{{- default .Values.endpoints.oidcPubkeyEndpoint }}
+{{- end }}
+{{- end }}
+
+
+entitlements
