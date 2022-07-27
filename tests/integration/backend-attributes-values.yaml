@@ -1,11 +1,11 @@
 logLevel: DEBUG
 serverPublicName: "Attribute Authority"
-serverRootPath: /
-openapiUrl: /
+serverRootPath: /api/attributes
+openapiUrl: /openapi
 oidc:
   realm: tdf
   internalHost: http://keycloak-http/auth/
-  externalHost: http://keycloak-http/auth/
+  externalHost: http://localhost:65432/auth
   clientId: tdf-attributes
 
 image:

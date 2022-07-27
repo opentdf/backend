@@ -365,6 +365,7 @@ def createTestClientTDFAttributes(keycloak_admin):
     logger.info("Created client %s", keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
 
 def createTestClientTDFEntitlements(keycloak_admin):
@@ -392,6 +393,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
     logger.info("Created client %s", keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
 
 
 def createTestClientForAbacusWebAuth(keycloak_admin):
