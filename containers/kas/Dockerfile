@@ -26,6 +26,7 @@ ENV KAS_UID ${KAS_UID:-909}
 
 # Install the dependencies
 RUN apk add --no-cache --upgrade \
+    git \
     cargo \
     openssl-dev \
     python3-dev
@@ -48,17 +49,11 @@ ARG PY_VERSION
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
 RUN apk add --no-cache --upgrade \
-    libressl git
+    libressl
 RUN pip3 install \
     gunicorn \
     gunicorn[gthread] \
     wsgicors
-
-# Install PDP gRPC Python client directly from Git
-# This (and the `apk` git dependency it requires) can eventually be removed
-# in favor of a proper Pypi package
-# but that will be a simple change from the perspective of this Dockerfile
-RUN pip3 install -e 'git+https://github.com/virtru/access-pdp@grpc#egg=accesspdp-client-python&subdirectory=clients/accesspdp-client-python'
 
 # Add kas user and kas group
 RUN addgroup -S kas && adduser -S --uid ${KAS_UID:-909} kas -G kas

@@ -12,6 +12,7 @@ statsd = "*"
 tdf3-kas-core = {editable = true, path = "./../kas_core"}
 wsgicors = "*"
 importlib_metadata = "*"
+accesspdp-client = {subdirectory = "clients/python", editable = true, ref = "grpc", git = "https://github.com/virtru/access-pdp"}
 
 [dev-packages]
 Flake8 = "*"
