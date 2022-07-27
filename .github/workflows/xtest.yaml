@@ -20,7 +20,6 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: update packages
         run: |-
-          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           cd tests/containers/clients
           npm uninstall @opentdf/cli @opentdf/client
           npm uninstall @opentdf/cli
@@ -52,14 +51,18 @@ jobs:
       - name: tilt-ci
         run: |-
           kubectl version
-          # Tilt CI will fail to deploy with with complex helm charts
-          # if any service crashes even once, irrespetive of Kube
-          # backoff limits or scheduling logic.
-          #
-          # It does this because it generally does not play nice with Helm,
-          # and imposes strict non-normative service dependencies on a system
-          # that explicitly does not have those in the way tilt wants to have them.
-          tilt ci -f Tiltfile.helm || true
+          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
+
+          tilt ci -f Tiltfile.helm
+          kubectl get deployments
+          kubectl get pods
+          # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
+          # up after itself if you install things The Normal Way outside of of Tilt.
+          # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
+          # Tilt's mess.
+          docker system prune -af
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
-          # and wait for health ourselves in the test Tiltfile (from the k8s control plane, not tilt)
-          tilt ci -f Tiltfile.xtest integration-test
+          # and wait for health ourselves (from the k8s control plane, not tilt)
+          tilt ci -f Tiltfile.xtest integration-test pki-test
+          kubectl get deployments
+          kubectl get pods
