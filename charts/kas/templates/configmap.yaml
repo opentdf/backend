@@ -12,7 +12,7 @@ data:
   ATTR_AUTHORITY_HOST: {{ coalesce .Values.endpoints.attrHost .Values.endpoints.easHost | quote  }}
   FLASK_DEBUG: {{ .Values.flaskDebug | quote }}
   GUNICORN_WORKERS: {{ .Values.gunicornWorkers | default 1 | quote }}
-  KEYCLOAK_HOST: {{ .Values.endpoints.oidcPubkeyEndpoint | quote }}
+  KEYCLOAK_HOST: {{ ( include "kas.oidcPubkeyEndpoint" . ) | quote }}
   LOGLEVEL: {{ .Values.logLevel | quote }}
   STATSD_HOST: {{ .Values.endpoints.statsdHost | quote }}
   USE_KEYCLOAK: "1"

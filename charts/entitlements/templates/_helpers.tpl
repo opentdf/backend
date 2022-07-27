@@ -60,3 +60,36 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+
+{{/*
+Create OIDC Internal Url from a common value (if it exists)   
+*/}}
+{{- define "entitlements.oidc.internalUrl" }}
+{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
+{{- if .Values.global.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.common.oidcInternalHost .Values.global.common.oidcUrlPath }}
+{{- else }}
+{{- default .Values.global.common.oidcInternalHost }}
+{{- end }}
+{{- else }}
+{{- default .Values.oidc.internalHost }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+Create OIDC External Url from a common value (if it exists)   
+*/}}
+{{- define "entitlements.oidc.externalUrl" }}
+{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcExternalHost ) }}
+{{- if .Values.global.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.common.oidcExternalHost .Values.global.common.oidcUrlPath }}
+{{- else }}
+{{- default .Values.global.common.oidcExternalHost }}
+{{- end }}
+{{- else }}
+{{- default .Values.oidc.externalHost }}
+{{- end }}
+{{- end }}
