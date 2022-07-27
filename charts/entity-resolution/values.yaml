@@ -17,9 +17,10 @@ secret:
   keycloak:
     clientSecret: "REPLACE_AT_INSTALL_TIME"
 
-opentdf:
-  common:
-    oidcInternalHost: "http://keycloak-http"  
+global:
+  opentdf:
+    common:
+      oidcInternalHost: "http://keycloak-http"  
 
 config:
   listenPort: 7070

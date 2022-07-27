@@ -20,11 +20,12 @@ serverCorsOrigins: ""
 # Set to enable openapi endpoint
 openapiUrl: ""
 
-opentdf:
-  common:
-    oidcInternalHost: http://keycloak-http
-    oidcExternalHost: http://localhost:65432
-    oidcUrlPath: auth
+glboal:
+  opentdf:
+    common:
+      oidcInternalHost: http://keycloak-http
+      oidcExternalHost: http://localhost:65432
+      oidcUrlPath: auth
 
 # Additional information for connecting to an OIDC provider for AuthN
 # Note that you must also specify a client secret via a secretRef,
