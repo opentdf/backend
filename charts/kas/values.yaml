@@ -107,9 +107,10 @@ affinity: {}
 # Pod disruption budget
 maxUnavailable: 1
 
-opentdf:
-  common:
-    oidcInternalHost: http://localhost:65432
+global:
+  opentdf:
+    common:
+      oidcInternalHost: http://localhost:65432
 
 endpoints:
   attrHost: http://opentdf-attributes:4020

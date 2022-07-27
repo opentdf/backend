@@ -15,11 +15,12 @@ pki:
   directGrantEnable: "true"
   browserEnable: "true"
 
-opentdf:
-  common:
-    oidcInternalHost: http://keycloak-http
-    oidcExternalHost: http://localhost:65432
-    oidcUrlPath: auth
+global:
+  opentdf:
+    common:
+      oidcInternalHost: http://keycloak-http
+      oidcExternalHost: http://localhost:65432
+      oidcUrlPath: auth
 
 keycloak:
   clientId: tdf-client

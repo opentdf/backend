@@ -65,7 +65,7 @@ Create the name of the service account to use
 Create OIDC Internal Url from a common value 
 */}}
 {{- define "attributes.oidc.internalUrl" }}
-{{- if .Values.oidcUrlPath }}
+{{- if .Values.global.opentdf.common.oidcUrlPath }}
 {{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalHost .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
 {{- default .Values.global.opentdf.common.oidcInternalHost }}
@@ -77,13 +77,9 @@ Create OIDC Internal Url from a common value
 Create OIDC External Url from a common value  
 */}}
 {{- define "attributes.oidc.externalUrl" }}
-{{- if .Values.global.opentdf.common.oidcExternalHost }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
 {{- printf "%s/%s" .Values.global.opentdf.common.oidcExternalHost .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
 {{- default .Values.global.opentdf.common.oidcExternalHost }}
-{{- end }}
-{{- else }}
-{{- default .Values.oidc.externalHost }}
 {{- end }}
 {{- end }}
