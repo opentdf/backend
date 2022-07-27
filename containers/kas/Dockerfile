@@ -4,6 +4,8 @@ ARG PY_VERSION=3.10
 ARG CONTAINER_REGISTRY=docker.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 
+# KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
+# (policy definition point)
 FROM golang:1.18-alpine AS gobuilder
 RUN apk add --no-cache git=~2
 RUN mkdir /dist
@@ -62,11 +64,14 @@ COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-pack
 # add any new deployable directories and files from the build stage here
 RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 
-# Add Tini ("tiny init" - https://github.com/krallin/tini)
-ENV TINI_VERSION=v0.19.0
-
+# `tini` is a tiny, valid init process that runs inside the container
+# We use it because we need to launch multiple processes from a single Docker
+# entrypoint - this is a valid pattern, and in fact upstream Docker Desktop bundles
+# `tini` expressly for this purpose - we're adding it here.
 RUN apk add --no-cache tini
 
+# Copy over the standalone binary that is the PDP grpc server, as well as the
+# tini launch script that starts both the PDP and KAS process.
 RUN mkdir -p /opentdf/bin
 COPY tini-init.sh /opentdf/bin/
 
@@ -99,9 +104,8 @@ ENV WSGI_CORS_ORIGIN *
 # Publish stats
 ENV STATSD_HOST ""
 ENV STATSD_PORT "8125"
-# Start the KAS server(s). They rely on PYTHONPATH to resolve modules.
 
 EXPOSE 8000
 
-# # Run program under Tini
-ENTRYPOINT ["/bin/tini", "--", "/tini-init.sh"]
+# Run program under Tini
+ENTRYPOINT ["/sbin/tini", "--", "/opentdf/bin/tini-init.sh"]
