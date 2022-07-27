@@ -62,30 +62,26 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-Create OIDC Internal Url from a common value (if it exists)   
+Create OIDC Internal Url from a common value 
 */}}
 {{- define "attributes.oidc.internalUrl" }}
-{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
-{{- if .Values.global.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.common.oidcInternalHost .Values.global.common.oidcUrlPath }}
+{{- if .Values.oidcUrlPath }}
+{{- printf "%s/%s" .Values.opentdf.common.oidcInternalHost .Values.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.common.oidcInternalHost }}
-{{- end }}
-{{- else }}
-{{- default .Values.oidc.internalHost }}
+{{- default .Values.opentdf.common.oidcInternalHost }}
 {{- end }}
 {{- end }}
 
 
 {{/*
-Create OIDC External Url from a common value (if it exists)   
+Create OIDC External Url from a common value  
 */}}
 {{- define "attributes.oidc.externalUrl" }}
-{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcExternalHost ) }}
-{{- if .Values.global.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.common.oidcExternalHost .Values.global.common.oidcUrlPath }}
+{{- if .Values.opentdf.common.oidcExternalHost }}
+{{- if .Values.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.opentdf.common.oidcExternalHost .Values.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.common.oidcExternalHost }}
+{{- default .Values.opentdf.common.oidcExternalHost }}
 {{- end }}
 {{- else }}
 {{- default .Values.oidc.externalHost }}

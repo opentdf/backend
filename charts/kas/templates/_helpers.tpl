@@ -63,14 +63,10 @@ Create the name of the service account to use
 
 
 {{/*
-Create oidc endpoint from a common value (if it exists)   
+Create oidc endpoint from a common value    
 */}}
 {{- define "kas.oidcPubkeyEndpoint" }}
-{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
-{{- default .Values.global.common.oidcInternalHost }}
-{{- else }}
-{{- default .Values.endpoints.oidcPubkeyEndpoint }}
-{{- end }}
+{{- default .Values.opentdf.common.oidcInternalHost }}
 {{- end }}
 
 

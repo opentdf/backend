@@ -37,12 +37,8 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
-Create OIDC Internal Url from a common value (if it exists)   
+Create OIDC Internal Url from a common value   
 */}}
 {{- define "entityresolution.keycloakUrl" }}
-{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
-{{- default .Values.global.common.oidcInternalHost }}
-{{- else }}
-{{- default .Values.config.keycloak.url }}
-{{- end }}
+{{- default .Values.opentdf.common.oidcInternalHost }}
 {{- end }}

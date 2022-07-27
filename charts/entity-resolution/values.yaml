@@ -17,6 +17,10 @@ secret:
   keycloak:
     clientSecret: "REPLACE_AT_INSTALL_TIME"
 
+opentdf:
+  common:
+    oidcInternalHost: "http://keycloak-http"  
+
 config:
   listenPort: 7070
   externalHost: ""
@@ -24,7 +28,6 @@ config:
   disableTracing: "false"
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   keycloak:
-    url: "http://keycloak-http"
     realm: "tdf"
     clientId: "tdf-entity-resolution-service"
     # See https://github.com/Nerzal/gocloak/issues/346
