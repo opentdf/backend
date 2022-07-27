@@ -20,7 +20,7 @@ secret:
 global:
   opentdf:
     common:
-      oidcInternalHost: "http://keycloak-http"  
+      oidcInternalHost: "http://keycloak-http"
 
 config:
   listenPort: 7070
