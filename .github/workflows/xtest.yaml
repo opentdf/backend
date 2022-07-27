@@ -54,8 +54,10 @@ jobs:
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
 
           tilt ci -f Tiltfile.helm
+          # Debugging prints
           kubectl get deployments
           kubectl get pods
+
           # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
           # up after itself if you install things The Normal Way outside of of Tilt.
           # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
@@ -64,5 +66,6 @@ jobs:
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
           tilt ci -f Tiltfile.xtest integration-test pki-test
+          # Debugging prints
           kubectl get deployments
           kubectl get pods
