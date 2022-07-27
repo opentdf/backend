@@ -54,6 +54,10 @@ RUN pip3 install \
     gunicorn[gthread] \
     wsgicors
 
+# Install PDP gRPC Python client directly from Git
+# This can eventually be a proper Pypi package
+RUN pip3 install -e 'git+https://github.com/virtru/access-pdp@grpc#egg=accesspdp-client-python&subdirectory=clients/accesspdp-client-python'
+
 # Add kas user and kas group
 RUN addgroup -S kas && adduser -S --uid ${KAS_UID:-909} kas -G kas
 
@@ -71,7 +75,7 @@ RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 RUN apk add --no-cache tini
 
 # Copy over the standalone binary that is the PDP grpc server, as well as the
-# tini launch script that starts both the PDP and KAS process.
+# tini launch script that starts both the PDP grpc server and KAS process.
 RUN mkdir -p /opentdf/bin
 COPY tini-init.sh /opentdf/bin/
 
