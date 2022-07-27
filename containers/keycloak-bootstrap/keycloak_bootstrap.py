@@ -24,8 +24,8 @@ logger.setLevel(logging.DEBUG)
 
 # 1. The URL stuff outside the cluster will use to resolve keycloak or other external services (public, browser and non-browser clients)
 # 2. The URL stuff inside the cluster will use to resolve keycloak (private, non-browser clients)
-otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432").rstrip("/")
-kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http").rstrip("/")
+otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432/auth").rstrip("/")
+kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http/auth").rstrip("/")
 pki_browser = os.getenv("ENABLE_PKI_BROWSER", "")
 pki_direct = os.getenv("ENABLE_PKI_DIRECTGRANT", "")
 
@@ -775,7 +775,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, p
                 "realm": realm_name,
                 "enabled": "true",
                 "attributes": {
-                    "frontendUrl": f"{otdf_frontend_url}/auth/realms/tdf-pki"
+                    "frontendUrl": f"{otdf_frontend_url}/realms/tdf-pki"
                 },
             },
             skip_exists=True,
@@ -973,8 +973,7 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
 def kc_bootstrap():
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
-
-    keycloak_auth_url = kc_internal_url + "/auth/"
+    keycloak_auth_url = kc_internal_url + "/"
 
     # Contains a detailed keycloak configuration
     try:

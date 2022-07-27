@@ -67,11 +67,7 @@ Create oidc endpoint from a common value (if it exists)
 */}}
 {{- define "kas.oidcPubkeyEndpoint" }}
 {{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcInternalHost ) }}
-{{- if .Values.global.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.common.oidcInternalHost .Values.global.common.oidcUrlPath }}
-{{- else }}
 {{- default .Values.global.common.oidcInternalHost }}
-{{- end }}
 {{- else }}
 {{- default .Values.endpoints.oidcPubkeyEndpoint }}
 {{- end }}
