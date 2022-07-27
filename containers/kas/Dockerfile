@@ -56,6 +56,7 @@ RUN pip3 install \
 
 # Install PDP gRPC Python client directly from Git
 # This can eventually be a proper Pypi package
+# but that will be a simple change from the perspective of this Dockerfile
 RUN pip3 install -e 'git+https://github.com/virtru/access-pdp@grpc#egg=accesspdp-client-python&subdirectory=clients/accesspdp-client-python'
 
 # Add kas user and kas group
