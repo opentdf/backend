@@ -175,6 +175,11 @@ jobs:
           tilt ci -f Tiltfile.helm || true
           kubectl get deployments
           kubectl get pods
+
+          # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
+          # up after itself if you install things The Normal Way outside of of Tilt.
+          # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
+          # Tilt's mess.
           docker system prune -af
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
