@@ -22,8 +22,8 @@ openapiUrl: ""
 
 opentdf:
   common:
-    oidcExternalHost: http://keycloak-http
-    oidcInternalHost: http://localhost:65432
+    oidcInternalHost: http://keycloak-http
+    oidcExternalHost: http://localhost:65432
     oidcUrlPath: auth
 
 # Additional information for connecting to an OIDC provider for AuthN
