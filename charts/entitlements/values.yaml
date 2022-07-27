@@ -20,7 +20,7 @@ serverCorsOrigins: ""
 # Set to enable openapi endpoint
 openapiUrl: ""
 
-glboal:
+global:
   opentdf:
     common:
       oidcInternalHost: http://keycloak-http
