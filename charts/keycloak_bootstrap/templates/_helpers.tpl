@@ -51,3 +51,18 @@ Create OIDC Internal Url from a common value (if it exists)
 {{- default .Values.keycloak.hostname }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create OIDC External Url from a common value (if it exists)   
+*/}}
+{{- define "boostrap.oidc.externalUrl" }}
+{{- if and ( .Values.global ) ( .Values.global.common ) ( .Values.global.common.oidcExternalHost ) }}
+{{- if .Values.global.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.common.oidcExternalHost .Values.global.common.oidcUrlPath }}
+{{- else }}
+{{- default .Values.global.common.oidcExternalHost }}
+{{- end }}
+{{- else }}
+{{- default (required "Please define the abacus host URL for redirects" .Values.externalUrl) }}
+{{- end }}
+{{- end }}

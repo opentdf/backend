@@ -85,7 +85,6 @@ keycloak:
     tls: null
 
 keycloak-bootstrap:
-  externalUrl: http://localhost:65432
 
   keycloak:
     username: keycloakadmin

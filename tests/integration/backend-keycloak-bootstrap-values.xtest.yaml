@@ -1,7 +1,6 @@
 fullnameOverride: "xtest-keycloak-bootstrap"
 name: "xtest-keycloak-bootstrap"
 keycloak:
-  hostname: http://keycloak-http
   username: keycloakadmin
   password: mykeycloakpassword
   customConfig:  
@@ -15,7 +14,7 @@ keycloak:
         serviceAccountsEnabled: "true"
         publicClient: "false"
         redirectUris:
-        - "{{ hostname }}/auth/admin/tdf-client/console"
+        - "{{ hostname }}/admin/tdf-client/console"
         attributes:
           user.info.response.signature.alg: RS256
       mappers:
@@ -49,7 +48,7 @@ keycloak:
         serviceAccountsEnabled: "true"
         publicClient: "false"
         redirectUris:
-        - "{{ hostname }}/auth/admin/tdf-client/console"
+        - "{{ hostname }}/admin/tdf-client/console"
         attributes:
           user.info.response.signature.alg: RS256
       mappers:
