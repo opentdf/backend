@@ -52,7 +52,7 @@ Create OIDC Internal Url from a common value (if it exists)
 Create OIDC External Url from a common value (if it exists)   
 */}}
 {{- define "boostrap.oidc.externalUrl" }}
-{{- $extHost := (required "Please define the abacus host URL for redirects" .Values.global.opentdf.common.oidcExternalHost) }}
+{{- $extHost := .Values.global.opentdf.common.oidcExternalHost }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
 {{- printf "%s/%s" $extHost .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
