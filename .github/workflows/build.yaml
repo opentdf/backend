@@ -159,7 +159,7 @@ jobs:
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
 
-          tilt ci -f Tiltfile.helm
+          tilt ci -f Tiltfile
           # Debugging prints
           kubectl get deployments
           kubectl get pods
