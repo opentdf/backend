@@ -25,7 +25,7 @@ We store several services combined in a single git repository for ease of develo
   1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
 1. The [`charts`](./charts) folder contains Helm charts for every individual service, as well as an umbrella [backend](./charts/backend) Helm chart that installs all backend services.
 1. Integration test configs and helper scripts are stored in the [`tests`](./tests) folder. Notably, a useful integration test (x86 only) is available by running `tilt ci -f Tiltfile.xtest integration-test` from the repo root.
-1. A simple local stack can be brought up with the latest releases of the images by running `tilt up` from the repo root. This simply uses Tilt to install the [backend](./charts/backend) Helm chart and deploy it with locally-built Docker images and Helm charts. 
+1. A simple local stack can be brought up with the latest releases of the images by running `tilt up` from the repo root. This simply uses Tilt to install the [backend](./charts/backend) Helm chart and deploy it with locally-built Docker images and Helm charts, rather than pulling tagged and released artifacts. 
 
 ## Local Quick Start and Development
 
@@ -124,8 +124,9 @@ helm repo remove keycloak
     - On macOS via Homebrew: `brew install helm`
     - Others see https://helm.sh/docs/intro/install/
     
-    
-- Officially tagged and released container images and Helm charts are stored in Github's ghcr.io OCI image repository. [You must follow github's instructions to log into that repository, and your cluster must have a valid pull secret for this registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
+- Officially tagged and released container images and Helm charts are stored in Github's ghcr.io OCI image repository.
+  - [You must follow github's instructions to log into that repository, and your cluster must have a valid pull secret for this registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
+  - You must override the [`backend` chart's](./charts/backend) `global.opentdf.common.imagePullSecrets` property and supply it with the name of your cluster's existing/valid pull secret.
 
 ### Install
 
