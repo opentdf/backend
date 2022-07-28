@@ -25,8 +25,8 @@ We store several services combined in a single git repository for ease of develo
   1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
 1. The [`charts`](./charts) folder contains Helm charts for every individual service, as well as an umbrella [backend](./charts/backend) chart that installs all backend services.
 1. To deploy to an existing cluster, 
-1. Integration tests are stored in the [`tests`](./tests) folder. Notably, a useful integration test (x86 only) is available by running `cd tests/integration && tilt ci`
-1. A simple local stack can be brought up with the latest releases of the images by running `tilt up` from the root. To use the latest mainline branches, edit the `CONTAINER_REGISTRY` to point to `ghcr.io` and [follow github's instructions to log into that repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
+1. Integration test configs and helper scripts are stored in the [`tests`](./tests) folder. Notably, a useful integration test (x86 only) is available by running `tilt ci -f Tiltfile.xtest integration-test` from the repo root.
+1. A simple local stack can be brought up with the latest releases of the images by running `tilt up` from the repo root. To use the latest mainline branches, edit the `CONTAINER_REGISTRY` to point to `ghcr.io` and [follow github's instructions to log into that repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
 
 ## Local Quick Start and Development
 
