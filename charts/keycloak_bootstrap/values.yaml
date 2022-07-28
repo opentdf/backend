@@ -8,19 +8,20 @@ image:
   # tag: main
   # Defaults to IfNotPresent to skip lookup of newer versions.
   pullPolicy: IfNotPresent
-  # Used for imagePullSecret, if set
-  pullSecret:
 
 pki:
   directGrantEnable: "true"
   browserEnable: "true"
 
+# Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
       oidcInternalHost: http://keycloak-http
       oidcExternalHost: http://localhost:65432
       oidcUrlPath: auth
+      # JSON passed to the deployment's template.spec.imagePullSecrets
+      imagePullSecrets: []
 
 keycloak:
   clientId: tdf-client

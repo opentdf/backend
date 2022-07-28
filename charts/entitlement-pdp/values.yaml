@@ -1,16 +1,17 @@
 name: 'opentdf-entitlement-pdp'
 replicaCount: 3
+
+# Global values that may be overridden by a parent chart.
+global:
+  opentdf:
+    common:
+      # JSON passed to the deployment's template.spec.imagePullSecrets
+      imagePullSecrets: []
+
 image:
   repo: ghcr.io/opentdf/entitlement-pdp
   # tag: 0.0.5
   pullPolicy: IfNotPresent
-
-useImagePullSecret: false
-# imageCredentials:
-#   registry: ghcr.io
-#   username: username
-#   password: password
-#   email: nope@nah.com
 
 secret:
   opaPolicyPullSecret: "YOUR_GHCR_PAT_HERE"

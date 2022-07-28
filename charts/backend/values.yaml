@@ -4,6 +4,7 @@ embedded:
 
 boostrapKeycloak: true
 
+# Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
@@ -14,6 +15,12 @@ global:
       oidcUrlPath: auth
       # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
       oidcExternalHost: http://localhost:65432
+      # Any existing image pull secrets subcharts should use
+      # e.g.
+      # imagePullSecrets:
+      #   - name: my-existing-ghcr-pullsecret
+      #   - name: my-other-pullsecret
+      imagePullSecrets: []
 
 secrets:
   opaPolicyPullSecret:

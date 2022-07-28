@@ -1,3 +1,13 @@
+# Global values that may be overridden by a parent chart.
+global:
+  opentdf:
+    common:
+      oidcInternalHost: http://keycloak-http
+      oidcExternalHost: http://localhost:65432
+      oidcUrlPath: auth
+      # JSON passed to the deployment's template.spec.imagePullSecrets
+      imagePullSecrets: []
+
 # Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
@@ -20,13 +30,6 @@ serverCorsOrigins: ""
 # Set to enable openapi endpoint
 openapiUrl: ""
 
-global:
-  opentdf:
-    common:
-      oidcInternalHost: http://keycloak-http
-      oidcExternalHost: http://localhost:65432
-      oidcUrlPath: auth
-
 # Additional information for connecting to an OIDC provider for AuthN
 # Note that you must also specify a client secret via a secretRef,
 # in the form of an environment variable such as:
@@ -45,9 +48,6 @@ image:
   # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
-
-# JSON passed to the deployment's template.spec.imagePullSecrets
-imagePullSecrets: []
 
 # Select a specific name for the resource, instead of the default, opentdf-entitlements
 nameOverride: ""

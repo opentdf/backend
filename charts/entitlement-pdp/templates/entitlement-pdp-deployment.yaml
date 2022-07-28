@@ -95,7 +95,7 @@ spec:
             items:
             - key: "opa-config.yaml"
               path: "opa-config.yaml"
-      {{- if .Values.useImagePullSecret }}
+      {{- with .Values.global.opentdf.common.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ .Values.name }}-pull-secret
+        {{- toYaml . | nindent 8 }}
       {{- end }}

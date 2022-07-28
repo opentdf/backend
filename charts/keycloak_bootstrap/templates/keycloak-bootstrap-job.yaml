@@ -93,8 +93,8 @@ spec:
           configMap:
             name: {{ include "keycloak-bootstrap.fullname" . }}-cm
       restartPolicy: Never
-      {{ with .Values.image.pullSecret }}
+      {{- with .Values.global.opentdf.common.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ . }}
-      {{ end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
   backoffLimit: {{ .Values.job.backoffLimit }}
