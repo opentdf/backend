@@ -8,7 +8,7 @@ from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
 
-from accesspdp_client_python.accesspdp.v1 import accesspdp_pb2
+from accesspdp.v1 import accesspdp_pb2
 
 from .plugins import opentdf_attr_authority_plugin, revocation_plugin
 
