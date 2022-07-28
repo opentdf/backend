@@ -14,7 +14,7 @@ We store several services combined in a single git repository for ease of develo
 
 ### Support services
 - Postgres
-- Keycloak as an example OIDC provider, and sample configurations for it.
+- Keycloak as an example OIDC authentication provider, and sample configurations for it.
 - Tools and shared libraries
 - Helm charts for deploying to Kubernetes
 - Integration tests
