@@ -1,29 +1,34 @@
 # Protected Data Format Reference Services · [![CI](https://github.com/opentdf/backend/actions/workflows/build.yaml/badge.svg)](https://github.com/opentdf/backend/actions/workflows/build.yaml) · [![Code Quality](https://sonarcloud.io/api/project_badges/measure?project=opentdf_backend&metric=alert_status&token=4fff8ae1ff25f2ed30b5705197309bd4affbd9f1)](https://sonarcloud.io/summary/new_code?id=opentdf_backend)
 
 
-This repository is for a reference implementation of the [OpenTDF REST Services](https://github.com/opentdf/spec), and sufficient tooling and testing to support the development of it.
+This repository is a reference implementation of the [OpenTDF protocol and attribute-based access control (ABAC) architecture](https://github.com/opentdf/spec), and sufficient tooling and testing to support the development of it.
 
-## Monorepo
+We store several services combined in a single git repository for ease of development. These include:
 
-We store several services combined in a single git repository for ease of development. Thse include:
+### ABAC data access authorization services
+- [Key Access Service](containers/kas/kas_core/) - An ABAC _access_ policy enforcement point (PEP) and policy decision point (PDP).
+- [Attributes](containers/attributes/) - An ABAC attribute authority.
+- [Entitlements](containers/entitlements) - An ABAC _entitlements_ policy administration point (PAP)
+- [Entitlements Store](containers/entitlement_store) - An ABAC _entitlements_ policy information point (PIP)
+- [Entitlements PDP](containers/entitlement-pdp) - An ABAC _entitlements_ policy decision point (PDP)
 
-- [Key Access Service](containers/kas/kas_core/)
-- Authorization Services
-  - [Attributes](containers/attributes/)
-  - [Entitlements](containers/entitlements)
-  - [Keycloak Claims Mapper](containers/keycloak-protocol-mapper)
+### Support services
+- Postgres
+- Keycloak as an example OIDC provider, and sample configurations for it.
 - Tools and shared libraries
-- Helm charts for deploying to kubernetes
+- Helm charts for deploying to Kubernetes
 - Integration tests
 
-### Monorepo structure
+### Repo structure
 
 1. The `containers` folder contains individual containerized services in folders, each of which should have a `Dockerfile`
-1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
+  1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
+1. The `charts` folder contains Helm charts for every individual service, as well as an umbrella [backend](./charts/backend) chart that installs all backend services.
+1. To deploy to an existing cluster, 
 1. Integration tests are stored in the `tests` folder. Notably, a useful integration test (x86 only) is available by running `cd tests/integration && tilt ci`
 1. A simple local stack can be pulled up with the latest releases of the images by running `tilt up` from the root. To use the latest mainline branches, edit the `CONTAINER_REGISTRY` to point to `ghcr.io` and [follow github's instructions to log into that repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
 
-## Quick Start and Development
+## Local Quick Start and Development
 
 This quick start guide is primarily for development and testing the ABAC and KAS infrastructure. See [Production](#production) for details on running in production.
 
@@ -66,6 +71,7 @@ This quick start guide is primarily for development and testing the ABAC and KAS
 ./scripts/pre-reqs docker helm tilt kind
 ```
 
+### Install 
 1. Generate local certs in certs/ directory
 
 > You may need to manually clean the `certs` folder occasionally
@@ -95,6 +101,8 @@ tilt up [-- --to-edit opentdf-abacus/opentdf-abacus-tdf3]
 
 1. Hit spacebar to open web UI
 
+> (Optional) Run `octant` -> This will open a browser window giving you a more structured and complete overview of your local Kubernetes cluster.
+
 ### Cleanup
 
 ```shell
@@ -103,7 +111,30 @@ ctlptl delete cluster kind-opentdf
 helm repo remove keycloak
 ```
 
-> (Optional) Run `octant` -> This will open a browser window giving you an overview of your local cluster.
+
+## Existing Cluster Install (Local or Non-Local)
+
+
+### Prerequisites
+
+- Install [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/)
+    - On macOS via Homebrew: `brew install kubectl`
+    - Others see https://kubernetes.io/docs/tasks/tools/
+
+- Install [helm](https://helm.sh/)
+    - On macOS via Homebrew: `brew install helm`
+    - Others see https://helm.sh/docs/intro/install/
+
+### Install
+
+1. Ensure your `kubectl` tool is configured to point at the desired existing cluster
+1. TODO/FIX: Inspect the [Tiltfile](Tiltfile) for the required, preexisting Kube secrets, and create them manually
+1. Inspect the [backend Helm values file](./charts/backend/values.yaml) for available install flags/options.
+1. `helm install otdf-backend oci://ghcr.io/opentdf/charts/backend -f any-desired-values-overrides.yaml` 
+
+### Uninstall
+
+1. `helm uninstall otdf-backend`
 
 ## Swagger-UI
 
