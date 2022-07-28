@@ -30,7 +30,7 @@ We store several services combined in a single git repository for ease of develo
 
 ## Local Quick Start and Development
 
-This quick start guide is primarily for development and testing the ABAC and KAS infrastructure. See [Production](#production) for details on running in production.
+This quick start guide is primarily for standing up a local, Docker-based Kube cluster for development and testing of the OpenTDF backend stack. See [Existing Cluster Installation](#existing-cluster-install-local-or-non-local) for details on using a traditional Helm deployment to an operational cluster.
 
 ### Prerequisites
 
