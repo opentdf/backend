@@ -8,7 +8,8 @@ from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
 
-from accesspdp.v1 import accesspdp_pb2
+from accesspdp.v1 import accesspdp_pb2_grpc
+import grpc
 
 from .plugins import opentdf_attr_authority_plugin, revocation_plugin
 
@@ -133,6 +134,12 @@ def app(name):
         logger.warn("KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode")
     else:
         kas.set_key_pem("AA-PUBLIC", "PUBLIC", aa_certificate)
+
+    # TODO grpc
+    channel = grpc.insecure_channel('localhost:50052')
+    stub = accesspdp_pb2_grpc.AccessPDPEndpointStub(channel)
+
+    stub.DetermineAccess()
 
     # Get a Flask app from the KAS instance
     return kas.app()
