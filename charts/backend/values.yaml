@@ -34,9 +34,9 @@ secrets:
     user: keycloakadmin
     password: mykeycloakpassword
   kas:
-    # Use external kas secret 
+    # Use external kas secret
     external: false
-    # Secrets below used only if kas.secrets.external = false 
+    # Secrets below used only if kas.secrets.external = false
     attrAuthorityCert:
       # Type of secret provided; file or string
       type: "file"
