@@ -60,3 +60,14 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Create oidc endpoint from a common value    
+*/}}
+{{- define "kas.oidcPubkeyEndpoint" }}
+{{- default .Values.global.opentdf.common.oidcInternalHost }}
+{{- end }}
+
+
+entitlements

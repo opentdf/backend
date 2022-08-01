@@ -1,22 +1,29 @@
 name: "keycloak-bootstrap"
 replicaCount: 1
 job:
-  backoffLimit: 10
+  backoffLimit: 25
 image:
   repo: ghcr.io/opentdf/keycloak-bootstrap
   # Chart.AppVersion will be used for image tag, override here if needed
   # tag: main
   # Defaults to IfNotPresent to skip lookup of newer versions.
   pullPolicy: IfNotPresent
-  # Used for imagePullSecret, if set
-  pullSecret:
-# URL of the abacus service. Used for redirect URIs, among others
-externalUrl:
+
 pki:
   directGrantEnable: "true"
   browserEnable: "true"
+
+# Global values that may be overridden by a parent chart.
+global:
+  opentdf:
+    common:
+      oidcInternalHost: http://keycloak-http
+      oidcExternalHost: http://localhost:65432
+      oidcUrlPath: auth
+      # JSON passed to the deployment's template.spec.imagePullSecrets
+      imagePullSecrets: []
+
 keycloak:
-  hostname: http://keycloak-http
   clientId: tdf-client
   clientSecret: 123-456
   username: keycloakadmin

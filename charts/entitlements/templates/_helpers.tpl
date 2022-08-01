@@ -60,3 +60,28 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+
+{{/*
+Create OIDC Internal Url from a common value
+*/}}
+{{- define "entitlements.oidc.internalUrl" }}
+{{- if .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalHost .Values.global.opentdf.common.oidcUrlPath }}
+{{- else }}
+{{- default .Values.global.opentdf.common.oidcInternalHost }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+Create OIDC External Url from a common value  
+*/}}
+{{- define "entitlements.oidc.externalUrl" }}
+{{- if .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcExternalHost .Values.global.opentdf.common.oidcUrlPath }}
+{{- else }}
+{{- default .Values.global.opentdf.common.oidcExternalHost }}
+{{- end }}
+{{- end }}

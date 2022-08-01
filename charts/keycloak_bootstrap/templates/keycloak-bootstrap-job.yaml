@@ -28,6 +28,17 @@ spec:
             - |
               trap "curl --max-time 2 -s -f -XPOST http://127.0.0.1:15000/quitquitquit" EXIT
               while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do sleep 1; done
+              while ! curl -s -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do sleep 1; done
+              sleep 10 && python3 bootstrap.py
+          {{- else }}
+          command: ["/bin/sh", "-c"]
+          # The following hack waits for Keycloak to begin responding before trying to bootstrap it.
+          #
+          # JBOSS keycloak is super slow, and if we start this job immediately and rely on job backoffs to do this,
+          # it takes a lot longer because of increasing backoff durations as Keycloak comes up.
+          args:
+            - |
+              while ! curl -s -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do sleep 1; done
               sleep 10 && python3 bootstrap.py
           {{- end }}
           env:
@@ -36,9 +47,9 @@ spec:
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ required "Please define the abacus host URL for redirects" .Values.externalUrl }}
+              value: {{ ( include "boostrap.oidc.externalUrl" . ) }}
             - name: KEYCLOAK_INTERNAL_URL
-              value: {{ .Values.keycloak.hostname }}
+              value: {{ ( include "boostrap.oidc.internalUrl" . ) }}
             - name: keycloak_admin_username
               value: {{ .Values.keycloak.username }}
             {{- with .Values.keycloak.password }}
@@ -82,8 +93,8 @@ spec:
           configMap:
             name: {{ include "keycloak-bootstrap.fullname" . }}-cm
       restartPolicy: Never
-      {{ with .Values.image.pullSecret }}
+      {{- with .Values.global.opentdf.common.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ . }}
-      {{ end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
   backoffLimit: {{ .Values.job.backoffLimit }}
