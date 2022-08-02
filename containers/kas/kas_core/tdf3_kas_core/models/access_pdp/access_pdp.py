@@ -62,7 +62,14 @@ class AccessPDP(object):
             raise AuthorizationError("Entity is not on dissem list.")
 
     def _check_attributes(self, data_attributes, entity_attributes, data_attribute_definitions):
-        # TODO BEGIN grpc
+        access = True
+        """Invoke the PDP over gRPC and obtain decisions.
+
+        We should obtain 1 Decision per entity in the `entity_attributes` dict
+
+        If all entity-level Decisions are True, then return True, else return false.
+        """
+        # BEGIN grpc
         logger.info("GRPC STUFF")
         channel = grpc.insecure_channel('localhost:50052')
         stub = accesspdp_pb2_grpc.AccessPDPEndpointStub(channel)
@@ -75,9 +82,11 @@ class AccessPDP(object):
 
         responses = stub.DetermineAccess(req)
         for response in responses:
-            logger.info("Received message %s at %s" %
-                (response, dir(response)))
+            logger.info("Received message %s with Result %s" %
+                (response, response.Result))
 
-        logger.info(dir(accesspdp_pb2))
+            # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
+            access = access and response.Result
+        # END grpc
 
-        # TODO END grpc
+        return access
