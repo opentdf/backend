@@ -33,27 +33,6 @@ secrets:
   keycloak:
     user: keycloakadmin
     password: mykeycloakpassword
-  kas:
-    # Use external kas secret
-    external: false
-    # Secrets below used only if kas.secrets.external = false
-    attrAuthorityCert:
-      # Type of secret provided; file or string
-      type: "file"
-      # The value of the secret.  if type = file, the location of the secret material, otherwise the value
-      value: "keystore/mock-claims-certificate.pem"
-    ecCert:
-      type: "file"
-      value: "keystore/mock-key-access-ec-certificate.pem"
-    cert:
-      type: "file"
-      value: "keystore/mock-key-access-certificate.pem"
-    ecPrivKey:
-      type: "file"
-      value: "keystore/mock-key-access-ec-private-key.pem"
-    privKey:
-      type: "file"
-      value: "keystore/mock-key-access-private-key.pem"
 
 attributes:
   fullnameOverride: opentdf-attributes
@@ -79,6 +58,12 @@ kas:
   endpoints:
     easHost: http://opentdf-attributes:4020
     statsdHost: opentdf-statsd
+  envConfig:
+    attrAuthorityCert:
+    ecCert:
+    cert:
+    ecPrivKey:
+    privKey:
 
 keycloak:
   fullnameOverride: keycloak

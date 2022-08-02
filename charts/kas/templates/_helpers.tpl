@@ -69,5 +69,38 @@ Create oidc endpoint from a common value
 {{- default .Values.global.opentdf.common.oidcInternalHost }}
 {{- end }}
 
+{{- define "kas.secretName" -}}
+{{- if .Values.externalSecretName }}
+{{- default .Values.externalSecretName }}
+{{- else }}
+{{- default "kas-secrets" }}
+{{- end }}
+{{- end }}
 
-entitlements
+{{- define "kas.secretFromString" -}}
+{{- if and (not .root.Values.externalEnvSecretName) (.value)  }}
+{{- default .value | b64enc }}
+{{- else }}
+{{- default "" }}
+{{- end }}
+{{- end -}}
+
+{{- define "kas.ATTR_AUTHORITY_CERTIFICATE" }}
+{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.attrAuthorityCert ) ) }}
+{{- end }}
+
+{{- define "kas.KAS_EC_SECP256R1_CERTIFICATE" }}
+{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.ecCert ) ) }}
+{{- end }}
+
+{{- define "kas.KAS_CERTIFICATE" }}
+{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.cert ) ) }}
+{{- end }}
+
+{{- define "kas.KAS_EC_SECP256R1_PRIVATE_KEY" }}
+{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.ecPrivKey ) ) }}
+{{- end }}
+
+{{- define "kas.KAS_PRIVATE_KEY" }}
+{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.privKey ) ) }}
+{{- end }}

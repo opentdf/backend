@@ -41,34 +41,3 @@ Create Keycloak External Url
 {{- end }}
 {{- end }}
 
-{{- define "backend.secretFromConfig" -}}
-{{- if not .root.Values.secrets.kas.external }}
-{{- if eq .config.type "file"}}
-{{- default ( .root.Files.Get .config.value ) | b64enc }}
-{{- else }}
-{{- default .config.value | b64enc }}
-{{- end }}
-{{- else }}
-{{- default "" }}
-{{- end }}
-{{- end -}}
-
-{{- define "backend.kas.ATTR_AUTHORITY_CERTIFICATE" }}
-{{- default ( include "backend.secretFromConfig" (dict "root" . "config" .Values.secrets.kas.attrAuthorityCert ) ) }}
-{{- end }}
-
-{{- define "backend.kas.KAS_EC_SECP256R1_CERTIFICATE" }}
-{{- default ( include "backend.secretFromConfig" (dict "root" . "config" .Values.secrets.kas.ecCert ) ) }}
-{{- end }}
-
-{{- define "backend.kas.KAS_CERTIFICATE" }}
-{{- default ( include "backend.secretFromConfig" (dict "root" . "config" .Values.secrets.kas.cert ) ) }}
-{{- end }}
-
-{{- define "backend.kas.KAS_EC_SECP256R1_PRIVATE_KEY" }}
-{{- default ( include "backend.secretFromConfig" (dict "root" . "config" .Values.secrets.kas.ecPrivKey ) ) }}
-{{- end }}
-
-{{- define "backend.kas.KAS_PRIVATE_KEY" }}
-{{- default ( include "backend.secretFromConfig" (dict "root" . "config" .Values.secrets.kas.privKey ) ) }}
-{{- end }}
