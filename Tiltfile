@@ -232,8 +232,6 @@ helm_resource(
         "-f",
         "./tests/integration/backend-pki-values.yaml",  # TODO drop this if we move PKI out
         "--set",
-        "keycloak.image.pullPolicy=Never",
-        "--set",
         "entity-resolution.secret.keycloak.clientSecret=123-456",
         "--set",
         "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,

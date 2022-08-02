@@ -27,8 +27,15 @@ spec:
           args:
             - |
               trap "curl --max-time 2 -s -f -XPOST http://127.0.0.1:15000/quitquitquit" EXIT
-              while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do sleep 1; done
-              while ! curl -s -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do sleep 1; done
+              echo "[INFO] Internal istio proxy"
+              while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do
+                sleep 1
+              done
+              echo "[INFO] Waiting for service [{{ ( include "boostrap.oidc.internalUrl" . ) }}]"
+              while ! curl -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do
+                sleep 1
+              done
+              echo "[INFO] Service [{{ ( include "boostrap.oidc.internalUrl" . ) }}] available"
               sleep 10 && python3 bootstrap.py
           {{- else }}
           command: ["/bin/sh", "-c"]
@@ -37,8 +44,12 @@ spec:
           # JBOSS keycloak is super slow, and if we start this job immediately and rely on job backoffs to do this,
           # it takes a lot longer because of increasing backoff durations as Keycloak comes up.
           args:
-            - |
-              while ! curl -s -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do sleep 1; done
+            - |-
+              echo "[INFO] Waiting for service [{{ ( include "boostrap.oidc.internalUrl" . ) }}]"
+              while ! curl -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do
+                sleep 1
+              done
+              echo "[INFO] Service [{{ ( include "boostrap.oidc.internalUrl" . ) }}] available"
               sleep 10 && python3 bootstrap.py
           {{- end }}
           env:
