@@ -73,7 +73,7 @@ Create oidc endpoint from a common value
 {{- if .Values.externalSecretName }}
 {{- default .Values.externalSecretName }}
 {{- else }}
-{{- default "kas-secrets" }}
+{{- printf "%s-secrets" ( include "kas.name" . ) }}
 {{- end }}
 {{- end }}
 
