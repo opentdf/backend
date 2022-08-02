@@ -65,7 +65,7 @@ jobs:
           docker system prune -af
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
-          tilt ci -f xtest.Tiltfile integration-test pki-test
+          tilt ci -f xtest.Tiltfile && tilt ci -f pki-test.Tiltfile
           # Debugging prints
           kubectl get deployments
           kubectl get pods
