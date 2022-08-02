@@ -1,3 +1,3 @@
 """This module adjudicates the policy decision."""
 
-from .adjudicator import Adjudicator  # noqa: F401
+from .access_pdp import AccessPDP  # noqa: F401

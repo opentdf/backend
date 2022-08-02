@@ -8,10 +8,6 @@ from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
 
-from accesspdp.v1 import accesspdp_pb2_grpc, accesspdp_pb2
-from attributes.v1 import attributes_pb2
-import grpc
-
 from .plugins import opentdf_attr_authority_plugin, revocation_plugin
 
 logger = logging.getLogger(__name__)
@@ -135,36 +131,6 @@ def app(name):
         logger.warn("KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode")
     else:
         kas.set_key_pem("AA-PUBLIC", "PUBLIC", aa_certificate)
-
-    # TODO grpc
-    logger.info("GRPC STUFF")
-    channel = grpc.insecure_channel('localhost:50052')
-    stub = accesspdp_pb2_grpc.AccessPDPEndpointStub(channel)
-
-    data_attrs = []
-    data_attrs.append(attributes_pb2.AttributeInstance(authority="https://example.org", name="derp", value="herp"))
-
-    entity1_attrs = []
-    entity1_attrs.append(attributes_pb2.AttributeInstance(authority="https://example.org", name="derp", value="flerp"))
-
-    entity1_attrlist = accesspdp_pb2.ListOfAttributeInstances(attribute_instances=entity1_attrs)
-    entity_attrs = {
-        "bibble@yeep.com": entity1_attrlist
-
-    }
-
-    attr_def = attributes_pb2.AttributeDefinition(authority="https://example.org", name="derp", rule="allOf")
-    attr_defs = []
-    attr_defs.append(attr_def)
-
-    req = accesspdp_pb2.DetermineAccessRequest(data_attributes=data_attrs, entity_attribute_sets=entity_attrs, attribute_definitions=attr_defs)
-
-    responses = stub.DetermineAccess(req)
-    for response in responses:
-        logger.info("Received message %s at %s" %
-              (response, dir(response)))
-
-    logger.info(dir(accesspdp_pb2))
 
     # Get a Flask app from the KAS instance
     return kas.app()

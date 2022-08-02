@@ -40,7 +40,7 @@ from .wrapped_key import WrappedKey  # noqa: F401
 from .key_access import KeyAccess  # noqa: F401
 
 from .adjudicator import Adjudicator  # noqa: F401
-from .adjudicator import AdjudicatorV2  # noqa: F401
+from .access_pdp import AccessPDP  # noqa: F401
 
 from .attribute_policies import AttributePolicyCache  # noqa: F401
 from .attribute_policies import AttributePolicy  # noqa: F401

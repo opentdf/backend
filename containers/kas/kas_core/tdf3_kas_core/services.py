@@ -50,7 +50,7 @@ from tdf3_kas_core.errors import UnauthorizedError
 from tdf3_kas_core.errors import RouteNotFoundError
 
 from tdf3_kas_core.models import Adjudicator
-from tdf3_kas_core.models import AdjudicatorV2
+from tdf3_kas_core.models import AccessPDP
 from tdf3_kas_core.models import AttributePolicyCache
 from tdf3_kas_core.models import Entity
 from tdf3_kas_core.models import KeyAccess
@@ -411,16 +411,12 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
     #
 
     # Fetch attributes from EAS and create attribute policy cache.
-    attribute_policy_cache = AttributePolicyCache()
     data_attributes_namespaces = list(
         original_policy.data_attributes.cluster_namespaces
     )
     if data_attributes_namespaces:
-        config = plugin_runner.fetch_attributes(data_attributes_namespaces)
-        attribute_policy_cache.load_config(config)
+        data_attribute_definitions = plugin_runner.fetch_attributes(data_attributes_namespaces)
 
-    # Create adjudicator from the attributes from EAS.
-    adjudicator = AdjudicatorV2(attribute_policy_cache)
 
     (policy, res) = plugin_runner.update(original_policy, claims, key_access, context)
 
@@ -446,9 +442,14 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
         # A purely KAS operation
         pass
 
+    # We have everything we need to invoke the access PDP
+    # 1. Entity attribute instances
+    # 2. Data attribute instances
+    # 3. Attribute definitions for every data attribute instance
+    access_pdp = AccessPDP()
     # Check to see if the policy will grant the entity access.
     # Raises an informative error if access is denied.
-    allowed = adjudicator.can_access(policy, claims)
+    allowed = access_pdp.can_access(policy, claims, data_attribute_definitions)
 
     client_public_key = serialization.load_pem_public_key(
         str.encode(data["clientPublicKey"]), backend=default_backend()
@@ -468,7 +469,7 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
 
     else:
         # should never get to here. Bug in adjudicator.
-        m = f"Adjudicator returned {allowed} without raising an error"
+        m = f"AccessPDP returned {allowed} without raising an error"
         logger.error(m)
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
@@ -564,24 +565,26 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     #
 
     # Fetch attributes from EAS and create attribute policy cache.
-    attribute_policy_cache = AttributePolicyCache()
     data_attributes_namespaces = list(
         original_policy.data_attributes.cluster_namespaces
     )
     if data_attributes_namespaces:
-        config = plugin_runner.fetch_attributes(data_attributes_namespaces)
-        attribute_policy_cache.load_config(config)
+        data_attribute_definitions = plugin_runner.fetch_attributes(data_attributes_namespaces)
 
     # Create adjudicator from the attributes from EAS.
-    adjudicator = AdjudicatorV2(attribute_policy_cache)
-
     (policy, res) = plugin_runner.update(original_policy, claims, key_access, context)
 
+    # We have everything we need to invoke the access PDP
+    # 1. Entity attribute instances
+    # 2. Data attribute instances
+    # 3. Attribute definitions for every data attribute instance
+    access_pdp = AccessPDP()
     # Check to see if the policy will grant the entity access.
     # Raises an informative error if access is denied.
-    allowed = adjudicator.can_access(policy, claims)
+    allowed = access_pdp.can_access(policy, claims, data_attribute_definitions)
+
     if allowed is False:
-        m = "Adjudicator returned {} without raising an error".format(allowed)
+        m = "AccessPDP returned {} without raising an error".format(allowed)
         logger.error(m)
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
