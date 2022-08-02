@@ -41,6 +41,7 @@ to_edit = cfg.get("to-edit", [])
 #  o.  )88b 888    .o 888   .o8  888     888    .o   888 . o.  )88b
 #  8""888P' `Y8bod8P' `Y8bod8P' d888b    `Y8bod8P'   "888" 8""888P'
 
+# Override kas secrets using genkeys-if-needed and provide as chart overrides.
 local("./scripts/genkeys-if-needed")
 
 # TODO drop this if we move PKI out
@@ -63,26 +64,6 @@ if not os.path.exists(
 ):
     local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
 
-all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
-
-
-def only_secrets_named(*items):
-    return {k: all_secrets[k] for k in items}
-
-
-k8s_yaml(
-    secret_from_dict(
-        "kas-secrets",
-        inputs=only_secrets_named(
-            "ATTR_AUTHORITY_CERTIFICATE",
-            "KAS_EC_SECP256R1_CERTIFICATE",
-            "KAS_CERTIFICATE",
-            "KAS_EC_SECP256R1_PRIVATE_KEY",
-            "KAS_PRIVATE_KEY",
-            "ca-cert.pem",
-        ),
-    )
-)
 
 #   o8o
 #   `"'
@@ -260,7 +241,12 @@ helm_resource(
        "--set", "entity-resolution.secret.keycloak.clientSecret=123-456",
        "--set", "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
        "--set", "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
-       "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD
+       "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD,
+       "--set", "kas.envConfig.attrAuthorityCert=%s" % all_secrets['ATTR_AUTHORITY_CERTIFICATE'],
+       "--set", "kas.envConfig.ecCert=%s" % all_secrets['KAS_EC_SECP256R1_CERTIFICATE'],
+       "--set", "kas.envConfig.cert=%s" % all_secrets['KAS_CERTIFICATE'],
+       "--set", "kas.envConfig.ecPrivKey=%s" % all_secrets['KAS_EC_SECP256R1_PRIVATE_KEY'],
+       "--set", "kas.envConfig.privKey=%s" % all_secrets['KAS_PRIVATE_KEY'],
    ],
    labels="opentdf",
    resource_deps=["helm-dep-update","ingress-nginx-controller"],
