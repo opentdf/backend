@@ -50,14 +50,7 @@ jobs:
         run: |
           cd charts
           for d in * ; do
-            if [[ $d == keycloak_bootstrap ]]; then
-              echo "Rendering Helm chart to validate defaults..."
-              helm template --set externalUrl=http://nowhere "$d"
-              if helm template "$d"; then
-                echo "$d should fail with defaults, as it has a required parameter"
-                exit 1
-              fi
-            elif [ -f "$d/Chart.yaml" ]; then
+            if [ -f "$d/Chart.yaml" ]; then
               echo "Rendering Helm chart $d to validate defaults..."
               helm template "$d"
             fi
@@ -81,7 +74,7 @@ jobs:
     needs:
       - lint
       - scriptcheck
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
         with:
@@ -105,7 +98,7 @@ jobs:
           - entitlement_store
           - attributes
           - entitlements
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - name: Checkout working branch
         uses: actions/checkout@v3
@@ -128,7 +121,7 @@ jobs:
       - pytest
       - kas-unittest
       - config
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
@@ -138,9 +131,9 @@ jobs:
             helm
             tilt
           # This should be in sync with the minikube-deployed kube version below
-          kubectl: "1.23.3"
-          helm: "3.8.0"
-          tilt: "0.25.2"
+          kubectl: "1.24.1"
+          helm: "3.9.1"
+          tilt: "0.30.4"
       - run: |
           kustomize version
           tilt version
@@ -148,9 +141,9 @@ jobs:
         id: minikube
         uses: medyagh/setup-minikube@latest
         with:
-          minikube-version: 1.25.2
+          minikube-version: 1.26.0
           # This should be in sync with the setup-tools version above
-          kubernetes-version: 1.23.3
+          kubernetes-version: 1.24.1
       - name: Get cluster versions
         run: |-
           kubectl version
@@ -162,12 +155,27 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
+          # This is needed for PKI test
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
-          tilt ci integration-test pki-test
-      - name: Quick check - run/validate local deployment Tiltfile
-        run: |-
-          tilt ci
+
+          tilt ci -f Tiltfile
+          # Debugging prints
+          kubectl get deployments
+          kubectl get pods
+
+          # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
+          # up after itself if you install things The Normal Way outside of of Tilt.
+          # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
+          # Tilt's mess.
+          docker system prune -af
+          # So, we let it install the Helm chart, ignore it's misreporting of failures,
+          # and wait for health ourselves (from the k8s control plane, not tilt)
+          tilt ci -f xtest.Tiltfile
+          tilt ci -f pki-test.Tiltfile
+          # Debugging prints
+          kubectl get deployments
+          kubectl get pods
 
   publish-helm-charts:
     runs-on: ubuntu-latest
@@ -205,6 +213,7 @@ jobs:
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Setting Chart.yaml version to ${short_ver}..."
                 sed -i "s/version\: .*/version\: $escaped_version/" $d/Chart.yaml
+                helm dependency update
                 echo "Packaging Helm chart $d..."
                 helm package $d --app-version="${short_ver}"
                 echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
@@ -224,7 +233,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx
@@ -281,7 +290,7 @@ jobs:
         repo:
           - kas
           - keycloak-bootstrap
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
@@ -329,7 +338,7 @@ jobs:
         repo:
           - entitlement-pdp
           - entity-resolution
-    timeout-minutes: 90
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
@@ -408,7 +417,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
-    timeout-minutes: 90
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -466,7 +475,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - name: Checkout upstream Keycloak image repo
         uses: actions/checkout@v3
@@ -512,7 +521,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta

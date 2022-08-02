@@ -1,3 +1,11 @@
+# Global values that may be overridden by a parent chart.
+global:
+  opentdf:
+    common:
+      oidcInternalHost: http://localhost:65432
+      # JSON passed to the deployment's template.spec.imagePullSecrets
+      imagePullSecrets: []
+
 # Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
@@ -18,9 +26,6 @@ image:
   # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
-
-# JSON passed to the deployment's template.spec.imagePullSecrets
-imagePullSecrets: []
 
 # Select a specific name for the resource, instead of the default, opentdf-kas
 nameOverride: ""
@@ -54,11 +59,19 @@ securityContext: {}
 # Used for a private PKI mode, for example.
 certFileSecretName: null
 
-# JSON to locate a k8s secret containing environment variables.
-# Notably, this file should include the following environemnt variable definitions:
-#     POSTGRES_PASSWORD: Password corresponding to postgres.user below
-secretRef:
-  name: kas-secrets
+# The name of a secret containing required config values (see envConfig below); overrides envConfig
+externalEnvSecretName:
+
+# Environment configuration values for keys and certs used by the key server.  If externalSecretName is defined these are ignored.
+envConfig:
+  attrAuthorityCert:
+  ecCert:
+  cert:
+  ecPrivKey:
+  privKey:
+
+# Secret containing additional env variables in addition to those provided by envConfig or externalSecretName
+extraEnvSecretName:
 
 # Service configuation information.
 service:
