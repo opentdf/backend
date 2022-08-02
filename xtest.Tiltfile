@@ -48,7 +48,12 @@ docker_build(
 # before continuing.
 local_resource(
     "wait-for-bootstrap",
-    cmd=["tests/integration/wait-for-ready.sh", "job/keycloak-bootstrap", "15m", "default"],
+    cmd=[
+        "tests/integration/wait-for-ready.sh",
+        "job/keycloak-bootstrap",
+        "15m",
+        "default",
+    ],
 )
 
 k8s_yaml(
@@ -60,8 +65,8 @@ k8s_yaml(
             "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
             "global.opentdf.common.oidcInternalHost=http://keycloak-http",
             "global.opentdf.common.oidcUrlPath=auth",
-            "image.repo=" + CONTAINER_REGISTRY + "/opentdf/xtest-keycloak-bootstrap"
-        ]
+            "image.repo=" + CONTAINER_REGISTRY + "/opentdf/xtest-keycloak-bootstrap",
+        ],
     )
 )
 
@@ -76,8 +81,5 @@ k8s_resource(
 k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
-    "opentdf-xtest",
-    resource_deps=["xtest-keycloak-bootstrap"],
-    labels="xtest"
+    "opentdf-xtest", resource_deps=["xtest-keycloak-bootstrap"], labels="xtest"
 )
-

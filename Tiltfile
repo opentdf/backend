@@ -157,7 +157,7 @@ for microservice in ["attributes", "entitlements", "entitlement_store"]:
                 trigger="./containers/" + microservice + "/requirements.txt",
             ),
         ],
-)
+    )
 #     o8o
 #     `"'
 #    oooo  ooo. .oo.    .oooooooo oooo d8b  .ooooo.   .oooo.o  .oooo.o
@@ -202,48 +202,59 @@ k8s_yaml("tests/integration/ingress-class.yaml")
 local_resource(
     "helm-dep-update",
     "helm dependency update",
-    dir = "./charts/backend",
+    dir="./charts/backend",
 )
 helm_resource(
-   name = "backend",
-   chart  =  "./charts/backend",
-   image_deps = [
-       CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-       CONTAINER_REGISTRY + "/opentdf/keycloak",
-       CONTAINER_REGISTRY + "/opentdf/attributes",
-       CONTAINER_REGISTRY + "/opentdf/entitlements",
-       CONTAINER_REGISTRY + "/opentdf/entitlement_store",
-       CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-       CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-       CONTAINER_REGISTRY + "/opentdf/kas"
-       ],
-   image_keys=[
-       ('keycloak-bootstrap.image.repository', 'keycloak-bootstrap.image.tag'),
-       ('keycloak.image.repository', 'keycloak.image.tag'),
-       ('attributes.image.repository', 'attributes.image.tag'),
-       ('entitlements.image.repository', 'entitlements.image.tag'),
-       ('entitlement_store.image.repository', 'entitlement_store.image.tag'),
-       ('entitlement-pdp.image.repository', 'entitlement-pdp.image.tag'),
-       ('entitlement-resolution.image.repository', 'entitlement-resolution.image.tag'),
-       ('kas.image.repository', 'kas.image.tag')
-       ],
-   flags=[
-       "--dependency-update",
-       "-f",
-       "./tests/integration/backend-pki-values.yaml", # TODO drop this if we move PKI out
-       "--set", "keycloak.image.pullPolicy=Never",
-       "--set", "entity-resolution.secret.keycloak.clientSecret=123-456",
-       "--set", "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
-       "--set", "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
-       "--set", "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD,
-       "--set", "kas.envConfig.attrAuthorityCert=%s" % all_secrets['ATTR_AUTHORITY_CERTIFICATE'],
-       "--set", "kas.envConfig.ecCert=%s" % all_secrets['KAS_EC_SECP256R1_CERTIFICATE'],
-       "--set", "kas.envConfig.cert=%s" % all_secrets['KAS_CERTIFICATE'],
-       "--set", "kas.envConfig.ecPrivKey=%s" % all_secrets['KAS_EC_SECP256R1_PRIVATE_KEY'],
-       "--set", "kas.envConfig.privKey=%s" % all_secrets['KAS_PRIVATE_KEY'],
-   ],
-   labels="opentdf",
-   resource_deps=["helm-dep-update","ingress-nginx-controller"],
+    name="backend",
+    chart="./charts/backend",
+    image_deps=[
+        CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
+        CONTAINER_REGISTRY + "/opentdf/keycloak",
+        CONTAINER_REGISTRY + "/opentdf/attributes",
+        CONTAINER_REGISTRY + "/opentdf/entitlements",
+        CONTAINER_REGISTRY + "/opentdf/entitlement_store",
+        CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+        CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+        CONTAINER_REGISTRY + "/opentdf/kas",
+    ],
+    image_keys=[
+        ("keycloak-bootstrap.image.repository", "keycloak-bootstrap.image.tag"),
+        ("keycloak.image.repository", "keycloak.image.tag"),
+        ("attributes.image.repository", "attributes.image.tag"),
+        ("entitlements.image.repository", "entitlements.image.tag"),
+        ("entitlement_store.image.repository", "entitlement_store.image.tag"),
+        ("entitlement-pdp.image.repository", "entitlement-pdp.image.tag"),
+        ("entitlement-resolution.image.repository", "entitlement-resolution.image.tag"),
+        ("kas.image.repository", "kas.image.tag"),
+    ],
+    flags=[
+        "--dependency-update",
+        "-f",
+        "./tests/integration/backend-pki-values.yaml",  # TODO drop this if we move PKI out
+        "--set",
+        "keycloak.image.pullPolicy=Never",
+        "--set",
+        "entity-resolution.secret.keycloak.clientSecret=123-456",
+        "--set",
+        "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
+        "--set",
+        "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
+        "--set",
+        "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD,
+        "--set",
+        "kas.envConfig.attrAuthorityCert=%s"
+        % all_secrets["ATTR_AUTHORITY_CERTIFICATE"],
+        "--set",
+        "kas.envConfig.ecCert=%s" % all_secrets["KAS_EC_SECP256R1_CERTIFICATE"],
+        "--set",
+        "kas.envConfig.cert=%s" % all_secrets["KAS_CERTIFICATE"],
+        "--set",
+        "kas.envConfig.ecPrivKey=%s" % all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
+        "--set",
+        "kas.envConfig.privKey=%s" % all_secrets["KAS_PRIVATE_KEY"],
+    ],
+    labels="opentdf",
+    resource_deps=["helm-dep-update", "ingress-nginx-controller"],
 )
 
 # Possibly The Stupidest Thing About Tilt is that despite sitting *directly on top* of the K8S
