@@ -27,12 +27,6 @@ def from_dotenv(path, key):
     return str(local('. "{}" && echo "${}"'.format(path, key))).strip()
 
 
-config.define_string_list("to-run", args=True)
-config.define_string_list("to-edit")
-cfg = config.parse()
-
-to_edit = cfg.get("to-edit", [])
-
 #                                                      .
 #                                                    .o8
 #   .oooo.o  .ooooo.   .ooooo.  oooo d8b  .ooooo.  .o888oo  .oooo.o
