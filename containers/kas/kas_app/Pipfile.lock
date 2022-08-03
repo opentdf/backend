@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "833cb3ac2b2764798995c88aa39a4061ae206983f4b2d69ec5bd81adb11dae18"
+            "sha256": "a036a2cc16feb0b9f1179589d292df5ac50de8e3e3f640edc24785e85af4a300"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -21,6 +21,12 @@
             "git": "https://github.com/virtru/access-pdp",
             "ref": "2ff756888970fa6862d9b437741d144175b77a4c",
             "subdirectory": "clients/python/accesspdp"
+        },
+        "attributes": {
+            "editable": true,
+            "git": "https://github.com/virtru/access-pdp",
+            "ref": "2ff756888970fa6862d9b437741d144175b77a4c",
+            "subdirectory": "clients/python/attributes"
         },
         "attrs": {
             "hashes": [
@@ -778,7 +784,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "python_version < '3.11'",
             "version": "==2.0.1"
         },
         "typing-extensions": {

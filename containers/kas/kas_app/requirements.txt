@@ -1,5 +1,6 @@
 -i https://pypi.org/simple
 -e git+https://github.com/virtru/access-pdp@2ff756888970fa6862d9b437741d144175b77a4c#egg=accesspdp&subdirectory=clients/python/accesspdp
+-e git+https://github.com/virtru/access-pdp@2ff756888970fa6862d9b437741d144175b77a4c#egg=attributes&subdirectory=clients/python/attributes
 attrs==22.1.0; python_version >= '3.5'
 bitstruct==8.15.1
 certifi==2022.6.15; python_version >= '3.6'
