@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "0a1b295b8173e7eb86f113cdeafa16b9ee0428f0e0e0673060a93f6697554082"
+            "sha256": "833cb3ac2b2764798995c88aa39a4061ae206983f4b2d69ec5bd81adb11dae18"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -21,12 +21,6 @@
             "git": "https://github.com/virtru/access-pdp",
             "ref": "2ff756888970fa6862d9b437741d144175b77a4c",
             "subdirectory": "clients/python/accesspdp"
-        },
-        "attributes": {
-            "editable": true,
-            "git": "https://github.com/virtru/access-pdp",
-            "ref": "2ff756888970fa6862d9b437741d144175b77a4c",
-            "subdirectory": "clients/python/attributes"
         },
         "attrs": {
             "hashes": [
@@ -235,7 +229,7 @@
                 "sha256:f89de64d9eb3478b188859214752db50c91a749479011abd99e248550371375f",
                 "sha256:fcd5d932842df503eb0bf60f9cc35e6fe732b51f499e78b45234e0be41b0018d"
             ],
-            "markers": "python_version >= '3.6'",
+            "index": "pypi",
             "version": "==1.47.0"
         },
         "gunicorn": {
@@ -296,11 +290,11 @@
         },
         "jsonschema": {
             "hashes": [
-                "sha256:5d0be0cd1b670438b71c3d3145b2abba1f9d197e3e91adc4c4bae4c0e114e252",
-                "sha256:df10e65c8f3687a48e93d0d348ce0ce5f897b5a28e9bbcbbe8f7c7eaf019e850"
+                "sha256:408c4c8ed0dede3b268f7a441784f74206380b04f93eb2d537c7befb3df3099f",
+                "sha256:8ebad55894c002585271af2d327d99339ef566fb085d9129b69e2623867c4106"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==4.9.0"
+            "version": "==4.9.1"
         },
         "markupsafe": {
             "hashes": [
@@ -483,11 +477,11 @@
         },
         "setuptools": {
             "hashes": [
-                "sha256:273b6847ae61f7829c1affcdd9a32f67aa65233be508f4fbaab866c5faa4e408",
-                "sha256:d5340d16943a0f67057329db59b564e938bb3736c6e50ae16ea84d5e5d9ba6d0"
+                "sha256:7c7854ee1429a240090297628dc9f75b35318d193537968e2dc14010ee2f5bca",
+                "sha256:dc2662692f47d99cb8ae15a784529adeed535bcd7c277fee0beccf961522baf6"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==63.3.0"
+            "version": "==63.4.1"
         },
         "six": {
             "hashes": [
@@ -784,7 +778,7 @@
                 "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc",
                 "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"
             ],
-            "markers": "python_version < '3.11'",
+            "markers": "python_version >= '3.7'",
             "version": "==2.0.1"
         },
         "typing-extensions": {
