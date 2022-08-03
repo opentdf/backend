@@ -210,8 +210,8 @@ jobs:
           escaped_version=$(printf '%s\n' "0.0.0-${short_ver}" | sed -e 's/[\/.]/\\./g')
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
-                echo "Setting Chart.yaml version to ${short_ver}..."
-                sed -i "s/version\: .*/version\: $escaped_version/" $d/Chart.yaml
+                echo "Setting $d/Chart.yaml version to ${short_ver} [${escaped_version}]..."
+                sed -i "s/^version\: .*$$/version\: $escaped_version/" $d/Chart.yaml
                 helm dependency update
                 echo "Packaging Helm chart $d..."
                 helm package $d --app-version="${short_ver}"
