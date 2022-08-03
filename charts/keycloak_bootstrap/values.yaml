@@ -43,7 +43,6 @@ keycloak:
     #   password: testuser1234
     # - username: user4
     #   password: testuser12345
-istioTerminationHack: false
 attributes:
   hostname: http://opentdf-attributes
   realm: tdf

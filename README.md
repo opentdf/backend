@@ -24,7 +24,7 @@ We store several services combined in a single git repository for ease of develo
 1. The [`containers`](./containers) folder contains individual containerized services in folders, each of which should have a `Dockerfile`
   1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
 1. The [`charts`](./charts) folder contains Helm charts for every individual service, as well as an umbrella [backend](./charts/backend) Helm chart that installs all backend services.
-1. Integration test configs and helper scripts are stored in the [`tests`](./tests) folder. Notably, a useful integration test (x86 only) is available by running `tilt ci -f Tiltfile.xtest integration-test` from the repo root.
+1. Integration test configs and helper scripts are stored in the [`tests`](./tests) folder. Notably, a useful integration test (x86 only) is available by running `tilt ci && tilt ci -f xtest.Tiltfile` from the repo root.
 1. A simple local stack can be brought up with the latest releases of the images by running `tilt up` from the repo root. This simply uses Tilt to install the [backend](./charts/backend) Helm chart and deploy it with locally-built Docker images and Helm charts, rather than pulling tagged and released artifacts. 
 
 ## Local Quick Start and Development
@@ -187,7 +187,7 @@ Once a cluster is running, run `tests/security-test/helm-test.sh`
 
 ### Integration Tests
 Once a cluster is running, in another terminal run:
-`tilt up -f --port 10351 Tiltfile.xtest integration-test`
+`tilt up --port 10351 -f xtest.Tiltfile`
 
 ## Deployment
 
