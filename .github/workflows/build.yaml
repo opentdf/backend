@@ -206,14 +206,15 @@ jobs:
           logout: false
       - name: push
         run: |
+          apt-get update && apt-get install -y wget
+          wget https://github.com/mikefarah/yq/releases/download/v4.27.2/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
           cd charts
           short_ver=sha-$(git rev-parse --short HEAD)
           escaped_version=$(printf '%s\n' "0.0.0-${short_ver}" | sed -e 's/[\/.]/\\./g')
           for d in */ ; do
-              if [ -f "$d/Chart.yaml" ]; then
+              if [ -f "$d/Chart.yaml" -a "$d" != "backend/" ]; then
                 echo "Setting $d/Chart.yaml version to ${short_ver} [${escaped_version}]..."
                 sed -i "s/^version\: .*\$/version\: $escaped_version/" $d/Chart.yaml
-                helm dependency update
                 echo "Packaging Helm chart $d..."
                 helm package $d --app-version="${short_ver}"
                 echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
@@ -222,7 +223,20 @@ jobs:
                 rm *.tgz
               fi
           done
-
+          d = "backend"
+          sub_charts=("attributes" "entitlement-pdp" "entitlement-store" "entitlements" "entity-resolution" "kas", "keycloak-bootstrap")
+          for sub_chart in "${sub_charts[@]}" ; do
+            echo "${sub_chart} update version"
+            repo="oci://ghcr.io/${{ github.repository_owner }}/charts/${sub_chart}"
+            sub_chart=$sub_chart escaped_version=$escaped_version yq '(.dependencies[] | select(.name == env(sub_chart)) | .version ) = env(escaped_version)' -i $d/Chart.yaml
+            sub_chart=$sub_chart repo=$repo yq '(.dependencies[] | select(.name == env(sub_chart)) | .repository ) = env(repo)' -i $d/Chart.yaml
+          done
+          helm dependency update $d
+          helm package $d --app-version="${short_ver}"
+          echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
+          echo *.tgz
+          helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          rm *.tgz 
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
