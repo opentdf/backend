@@ -36,8 +36,6 @@ def convert_attribute_defs(attribute_defs):
 
         if "rule" in attribute_def:
             pb_attr_def.rule = attribute_def["rule"]
-        else:
-            pb_attr_def.rule = ANY_OF
         if "order" in attribute_def:
             pb_attr_def.rule = attribute_def["order"]
         if "state" in attribute_def:
