@@ -10,6 +10,10 @@ global:
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
 
+# Enables verbose mode for the internal PDP (policy decision point) KAS uses.
+# If `yes`, decisions will be logged with much additional detail
+verbosePDP: yes
+
 # If the debug mode should  be enabled in flask
 flaskDebug: "False"
 

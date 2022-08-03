@@ -12,6 +12,7 @@ from attributes.v1 import attributes_pb2
 
 logger = logging.getLogger(__name__)
 
+local_pdp = 'localhost:50052'
 
 class AccessPDP(object):
     """Adjudicator adjudicates.
@@ -70,19 +71,21 @@ class AccessPDP(object):
         If all entity-level Decisions are True, then return True, else return false.
         """
         # BEGIN grpc
-        logger.info("GRPC STUFF")
-        channel = grpc.insecure_channel('localhost:50052')
+        logger.debug(f"Invoking local PDP: {local_pdp}")
+        channel = grpc.insecure_channel(local_pdp)
         stub = accesspdp_pb2_grpc.AccessPDPEndpointStub(channel)
 
+        logger.debug("Serializing KAS structures")
         attr_defs = pdp_grpc.convert_attribute_defs(data_attribute_definitions)
         entity_attrs = pdp_grpc.convert_entity_attrs(entity_attributes)
         data_attrs = pdp_grpc.convert_data_attrs(data_attributes)
 
         req = accesspdp_pb2.DetermineAccessRequest(data_attributes=data_attrs, entity_attribute_sets=entity_attrs, attribute_definitions=attr_defs)
 
+        logger.debug(f"Requesting decision - request is {dir(req)}")
         responses = stub.DetermineAccess(req)
         for response in responses:
-            logger.info("Received response for entity %s with access decision %s" %
+            logger.debug("Received response for entity %s with access decision %s" %
                 (response.entity, response.access))
 
             # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
