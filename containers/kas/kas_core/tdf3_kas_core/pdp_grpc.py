@@ -25,20 +25,18 @@ def convert_attribute_defs(attribute_defs):
         # use the policy constructor to validate the inputs
         authority = attribute_def["authorityNamespace"]
         name = attribute_def["name"]
-        # TODO group_by
-        # group_by=attribute_def["group_by"],
 
-        pb_attr_def = attributes_pb2.AttributeDefinition(authority, name)
+        # TODO This is an existing KAS default - if no definition (or incomplete definition)
+        # found then "create" a new attribute definition with a "default" ALL_OF rule.
+        # This is useful for development but in terms of access logic almost always entirely wrong.
+        #
+        # We should, arguably, fail with an error if we cannot fetch an attribute definition with a rule
+        # from an attribute authority for EVERY data attribute canonical name.
+        pb_attr_def = attributes_pb2.AttributeDefinition(authority=authority, name=name, rule=ALL_OF)
 
         if "rule" in attribute_def:
             pb_attr_def.rule = attribute_def["rule"]
         else:
-            # TODO This is an existing KAS default - if no definition (or incomplete definition)
-            # found then "create" a new attribute definition with an ANY_OF rule.
-            # This is useful for development but in terms of access logic always entirely wrong.
-            #
-            # We should, arguably, fail with an error if we cannot fetch an attribute definition from
-            # an attribute authority for EVERY data attribute canonical name.
             pb_attr_def.rule = ANY_OF
         if "order" in attribute_def:
             pb_attr_def.rule = attribute_def["order"]
