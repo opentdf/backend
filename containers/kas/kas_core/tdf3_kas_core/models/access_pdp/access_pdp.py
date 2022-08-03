@@ -93,7 +93,10 @@ class AccessPDP(object):
 
             # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
             access = access and response.access
+            # Capture the per-data-attribute result details for each entity decision, for logging/etc
             rule_results.append(response.results)
+            logger.debug(f"Detailed data attribute results for entity {response.entity}: \n")
+            logger.debug(f"{json.dumps(response.results)}\n")
         # END grpc
 
         # Final check - KAS wants an error thrown if access == false
