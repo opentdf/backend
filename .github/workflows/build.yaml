@@ -171,7 +171,8 @@ jobs:
           docker system prune -af
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
-          tilt ci -f Tiltfile.xtest integration-test pki-test
+          tilt ci -f xtest.Tiltfile
+          tilt ci -f pki-test.Tiltfile
           # Debugging prints
           kubectl get deployments
           kubectl get pods
@@ -210,8 +211,8 @@ jobs:
           escaped_version=$(printf '%s\n' "0.0.0-${short_ver}" | sed -e 's/[\/.]/\\./g')
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
-                echo "Setting Chart.yaml version to ${short_ver}..."
-                sed -i "s/version\: .*/version\: $escaped_version/" $d/Chart.yaml
+                echo "Setting $d/Chart.yaml version to ${short_ver} [${escaped_version}]..."
+                sed -i "s/^version\: .*\$/version\: $escaped_version/" $d/Chart.yaml
                 helm dependency update
                 echo "Packaging Helm chart $d..."
                 helm package $d --app-version="${short_ver}"
@@ -232,7 +233,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
       - name: Set up Docker Buildx

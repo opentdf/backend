@@ -1,3 +1,5 @@
+name: 'opentdf-backend'
+
 embedded:
   keycloak: true
   postgresql: true
@@ -32,7 +34,6 @@ secrets:
     user: keycloakadmin
     password: mykeycloakpassword
 
-
 attributes:
   fullnameOverride: opentdf-attributes
 entitlement-pdp:
@@ -57,6 +58,12 @@ kas:
   endpoints:
     easHost: http://opentdf-attributes:4020
     statsdHost: opentdf-statsd
+  envConfig:
+    attrAuthorityCert:
+    ecCert:
+    cert:
+    ecPrivKey:
+    privKey:
 
 keycloak:
   fullnameOverride: keycloak

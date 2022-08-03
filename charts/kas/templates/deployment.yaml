@@ -34,9 +34,11 @@ spec:
           image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
-            {{- with .Values.secretRef }}
             - secretRef:
-                {{- toYaml . | nindent 16 }}
+                name: {{ include "kas.secretName" . }} 
+            {{- if .Values.extraEnvSecretName }}    
+            - secretRef:
+                name: {{ .Values.extraEnvSecretName }} 
             {{- end }}
             - configMapRef:
                 name: {{ include "kas.name" . }}-cm
