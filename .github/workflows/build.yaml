@@ -231,6 +231,7 @@ jobs:
             sub_chart=$sub_chart escaped_version=$escaped_version yq '(.dependencies[] | select(.name == env(sub_chart)) | .version ) = env(escaped_version)' -i $d/Chart.yaml
             sub_chart=$sub_chart repo=$repo yq '(.dependencies[] | select(.name == env(sub_chart)) | .repository ) = env(repo)' -i $d/Chart.yaml
           done
+          sed -i "s/^version\: .*\$/version\: $escaped_version/" $d/Chart.yaml
           helm dependency update $d
           helm package $d --app-version="${short_ver}"
           echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
