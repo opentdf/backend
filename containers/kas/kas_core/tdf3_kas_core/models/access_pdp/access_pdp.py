@@ -82,11 +82,11 @@ class AccessPDP(object):
 
         responses = stub.DetermineAccess(req)
         for response in responses:
-            logger.info("Received message %s with Result %s" %
-                (response, response.Result))
+            logger.info("Received response for entity %s with access decision %s" %
+                (response.entity, response.access))
 
             # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
-            access = access and response.Result
+            access = access and response.access
         # END grpc
 
         return access

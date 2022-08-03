@@ -43,7 +43,13 @@ def convert_attribute_defs(attribute_defs):
         if "order" in attribute_def:
             pb_attr_def.rule = attribute_def["order"]
         if "state" in attribute_def:
-            pb_attr_def.rule = attribute_def["state"]
+            pb_attr_def.state = attribute_def["state"]
+        if "group_by" in attribute_def:
+            pb_attr_def.group_by = attributes_pb2.AttributeInstance(
+                authority=attribute_def["group_by"].authority,
+                name=attribute_def["group_by"].name,
+                value=attribute_def["group_by"].value
+            )
 
         pb_attr_defs.append(pb_attr_def)
 
