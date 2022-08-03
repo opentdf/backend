@@ -26,7 +26,7 @@ uri = 'localhost:50052'
 class AccessPDPHealthzPlugin(AbstractHealthzPlugin):
     def healthz(self, *, probe):
 
-        logger.info("GRPC STUFF")
+        logger.debug("Access PDP gRPC health check")
         channel = grpc.insecure_channel(uri)
         stub = accesspdp_pb2_grpc.HealthStub(channel)
         req = accesspdp_pb2.HealthCheckRequest()
