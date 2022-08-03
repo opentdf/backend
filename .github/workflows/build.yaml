@@ -211,7 +211,7 @@ jobs:
           for d in */ ; do
               if [ -f "$d/Chart.yaml" ]; then
                 echo "Setting $d/Chart.yaml version to ${short_ver} [${escaped_version}]..."
-                sed -i "s/^version\: .*$$/version\: $escaped_version/" $d/Chart.yaml
+                sed -i "s/^version\: .*\$/version\: $escaped_version/" $d/Chart.yaml
                 helm dependency update
                 echo "Packaging Helm chart $d..."
                 helm package $d --app-version="${short_ver}"
