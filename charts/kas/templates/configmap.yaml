@@ -14,6 +14,8 @@ data:
   GUNICORN_WORKERS: {{ .Values.gunicornWorkers | default 1 | quote }}
   KEYCLOAK_HOST: {{ ( include "kas.oidcPubkeyEndpoint" . ) | quote }}
   LOGLEVEL: {{ .Values.logLevel | quote }}
-  VERBOSE: {{ .Values.verbosePDP | quote }}
+  VERBOSE: {{ .Values.pdp.verbose | quote }}
   STATSD_HOST: {{ .Values.endpoints.statsdHost | quote }}
+  DISABLE_TRACING: {{ .Values.pdp.enableTracing | quote }}
+
   USE_KEYCLOAK: "1"

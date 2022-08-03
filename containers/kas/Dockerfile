@@ -106,11 +106,6 @@ ENV WSGI_CORS_ORIGIN *
 ENV STATSD_HOST ""
 ENV STATSD_PORT "8125"
 
-# Access PDP can send OpenTelemetry traces to collectors -
-# if no collectors configured, the traces will get redirected to STDOUT,
-# which is a bit spammy, so turn this off until we do proper OT trace collection.
-ENV DISABLE_TRACING "true"
-
 EXPOSE 8000
 
 # Run program under Tini
