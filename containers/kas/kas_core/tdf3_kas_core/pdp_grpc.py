@@ -1,7 +1,10 @@
 """gRPC helper functions for PDP invocation - mostly type conversions
 between internal KAS objects and gRPC types"""
 import logging
+
 from attributes.v1 import attributes_pb2
+from accesspdp.v1 import accesspdp_pb2
+
 from tdf3_kas_core.errors import InvalidAttributeError
 
 logger = logging.getLogger(__name__)
@@ -37,10 +40,12 @@ def convert_attribute_defs(attribute_defs):
         if "rule" in attribute_def:
             pb_attr_def.rule = attribute_def["rule"]
         if "order" in attribute_def:
-            pb_attr_def.rule = attribute_def["order"]
+            pb_attr_def.order.extend(attribute_def["order"])
         if "state" in attribute_def:
             pb_attr_def.state = attribute_def["state"]
-        if "group_by" in attribute_def:
+        if "group_by" in attribute_def and attribute_def["group_by"]:
+            logger.debug("Adding group_by to definition")
+            logger.debug(dir(attribute_def["group_by"]))
             pb_attr_def.group_by = attributes_pb2.AttributeInstance(
                 authority=attribute_def["group_by"].authority,
                 name=attribute_def["group_by"].name,
@@ -64,13 +69,13 @@ def convert_entity_attrs(entity_attributes):
 
     pb_entity_attr_dict = {}
     for entity_id, entity_attributes in entity_attributes.items():
-        pb_entity_attrs = []
-        for entity_attribute in entity_attributes:
-            pb_entity_attrs.append(attributes_pb2.AttributeInstance(
+        pb_entity_attrs = accesspdp_pb2.ListOfAttributeInstances()
+        for entity_attribute in entity_attributes.values:
+            pb_entity_attrs.attribute_instances.extend([attributes_pb2.AttributeInstance(
                 authority=entity_attribute.authority,
                 name=entity_attribute.name,
                 value=entity_attribute.value
-            ))
+            )])
 
         pb_entity_attr_dict[entity_id] = pb_entity_attrs
 
@@ -87,7 +92,7 @@ def convert_data_attrs(data_attributes):
     )
 
     pb_data_attrs = []
-    for data_attribute in data_attributes:
+    for data_attribute in data_attributes.values:
             pb_data_attrs.append(attributes_pb2.AttributeInstance(
                 authority=data_attribute.authority,
                 name=data_attribute.name,
