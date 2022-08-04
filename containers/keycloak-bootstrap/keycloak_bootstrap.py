@@ -980,7 +980,7 @@ def kc_bootstrap():
         with open("/etc/virtru-config/config.yaml") as f:
             bootstrap_config = yaml.safe_load(f)
     except FileNotFoundError:
-        logger.warning("Not found: /etc/virtru-config/config.yaml", exc_info=1)
+        logger.error("Not found: /etc/virtru-config/config.yaml", exc_info=1)
         bootstrap_config = None
 
     
