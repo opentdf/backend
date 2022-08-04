@@ -1,4 +1,4 @@
-"""The Adjudicator adjudicates access to the wrapped key."""
+"""The AccessPDP makes a decision, which the surrounding KAS PEP uses to determine access to the wrapped key."""
 import logging
 
 
@@ -6,7 +6,6 @@ import grpc
 from google.protobuf.json_format import MessageToJson
 import tdf3_kas_core.pdp_grpc as pdp_grpc
 
-from tdf3_kas_core.errors import AdjudicatorError
 from tdf3_kas_core.errors import AuthorizationError
 
 from accesspdp.v1 import accesspdp_pb2_grpc, accesspdp_pb2
