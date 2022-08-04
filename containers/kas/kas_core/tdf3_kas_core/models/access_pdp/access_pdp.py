@@ -84,7 +84,7 @@ class AccessPDP(object):
 
         req = accesspdp_pb2.DetermineAccessRequest(data_attributes=data_attrs, entity_attribute_sets=entity_attrs, attribute_definitions=attr_defs)
 
-        logger.debug(f"Requesting decision - request is {dir(req)}")
+        logger.debug(f"Requesting decision - request is {MessageToJson(req)}")
         responses = stub.DetermineAccess(req)
         entity_responses = []
         for response in responses:
@@ -101,4 +101,4 @@ class AccessPDP(object):
 
         # Final check - KAS wants an error thrown if access == false
         if not access:
-            raise AuthorizationError(f"Access Denied - response details: {entity_responses}")
+            raise AuthorizationError(f"Access Denied")
