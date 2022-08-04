@@ -8,8 +8,9 @@ fi
 
 echo "[INFO] Waiting (up to $2) for [$1] job to complete"
 echo "[DEBUG] [kubectl get $1 -n $3]"
-if kubectl get $1 -n $3; then
-    kubectl wait --for=condition=complete --timeout=$2 $1
+if kubectl get "$1" -n "$3"; then
+    if ! kubectl wait --for=condition=complete --timeout="$2" "$1"; then
+        kubectl logs "$1"
+    fi
 fi
 echo "[INFO] Finished waiting"
-
