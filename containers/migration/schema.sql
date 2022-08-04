@@ -5,9 +5,9 @@
 
 -- performs nocase checks
 CREATE COLLATION IF NOT EXISTS NOCASE
-    (
+(
     provider = 'icu',
-    locale = 'und-u-ks-level2', deterministic = false
+    locale = 'und-u-ks-level2'
 );
 
 CREATE SCHEMA IF NOT EXISTS tdf_attribute;
@@ -25,10 +25,10 @@ CREATE TABLE IF NOT EXISTS tdf_attribute.attribute
     rule         VARCHAR NOT NULL,
     name         VARCHAR NOT NULL, -- ??? COLLATE NOCASE
     description  VARCHAR,
-    values_array       TEXT[]
-    group_by_attr     INTEGER REFERENCES tdf_attribute.attribute(id),
-    group_by_attrval  VARCHAR,
-    CHECK(group_by_attrval is not null or group_by_attr is null),
+    values_array TEXT[],
+    group_by_attr INTEGER REFERENCES tdf_attribute.attribute(id),
+    group_by_attrval VARCHAR,
+    CONSTRAINT no_attrval_without_attrid CHECK(group_by_attrval is not null or group_by_attr is null),
     CONSTRAINT namespase_id_name_unique UNIQUE (namespace_id, name)
 );
 
