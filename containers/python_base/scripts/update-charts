@@ -19,8 +19,6 @@ APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 PROJECT_ROOT="$(cd "$APP_DIR"/../ >/dev/null && pwd)"
 export PATH="$PATH:$APP_DIR"
 
-monolog TRACE "$APP_DIR, ${PROJECT_ROOT}"
-
 monolog TRACE "Running [$0${1+ }$*]"
 
 e() {
@@ -88,6 +86,12 @@ cd "${PROJECT_ROOT}/charts" || e "Unable to find charts folder in [${PROJECT_ROO
 short_ver=sha-$(git rev-parse --short HEAD)
 
 case "$1" in
+  help | --help | -h)
+    echo "update-chart [release|local|dev] updates Chart.yaml files version information"
+    echo "   release: Use latest tag as chart.version, container VERSIONs as appVersion"
+    echo "   dev: Use git hash versioning"
+    echo "   local: Use file:// relative paths in umbrella chart, target main builds of apps"
+    ;;
   release)
     monolog DEBUG "Tagged release update"
     for x in $(cd "${PROJECT_ROOT}"/charts/ && ls); do
