@@ -24,10 +24,11 @@ def plugins():
 
 
 @pytest.fixture
-def req(policy, key_access_remote, context):
+def req(policy, claims, key_access_remote, context):
     """Generate a req object."""
     yield {
         "policy": policy,
+        "claims": claims,
         "keyAccess": key_access_remote,
         "context": context,
     }
@@ -48,10 +49,10 @@ def test_plugin_runner_constructor_with_plugins(plugins):
     assert isinstance(actual, RewrapPluginRunnerV2)
 
 
-def test_plugin_runner_update_no_plugins(policy, key_access_remote, context):
+def test_plugin_runner_update_no_plugins(policy, claims, key_access_remote, context):
     """Test the update function."""
     pr = RewrapPluginRunnerV2()
-    actual = pr.update(policy, key_access_remote, context)
+    actual = pr.update(policy, claims, key_access_remote, context)
     assert actual[0] == policy
     res = actual[1]
     assert "entityWrappedKey" not in res
@@ -59,7 +60,7 @@ def test_plugin_runner_update_no_plugins(policy, key_access_remote, context):
 
 
 def test_plugin_runner_update_simple_plugin(
-    plugins, policy, key_access_remote, context
+        plugins, policy, claims, key_access_remote, context
 ):
     """Test the update function."""
 
@@ -87,7 +88,7 @@ def test_plugin_runner_update_simple_plugin(
 
     pr = RewrapPluginRunnerV2(plugins)
     pprint(pr)
-    actual = pr.update(policy, key_access_remote, context)
+    actual = pr.update(policy, claims, key_access_remote, context)
     pprint(actual)
     assert actual[0] == policy
     res = actual[1]

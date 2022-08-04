@@ -9,7 +9,8 @@ import json
 import base64
 
 from .models import Policy
-from .models import EntityAttributes
+from .models import Claims
+from .models import ClaimsAttributes
 from .models import KeyAccess
 from .models import Context
 
@@ -38,6 +39,15 @@ def policy():
     }
     raw_can = bytes.decode(base64.b64encode(str.encode(json.dumps(raw_dict))))
     yield Policy.construct_from_raw_canonical(raw_can)
+
+
+@pytest.fixture
+def claims():
+    """Test the basic constructor."""
+    user_id = "Hey It's Me"
+    attributes = {}
+    attributes[user_id] = ClaimsAttributes()
+    yield Claims(user_id, public_key, attributes)
 
 
 @pytest.fixture
