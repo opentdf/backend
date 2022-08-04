@@ -231,7 +231,6 @@ def test_rewrap_v2(entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp):
 
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )
@@ -273,7 +272,6 @@ def test_rewrap_v2_expired_token(entity_load_mock, tdf3_mock, nano_mock, with_id
 
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )
@@ -314,7 +312,6 @@ def test_rewrap_v2_no_auth_header(entity_load_mock, tdf3_mock, nano_mock, with_i
 
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )
@@ -358,7 +355,6 @@ def test_rewrap_v2_invalid_auth_header(
 
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )

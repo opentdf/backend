@@ -9,7 +9,6 @@ import json
 import base64
 
 from .models import Policy
-from .models import Entity
 from .models import EntityAttributes
 from .models import KeyAccess
 from .models import Context
@@ -39,25 +38,6 @@ def policy():
     }
     raw_can = bytes.decode(base64.b64encode(str.encode(json.dumps(raw_dict))))
     yield Policy.construct_from_raw_canonical(raw_can)
-
-
-@pytest.fixture
-def entity():
-    """Construct an entity object."""
-    user_id = "coyote@acme.com"
-    attribute1 = (
-        "https://aa.virtru.com/attr/unique-identifier"
-        "/value/7b738968-131a-4de9-b4a1-c922f60583e3"
-    )
-    attribute2 = (
-        "https://aa.virtru.com/attr/primary-organization"
-        "/value/7b738968-131a-4de9-b4a1-c922f60583e3"
-    )
-
-    attributes = EntityAttributes.create_from_list(
-        [{"attribute": attribute1}, {"attribute": attribute2}]
-    )
-    yield Entity(user_id, public_key, attributes)
 
 
 @pytest.fixture

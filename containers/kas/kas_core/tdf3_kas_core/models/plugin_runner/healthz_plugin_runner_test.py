@@ -6,7 +6,7 @@ from pprint import pprint
 
 from tdf3_kas_core.abstractions import AbstractRewrapPlugin
 
-from .rewrap_plugin_runner import RewrapPluginRunner
+from .rewrap_plugin_runner_v2 import RewrapPluginRunnerV2
 
 ATTRIBUTES = {
     "https://acme.com/attr/IntellectualProperty": {
@@ -24,11 +24,10 @@ def plugins():
 
 
 @pytest.fixture
-def req(policy, entity, key_access_remote, context):
+def req(policy, key_access_remote, context):
     """Generate a req object."""
     yield {
         "policy": policy,
-        "entity": entity,
         "keyAccess": key_access_remote,
         "context": context,
     }
@@ -39,20 +38,20 @@ def req(policy, entity, key_access_remote, context):
 
 def test_plugin_runner_constructor_empty():
     """Test the constructor."""
-    actual = RewrapPluginRunner()
-    assert isinstance(actual, RewrapPluginRunner)
+    actual = RewrapPluginRunnerV2()
+    assert isinstance(actual, RewrapPluginRunnerV2)
 
 
 def test_plugin_runner_constructor_with_plugins(plugins):
     """Test the constructor."""
-    actual = RewrapPluginRunner(plugins)
-    assert isinstance(actual, RewrapPluginRunner)
+    actual = RewrapPluginRunnerV2(plugins)
+    assert isinstance(actual, RewrapPluginRunnerV2)
 
 
-def test_plugin_runner_update_no_plugins(policy, entity, key_access_remote, context):
+def test_plugin_runner_update_no_plugins(policy, key_access_remote, context):
     """Test the update function."""
-    pr = RewrapPluginRunner()
-    actual = pr.update(policy, entity, key_access_remote, context)
+    pr = RewrapPluginRunnerV2()
+    actual = pr.update(policy, key_access_remote, context)
     assert actual[0] == policy
     res = actual[1]
     assert "entityWrappedKey" not in res
@@ -60,7 +59,7 @@ def test_plugin_runner_update_no_plugins(policy, entity, key_access_remote, cont
 
 
 def test_plugin_runner_update_simple_plugin(
-    plugins, policy, entity, key_access_remote, context
+    plugins, policy, key_access_remote, context
 ):
     """Test the update function."""
 
@@ -86,9 +85,9 @@ def test_plugin_runner_update_simple_plugin(
     plugins.append(test_plugin())
     print(plugins)
 
-    pr = RewrapPluginRunner(plugins)
+    pr = RewrapPluginRunnerV2(plugins)
     pprint(pr)
-    actual = pr.update(policy, entity, key_access_remote, context)
+    actual = pr.update(policy, key_access_remote, context)
     pprint(actual)
     assert actual[0] == policy
     res = actual[1]

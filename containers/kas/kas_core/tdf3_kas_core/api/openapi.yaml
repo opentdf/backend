@@ -83,48 +83,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/KeyNotFoundError"
-  "/rewrap":
-    post:
-      summary: Request a rewrap
-      description: |
-        This endpoint performs the primary service of the KAS; to re-wrap
-        data keys as needed to provide access for entities with a TDF that they
-        would like to open.
-      operationId: tdf3_kas_core.web.rewrap.rewrap
-      requestBody:
-        $ref: "#/components/requestBodies/Rewrap"
-      responses:
-        "200":
-          description: Ok
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  metadata:
-                    type: object
-                    default: {}
-                  kasWrappedKey:
-                    type: string
-                    nullable: true
-                  entityWrappedKey:
-                    type: string
-                    nullable: true
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/AdjudicatorError"
-                  - $ref: "#/components/schemas/AuthorizationError"
-                  - $ref: "#/components/schemas/EntityError"
-                  - $ref: "#/components/schemas/KeyAccessError"
-                  - $ref: "#/components/schemas/KeyNotFoundError"
-                  - $ref: "#/components/schemas/PluginFailedError"
-                  - $ref: "#/components/schemas/PolicyError"
   "/v2/rewrap":
     post:
       summary: Request a rewrap
@@ -163,38 +121,6 @@ paths:
               schema:
                 oneOf:
                   - $ref: "#/components/schemas/AdjudicatorError"
-                  - $ref: "#/components/schemas/AuthorizationError"
-                  - $ref: "#/components/schemas/EntityError"
-                  - $ref: "#/components/schemas/KeyAccessError"
-                  - $ref: "#/components/schemas/KeyNotFoundError"
-                  - $ref: "#/components/schemas/PluginFailedError"
-                  - $ref: "#/components/schemas/PolicyError"
-  "/upsert":
-    post:
-      summary: Request a upsert
-      description: |
-        The upsert service is a proxy to the back-end services that persist
-        policies and keys.
-      operationId: tdf3_kas_core.web.upsert.upsert
-      requestBody:
-        $ref: "#/components/requestBodies/Upsert"
-      responses:
-        "200":
-          description: Ok
-          content:
-            application/json:
-              schema:
-                type: array
-                default: []
-                items: {}
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                oneOf:
                   - $ref: "#/components/schemas/AuthorizationError"
                   - $ref: "#/components/schemas/EntityError"
                   - $ref: "#/components/schemas/KeyAccessError"

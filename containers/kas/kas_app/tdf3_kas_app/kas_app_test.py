@@ -10,7 +10,6 @@ import pytest
 
 @pytest.fixture(scope="session")
 def kas_app_instance():
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
     print("create kas_app_instance")
     tmp = app("__main__")
     tmp.testing = True
@@ -19,13 +18,11 @@ def kas_app_instance():
 
 @pytest.fixture(scope="session")
 def test_client(kas_app_instance):
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
     client = kas_app_instance.test_client()
     return client
 
 
 def test_kas_heartbeat(test_client):
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
     response = test_client.get("/")
     print(response)
     assert response.status_code == 200
@@ -35,7 +32,6 @@ def test_kas_heartbeat(test_client):
 
 
 def test_kas_public_key(test_client):
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
     response = test_client.get("/kas_public_key")
     print(response)
     assert response.status_code == 200
