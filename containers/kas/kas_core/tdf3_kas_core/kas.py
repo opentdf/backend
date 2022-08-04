@@ -1,6 +1,5 @@
 """The KAS class builds the Flask app from openapi.yaml using Connexion."""
 
-import sys
 import os
 import connexion
 
@@ -107,13 +106,13 @@ class Kas(object):
 
     @staticmethod
     def get_instance():
-        if Kas.__instance == None:
+        if Kas.__instance is None:
             return Kas()
         return Kas.__instance
 
     def __init__(self):
         """Construct an empty KAS object with root name."""
-        if Kas.__instance != None:
+        if Kas.__instance is not None:
             raise ServerStartupError("Kas App was already created.")
         self._root_name = "kas"
         self._version = "0.0.0"
@@ -213,7 +212,7 @@ class Kas(object):
         The web package is used to connect REST requests to these callables via this Kas object
         """
 
-        if self._app != None:
+        if self._app is not None:
             raise ServerStartupError("App was already constructed")
 
         self._session_healthz = create_session_healthz(self._healthz_plugins)

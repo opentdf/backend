@@ -1,10 +1,5 @@
 """Assorted helper functions"""
 
-import sys
-import os
-import connexion
-import string
-
 import logging
 
 logger = logging.getLogger(__name__)

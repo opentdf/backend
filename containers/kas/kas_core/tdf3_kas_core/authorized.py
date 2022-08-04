@@ -5,7 +5,6 @@ import logging
 import os
 import re
 
-from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timedelta
 
 from tdf3_kas_core.errors import AuthorizationError
@@ -49,6 +48,7 @@ except KeyError:
     pass
 except TypeError:
     logger.error("Invalid KAS_JWT_LEEWAY", exc_info=True)
+
 
 def unpack_rs256_jwt(jwt_string, public_key):
     """Unpack asymmetric JWT using RSA 256 public key."""

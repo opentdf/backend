@@ -8,7 +8,6 @@ from flask import current_app, jsonify
 from jsonschema.exceptions import ValidationError
 
 from tdf3_kas_core.errors import AttributePolicyConfigError
-from tdf3_kas_core.errors import AdjudicatorError
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import BadRequestError
 from tdf3_kas_core.errors import CryptoError
@@ -23,6 +22,7 @@ from tdf3_kas_core.errors import PluginBackendError
 from tdf3_kas_core.errors import PluginIsBadError
 from tdf3_kas_core.errors import PluginFailedError
 from tdf3_kas_core.errors import PolicyError
+from tdf3_kas_core.errors import PDPError
 from tdf3_kas_core.errors import RequestError
 from tdf3_kas_core.errors import PrivateKeyInvalidError
 from tdf3_kas_core.errors import UnauthorizedError
@@ -102,7 +102,7 @@ def run_service_with_exceptions(service=None, *, success=200):
             # We've received a bad attribute schema somehow.
             return handle_exception(500, err)
 
-        except AdjudicatorError as err:
+        except PDPError as err:
             # User not authorized, most likely
             return handle_exception(403, err)
 

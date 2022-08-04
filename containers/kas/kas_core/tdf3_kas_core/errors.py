@@ -16,8 +16,8 @@ class AttributePolicyConfigError(Error):
     If loading the policy fails, the server is in a bad state."""
 
 
-class AdjudicatorError(Error):
-    """Raise if the adjudicator does something unusual."""
+class PDPError(Error):
+    """Raise if the PDP does something unusual."""
 
 
 class AuthorizationError(Error):

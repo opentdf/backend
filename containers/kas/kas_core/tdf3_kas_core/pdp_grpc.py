@@ -5,13 +5,12 @@ import logging
 from attributes.v1 import attributes_pb2
 from accesspdp.v1 import accesspdp_pb2
 
-from tdf3_kas_core.errors import InvalidAttributeError
-
 logger = logging.getLogger(__name__)
 
 ALL_OF = "allOf"
 ANY_OF = "anyOf"
 HIERARCHY = "hierarchy"
+
 
 def convert_attribute_defs(attribute_defs):
     """Load attribute definitions from a dict."""
@@ -81,6 +80,7 @@ def convert_entity_attrs(entity_attributes):
 
     return pb_entity_attr_dict
 
+
 def convert_data_attrs(data_attributes):
     """Load attribute instances from a dict."""
     if not data_attributes:
@@ -93,7 +93,7 @@ def convert_data_attrs(data_attributes):
 
     pb_data_attrs = []
     for data_attribute in data_attributes.values:
-            pb_data_attrs.append(attributes_pb2.AttributeInstance(
+        pb_data_attrs.append(attributes_pb2.AttributeInstance(
                 authority=data_attribute.authority,
                 name=data_attribute.name,
                 value=data_attribute.value

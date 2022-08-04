@@ -5,7 +5,6 @@ import pytest
 import flask
 
 from tdf3_kas_core.errors import AttributePolicyConfigError
-from tdf3_kas_core.errors import AdjudicatorError
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import BadRequestError
 from tdf3_kas_core.errors import CryptoError
@@ -21,6 +20,7 @@ from tdf3_kas_core.errors import PluginIsBadError
 from tdf3_kas_core.errors import PluginFailedError
 from tdf3_kas_core.errors import PolicyError
 from tdf3_kas_core.errors import PrivateKeyInvalidError
+from tdf3_kas_core.errors import PDPError
 from tdf3_kas_core.errors import RequestError
 from tdf3_kas_core.errors import UnauthorizedError
 from tdf3_kas_core.errors import UnknownAttributePolicyError
@@ -59,9 +59,9 @@ def test_AttributePolicyConfigError(req):
     assert actual.status_code == 500
 
 
-def test_AdjudicatorError(req):
-    """Test AdjudicatorError."""
-    serv = create_service(AdjudicatorError)
+def test_PDPError(req):
+    """Test PDPError."""
+    serv = create_service(PDPError)
     actual = (run_service_with_exceptions(serv))(req)
     assert isinstance(actual, flask.Response)
     assert actual.status_code == 403

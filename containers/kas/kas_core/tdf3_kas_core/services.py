@@ -38,7 +38,7 @@ from cryptography.hazmat.primitives.serialization import PublicFormat
 
 from pkg_resources import packaging
 
-from tdf3_kas_core.errors import AdjudicatorError
+from tdf3_kas_core.errors import PDPError
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import BadRequestError
 from tdf3_kas_core.errors import KeyAccessError
@@ -48,10 +48,7 @@ from tdf3_kas_core.errors import PolicyError
 from tdf3_kas_core.errors import PolicyBindingError
 from tdf3_kas_core.errors import UnauthorizedError
 
-from tdf3_kas_core.models import Adjudicator
 from tdf3_kas_core.models import AccessPDP
-from tdf3_kas_core.models import AttributePolicyCache
-from tdf3_kas_core.models import Entity
 from tdf3_kas_core.models import KeyAccess
 from tdf3_kas_core.models import Policy
 from tdf3_kas_core.models import WrappedKey
@@ -62,7 +59,6 @@ from tdf3_kas_core.models.nanotdf import ResourceLocator
 from tdf3_kas_core.models.nanotdf import ECCMode
 from tdf3_kas_core.models.nanotdf import SymmetricAndPayloadConfig
 
-from tdf3_kas_core.authorized import authorized
 from tdf3_kas_core.authorized import authorized_v2
 from tdf3_kas_core.authorized import looks_like_jwt
 from tdf3_kas_core.authorized import leeway
@@ -108,6 +104,7 @@ def ping(version):
     logger.debug("heartbeat ping with VERSION = %s", version)
     return {"version": f"{version}"}
 
+
 def _get_bearer_token_from_header(context):
     # Get bearer token
     try:
@@ -123,6 +120,7 @@ def _get_bearer_token_from_header(context):
 
     return idpJWT
 
+
 def _decode_and_validate_oidc_jwt(context, key_master):
     """Decodes the JWT in the Authorization header,
     validates it via the issuer pubkey,
@@ -133,6 +131,7 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     realmKey = keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
     return authorized_v2(realmKey, idpJWT)
 
+
 def _get_tdf_claims(context, key_master):
     """Serializes the decoded and validated JWT into KAS's object model stuff.
     """
@@ -140,6 +139,7 @@ def _get_tdf_claims(context, key_master):
     claims = Claims.load_from_raw_data(decodedJwt)
 
     return claims
+
 
 def _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_runner):
     #
@@ -208,7 +208,7 @@ def rewrap_v2(data, context, plugin_runner, key_master):
         dataJson = json.loads(json_string)
     except ValueError as e:
         raise BadRequestError(f"Error in jwt or content [{e}]") from e
-    except Exception:
+    except Exception as e:
         raise UnauthorizedError("Not authorized") from e
 
     algorithm = dataJson.get("algorithm", None)
@@ -229,7 +229,6 @@ def rewrap_v2(data, context, plugin_runner, key_master):
             raise KeyAccessError("No key access object")
 
         return _tdf3_rewrap_v2(dataJson, context, plugin_runner, key_master, claims)
-
 
 
 def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
@@ -308,11 +307,12 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
             raise KeyAccessError("No wrapped key in key access model")
 
     else:
-        # should never get to here. Bug in adjudicator.
+        # should never get to here. Bug in PDP handler.
         m = f"AccessPDP returned {allowed} without raising an error"
         logger.error(m)
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
-        raise AdjudicatorError(m)
+        raise PDPError(m)
+
 
 def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     """
@@ -348,7 +348,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         (policy_info, header) = PolicyInfo.parse(ecc_mode, payload_config, header)
 
         # extract ephemeral key from the header.
-        ephemeral_key = header[0 : ecc_mode.curve.public_key_byte_length]
+        ephemeral_key = header[0: ecc_mode.curve.public_key_byte_length]
 
     except Exception as e:
         logger.error(e)
@@ -372,7 +372,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     policy_data = policy_info.body.data
     policy_data_len = len(policy_data) - payload_config.symmetric_tag_length
 
-    auth_tag = policy_data[-payload_config.symmetric_tag_length :]
+    auth_tag = policy_data[-payload_config.symmetric_tag_length:]
     logger.debug(
         f"virtru-ntdf-version: [{client_version}]; legacy_wrapping: {legacy_wrapping}; tag_length: {payload_config.symmetric_tag_length}, context: {context.data}"
     )
@@ -393,7 +393,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         hash_alg = hashlib.sha256()
         hash_alg.update(policy_data)
         digest = hash_alg.digest()
-        if digest[-len(policy_info.binding.data) :] != policy_info.binding.data:
+        if digest[-len(policy_info.binding.data):] != policy_info.binding.data:
             raise PolicyBindingError("Gmac Policy binding" " verification failed.")
 
     original_policy = Policy.construct_from_raw_canonical(
@@ -418,7 +418,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         m = "AccessPDP returned {} without raising an error".format(allowed)
         logger.error(m)
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
-        raise AdjudicatorError(m)
+        raise PDPError(m)
 
     # Generate ephemeral rewrap key-pair
     client_public_key = serialization.load_pem_public_key(
@@ -482,20 +482,13 @@ def upsert_v2(data, context, plugin_runner, key_master):
         dataJson = json.loads(json_string)
     except ValueError as e:
         raise BadRequestError(f"Error in jwt or content [{e}]") from e
-    except Exception:
+    except Exception as e:
         raise UnauthorizedError("Not authorized") from e
 
     algorithm = dataJson.get("algorithm", None)
     if algorithm is None:
         logger.warning("'algorithm' is missing and defaulting to TDF3 rewrap.")
         algorithm = "rsa:2048"
-
-    client_public_key = serialization.load_pem_public_key(
-        str.encode(dataJson["clientPublicKey"]), backend=default_backend()
-    )
-
-    # TODO BML fix
-	# entity = Entity(claims.user_id, client_public_key, claims.attributes)
 
     # Unpack the policy.
     if "policy" not in dataJson:

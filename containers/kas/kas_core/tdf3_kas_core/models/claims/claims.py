@@ -7,7 +7,6 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePublicKey
 
 from tdf3_kas_core.models import ClaimsAttributes
-from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import ClaimsError
 
 logger = logging.getLogger(__name__)
