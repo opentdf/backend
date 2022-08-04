@@ -104,9 +104,10 @@ case "$1" in
     ;;
   local)
     monolog DEBUG "Reset to local development"
-    for x in $(cd "${PROJECT_ROOT}"/charts/*/ && ls); do
+    for x in $(cd "${PROJECT_ROOT}"/charts/ && ls); do
       if [ -f "$x/Chart.yaml" ]; then
         set-appVersion "$x" main
+        set-version "$x"
       fi
     done
     update-umbrella-deps "file://.."
@@ -114,7 +115,7 @@ case "$1" in
     ;;
   *)
     monolog DEBUG "Head release update"
-    for x in $(cd "${PROJECT_ROOT}"/charts/*/ && ls); do
+    for x in $(cd "${PROJECT_ROOT}"/charts/ && ls); do
       if [ -f "$x/Chart.yaml" ]; then
         set-appVersion "$x" "$short_ver"
         set-version "$x" "0.0.0-$short_ver"
