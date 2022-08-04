@@ -223,6 +223,7 @@ jobs:
                 rm *.tgz
               fi
           done
+          echo "Updating backend chart versions"
           d="backend"
           sub_charts=("attributes" "entitlement-pdp" "entitlement-store" "entitlements" "entity-resolution" "kas", "keycloak-bootstrap")
           for sub_chart in "${sub_charts[@]}" ; do
