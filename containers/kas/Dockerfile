@@ -9,7 +9,7 @@ ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 FROM golang:1.18-alpine AS gobuilder
 RUN apk add --no-cache git=~2
 RUN mkdir /dist
-RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.1.1
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
 
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 

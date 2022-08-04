@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a036a2cc16feb0b9f1179589d292df5ac50de8e3e3f640edc24785e85af4a300"
+            "sha256": "81430284b07a817c192b5dfd9245ea3bca07b2b6816690d4cc76e08b8ef99db8"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -19,13 +19,13 @@
         "accesspdp": {
             "editable": true,
             "git": "https://github.com/virtru/access-pdp",
-            "ref": "2ff756888970fa6862d9b437741d144175b77a4c",
+            "ref": "b80608fb8048cfdd8e49de8ad9f231828a36e72e",
             "subdirectory": "clients/python/accesspdp"
         },
         "attributes": {
             "editable": true,
             "git": "https://github.com/virtru/access-pdp",
-            "ref": "2ff756888970fa6862d9b437741d144175b77a4c",
+            "ref": "b80608fb8048cfdd8e49de8ad9f231828a36e72e",
             "subdirectory": "clients/python/attributes"
         },
         "attrs": {
@@ -180,11 +180,11 @@
         },
         "flask": {
             "hashes": [
-                "sha256:10dc2bae7a9b6ab59111d6dbece2e08fb0015d2e88d296c40323cc0c7aac2c2e",
-                "sha256:98b33b13ad76ee9c7a80d2f56a6c578780e55bf8281790c62d50d4b7fadec2b8"
+                "sha256:3c604c48c3d5b4c63e72134044c0b4fe90ff01ef65280b9fe2d38c8860d99fe5",
+                "sha256:9c2b81b9b1edcc835af72d600f1955e713a065e7cb41d7e51ee762b449d9c65d"
             ],
             "index": "pypi",
-            "version": "==2.2.0"
+            "version": "==2.2.1"
         },
         "grpcio": {
             "hashes": [
@@ -628,11 +628,11 @@
         },
         "flake8": {
             "hashes": [
-                "sha256:93aa565ae2f0316b95bb57a354f2b2d55ee8508e1fe1cb13b77b9c195b4a2537",
-                "sha256:b27fd7faa8d90aaae763664a489012292990388e5d3604f383b290caefbbc922"
+                "sha256:6fbe320aad8d6b95cec8b8e47bc933004678dc63095be98528b7bdd2a9f510db",
+                "sha256:7a1cf6b73744f5806ab95e526f6f0d8c01c66d7bbe349562d22dfca20610b248"
             ],
             "index": "pypi",
-            "version": "==5.0.3"
+            "version": "==5.0.4"
         },
         "flake8-docstrings": {
             "hashes": [
@@ -719,11 +719,11 @@
         },
         "pycodestyle": {
             "hashes": [
-                "sha256:289cdc0969d589d90752582bef6dff57c5fbc6949ee8b013ad6d6449a8ae9437",
-                "sha256:beaba44501f89d785be791c9462553f06958a221d166c64e1f107320f839acc2"
+                "sha256:2c9607871d58c76354b697b42f5d57e1ada7d261c261efac224b664affdc5785",
+                "sha256:d1735fc58b418fd7c5f658d28d943854f8a849b01a5d0a1e6f3f3fdd0166804b"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==2.9.0"
+            "version": "==2.9.1"
         },
         "pydocstyle": {
             "hashes": [

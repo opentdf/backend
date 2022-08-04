@@ -1,6 +1,6 @@
 -i https://pypi.org/simple
--e git+https://github.com/virtru/access-pdp@2ff756888970fa6862d9b437741d144175b77a4c#egg=accesspdp&subdirectory=clients/python/accesspdp
--e git+https://github.com/virtru/access-pdp@2ff756888970fa6862d9b437741d144175b77a4c#egg=attributes&subdirectory=clients/python/attributes
+-e git+https://github.com/virtru/access-pdp@b80608fb8048cfdd8e49de8ad9f231828a36e72e#egg=accesspdp&subdirectory=clients/python/accesspdp
+-e git+https://github.com/virtru/access-pdp@b80608fb8048cfdd8e49de8ad9f231828a36e72e#egg=attributes&subdirectory=clients/python/attributes
 attrs==22.1.0; python_version >= '3.5'
 bitstruct==8.15.1
 certifi==2022.6.15; python_version >= '3.6'
@@ -10,7 +10,7 @@ click==8.1.3; python_version >= '3.7'
 clickclick==20.10.2
 connexion==2.14.0
 cryptography==37.0.4
-flask==2.2.0
+flask==2.2.1
 grpcio==1.47.0
 gunicorn==20.1.0
 idna==3.3; python_version >= '3.5'

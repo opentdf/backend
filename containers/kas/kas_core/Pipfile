@@ -19,8 +19,8 @@ statsd = "*"
 importlib-resources = "*"
 typing-extensions = "*"
 grpcio = "*"
-accesspdp = {subdirectory = "clients/python/accesspdp", editable = true, ref = "v1.1.1", git = "https://github.com/virtru/access-pdp"}
-attributes = {subdirectory = "clients/python/attributes", editable = true, ref = "v1.1.1", git = "https://github.com/virtru/access-pdp"}
+accesspdp = {subdirectory = "clients/python/accesspdp", editable = true, ref = "v1.2.0", git = "https://github.com/virtru/access-pdp"}
+attributes = {subdirectory = "clients/python/attributes", editable = true, ref = "v1.2.0", git = "https://github.com/virtru/access-pdp"}
 
 [dev-packages]
 Werkzeug = "*"
