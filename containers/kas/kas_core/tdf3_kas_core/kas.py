@@ -8,14 +8,12 @@ import importlib_resources
 import logging
 
 from .services import ping
-from .services import rewrap, rewrap_v2
-from .services import upsert, upsert_v2
+from .services import rewrap_v2
+from .services import upsert_v2
 from .services import kas_public_key
 
 from .models import HealthzPluginRunner
-from .models import RewrapPluginRunner
 from .models import RewrapPluginRunnerV2
-from .models import UpsertPluginRunner
 from .models import UpsertPluginRunnerV2
 from .models import KeyMaster
 
@@ -52,21 +50,6 @@ def create_session_healthz(plugins):
     return session_healthz
 
 
-def create_session_rewrap(key_master, plugins):
-    """Create a simpler callable that accepts one argument, the data.
-
-    The other components that the rewrap service needs are captured in the
-    closure of this factory function.  This pre-loaded dependency injection
-    makes the service call cleaner and clearer.
-    """
-    plugin_runner = RewrapPluginRunner(plugins)
-
-    def session_rewrap(data, options):
-        return rewrap(data, options, plugin_runner, key_master)
-
-    return session_rewrap
-
-
 def create_session_rewrap_v2(key_master, plugins):
     """Create a simpler callable that accepts one argument, the data.
 
@@ -80,21 +63,6 @@ def create_session_rewrap_v2(key_master, plugins):
         return rewrap_v2(data, options, plugin_runner, key_master)
 
     return session_rewrap
-
-
-def create_session_upsert(key_master, plugins):
-    """Create a simpler callable that accepts one argument, the data.
-
-    The other components that the upsert service needs are captured in the
-    closure of this factory function.  This pre-loaded dependency injection
-    makes the service call cleaner and clearer.
-    """
-    plugin_runner = UpsertPluginRunner(plugins)
-
-    def session_upsert(data, options):
-        return upsert(data, options, plugin_runner, key_master)
-
-    return session_upsert
 
 
 def create_session_upsert_v2(key_master, plugins):
@@ -186,18 +154,6 @@ class Kas(object):
         """Set a key by providing a path to a file containing a PEM string."""
         self._key_master.set_key_path(key_name, key_type, key_path)
 
-    def use_upsert_plugin(self, plugin):
-        """Add an upsert plugin.
-
-        This method adds policy side-effect plugins to the KAS. The order
-        that this method is called in is important. Plugins get the Policy
-        returned by the prior plugin. They are called in order.
-        """
-        if isinstance(plugin, AbstractUpsertPlugin):
-            self._upsert_plugins.append(plugin)
-        else:
-            raise PluginIsBadError("plugin is not a decendent of AbstractUpsertPlugin")
-
     def use_upsert_plugin_v2(self, plugin):
         """Add an upsert plugin.
 
@@ -209,18 +165,6 @@ class Kas(object):
             self._upsert_plugins_v2.append(plugin)
         else:
             raise PluginIsBadError("plugin is not a decendent of AbstractUpsertPlugin")
-
-    def use_rewrap_plugin(self, plugin):
-        """Add a rewrap plugin.
-
-        This method adds policy side-effect plugins to the KAS. The order
-        that this method is called in is important. Plugins get the Policy
-        returned by the prior plugin. They are called in order.
-        """
-        if isinstance(plugin, AbstractRewrapPlugin):
-            self._rewrap_plugins.append(plugin)
-        else:
-            raise PluginIsBadError("plugin is not a decendent of AbstractRewrapPlugin")
 
     def use_rewrap_plugin_v2(self, plugin):
         """Add a rewrap plugin.
@@ -249,17 +193,9 @@ class Kas(object):
         """return the callable to process ping requests."""
         return self._session_ping
 
-    def get_session_rewrap(self):
-        """return the callable to process rewrap requests."""
-        return self._session_rewrap
-
     def get_session_rewrap_v2(self):
         """return the callable to process rewrap requests."""
         return self._session_rewrap_v2
-
-    def get_session_upsert(self):
-        """return the callable to process upsert requests."""
-        return self._session_upsert
 
     def get_session_upsert_v2(self):
         """return the callable to process upsert requests."""
@@ -284,16 +220,8 @@ class Kas(object):
 
         self._session_ping = create_session_ping(self._version)
 
-        self._session_rewrap = create_session_rewrap(
-            self._key_master, self._rewrap_plugins
-        )
-
         self._session_rewrap_v2 = create_session_rewrap_v2(
             self._key_master, self._rewrap_plugins_v2
-        )
-
-        self._session_upsert = create_session_upsert(
-            self._key_master, self._upsert_plugins
         )
 
         self._session_upsert_v2 = create_session_upsert_v2(

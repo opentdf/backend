@@ -37,10 +37,5 @@ def rewrap_helper(body, session_rewrap):
 
 
 @run_service_with_exceptions
-def rewrap(body):
-    return rewrap_helper(body, Kas.get_instance().get_session_rewrap())
-
-
-@run_service_with_exceptions
 def rewrap_v2(body):
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap_v2())

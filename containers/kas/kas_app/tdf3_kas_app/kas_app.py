@@ -13,7 +13,6 @@ from .plugins import opentdf_attr_authority_plugin, revocation_plugin, access_pd
 logger = logging.getLogger(__name__)
 
 
-USE_KEYCLOAK = os.environ.get("USE_KEYCLOAK") == "1"
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST") is not None
 
 
@@ -29,12 +28,9 @@ def configure_filters(kas):
     if not (allows or blocks):
         return
     filter_plugin = revocation_plugin.RevocationPlugin(allows=allows, blocks=blocks)
-    kas.use_rewrap_plugin(filter_plugin)
-    kas.use_upsert_plugin(filter_plugin)
-    if USE_KEYCLOAK:
-        # filter_plugin = revocation_plugin.RevocationPluginV2(allows=allows, blocks=blocks)
-        kas.use_rewrap_plugin_v2(filter_plugin)
-        kas.use_upsert_plugin_v2(filter_plugin)
+    # filter_plugin = revocation_plugin.RevocationPluginV2(allows=allows, blocks=blocks)
+    kas.use_rewrap_plugin_v2(filter_plugin)
+    kas.use_upsert_plugin_v2(filter_plugin)
 
 
 def version_info():
@@ -57,7 +53,6 @@ def app(name):
     The name parameter is the name of the execution root. Typically this will
     be __main__.
     """
-    global USE_KEYCLOAK
     # Construct the KAS instance
     kas = Kas.get_instance()
     kas.set_root_name(name)
@@ -74,10 +69,10 @@ def app(name):
             logger.exception(e)
             logger.warning("Version not set")
 
-    if USE_KEYCLOAK and KEYCLOAK_HOST:
+    if KEYCLOAK_HOST:
         logger.info("Keycloak integration enabled.")
-    elif USE_KEYCLOAK or KEYCLOAK_HOST:
-        e_msg = "Either USE_KEYCLOAK or KEYCLOAK_HOST are not correctly defined - both are required."
+    elif not KEYCLOAK_HOST:
+        e_msg = "KEYCLOAK_HOST is not correctly defined."
         logger.error(e_msg)
         raise Exception(e_msg)
     # Add Attribute fetch plugin

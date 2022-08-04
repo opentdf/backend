@@ -1,12 +1,10 @@
 import pytest  # noqa: F401
 
 import os
-import sys
 import json
 import jwt
 import functools
 import base64
-import pytest
 
 import tdf3_kas_core
 

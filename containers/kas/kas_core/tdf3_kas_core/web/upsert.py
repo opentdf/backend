@@ -11,7 +11,7 @@ TDF3_UPSERT_SCHEMA = get_schema("tdf3_upsert_schema")
 logger = logging.getLogger(__name__)
 
 
-def upsert_helper(body, mode="upsert"):
+def upsert_helper(body):
     """Handle the '/upsert' route.
 
     This endpoint performs a secondary service of the KAS; to proxy the
@@ -26,13 +26,8 @@ def upsert_helper(body, mode="upsert"):
 
     logger.debug("+=+=+=+=+=+ Upsert Request is Valid")
 
-    # process the request. Throws a variety of errors.
-    if mode == "upsert":
-        logger.info("+=+=+=+=+=+ UpsertV1")
-        session_upsert = Kas.get_instance().get_session_upsert()
-    else:
-        logger.info("+=+=+=+=+=+ UpsertV2")
-        session_upsert = Kas.get_instance().get_session_upsert_v2()
+    logger.info("+=+=+=+=+=+ UpsertV2")
+    session_upsert = Kas.get_instance().get_session_upsert_v2()
     res = session_upsert(body, context)
     # package up the response and send it.
 
@@ -41,10 +36,5 @@ def upsert_helper(body, mode="upsert"):
 
 
 @run_service_with_exceptions
-def upsert(body):
-    return upsert_helper(body, "upsert")
-
-
-@run_service_with_exceptions
 def upsert_v2(body):
-    return upsert_helper(body, "upsert_v2")
+    return upsert_helper(body)
