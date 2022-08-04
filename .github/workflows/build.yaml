@@ -197,6 +197,7 @@ jobs:
         with:
           setup-tools: helm
           helm: "3.8.0"
+      - uses: frenck/action-setup-yq@v1.0.1
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
@@ -206,8 +207,7 @@ jobs:
           logout: false
       - name: push
         run: |
-          apt-get update && apt-get install -y wget
-          wget https://github.com/mikefarah/yq/releases/download/v4.27.2/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+          yq --version
           cd charts
           short_ver=sha-$(git rev-parse --short HEAD)
           escaped_version=$(printf '%s\n' "0.0.0-${short_ver}" | sed -e 's/[\/.]/\\./g')
@@ -223,6 +223,7 @@ jobs:
                 rm *.tgz
               fi
           done
+          echo "Updating backend chart versions"
           d="backend"
           sub_charts=("attributes" "entitlement-pdp" "entitlement-store" "entitlements" "entity-resolution" "kas", "keycloak-bootstrap")
           for sub_chart in "${sub_charts[@]}" ; do
