@@ -38,19 +38,22 @@ jobs:
           logout: false
       - name: push
         run: |
-          cd charts
-          short_ver=sha-$(git rev-parse --short HEAD)
-          escaped_version=$(printf '%s\n' "${{ github.event.release.tag_name }}" | sed -e 's/[\/.]/\\./g')
+          scripts/update-charts release
+          cd charts || exit 1
           for d in */ ; do
-              if [ -f "$d/Chart.yaml" ]; then
-                echo "Setting Chart.yaml version to ${{ github.event.release.tag_name }}..."
-                sed -i "s/version\: .*/version\: $escaped_version/" $d/Chart.yaml
+              if [ -f "$d/Chart.yaml" -a "$d" != "backend/" ]; then
                 echo "Packaging Helm chart $d..."
-                helm package $d --app-version="${short_ver}"
-                echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
-                echo *.tgz
+                helm package $d
+                echo "Packaged as" *.tgz
                 helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi
           done
-
+          echo "Waiting a bit for subcharts to propagate"
+          sleep 10
+          echo "Updating backend chart versions"
+          helm dependency update backend
+          helm package backend
+          echo "Packaged Helm chart [backend] as " *.tgz
+          helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          rm *.tgz 
