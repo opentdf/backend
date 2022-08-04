@@ -17,19 +17,24 @@ logger = logging.getLogger(__name__)
 local_pdp = 'localhost:50052'
 
 class AccessPDP(object):
-    """Adjudicator adjudicates.
+    """Access PDP (policy decision point) is the ABAC component that makes a boolean Yes/No decision about access
 
-    All checks to see whether the provided entity claims are sufficient to access the wrapped key split
-    are in this model.
+    It is a shared, open-source component that lives here: https://github.com/virtru/access-pdp
 
-    The basic pattern is that failed checks raise errors. These are caught
-    at the Web layer and converted to messages of the appropriate form.  If
-    the entity claims pass all the tests without raising an error,
-    then the authenticated entity who was issued the claims is assumed to be worthy.
+    We are invoking it as a local gRPC service here, but it could be remote.
+
+    The Access PDP requires 3 things to make decisions
+    # 1. Entity attribute instances
+    # 2. Data attribute instances
+    # 3. Attribute definitions for every data attribute instance in #2
+
+    KAS is an Access PEP (policy enforcement point), and it "wraps" this PDP.
+
+    The PDP makes the decision, KAS decides what to *do* with the decision.
     """
 
     def can_access(self, policy, claims, attribute_definitions):
-        """Determine if the presented entity claims are worthy."""
+        # TODO deprecated, remove, this skips all ABAC checks
         # Check to see if this claimset fails the dissem tests.
         self._check_dissem(policy.dissem, claims.user_id)
         # Then check the attributes
