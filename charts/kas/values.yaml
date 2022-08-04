@@ -13,7 +13,7 @@ logLevel: INFO
 pdp:
   # Enables verbose mode for the internal PDP (policy decision point) KAS uses.
   # If `yes`, decisions will be logged with much additional detail
-  verbose: "true"
+  verbose: "false"
   # KAS's internal Access PDP can send OpenTelemetry traces to collectors -
   # if no collectors configured, the traces will get redirected to STDOUT,
   # which is a bit spammy, so turn this off until we do proper OT trace collection everywhere.

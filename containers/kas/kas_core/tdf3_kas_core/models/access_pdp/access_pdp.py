@@ -1,9 +1,9 @@
 """The Adjudicator adjudicates access to the wrapped key."""
 import logging
 
-import json
 
 import grpc
+from google.protobuf.json_format import MessageToJson
 import tdf3_kas_core.pdp_grpc as pdp_grpc
 
 from tdf3_kas_core.errors import AdjudicatorError
@@ -86,19 +86,19 @@ class AccessPDP(object):
 
         logger.debug(f"Requesting decision - request is {dir(req)}")
         responses = stub.DetermineAccess(req)
-        rule_results = []
+        entity_responses = []
         for response in responses:
             logger.debug("Received response for entity %s with access decision %s" %
                 (response.entity, response.access))
-
             # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
             access = access and response.access
             # Capture the per-data-attribute result details for each entity decision, for logging/etc
-            rule_results.append(response.results)
             logger.debug(f"Detailed data attribute results for entity {response.entity}: \n")
-            logger.debug(f"{json.dumps(response.results)}\n")
+            string_res = MessageToJson(response)
+            logger.debug(f"{string_res}\n")
+            entity_responses.append(string_res)
         # END grpc
 
         # Final check - KAS wants an error thrown if access == false
         if not access:
-            raise AuthorizationError(f"Access Denied - Decision details: {json.dumps(rule_results)}")
+            raise AuthorizationError(f"Access Denied - response details: {entity_responses}")
