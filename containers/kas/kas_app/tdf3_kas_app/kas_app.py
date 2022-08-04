@@ -71,7 +71,7 @@ def app(name):
 
     if KEYCLOAK_HOST:
         logger.info("Keycloak integration enabled.")
-    elif not KEYCLOAK_HOST:
+    else:
         e_msg = "KEYCLOAK_HOST is not correctly defined."
         logger.error(e_msg)
         raise Exception(e_msg)

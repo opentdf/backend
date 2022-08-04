@@ -4,7 +4,6 @@ from .models import MetaData  # noqa: F401
 from .models import Crypto  # noqa: F401
 
 from .models import Policy  # noqa: F401
-from .models import Entity  # noqa: F401
 from .models import KeyAccess  # noqa: F401
 from .models import Context  # noqa: F401
 from .models import WrappedKey  # noqa: F401

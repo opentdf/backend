@@ -14,8 +14,7 @@ class AttributeSet(object):
     """The AttributeSet Classs.
 
     Attribute sets look like they are holding values, but internally they
-    contain clusters of values.  The clusters mirror the AttributePolicy
-    instances in the AttributePolicyCache.  The AttributeSet is built this way
+    contain clusters of values. The AttributeSet is built this way
     because the decision logic on access is conducted at the cluster level.
     """
 

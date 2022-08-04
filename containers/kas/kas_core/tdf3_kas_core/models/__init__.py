@@ -28,7 +28,6 @@ from .attribute_policies import ALL_OF  # noqa: F401
 from .attribute_policies import ANY_OF  # noqa: F401
 from .attribute_policies import HIERARCHY  # noqa: F401
 
-from .entity import Entity  # noqa: F401
 from .claims import Claims  # noqa: F401
 
 from .plugin_runner import HealthzPluginRunner  # noqa: F401
@@ -41,5 +40,4 @@ from .key_access import KeyAccess  # noqa: F401
 
 from .access_pdp import AccessPDP  # noqa: F401
 
-from .attribute_policies import AttributePolicyCache  # noqa: F401
 from .attribute_policies import AttributePolicy  # noqa: F401

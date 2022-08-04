@@ -4,8 +4,6 @@ import json
 
 from pprint import pprint
 
-from tdf3_kas_core.models import AttributePolicyCache
-
 from .kas import Kas, swagger_enabled
 
 name = "__main__"
