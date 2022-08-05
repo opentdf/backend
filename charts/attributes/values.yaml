@@ -2,8 +2,8 @@
 global:
   opentdf:
     common:
-      oidcInternalHost: http://keycloakx-http/auth
-      oidcExternalHost: http://localhost:65432/auth
+      oidcInternalHost: http://keycloak-http
+      oidcExternalHost: http://localhost:65432
       oidcUrlPath: auth
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []

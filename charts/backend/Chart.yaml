@@ -31,10 +31,10 @@ dependencies:
     version: 10.16.2
     condition: embedded.postgresql
     tags: ["third-party"]
-  - name: keycloak
+  - name: keycloakx
     repository: https://codecentric.github.io/helm-charts
-    version: 18.1.1
-    condition: embedded.keycloak
+    version: 1.4.2
+    condition: embedded.keycloakx
     tags: ["third-party", "identity"]
   - name: keycloak-bootstrap
     repository: file://../keycloak-bootstrap

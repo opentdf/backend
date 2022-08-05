@@ -39,7 +39,7 @@ keycloak:
     servicePort: https
     rules:
       - # Ingress host
-        host: "keycloakx-http"
+        host: "keycloak-http"
         # Paths for the host
         paths:
           - path: /
@@ -57,10 +57,10 @@ keycloak:
       nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
 
     hosts:
-      - keycloakx-http
+      - keycloak-http
     tls:
       - hosts:
-          - "keycloakx-http"
+          - "keycloak-http"
         secretName: x509-secret
 
   extraVolumes: |

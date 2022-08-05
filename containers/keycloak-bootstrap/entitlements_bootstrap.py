@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 # This is the only URL this file should ever need -
 # The URL stuff inside the cluster (aka this bootstrap job) will use to resolve keycloak (private, non-browser clients)
-kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloakx-http").rstrip("/")
+kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http").rstrip("/")
 
 
 def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authToken):

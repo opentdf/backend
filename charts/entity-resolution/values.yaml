@@ -4,7 +4,8 @@ name: 'opentdf-entity-resolution'
 global:
   opentdf:
     common:
-kl      oidcInternalHost: "http://keycloakx-http"
+      # FIXME: Update to gocloak with support for custom prefixes https://github.com/Nerzal/gocloak/issues/341
+      oidcInternalHost: "http://keycloak-http"
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 

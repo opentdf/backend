@@ -1,7 +1,7 @@
 name: 'opentdf-backend'
 
 embedded:
-  keycloak: true
+  keycloakx: true
   postgresql: true
 
 boostrapKeycloak: true
@@ -12,7 +12,7 @@ global:
     common:
       externalUrl: http://localhost:65432
       # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-      oidcInternalHost: http://keycloakx-http
+      oidcInternalHost: http://keycloak-http
       # The url path (no precedding / ) to keycloak
       oidcUrlPath: auth
       # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
@@ -30,7 +30,7 @@ secrets:
   postgres:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin
-  keycloak:
+  keycloakx:
     user: keycloakadmin
     password: mykeycloakpassword
 
@@ -49,10 +49,6 @@ entitlement-store:
   fullnameOverride: opentdf-entitlement-store
 entitlements:
   fullnameOverride: opentdf-entitlements
-entity-resolution:
-  config:
-    keycloak:
-      legacy: true
 kas:
   fullnameOverride: opentdf-kas
   endpoints:
@@ -65,11 +61,16 @@ kas:
     ecPrivKey:
     privKey:
 
-keycloak:
+keycloakx:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: ghcr.io/opentdf/keycloak
+  command:
+    - "/opt/keycloak/bin/kc.sh"
+    - "--verbose"
+    - "start-dev"
+    - "--http-port=8080"
   postgresql:
     enabled: false
   externalDatabase:
@@ -79,7 +80,29 @@ keycloak:
     - name: CLAIMS_URL
       value: http://opentdf-entitlement-pdp:3355/entitlements
     - name: JAVA_OPTS_APPEND
-      value: -Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled
+      value: -Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled  -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
+    - name: KC_DB
+      value: postgres
+    - name: KC_DB_URL_HOST
+      value: opentdf-postgresql
+    - name: KC_DB_URL_DATABASE
+      value: keycloak_database
+    - name: KC_DB_URL_PORT
+      value: "5432"
+    - name: KC_HOSTNAME
+      value: "localhost:65432"
+    - name: KC_HOSTNAME_ADMIN
+      value: "localhost:65432"
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_HTTP_RELATIVE_PATH
+      value: "/auth"
+    - name: KC_PROXY
+      value: "edge"
   extraEnvFrom: |
     - secretRef:
         name: 'opentdf-keycloak-secret'

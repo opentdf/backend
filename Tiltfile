@@ -53,71 +53,6 @@ all_secrets = {
     ]
 }
 
-all_secrets["POSTGRES_PASSWORD"] = "myPostgresPassword"
-all_secrets["OIDC_CLIENT_SECRET"] = "myclientsecret"
-all_secrets["ca-cert.pem"] = all_secrets["CA_CERTIFICATE"]
-all_secrets["opaPolicyPullSecret"] = os.environ.get("CR_PAT")
-
-
-def only_secrets_named(*items):
-    return {k: all_secrets[k] for k in items}
-
-
-k8s_yaml(
-    secret_from_dict(
-        "attributes-secrets",
-        inputs=only_secrets_named("OIDC_CLIENT_SECRET", "POSTGRES_PASSWORD"),
-    )
-)
-k8s_yaml(
-    secret_from_dict(
-        "keycloak-bootstrap-secrets",
-        inputs=only_secrets_named("OIDC_CLIENT_SECRET"),
-    )
-)
-k8s_yaml(
-        secret_from_dict(
-            "entitlement-store-secrets",
-            inputs=only_secrets_named("POSTGRES_PASSWORD"),
-        )
-    )
-k8s_yaml(
-    secret_from_dict(
-        "opentdf-entitlement-pdp-secret",
-        inputs=only_secrets_named(
-            "opaPolicyPullSecret",
-        ),
-    )
-)
-k8s_yaml(
-    secret_from_dict(
-        "postgres-password",
-        inputs=only_secrets_named("POSTGRES_PASSWORD"),
-    )
-)
-k8s_yaml(
-    secret_from_dict(
-        "entitlements-secrets",
-        inputs={
-            "OIDC_CLIENT_SECRET": all_secrets["OIDC_CLIENT_SECRET"],
-            "POSTGRES_PASSWORD": all_secrets["POSTGRES_PASSWORD"],
-        },
-    )
-)
-k8s_yaml(
-    secret_from_dict(
-        "kas-secrets",
-        inputs=only_secrets_named(
-            "ATTR_AUTHORITY_CERTIFICATE",
-            "KAS_EC_SECP256R1_CERTIFICATE",
-            "KAS_CERTIFICATE",
-            "KAS_EC_SECP256R1_PRIVATE_KEY",
-            "KAS_PRIVATE_KEY",
-            "ca-cert.pem",
-        ),
-    )
-)
-
 #   o8o
 #   `"'
 #  oooo  ooo. .oo.  .oo.    .oooo.    .oooooooo  .ooooo.   .oooo.o
@@ -136,6 +71,14 @@ docker_build(
         "ALPINE_VERSION": ALPINE_VERSION,
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
         "PY_VERSION": PY_VERSION,
+    },
+)
+
+docker_build(
+    CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
+    "./containers/keycloak-bootstrap",
+    build_args={
+        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
     },
 )
 
@@ -261,12 +204,12 @@ helm_resource(
     ],
     image_keys=[
         ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
-        ("keycloak.image.repository", "keycloak.image.tag"),
+        ("keycloakx.image.repository", "keycloakx.image.tag"),
         ("attributes.image.repo", "attributes.image.tag"),
         ("entitlements.image.repo", "entitlements.image.tag"),
         ("entitlement_store.image.repo", "entitlement_store.image.tag"),
         ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
-        ("entitlement-resolution.image.repo", "entitlement-resolution.image.tag"),
+        ("entity-resolution.image.repo", "entity-resolution.image.tag"),
         ("kas.image.repo", "kas.image.tag"),
     ],
     flags=[
@@ -295,16 +238,4 @@ helm_resource(
     ],
     labels="opentdf",
     resource_deps=["helm-dep-update", "ingress-nginx-controller"],
-)
-
-k8s_resource(
-    "keycloakx",
-    links=[link("http://localhost:65432/auth/", "Keycloak admin console")],
-    labels=["Third-party"]
-)
-
-k8s_resource(
-    "keycloak-bootstrap",
-    resource_deps=["keycloakx", "opentdf-entitlements", "opentdf-attributes"],
-    labels="Utility"
 )
