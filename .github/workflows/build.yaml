@@ -161,7 +161,6 @@ jobs:
 
           tilt ci -f Tiltfile
           # Debugging prints
-          kubectl get deployments
           kubectl get pods
 
           # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
@@ -172,9 +171,12 @@ jobs:
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
           tilt ci -f xtest.Tiltfile
+          kubectl get pods
           tilt ci -f pki-test.Tiltfile
+          # Sometimes, PKI tests only are failing randomly in CI with 400 errors when calling Keycloak.
+          # This is to help debug that
+          kubectl logs keycloak-0
           # Debugging prints
-          kubectl get deployments
           kubectl get pods
 
   publish-helm-charts:
