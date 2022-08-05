@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# Updates charts' `version` and `appVersion` info.
+# Useful for prepping for release, local development, or main HEAD builds
+# Usage:
+#   update-charts
+#     Sets appVersion short sha
+#     Sets version to current tag
+#     Sets local containers' tags to short sha tag
+#   update-charts release
+#     Sets appVersion to released VERSION information in containers
+#     Sets version to current short tag
+#     Sets local containers' tags to current short tag
+#   update-charts local
+#     Updates backend Chart to use local charts with file:// urls
+#   GITHUB_REPOSITORY_OWNER: ghcr.io path segment, e.g.
+#   with env ${{ github.repository_owner }}
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
+PROJECT_ROOT="$(cd "$APP_DIR"/../ >/dev/null && pwd)"
+export PATH="$PATH:$APP_DIR"
+
+monolog TRACE "Running [$0${1+ }$*]"
+
+e() {
+  local rval=$?
+  monolog ERROR "${@}"
+  exit $rval
+}
+
+# Gets the path to the given app's chart
+chart-for() {
+  echo "${PROJECT_ROOT}/charts/$1/Chart.yaml"
+}
+
+# Look up current app version for given app
+appVersion-for() {
+  case "$1" in
+    backend)
+      git describe --abbrev=0
+      ;;
+    kas)
+      echo "$(<"${PROJECT_ROOT}"/containers/kas/kas_app/VERSION)"
+      ;;
+    *)
+      echo "$(<"${PROJECT_ROOT}"/containers/"$1"/VERSION)"
+      ;;
+  esac
+}
+
+# Look up the current chart.version for a given app
+chartVersion-for() {
+  app="${1}"
+  yq '.version' "$(chart-for "$app")"
+}
+
+# Sets the appVersion field in the given app's chart to the one found by appVerion-for
+set-appVersion() {
+  app="${1}"
+  av="${2:-$(appVersion-for "$app")}"
+  monolog INFO "Setting $app/Chart.yaml appVersion to [${av}]..."
+  APP_VERSION="$av" yq -i '.appVersion = strenv(APP_VERSION)' "$(chart-for "$app")"
+}
+
+# Sets the chart version field in the given app's chart
+set-version() {
+  app="${1}"
+  cv="${2:-$(git describe --tags)}"
+  monolog INFO "Setting $app/Chart.yaml version to [${cv}]..."
+  CHART_VERSION="$cv" yq -i '.version = strenv(CHART_VERSION)' "$(chart-for "$app")"
+}
+
+# Updates local deps from backend chart on others
+update-umbrella-deps() {
+  repo="${1:-oci://ghcr.io/${GITHUB_REPOSITORY_OWNER:-opentdf}/charts}"
+  sub_charts=("attributes" "entitlement-pdp" "entitlement-store" "entitlements" "entity-resolution" "kas" "keycloak-bootstrap")
+  for sub_chart in "${sub_charts[@]}"; do
+    cv="$(chartVersion-for "${sub_chart}")"
+    monolog INFO "backend dep [${sub_chart}] update version to [${cv}]"
+    depname="${sub_chart}" dcv=${cv} yq '(.dependencies[] | select(.name == env(depname)) | .version ) = strenv(dcv)' -i "$(chart-for backend)"
+    depname="${sub_chart}" repo="${repo}/${sub_chart}" yq '(.dependencies[] | select(.name == env(depname)) | .repository ) = strenv(repo)' -i "$(chart-for backend)"
+  done
+}
+
+yq --version || e "Missing binary: yq"
+cd "${PROJECT_ROOT}/charts" || e "Unable to find charts folder in [${PROJECT_ROOT}]"
+short_ver=sha-$(git rev-parse --short HEAD)
+
+case "$1" in
+  help | --help | -h)
+    echo "update-chart [release|local|dev] updates Chart.yaml files version information"
+    echo "   release: Use latest tag as chart.version, container VERSIONs as appVersion"
+    echo "   dev: Use git hash versioning"
+    echo "   local: Use file:// relative paths in umbrella chart, target main builds of apps"
+    ;;
+  release)
+    monolog DEBUG "Tagged release update"
+    for x in $(cd "${PROJECT_ROOT}"/charts/ && ls); do
+      if [ -f "$x/Chart.yaml" ]; then
+        set-appVersion "$x"
+        set-version "$x"
+      fi
+    done
+    update-umbrella-deps
+    ;;
+  local)
+    monolog DEBUG "Reset to local development"
+    for x in $(cd "${PROJECT_ROOT}"/charts/ && ls); do
+      if [ -f "$x/Chart.yaml" ]; then
+        set-appVersion "$x" main
+        set-version "$x"
+      fi
+    done
+    update-umbrella-deps "file://.."
+    helm dependency update backend
+    ;;
+  *)
+    monolog DEBUG "Head release update"
+    for x in $(cd "${PROJECT_ROOT}"/charts/ && ls); do
+      if [ -f "$x/Chart.yaml" ]; then
+        set-appVersion "$x" "$short_ver"
+        set-version "$x" "0.0.0-$short_ver"
+      fi
+    done
+    update-umbrella-deps
+    ;;
+esac

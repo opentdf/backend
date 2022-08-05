@@ -172,6 +172,8 @@ jobs:
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
           tilt ci -f xtest.Tiltfile
+          kubectl get deployments
+          kubectl get pods
           tilt ci -f pki-test.Tiltfile
           # Debugging prints
           kubectl get deployments
@@ -207,36 +209,23 @@ jobs:
           logout: false
       - name: push
         run: |
-          yq --version
-          cd charts
-          short_ver=sha-$(git rev-parse --short HEAD)
-          escaped_version=$(printf '%s\n' "0.0.0-${short_ver}" | sed -e 's/[\/.]/\\./g')
+          scripts/update-charts
+          cd charts || exit 1
           for d in */ ; do
               if [ -f "$d/Chart.yaml" -a "$d" != "backend/" ]; then
-                echo "Setting $d/Chart.yaml version to ${short_ver} [${escaped_version}]..."
-                sed -i "s/^version\: .*\$/version\: $escaped_version/" $d/Chart.yaml
                 echo "Packaging Helm chart $d..."
-                helm package $d --app-version="${short_ver}"
-                echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
-                echo *.tgz
+                helm package $d
+                echo "Packaged as" *.tgz
                 helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi
           done
+          echo "Waiting a bit for subcharts to propagate"
+          sleep 10
           echo "Updating backend chart versions"
-          d="backend"
-          sub_charts=("attributes" "entitlement-pdp" "entitlement-store" "entitlements" "entity-resolution" "kas", "keycloak-bootstrap")
-          for sub_chart in "${sub_charts[@]}" ; do
-            echo "${sub_chart} update version"
-            repo="oci://ghcr.io/${{ github.repository_owner }}/charts/${sub_chart}"
-            sub_chart=$sub_chart escaped_version=$escaped_version yq '(.dependencies[] | select(.name == env(sub_chart)) | .version ) = env(escaped_version)' -i $d/Chart.yaml
-            sub_chart=$sub_chart repo=$repo yq '(.dependencies[] | select(.name == env(sub_chart)) | .repository ) = env(repo)' -i $d/Chart.yaml
-          done
-          sed -i "s/^version\: .*\$/version\: $escaped_version/" $d/Chart.yaml
-          helm dependency update $d
-          helm package $d --app-version="${short_ver}"
-          echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
-          echo *.tgz
+          helm dependency update backend
+          helm package backend
+          echo "Packaged Helm chart [backend] as " *.tgz
           helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz 
   build-base:

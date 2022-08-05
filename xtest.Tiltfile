@@ -58,7 +58,7 @@ local_resource(
 
 k8s_yaml(
     helm(
-        "charts/keycloak_bootstrap",
+        "charts/keycloak-bootstrap",
         "xtest-keycloak-bootstrap",
         values=["./tests/integration/backend-keycloak-bootstrap-values.xtest.yaml"],
         set=[
