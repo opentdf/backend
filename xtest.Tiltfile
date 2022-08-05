@@ -2,9 +2,9 @@
 # reference https://docs.tilt.dev/api.html
 # extensions https://github.com/tilt-dev/tilt-extensions
 
-load("ext://min_tilt_version", "min_tilt_version")
+load("./common.Tiltfile", "backend")
 
-min_tilt_version("0.30")
+backend()
 
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
 OIDC_CLIENT_SECRET = "myclientsecret"

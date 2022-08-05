@@ -1,3 +1,7 @@
+load("./common.Tiltfile", "backend")
+
+backend(extra_helm_parameters=["-f", "./tests/integration/backend-pki-values.yaml"])
+
 # TODO PKI tests involve only clients, Ingress and Keycloak - they are not backend tests, they are frontend tests,
 # and we should move them out of this repo if we keep them at all.
 #
