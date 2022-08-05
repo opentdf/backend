@@ -4,6 +4,13 @@ ARG PY_VERSION=3.10
 ARG CONTAINER_REGISTRY=docker.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 
+# KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
+# (policy definition point)
+FROM golang:1.18-alpine AS gobuilder
+RUN apk add --no-cache git=~2
+RUN mkdir /dist
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
+
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 
 # Establish a working directory in the container for tdf3_kas. This directory
@@ -19,6 +26,7 @@ ENV KAS_UID ${KAS_UID:-909}
 
 # Install the dependencies
 RUN apk add --no-cache --upgrade \
+    git \
     cargo \
     openssl-dev \
     python3-dev
@@ -57,9 +65,21 @@ COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-pack
 # add any new deployable directories and files from the build stage here
 RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 
+# `tini` is a tiny, valid init process that runs inside the container
+# We use it because we need to launch multiple processes from a single Docker
+# entrypoint - this is a valid pattern, and in fact upstream Docker Desktop bundles
+# `tini` expressly for this purpose - we're adding it here.
+RUN apk add --no-cache tini
+
+# Copy over the standalone binary that is the PDP grpc server, as well as the
+# tini launch script that starts both the PDP grpc server and KAS process.
+RUN mkdir -p /opentdf/bin
+COPY tini-init.sh /opentdf/bin/
+
+COPY --chown=kas:kas --from=gobuilder /dist/access-pdp /opentdf/bin/access-pdp-grpc-server
+
 # Run as kas instead of root
 USER kas
-
 
 # Configure Gunicorn
 #
@@ -85,9 +105,8 @@ ENV WSGI_CORS_ORIGIN *
 # Publish stats
 ENV STATSD_HOST ""
 ENV STATSD_PORT "8125"
-# Start the KAS server(s). They rely on PYTHONPATH to resolve modules.
 
 EXPOSE 8000
 
-# Start green unicorn. It reads the environment variables set above.
-ENTRYPOINT gunicorn --statsd-host "${STATSD_HOST}:${STATSD_PORT}" --limit-request-field_size 65535 --statsd-prefix "service.kas" --config "gunicorn.conf.py" --bind ":8000" wsgi:app
+# Run program under Tini
+ENTRYPOINT ["/sbin/tini", "--", "/opentdf/bin/tini-init.sh"]

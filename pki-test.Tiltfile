@@ -15,11 +15,22 @@ local_resource(
     "kubectl-portforward-http",
     serve_cmd="kubectl port-forward service/ingress-nginx-controller 65432:80",
 )
+
+
+local_resource(
+    "wait-for-bootstrap",
+    cmd=[
+        "tests/integration/wait-for-ready.sh",
+        "job/xtest-keycloak-bootstrap",
+        "15m",
+        "default",
+    ],
+)
 local_resource(
     "pki-test",
     "python3 tests/integration/pki-test/client_pki_test.py",
     resource_deps=[
-        "xtest-keycloak-bootstrap",
+        "wait-for-bootstrap",
         "kubectl-portforward-https",
         "kubectl-portforward-http",
     ],
