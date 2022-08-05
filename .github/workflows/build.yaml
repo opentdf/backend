@@ -175,7 +175,9 @@ jobs:
           tilt ci -f pki-test.Tiltfile
           # Sometimes, PKI tests only are failing randomly in CI with 400 errors when calling Keycloak.
           # This is to help debug that
-          kubectl logs keycloak-0
+          if ! tilt ci -f pki-test.Tiltfile; then
+              kubectl logs keycloak-0
+          fi
           # Debugging prints
           kubectl get pods
 
