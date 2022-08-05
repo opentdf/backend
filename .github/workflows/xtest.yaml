@@ -20,7 +20,6 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: update packages
         run: |-
-          echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
           cd tests/containers/clients
           npm uninstall @opentdf/cli @opentdf/client
           npm uninstall @opentdf/cli
@@ -52,5 +51,21 @@ jobs:
       - name: tilt-ci
         run: |-
           kubectl version
-          tilt ci integration-test pki-test
+          echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
+
+          tilt ci -f Tiltfile
+          # Debugging prints
+          kubectl get deployments
+          kubectl get pods
+
+          # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
+          # up after itself if you install things The Normal Way outside of of Tilt.
+          # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
+          # Tilt's mess.
+          docker system prune -af
+          # So, we let it install the Helm chart, ignore it's misreporting of failures,
+          # and wait for health ourselves (from the k8s control plane, not tilt)
+          tilt ci -f xtest.Tiltfile && tilt ci -f pki-test.Tiltfile
+          # Debugging prints
+          kubectl get deployments
           kubectl get pods

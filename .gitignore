@@ -44,3 +44,5 @@ kubeconfig
 
 **/.helm/
 **/tilt_modules/
+**/Chart.lock
+charts/backend/charts

@@ -1,9 +1,0 @@
-config:
-  keycloak:
-    clientId: tdf-client
-    # See https://github.com/Nerzal/gocloak/issues/346
-    # legacy: true
-
-secret:
-  keycloak:
-    clientSecret: 123-456

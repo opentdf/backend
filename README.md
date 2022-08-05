@@ -1,31 +1,35 @@
 # Protected Data Format Reference Services · [![CI](https://github.com/opentdf/backend/actions/workflows/build.yaml/badge.svg)](https://github.com/opentdf/backend/actions/workflows/build.yaml) · [![Code Quality](https://sonarcloud.io/api/project_badges/measure?project=opentdf_backend&metric=alert_status&token=4fff8ae1ff25f2ed30b5705197309bd4affbd9f1)](https://sonarcloud.io/summary/new_code?id=opentdf_backend)
 
 
-This repository is for a reference implementation of the [OpenTDF REST Services](https://github.com/opentdf/spec), and sufficient tooling and testing to support the development of it.
+This repository is a reference implementation of the [OpenTDF protocol and attribute-based access control (ABAC) architecture](https://github.com/opentdf/spec), and sufficient tooling and testing to support the development of it.
 
-## Monorepo
+We store several services combined in a single git repository for ease of development. These include:
 
-We store several services combined in a single git repository for ease of development. Thse include:
+### ABAC data access authorization services
+- [Key Access Service](containers/kas/kas_core/) - An ABAC _access_ policy enforcement point (PEP) and policy decision point (PDP).
+- [Attributes](containers/attributes/) - An ABAC attribute authority.
+- [Entitlements](containers/entitlements) - An ABAC _entitlements_ policy administration point (PAP)
+- [Entitlements Store](containers/entitlement_store) - An ABAC _entitlements_ policy information point (PIP)
+- [Entitlements PDP](containers/entitlement-pdp) - An ABAC _entitlements_ policy decision point (PDP)
 
-- [Key Access Service](containers/kas/kas_core/)
-- Authorization Services
-  - [Attributes](containers/attributes/)
-  - [Entitlements](containers/entitlements)
-  - [Keycloak Claims Mapper](containers/keycloak-protocol-mapper)
+### Support services
+- Postgres
+- Keycloak as an example OIDC authentication provider, and sample configurations for it.
 - Tools and shared libraries
-- Helm charts for deploying to kubernetes
+- Helm charts for deploying to Kubernetes
 - Integration tests
 
-### Monorepo structure
+### Repo structure
 
-1. The `containers` folder contains individual containerized services in folders, each of which should have a `Dockerfile`
-1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
-1. Integration tests are stored in the `tests` folder. Notably, a useful integration test (x86 only) is available by running `cd tests/integration && tilt ci`
-1. A simple local stack can be pulled up with the latest releases of the images by running `tilt up` from the root. To use the latest mainline branches, edit the `CONTAINER_REGISTRY` to point to `ghcr.io` and [follow github's instructions to log into that repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
+1. The [`containers`](./containers) folder contains individual containerized services in folders, each of which should have a `Dockerfile`
+  1. The build context for each individual containerized service _should be restricted to the folder of that service_ - shared dependencies should either live in a shared base image, or be installable via package management.
+1. The [`charts`](./charts) folder contains Helm charts for every individual service, as well as an umbrella [backend](./charts/backend) Helm chart that installs all backend services.
+1. Integration test configs and helper scripts are stored in the [`tests`](./tests) folder. Notably, a useful integration test (x86 only) is available by running `tilt ci && tilt ci -f xtest.Tiltfile` from the repo root.
+1. A simple local stack can be brought up with the latest releases of the images by running `tilt up` from the repo root. This simply uses Tilt to install the [backend](./charts/backend) Helm chart and deploy it with locally-built Docker images and Helm charts, rather than pulling tagged and released artifacts. 
 
-## Quick Start and Development
+## Local Quick Start and Development
 
-This quick start guide is primarily for development and testing the ABAC and KAS infrastructure. See [Production](#production) for details on running in production.
+This quick start guide is primarily for standing up a local, Docker-based Kube cluster for development and testing of the OpenTDF backend stack. See [Existing Cluster Installation](#existing-cluster-install-local-or-non-local) for details on using a traditional Helm deployment to an operational cluster.
 
 ### Prerequisites
 
@@ -66,7 +70,8 @@ This quick start guide is primarily for development and testing the ABAC and KAS
 ./scripts/pre-reqs docker helm tilt kind
 ```
 
-### Generate local certs in certs/ directory
+### Install 
+1. Generate local certs in certs/ directory
 
 > You may need to manually clean the `certs` folder occasionally
 
@@ -74,26 +79,26 @@ This quick start guide is primarily for development and testing the ABAC and KAS
 ./scripts/genkeys-if-needed
 ```
 
-### Create cluster
+1. Create cluster
 
 ```shell
 ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf
 ```
 
-### Start cluster
+1. Start cluster
 
 > TODO([PLAT-1599](https://virtru.atlassian.net/browse/PLAT-1599)) Consolidate integration and root tiltfile.
 
-```shell
-tilt up [all/integration-test] [-- --to-edit opentdf-abacus/opentdf-abacus-tdf3]
 
-# 'tilt up all' will run tiltfile within root (e.g. root ./tiltfile)
-# 'tilt up integration-test' will run tiltfile within ci (e.g. ./tests/integration/tiltfile)
-# '-- --to-edit opentdf-abacus' will run local frontend container instead of deployed one
-# '-- --to-edit opentdf-abacus-tdf3' will run local frontend container instead of deployed one and use DockerfileTests config
+`tilt up` will run the main Tiltfile in the repo root, e.g. [./Tiltfile](./Tiltfile). Tilt will watch the local disk
+for changes, and rebuild/redeploy images on local changes.
+```shell
+tilt up
 ```
 
-# Hit spacebar to open web UI
+1. Hit spacebar to open web UI
+
+> (Optional) Run `octant` -> This will open a browser window giving you a more structured and complete overview of your local Kubernetes cluster.
 
 ### Cleanup
 
@@ -103,7 +108,34 @@ ctlptl delete cluster kind-opentdf
 helm repo remove keycloak
 ```
 
-> (Optional) Run `octant` -> This will open a browser window giving you an overview of your local cluster.
+
+## Existing Cluster Install (Local or Non-Local)
+
+
+### Prerequisites
+
+- Install [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/)
+    - On macOS via Homebrew: `brew install kubectl`
+    - Others see https://kubernetes.io/docs/tasks/tools/
+
+- Install [helm](https://helm.sh/)
+    - On macOS via Homebrew: `brew install helm`
+    - Others see https://helm.sh/docs/intro/install/
+    
+- Officially tagged and released container images and Helm charts are stored in Github's ghcr.io OCI image repository.
+  - [You must follow github's instructions to log into that repository, and your cluster must have a valid pull secret for this registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
+  - You must override the [`backend` chart's](./charts/backend) `global.opentdf.common.imagePullSecrets` property and supply it with the name of your cluster's existing/valid pull secret.
+
+### Install
+
+1. Ensure your `kubectl` tool is configured to point at the desired existing cluster
+1. TODO/FIX: Inspect the [Tiltfile](Tiltfile) for the required, preexisting Kube secrets, and create them manually
+1. Inspect the [backend Helm values file](./charts/backend/values.yaml) for available install flags/options.
+1. `helm install otdf-backend oci://ghcr.io/opentdf/charts/backend -f any-desired-values-overrides.yaml` 
+
+### Uninstall
+
+1. `helm uninstall otdf-backend`
 
 ## Swagger-UI
 
@@ -154,8 +186,8 @@ scripts/monotest containers/kas/kas_core
 Once a cluster is running, run `tests/security-test/helm-test.sh`
 
 ### Integration Tests
-
-> TODO Under Construction 
+Once a cluster is running, in another terminal run:
+`tilt up --port 10351 -f xtest.Tiltfile`
 
 ## Deployment
 

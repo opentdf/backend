@@ -107,7 +107,7 @@ def entitlements_bootstrap():
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
 
-    keycloak_auth_url = kc_internal_url + "/auth/"
+    keycloak_auth_url = kc_internal_url + "/"
 
     # Contains a map of `entities` to attributes we want to preload
     # Entities can be clients or users, doesn't matter

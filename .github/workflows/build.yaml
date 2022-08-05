@@ -49,14 +49,7 @@ jobs:
         run: |
           cd charts
           for d in * ; do
-            if [[ $d == keycloak_bootstrap ]]; then
-              echo "Rendering Helm chart to validate defaults..."
-              helm template --set externalUrl=http://nowhere "$d"
-              if helm template "$d"; then
-                echo "$d should fail with defaults, as it has a required parameter"
-                exit 1
-              fi
-            elif [ -f "$d/Chart.yaml" ]; then
+            if [ -f "$d/Chart.yaml" ]; then
               echo "Rendering Helm chart $d to validate defaults..."
               helm template "$d"
             fi
@@ -80,7 +73,7 @@ jobs:
     needs:
       - lint
       - scriptcheck
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
         with:
@@ -104,7 +97,7 @@ jobs:
           - entitlement_store
           - attributes
           - entitlements
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - name: Checkout working branch
         uses: actions/checkout@v3
@@ -161,9 +154,26 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run integration test Tiltfile
         run: |-
+          # This is needed for PKI test
           echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
-          timeout 30m tilt ci integration-test
+
+          tilt ci -f Tiltfile
+          # Debugging prints
+          kubectl get deployments
+          kubectl get pods
+
+          # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
+          # up after itself if you install things The Normal Way outside of of Tilt.
+          # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
+          # Tilt's mess.
+          docker system prune -af
+          # So, we let it install the Helm chart, ignore it's misreporting of failures,
+          # and wait for health ourselves (from the k8s control plane, not tilt)
+          tilt ci -f xtest.Tiltfile
+          tilt ci -f pki-test.Tiltfile
+          # Debugging prints
+          kubectl get deployments
           kubectl get pods
 
   publish-helm-charts:
@@ -186,6 +196,7 @@ jobs:
         with:
           setup-tools: helm
           helm: "3.9.1"
+      - uses: frenck/action-setup-yq@v1.0.1
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
         with:
@@ -195,22 +206,25 @@ jobs:
           logout: false
       - name: push
         run: |
-          cd charts
-          short_ver=sha-$(git rev-parse --short HEAD)
-          escaped_version=$(printf '%s\n' "0.0.0-${short_ver}" | sed -e 's/[\/.]/\\./g')
+          scripts/update-charts
+          cd charts || exit 1
           for d in */ ; do
-              if [ -f "$d/Chart.yaml" ]; then
-                echo "Setting Chart.yaml version to ${short_ver}..."
-                sed -i "s/version\: .*/version\: $escaped_version/" $d/Chart.yaml
+              if [ -f "$d/Chart.yaml" -a "$d" != "backend/" ]; then
                 echo "Packaging Helm chart $d..."
-                helm package $d --app-version="${short_ver}"
-                echo "Packaged Helm chart $d with chart version and appVersion (e.g. container tag) baked to ${short_ver}"
-                echo *.tgz
+                helm package $d
+                echo "Packaged as" *.tgz
                 helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi
           done
-
+          echo "Waiting a bit for subcharts to propagate"
+          sleep 10
+          echo "Updating backend chart versions"
+          helm dependency update backend
+          helm package backend
+          echo "Packaged Helm chart [backend] as " *.tgz
+          helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          rm *.tgz 
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
@@ -278,7 +292,7 @@ jobs:
         repo:
           - kas
           - keycloak-bootstrap
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
@@ -326,7 +340,7 @@ jobs:
         repo:
           - entitlement-pdp
           - entity-resolution
-    timeout-minutes: 90
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
@@ -405,7 +419,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
-    timeout-minutes: 90
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -459,7 +473,7 @@ jobs:
       contents: read
       packages: write
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta

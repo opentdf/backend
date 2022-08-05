@@ -13,7 +13,7 @@ data:
   verbose: {{ .Values.config.verbose | quote }}
   disableTracing: {{ .Values.config.disableTracing | quote }}
   otlpCollectorEndpoint: {{ .Values.config.otlpCollectorEndpoint | quote }}
-  keycloakUrl: {{ .Values.config.keycloak.url | quote }}
+  keycloakUrl: {{ ( include "entityresolution.keycloakUrl" . ) | quote }}
   keycloakRealm: {{ .Values.config.keycloak.realm | quote }}
   keycloakClientId: {{ .Values.config.keycloak.clientId | quote }}
   keycloakLegacy: {{ .Values.config.keycloak.legacy | quote }}

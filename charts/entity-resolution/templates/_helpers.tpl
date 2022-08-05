@@ -1,9 +1,3 @@
-{{- define "imagePullSecret" }}
-{{- with .Values.imageCredentials }}
-{{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" .registry .username .password .email (printf "%s:%s" .username .password | b64enc) | b64enc }}
-{{- end }}
-{{- end }}
-
 {{/*
 Expand the name of the chart.
 */}}
@@ -35,3 +29,10 @@ Create chart name and version as used by the chart label.
 {{- define "entityresolution.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*
+Create OIDC Internal Url from a common value   
+*/}}
+{{- define "entityresolution.keycloakUrl" }}
+{{- default .Values.global.opentdf.common.oidcInternalHost }}
+{{- end }}

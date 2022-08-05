@@ -14,31 +14,28 @@ spec:
         - name: {{ .Values.name }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
-          {{- if .Values.istioTerminationHack }}
           command: ["/bin/sh", "-c"]
-          # The following hack does 2 things:
-          # 1. Waits for the Istio proxy sidecar to be ready before continuing.
-          # 2. Tells the istio proxy sidecar to exit once we're done - otherwise
-          # it will keep running and the job will never complete - this is arguably not a bug,
-          # since you don't _want_ your mesh proxy to quit normally.
-          # For more details, see Istio bug: https://github.com/istio/istio/issues/11659
-          # (this arguably isn't an Istio bug, but a Kube one, since you don't WANT containers in a Pod to be able to
-          # terminate their own Pod's proxy)
+          # The following hack waits for Keycloak to begin responding before trying to bootstrap it.
+          #
+          # JBOSS keycloak is super slow, and if we start this job immediately and rely on job backoffs to do this,
+          # it takes a lot longer because of increasing backoff durations as Keycloak comes up.
           args:
-            - |
-              trap "curl --max-time 2 -s -f -XPOST http://127.0.0.1:15000/quitquitquit" EXIT
-              while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do sleep 1; done
+            - |-
+              echo "[INFO] Waiting for service [{{ ( include "boostrap.oidc.internalUrl" . ) }}]"
+              while ! curl -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do
+                sleep 1
+              done
+              echo "[INFO] Service [{{ ( include "boostrap.oidc.internalUrl" . ) }}] available"
               sleep 10 && python3 bootstrap.py
-          {{- end }}
           env:
             - name: ENABLE_PKI_DIRECTGRANT
               value: {{ .Values.pki.directGrantEnable | quote }}
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ required "Please define the abacus host URL for redirects" .Values.externalUrl }}
+              value: {{ ( include "boostrap.oidc.externalUrl" . ) }}
             - name: KEYCLOAK_INTERNAL_URL
-              value: {{ .Values.keycloakx.hostname }}
+              value: {{ ( include "boostrap.oidc.internalUrl" . ) }}
             - name: keycloak_admin_username
               value: {{ .Values.keycloakx.username }}
             {{- with .Values.keycloakx.password }}
@@ -82,8 +79,8 @@ spec:
           configMap:
             name: {{ include "keycloak-bootstrap.fullname" . }}-cm
       restartPolicy: Never
-      {{ with .Values.image.pullSecret }}
+      {{- with .Values.global.opentdf.common.imagePullSecrets }}
       imagePullSecrets:
-        - name: {{ . }}
-      {{ end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
   backoffLimit: {{ .Values.job.backoffLimit }}
