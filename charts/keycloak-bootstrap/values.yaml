@@ -23,7 +23,7 @@ global:
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
-keycloakx:
+keycloak:
   clientId: tdf-client
   clientSecret: 123-456
   username: keycloakadmin

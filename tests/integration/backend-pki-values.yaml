@@ -12,22 +12,34 @@ kas:
 
 keycloak:
   extraEnv: |
-    - name: KEYCLOAK_LOGLEVEL
-      value: INFO
-    - name: KEYCLOAK_USER
-      value: keycloakadmin
-    - name: KEYCLOAK_PASSWORD
-      value: mykeycloakpassword
     - name: CLAIMS_URL
       value: http://opentdf-entitlement-pdp:3355/entitlements
-    - name: DB_VENDOR
+    - name: JAVA_OPTS_APPEND
+      value: -Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
+    - name: KC_DB
       value: postgres
-    - name: DB_ADDR
+    - name: KC_DB_URL_HOST
       value: opentdf-postgresql
-    - name: DB_DATABASE
+    - name: KC_DB_URL_DATABASE
       value: keycloak_database
-    - name: DB_PORT
+    - name: KC_DB_URL_PORT
       value: "5432"
+    - name: KC_HOSTNAME
+      value: "localhost:65432"
+    - name: KC_HOSTNAME_ADMIN
+      value: "localhost:65432"
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_HTTP_RELATIVE_PATH
+      value: "/auth"
+    - name: KC_PROXY
+      value: "edge"
+    - name: KEYCLOAK_LOGLEVEL
+      value: INFO
     - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
       value: "true"
     - name: X509_CA_BUNDLE

@@ -1,7 +1,7 @@
 name: 'opentdf-backend'
 
 embedded:
-  keycloakx: true
+  keycloak: true
   postgresql: true
 
 boostrapKeycloak: true
@@ -30,7 +30,7 @@ secrets:
   postgres:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin
-  keycloakx:
+  keycloak:
     user: keycloakadmin
     password: mykeycloakpassword
 
@@ -61,7 +61,7 @@ kas:
     ecPrivKey:
     privKey:
 
-keycloakx:
+keycloak:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
@@ -80,7 +80,7 @@ keycloakx:
     - name: CLAIMS_URL
       value: http://opentdf-entitlement-pdp:3355/entitlements
     - name: JAVA_OPTS_APPEND
-      value: -Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled  -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
+      value: -Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
     - name: KC_DB
       value: postgres
     - name: KC_DB_URL_HOST
@@ -90,9 +90,9 @@ keycloakx:
     - name: KC_DB_URL_PORT
       value: "5432"
     - name: KC_HOSTNAME
-      value: "localhost:65432"
-    - name: KC_HOSTNAME_ADMIN
-      value: "localhost:65432"
+      value: "localhost"
+    - name: KC_HOSTNAME_PORT
+      value: "65432"
     - name: KC_HOSTNAME_STRICT
       value: "false"
     - name: KC_HOSTNAME_STRICT_HTTPS

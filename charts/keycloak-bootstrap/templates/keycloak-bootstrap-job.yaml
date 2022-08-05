@@ -37,23 +37,23 @@ spec:
             - name: KEYCLOAK_INTERNAL_URL
               value: {{ ( include "boostrap.oidc.internalUrl" . ) }}
             - name: keycloak_admin_username
-              value: {{ .Values.keycloakx.username }}
-            {{- with .Values.keycloakx.password }}
+              value: {{ .Values.keycloak.username }}
+            {{- with .Values.keycloak.password }}
             - name: keycloak_admin_password
               value: {{ . }}
             {{- end }}
             - name: passwordUsers
-              value: {{ .Values.keycloakx.passwordUsers }}
-            {{- with .Values.keycloakx.clientId }}
+              value: {{ .Values.keycloak.passwordUsers }}
+            {{- with .Values.keycloak.clientId }}
             - name: CLIENT_ID
               value: {{ . }}
             {{- end }}
-            {{- with .Values.keycloakx.clientSecret }}
+            {{- with .Values.keycloak.clientSecret }}
             - name: CLIENT_SECRET
               value: {{ . }}
             {{- end }}
             - name: realm
-              value: {{ .Values.keycloakx.realm }}
+              value: {{ .Values.keycloak.realm }}
             - name: ATTRIBUTE_AUTHORITY_HOST
               value: {{ .Values.attributes.hostname }}
             - name: ENTITLEMENT_HOST

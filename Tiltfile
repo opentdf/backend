@@ -204,7 +204,7 @@ helm_resource(
     ],
     image_keys=[
         ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
-        ("keycloakx.image.repository", "keycloakx.image.tag"),
+        ("keycloak.image.repository", "keycloak.image.tag"),
         ("attributes.image.repo", "attributes.image.tag"),
         ("entitlements.image.repo", "entitlements.image.tag"),
         ("entitlement_store.image.repo", "entitlement_store.image.tag"),
@@ -214,8 +214,9 @@ helm_resource(
     ],
     flags=[
         "--dependency-update",
-        "-f",
-        "./tests/integration/backend-pki-values.yaml",  # TODO drop this if we move PKI out
+        # TODO(dmihalcik) update PKI to work alongside non-pki connections?
+        # "-f",
+        # "./tests/integration/backend-pki-values.yaml",  # TODO drop this if we move PKI out
         "--set",
         "entity-resolution.secret.keycloak.clientSecret=123-456",
         "--set",
