@@ -160,8 +160,6 @@ jobs:
           pip3 install opentdf
 
           tilt ci -f Tiltfile
-          # Debugging prints
-          kubectl get pods
 
           # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
           # up after itself if you install things The Normal Way outside of of Tilt.
@@ -171,15 +169,14 @@ jobs:
           # So, we let it install the Helm chart, ignore it's misreporting of failures,
           # and wait for health ourselves (from the k8s control plane, not tilt)
           tilt ci -f xtest.Tiltfile
-          kubectl get pods
           tilt ci -f pki-test.Tiltfile
+      - name: Get Keycloak logs on failure
+        if: failure()
+        run: |-
+          kubectl get pods
           # Sometimes, PKI tests only are failing randomly in CI with 400 errors when calling Keycloak.
           # This is to help debug that
-          if ! tilt ci -f pki-test.Tiltfile; then
-              kubectl logs keycloak-0
-          fi
-          # Debugging prints
-          kubectl get pods
+          kubectl logs keycloak-0
 
   publish-helm-charts:
     runs-on: ubuntu-latest
