@@ -60,6 +60,10 @@ kas:
     cert:
     ecPrivKey:
     privKey:
+  logLevel: DEBUG
+  pdp:
+    verbose: "true"
+    disableTracing: "true"
 
 keycloak:
   fullnameOverride: keycloak

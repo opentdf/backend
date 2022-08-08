@@ -8,7 +8,7 @@ from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
 
-from .plugins import opentdf_attr_authority_plugin, revocation_plugin
+from .plugins import opentdf_attr_authority_plugin, revocation_plugin, access_pdp_healthz_plugin
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +89,9 @@ def app(name):
     otdf_attr_backend = opentdf_attr_authority_plugin.OpenTDFAttrAuthorityPlugin(attr_host)
     kas.use_healthz_plugin(otdf_attr_backend)
     kas.use_rewrap_plugin_v2(otdf_attr_backend)
+
+    access_pdp_health = access_pdp_healthz_plugin.AccessPDPHealthzPlugin()
+    kas.use_healthz_plugin(access_pdp_health)
 
     configure_filters(kas)
 
