@@ -21,11 +21,11 @@ spec:
           # it takes a lot longer because of increasing backoff durations as Keycloak comes up.
           args:
             - |-
-              echo "[INFO] Waiting for service [{{ ( include "boostrap.oidc.internalUrl" . ) }}]"
-              while ! curl -f {{ ( include "boostrap.oidc.internalUrl" . ) }}/realms/master; do
+              echo "[INFO] Waiting for service [{{ ( include "bootstrap.oidc.internalUrl" . ) }}]"
+              while ! curl -f {{ ( include "bootstrap.oidc.internalUrl" . ) }}/realms/master; do
                 sleep 1
               done
-              echo "[INFO] Service [{{ ( include "boostrap.oidc.internalUrl" . ) }}] available"
+              echo "[INFO] Service [{{ ( include "bootstrap.oidc.internalUrl" . ) }}] available"
               sleep 10 && python3 bootstrap.py
           env:
             - name: ENABLE_PKI_DIRECTGRANT
@@ -33,9 +33,9 @@ spec:
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ ( include "boostrap.oidc.externalUrl" . ) }}
+              value: {{ ( include "bootstrap.oidc.externalUrl" . ) }}
             - name: KEYCLOAK_INTERNAL_URL
-              value: {{ ( include "boostrap.oidc.internalUrl" . ) }}
+              value: {{ ( include "bootstrap.oidc.internalUrl" . ) }}
             - name: keycloak_admin_username
               value: {{ .Values.keycloak.username }}
             {{- with .Values.keycloak.password }}
