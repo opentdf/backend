@@ -224,7 +224,7 @@ helm_resource(
         ("entitlements.image.repo", "entitlements.image.tag"),
         ("entitlement_store.image.repo", "entitlement_store.image.tag"),
         ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
-        ("entitlement-resolution.image.repo", "entitlement-resolution.image.tag"),
+        ("entity-resolution.image.repo", "entity-resolution.image.tag"),
         ("kas.image.repo", "kas.image.tag"),
     ],
     flags=[
