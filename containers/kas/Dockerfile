@@ -33,11 +33,13 @@ RUN apk add --no-cache --upgrade \
 
 # Install application dependencies
 COPY kas_app/Pipfile* /kas_app/
+COPY kas_app/requirements.txt /kas_app/
 COPY kas_app/setup.py /kas_app/
 COPY kas_core/Pipfile* /kas_core/
 COPY kas_core/setup.py /kas_core/
+COPY kas_core/requirements.txt /kas_core/
 RUN pip3 install --no-cache-dir --upgrade pip setuptools pipenv && \
-  pipenv install --dev --system --deploy --ignore-pipfile --verbose
+    pip3 install --no-cache-dir -r requirements.txt
 # Install and compiile application
 COPY kas_app /kas_app/
 COPY kas_core /kas_core/
