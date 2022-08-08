@@ -40,7 +40,7 @@ Create chart name and version as used by the chart label.
 {{/*
 Create OIDC Internal Url from a common value (if it exists)   
 */}}
-{{- define "boostrap.oidc.internalUrl" }}
+{{- define "bootstrap.oidc.internalUrl" }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
 {{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalHost .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
@@ -51,7 +51,7 @@ Create OIDC Internal Url from a common value (if it exists)
 {{/*
 Create OIDC External Url from a common value (if it exists)   
 */}}
-{{- define "boostrap.oidc.externalUrl" }}
+{{- define "bootstrap.oidc.externalUrl" }}
 {{- $extHost := .Values.global.opentdf.common.oidcExternalHost }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
 {{- printf "%s/%s" $extHost .Values.global.opentdf.common.oidcUrlPath }}
