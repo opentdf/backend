@@ -22,9 +22,9 @@ logger.setLevel(logging.DEBUG)
 
 # These are the *only two URLs* anything should ever need:
 
-# 1. The URL stuff outside the cluster will use to resolve keycloak or other external services (public, browser and non-browser clients)
+# 1. The URL stuff outside the cluster will use to resolve services (public, browser and non-browser clients)
 # 2. The URL stuff inside the cluster will use to resolve keycloak (private, non-browser clients)
-otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432/auth").rstrip("/")
+otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432").rstrip("/")
 kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http/auth").rstrip("/")
 pki_browser = os.getenv("ENABLE_PKI_BROWSER", "")
 pki_direct = os.getenv("ENABLE_PKI_DIRECTGRANT", "")
@@ -775,7 +775,7 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, p
                 "realm": realm_name,
                 "enabled": "true",
                 "attributes": {
-                    "frontendUrl": f"{otdf_frontend_url}/realms/tdf-pki"
+                    "frontendUrl": f"{otdf_frontend_url}/auth/realms/tdf-pki"
                 },
             },
             skip_exists=True,

@@ -237,8 +237,7 @@ def backend(extra_helm_parameters=[]):
             "--set",
             "kas.envConfig.cert=%s" % all_secrets["KAS_CERTIFICATE"],
             "--set",
-            "kas.envConfig.ecPrivKey=%s"
-            % all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
+            "kas.envConfig.ecPrivKey=%s" % all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
             "--set",
             "kas.envConfig.privKey=%s" % all_secrets["KAS_PRIVATE_KEY"],
         ]

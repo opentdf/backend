@@ -173,8 +173,6 @@ jobs:
           # Tilt's mess.
           export TILTFILE_FILE=pki-test.Tiltfile
           docker system prune -af
-          # So, we let it install the Helm chart, ignore it's misreporting of failures,
-          # and wait for health ourselves (from the k8s control plane, not tilt)
           kubectl get deployments
           kubectl get pods
           tilt ci -f pki-test.Tiltfile

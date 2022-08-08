@@ -5,4 +5,4 @@
 
 load("./common.Tiltfile", "backend")
 
-backend(["-f", "./tests/integration/backend-pki-values.yaml",])
+backend()
