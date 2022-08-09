@@ -4,7 +4,7 @@ name: 'opentdf-entity-resolution'
 global:
   opentdf:
     common:
-      oidcInternalHost: "http://keycloak-http"
+      oidcInternalHost: "http://keycloakx-http"
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 

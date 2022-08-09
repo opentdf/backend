@@ -25,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 # 1. The URL stuff outside the cluster will use to resolve keycloak or other external services (public, browser and non-browser clients)
 # 2. The URL stuff inside the cluster will use to resolve keycloak (private, non-browser clients)
 otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432/auth").rstrip("/")
-kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http/auth").rstrip("/")
+kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloakx-http/auth").rstrip("/")
 pki_browser = os.getenv("ENABLE_PKI_BROWSER", "")
 pki_direct = os.getenv("ENABLE_PKI_DIRECTGRANT", "")
 

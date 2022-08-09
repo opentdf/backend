@@ -80,5 +80,5 @@ helm upgrade --install attributes ./charts/attributes --debug
 Check connectivity, run shell in pod
 ```shell
 apk add curl
-curl telnet://keycloak-http/auth/
+curl telnet://keycloakx-http/auth/
 ```

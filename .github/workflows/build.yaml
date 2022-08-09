@@ -156,7 +156,7 @@ jobs:
       - name: Run integration test Tiltfile
         run: |-
           # This is needed for PKI test
-          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
 
           tilt ci -f Tiltfile

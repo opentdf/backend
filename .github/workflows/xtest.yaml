@@ -51,7 +51,7 @@ jobs:
       - name: tilt-ci
         run: |-
           kubectl version
-          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
+          echo "127.0.0.1 keycloakx-http" | sudo tee -a /etc/hosts
 
           tilt ci -f Tiltfile
           # Debugging prints

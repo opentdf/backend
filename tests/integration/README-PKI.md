@@ -2,13 +2,13 @@
 ```console
 openssl genrsa -aes256 -out ca.key 2048
 
-openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -out ca.crt -subj "/C=US/ST=Home/L=Home/O=mycorp/OU=myorg/CN=caroot.keycloak-http"
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 1024 -out ca.crt -subj "/C=US/ST=Home/L=Home/O=mycorp/OU=myorg/CN=caroot.keycloakx-http"
 
 openssl genrsa -out  tls.key 2048
 
-openssl req -new -key  tls.key -out  keycloak-http.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloak-http"
+openssl req -new -key  tls.key -out  keycloakx-http.csr -subj "/C=UA/ST=Home/L=Home/O=mycorp/OU=myorg/CN=keycloakx-http"
 
-openssl x509 -req -extfile <(printf "subjectAltName=DNS:keycloak-http") -in keycloak-http.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out tls.crt -days 500 -sha256
+openssl x509 -req -extfile <(printf "subjectAltName=DNS:keycloakx-http") -in keycloakx-http.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out tls.crt -days 500 -sha256
 ```
 ## Generate Client certificate
 ```console
