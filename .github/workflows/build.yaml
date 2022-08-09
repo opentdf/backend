@@ -284,7 +284,7 @@ jobs:
           push: "${{ ! github.event.pull_request.head.repo.fork }}"
 
   build-and-publish-isolated:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push'}}
     needs:
       - build-base
     permissions:
