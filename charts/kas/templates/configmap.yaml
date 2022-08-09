@@ -17,5 +17,7 @@ data:
   VERBOSE: {{ .Values.pdp.verbose | quote }}
   STATSD_HOST: {{ .Values.endpoints.statsdHost | quote }}
   DISABLE_TRACING: {{ .Values.pdp.disableTracing | quote }}
+  IMAGE_TAG: {{ .Chart.AppVersion | quote }}
+  CHART_VERSION: {{ .Chart.Version | quote }}
 
   USE_KEYCLOAK: "1"

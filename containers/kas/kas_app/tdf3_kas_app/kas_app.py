@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 USE_KEYCLOAK = os.environ.get("USE_KEYCLOAK") == "1"
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST") is not None
 
+SHA = os.environ.get("IMAGE_TAG")
+CHART_VERSION = os.environ.get("CHART_VERSION")
+
 
 def configure_filters(kas):
     def str_to_list(varname):
@@ -73,6 +76,28 @@ def app(name):
         except AttributeError as e:
             logger.exception(e)
             logger.warning("Version not set")
+
+    # Set the sha, if possible
+    if not SHA:
+        logger.warning("Sha not found")
+    else:
+        try:
+            logger.info("KAS sha is %s", SHA)
+            kas.set_sha(SHA)
+        except AttributeError as e:
+            logger.exception(e)
+            logger.warning("Sha not set")
+
+    # Set the chart version, if possible
+    if not CHART_VERSION:
+        logger.warning("Chart version not found")
+    else:
+        try:
+            logger.info("KAS chart version is %s", CHART_VERSION)
+            kas.set_chart_version(CHART_VERSION)
+        except AttributeError as e:
+            logger.exception(e)
+            logger.warning("Chart version not set")
 
     if USE_KEYCLOAK and KEYCLOAK_HOST:
         logger.info("Keycloak integration enabled.")

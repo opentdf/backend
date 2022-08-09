@@ -8,6 +8,7 @@ import importlib_resources
 import logging
 
 from .services import ping
+from .services import version
 from .services import rewrap, rewrap_v2
 from .services import upsert, upsert_v2
 from .services import kas_public_key
@@ -40,6 +41,15 @@ def create_session_ping(version):
         return ping(version)
 
     return session_ping
+
+
+def create_session_version(sha, chart_version):
+    """Create a session ping callable."""
+
+    def session_version(request=None):
+        return version(sha, chart_version)
+
+    return session_version
 
 
 def create_session_healthz(plugins):
@@ -149,6 +159,8 @@ class Kas(object):
             raise ServerStartupError("Kas App was already created.")
         self._root_name = "kas"
         self._version = "0.0.0"
+        self._sha = "00000000"
+        self._chart_version = "0.0.0"
         self._healthz_plugins = []
         self._rewrap_plugins = []
         self._rewrap_plugins_v2 = []
@@ -174,9 +186,25 @@ class Kas(object):
         """Set version for the heartbeat message."""
         if version is not None:
             version = version.strip()  # trim the string
-            version = version.rstrip("/n")  # remove linefeed
+            version = version.rstrip("\n")  # remove linefeed
             logger.debug("Setting version to %s", version)
             self._version = version
+        
+    def set_sha(self, sha=None):
+        """Set sha for the version message."""
+        if sha is not None:
+            sha = sha.strip()  # trim the string
+            sha = sha.rstrip("\n")  # remove linefeed
+            logger.debug("Setting sha to %s", sha)
+            self._sha = sha
+
+    def set_chart_version(self, chart_version=None):
+        """Set chart_version for the version message."""
+        if chart_version is not None:
+            chart_version = chart_version.strip()  # trim the string
+            chart_version = chart_version.rstrip("\n")  # remove linefeed
+            logger.debug("Setting chart_version to %s", chart_version)
+            self._chart_version = chart_version
 
     def set_key_pem(self, key_name, key_type, pem_key):
         """Set a key directly with a PEM encoded string."""
@@ -249,6 +277,10 @@ class Kas(object):
         """return the callable to process ping requests."""
         return self._session_ping
 
+    def get_session_version(self):
+        """return the callable to process version requests."""
+        return self._session_version
+
     def get_session_rewrap(self):
         """return the callable to process rewrap requests."""
         return self._session_rewrap
@@ -283,6 +315,8 @@ class Kas(object):
         self._session_healthz = create_session_healthz(self._healthz_plugins)
 
         self._session_ping = create_session_ping(self._version)
+
+        self._session_version = create_session_version(self._sha, self._chart_version)
 
         self._session_rewrap = create_session_rewrap(
             self._key_master, self._rewrap_plugins

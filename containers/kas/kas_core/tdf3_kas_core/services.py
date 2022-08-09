@@ -110,6 +110,12 @@ def ping(version):
     return {"version": f"{version}"}
 
 
+def version(sha, chart_version):
+    """Service health check."""
+    logger.debug("heartbeat ping with SHA = %s and CHART VERSION = %s", sha, chart_version)
+    return {"sha1":f"{sha}","chartVersion":f"{chart_version}"}
+
+
 def rewrap(data, context, plugin_runner, key_master):
     """Rewrap a key split.
 

@@ -189,6 +189,13 @@ def test_ping():
     assert actual == expected
 
 
+def test_version():
+    """Test the version"""
+    expected = {"sha1":"123456","chartVersion":"1.2.3"}
+    actual = version("123456", "1.2.3")
+    assert actual == expected
+
+
 @patch("jwt.decode", side_effect=jwt_decode_no_expiration)
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
 @patch("tdf3_kas_core.services._tdf3_rewrap_v2", return_value=True)
