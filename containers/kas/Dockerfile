@@ -74,6 +74,7 @@ ARG PY_VERSION
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
 RUN apk add --no-cache --upgrade \
+    bash \
     libressl
 
 RUN pip3 install \
