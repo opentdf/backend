@@ -77,7 +77,12 @@ update-umbrella-deps() {
     cv="$(chartVersion-for "${sub_chart}")"
     monolog INFO "backend dep [${sub_chart}] update version to [${cv}]"
     depname="${sub_chart}" dcv=${cv} yq '(.dependencies[] | select(.name == env(depname)) | .version ) = strenv(dcv)' -i "$(chart-for backend)"
-    depname="${sub_chart}" repo="${repo}/${sub_chart}" yq '(.dependencies[] | select(.name == env(depname)) | .repository ) = strenv(repo)' -i "$(chart-for backend)"
+    if [[ $repo == file://* ]]; then
+      subrepo="${repo}/${sub_chart}"
+    else
+      subrepo="${repo}"
+    fi
+    depname="${sub_chart}" repo="${subrepo}" yq '(.dependencies[] | select(.name == env(depname)) | .repository ) = strenv(repo)' -i "$(chart-for backend)"
   done
 }
 
