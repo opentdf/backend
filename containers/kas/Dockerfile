@@ -11,7 +11,27 @@ RUN apk add --no-cache git=~2
 RUN mkdir /dist
 RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
 
-FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
+# stage - build
+FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
+# Install apk dependencies
+RUN apk add --no-cache --upgrade \
+    gcc \
+    rust \
+    build-base \
+    postgresql-dev \
+    postgresql-client \
+    libressl-dev \
+    musl-dev \
+    zlib-dev \
+    jpeg-dev \
+    libffi-dev \
+    grpc \
+    openssl \
+    bash
+
+# Install pip dependencies
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
 
 # Establish a working directory in the container for tdf3_kas. This directory
 # does not exist but will be created. All future commands root from here.
@@ -31,6 +51,13 @@ RUN apk add --no-cache --upgrade \
     openssl-dev \
     python3-dev
 
+# The grpcio package takes
+# 1. A LONG time to compile
+# 2. Doesn't offer wheels for ARM64+ALPINE
+# So, in the interest of making builds faster, grab this wheel from the `linuxserver.io` project
+ARG TARGETARCH
+RUN if [[ "$TARGETARCH" -eq "arm64 "]] ; then pip3 install https://wheels.linuxserver.io/alpine-3.16/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
+
 # Install application dependencies
 COPY kas_app/Pipfile* /kas_app/
 COPY kas_app/requirements.txt /kas_app/
@@ -48,41 +75,17 @@ RUN python3 -m compileall .
 # stage - production server
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 
-RUN apk add --no-cache --upgrade \
-    gcc \
-    rust \
-    build-base \
-    postgresql-dev \
-    postgresql-client \
-    libressl-dev \
-    musl-dev \
-    zlib-dev \
-    jpeg-dev \
-    libffi-dev \
-    openssl \
-    bash
-
-# Install pip dependencies
-ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
-
 ARG PY_VERSION
-ARG TARGETARCH
 
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
 RUN apk add --no-cache --upgrade \
-    libressl \
-    grpc
+    libressl
+
 RUN pip3 install \
     gunicorn \
     gunicorn[gthread] \
     wsgicors
-
-# The grpcio package takes
-# 1. A LONG time to compile
-# 2. Doesn't offer wheels for ARM64+ALPINE
-# So, in the interest of making builds faster, grab this wheel from the `linuxserver.io` project
-RUN if [[ "$TARGETARCH" -eq "arm64 "]] ; then pip3 install https://wheels.linuxserver.io/alpine-3.16/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
 
 # Add kas user and kas group
 RUN addgroup -S kas && adduser -S --uid ${KAS_UID:-909} kas -G kas
