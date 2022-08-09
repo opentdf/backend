@@ -18,16 +18,13 @@ RUN apk add --no-cache --upgrade \
     gcc \
     rust \
     build-base \
-    postgresql-dev \
-    postgresql-client \
     libressl-dev \
     musl-dev \
     zlib-dev \
     jpeg-dev \
     libffi-dev \
     grpc \
-    openssl \
-    bash
+    openssl
 
 # Install pip dependencies
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
