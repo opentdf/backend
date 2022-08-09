@@ -649,7 +649,7 @@ def upsert(data, context, plugin_runner, key_master):
             raise AuthorizationError("Entity not authorized")
         authorized(entity.public_key, data["authToken"])
     except AuthorizationError:
-        logger.warning("Unauthorized access on behalf of [%s]", entity.userId)
+        logger.warning("Unauthorized access on behalf of [%s]", entity.user_id)
         raise
 
     # Unpack the policy.
