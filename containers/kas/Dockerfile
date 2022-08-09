@@ -66,14 +66,23 @@ RUN apk add --no-cache --upgrade \
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 ARG PY_VERSION
+ARG TARGETARCH
+
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
 RUN apk add --no-cache --upgrade \
-    libressl
+    libressl \
+    grpc
 RUN pip3 install \
     gunicorn \
     gunicorn[gthread] \
     wsgicors
+
+# The grpcio package takes
+# 1. A LONG time to compile
+# 2. Doesn't offer wheels for ARM64+ALPINE
+# So, in the interest of making builds faster, grab this wheel from the `linuxserver.io` project
+RUN if [[ "$TARGETARCH" -eq "arm64 "]] ; then pip3 install https://wheels.linuxserver.io/alpine-3.16/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
 
 # Add kas user and kas group
 RUN addgroup -S kas && adduser -S --uid ${KAS_UID:-909} kas -G kas
