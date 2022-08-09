@@ -19,6 +19,7 @@ KEYCLOAK_BASE_VERSION = str(
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
 POSTGRES_PASSWORD = "myPostgresPassword"
 OIDC_CLIENT_SECRET = "myclientsecret"
+DOCKER_PLATFORMS = "linux/arm64,linux/amd64"
 opaPolicyPullSecret = os.environ.get("CR_PAT")
 
 
@@ -127,6 +128,9 @@ docker_build(
         "PYTHON_BASE_IMAGE_SELECTOR": "",
     },
     context="containers/kas",
+    # This is to quickly catch issues where KAS deps
+    # might build fine on AMD64 but not ARM64, failing `main` builds
+    platforms=DOCKER_PLATFORMS,
     live_update=[
         sync("./containers/kas", "/app"),
         run(
