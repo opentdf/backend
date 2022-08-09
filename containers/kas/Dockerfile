@@ -1,28 +1,14 @@
 ARG PY_VERSION=3.10
-ARG ALPINE_VERSION=3.16
 ARG CONTAINER_REGISTRY=docker.io
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
-FROM golang:1.18-alpine AS gobuilder
-RUN apk add --no-cache git=~2
+FROM golang:1.18 AS gobuilder
 RUN mkdir /dist
 RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
 
 # stage - build
-FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
-ARG ALPINE_VERSION
-# Install apk dependencies
-RUN apk add --no-cache --upgrade \
-    gcc \
-    rust \
-    build-base \
-    libressl-dev \
-    musl-dev \
-    zlib-dev \
-    jpeg-dev \
-    libffi-dev \
-    openssl
+FROM python:${PY_VERSION} AS build
 
 # Install pip dependencies
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
@@ -38,22 +24,6 @@ ENV PYTHONUNBUFFERED 1
 # NOTE - This must match the UID set for the certs in scripts/genkey_apps or the value passed in via docker --user
 ENV KAS_UID ${KAS_UID:-909}
 
-# Install the dependencies
-RUN apk add --no-cache --upgrade \
-    git \
-    cargo \
-    openssl-dev \
-    python3-dev
-
-# The grpcio package takes
-# 1. A LONG time to compile (like 30 mins)
-# 2. Doesn't offer wheels for ARM64+ALPINE
-# So, in the interest of making builds faster, grab this wheel from the `linuxserver.io` project
-# Naturally, the version used here should match the version in `requirements.txt`, or pip will try to fetch and compile.
-# There might be a way to do this nicely in requirements.txt with pip direct references
-ARG TARGETARCH
-RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-${ALPINE_VERSION}/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
-
 # Install application dependencies
 COPY kas_app/requirements.txt /kas_app/
 COPY kas_app/setup.py /kas_app/
@@ -67,15 +37,12 @@ COPY kas_core /kas_core/
 RUN python3 -m compileall .
 
 # stage - production server
-FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
+FROM python:${PY_VERSION}-slim AS production
 
 ARG PY_VERSION
 
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
-RUN apk add --no-cache --upgrade \
-    bash \
-    libressl
 
 RUN pip3 install \
     gunicorn \
@@ -83,7 +50,7 @@ RUN pip3 install \
     wsgicors
 
 # Add kas user and kas group
-RUN addgroup -S kas && adduser -S --uid ${KAS_UID:-909} kas -G kas
+RUN addgroup --system kas && adduser --system --uid ${KAS_UID:-909} kas --ingroup kas
 
 COPY --from=build --chown=kas:kas /kas_app/ /kas_app
 COPY --from=build --chown=kas:kas /kas_core/ /kas_core
@@ -96,8 +63,12 @@ RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 # We use it because we need to launch multiple processes from a single Docker
 # entrypoint - this is a valid pattern, and in fact upstream Docker Desktop bundles
 # `tini` expressly for this purpose - we're adding it here.
-RUN apk add --no-cache tini
-
+#
+ENV TINI_VERSION=v0.19.0
+# Note that this is automatically populated by `docker build/buildx` to be the correct target architecture (arm64/amd64)
+ARG TARGETARCH
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /sbin/tini
+RUN chmod 755 /sbin/tini
 # Copy over the standalone binary that is the PDP grpc server, as well as the
 # tini launch script that starts both the PDP grpc server and KAS process.
 RUN mkdir -p /opentdf/bin
