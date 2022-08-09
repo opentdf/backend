@@ -1,15 +1,13 @@
-# NOTE - This base image is used here, but it should also really be used in other places such as the e2e test
-# NOTE - The version is also needed in the site-packages COPY command below and should be x.x not x.x.x
 ARG PY_VERSION=3.10
 ARG CONTAINER_REGISTRY=docker.io
-ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
+ARG PDP_VER=v1.2.0
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
 FROM golang:1.18-alpine AS gobuilder
 RUN apk add --no-cache git=~2
 RUN mkdir /dist
-RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@${PDP_VER}
 
 # stage - build
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
@@ -23,7 +21,6 @@ RUN apk add --no-cache --upgrade \
     zlib-dev \
     jpeg-dev \
     libffi-dev \
-    grpc \
     openssl
 
 # Install pip dependencies
