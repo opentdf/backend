@@ -285,9 +285,9 @@ jobs:
 
   # "isolated" - meaning these do not depend or build on `python_base`
   build-and-publish-isolated:
-    # if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    # needs:
-    #   - integration-test
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - integration-test
     permissions:
       contents: read
       packages: write
