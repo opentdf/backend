@@ -187,4 +187,3 @@ postgresql:
   existingSecret: opentdf-postgres-secret
   initdbUser: postgres
   initdbScriptsSecret: opentdf-postgresql-initdb-secret
-  
