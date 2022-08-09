@@ -32,6 +32,11 @@ chart-for() {
   echo "${PROJECT_ROOT}/charts/$1/Chart.yaml"
 }
 
+# Gets the path to the given app's values.yaml
+chart-values-for() {
+  echo "${PROJECT_ROOT}/charts/$1/values.yaml"
+}
+
 # Look up current app version for given app
 appVersion-for() {
   case "$1" in
@@ -84,6 +89,8 @@ update-umbrella-deps() {
     fi
     depname="${sub_chart}" repo="${subrepo}" yq '(.dependencies[] | select(.name == env(depname)) | .repository ) = strenv(repo)' -i "$(chart-for backend)"
   done
+  monolog INFO "Setting umbrella chart's keycloak image tag to [${cv}]"
+  dcv=${cv} yq '.keycloak.image.tag = strenv(dcv)' -i "$(chart-values-for backend)"
 }
 
 yq --version || e "Missing binary: yq"
