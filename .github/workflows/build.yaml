@@ -121,7 +121,7 @@ jobs:
       - pytest
       - kas-unittest
       - config
-    timeout-minutes: 35
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
