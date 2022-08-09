@@ -19,7 +19,7 @@ KEYCLOAK_BASE_VERSION = str(
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
 POSTGRES_PASSWORD = "myPostgresPassword"
 OIDC_CLIENT_SECRET = "myclientsecret"
-DOCKER_PLATFORMS = "linux/arm64,linux/amd64"
+DOCKER_PLATFORMS = "linux/arm64"
 opaPolicyPullSecret = os.environ.get("CR_PAT")
 
 
@@ -130,6 +130,9 @@ docker_build(
     context="containers/kas",
     # This is to quickly catch issues where KAS deps
     # might build fine on AMD64 but not ARM64, failing `main` builds
+    # And BTW the Tilt docs say "Equivalent to the docker build --platform flag."
+    # but this is a lie - the "docker build" flag takes a list of platforms and will
+    # do parallel crossbuilds - this will not. Boo.
     platform=DOCKER_PLATFORMS,
     live_update=[
         sync("./containers/kas", "/app"),
