@@ -230,7 +230,7 @@ jobs:
           helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz 
   build-base:
-    if: ${{ github.event_name == 'push' }}
+    # if: ${{ github.event_name == 'push' }}
     # needs:
     #   - integration-test
     outputs:
@@ -284,7 +284,7 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
 
   build-and-publish-isolated:
-    if: ${{ github.event_name == 'push'}}
+    # if: ${{ github.event_name == 'push'}}
     needs:
       - build-base
     permissions:
