@@ -19,7 +19,7 @@ KEYCLOAK_BASE_VERSION = str(
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
 POSTGRES_PASSWORD = "myPostgresPassword"
 OIDC_CLIENT_SECRET = "myclientsecret"
-DOCKER_PLATFORMS = "linux/arm64"
+DOCKER_PLATFORM = "linux/arm64"
 opaPolicyPullSecret = os.environ.get("CR_PAT")
 
 
