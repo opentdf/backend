@@ -130,7 +130,7 @@ docker_build(
     context="containers/kas",
     # This is to quickly catch issues where KAS deps
     # might build fine on AMD64 but not ARM64, failing `main` builds
-    platforms=DOCKER_PLATFORMS,
+    platform=DOCKER_PLATFORMS,
     live_update=[
         sync("./containers/kas", "/app"),
         run(
