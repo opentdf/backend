@@ -46,7 +46,25 @@ COPY kas_core /kas_core/
 RUN python3 -m compileall .
 
 # stage - production server
-FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS production
+FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
+
+RUN apk add --no-cache --upgrade \
+    gcc \
+    rust \
+    build-base \
+    postgresql-dev \
+    postgresql-client \
+    libressl-dev \
+    musl-dev \
+    zlib-dev \
+    jpeg-dev \
+    libffi-dev \
+    openssl \
+    bash
+
+# Install pip dependencies
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
 ARG PY_VERSION
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
