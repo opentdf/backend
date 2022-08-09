@@ -354,7 +354,7 @@ components:
                   - entity
                   - keyAccess
                   - policy
-                maxProperties: 4
+                maxProperties: 5
                 properties:
                   authToken:
                     $ref: "#/components/schemas/AuthToken"
@@ -364,6 +364,8 @@ components:
                     $ref: "#/components/schemas/KeyAccess"
                   policy:
                     $ref: "#/components/schemas/Policy"
+                  clientInfo:
+                    $ref: "#/components/schemas/ClientInfo"
               - type: object
                 required:
                   - signedRequestToken
@@ -475,6 +477,13 @@ components:
           type: string
         wrappedKey:
           $ref: "#/components/schemas/WrappedKey"
+    ClientInfo:
+      title: Client info object
+      type: object
+      properties:
+        platform:
+          type: string
+          example: "secure-share"
     Policy:
       title: Policy
       type: string
