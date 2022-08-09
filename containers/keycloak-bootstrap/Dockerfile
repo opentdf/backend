@@ -1,8 +1,7 @@
-# NOTE - This base image is used here, but it should also really be used in other places such as the e2e test
-# NOTE - The version is also needed in the site-packages COPY command below and should be x.x not x.x.x
 ARG PY_VERSION=3.10
+ARG ALPINE_VERSION=3.16
 
-FROM python:${PY_VERSION}
+FROM python:${PY_VERSION}-alpine${ALPINE_VERSION}
 
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=development
@@ -15,6 +14,8 @@ COPY keycloak_bootstrap.py /project/keycloak_bootstrap.py
 COPY entitlements_bootstrap.py /project/entitlements_bootstrap.py
 COPY attributes_bootstrap.py /project/attributes_bootstrap.py
 COPY requirements.txt /project/
+
+RUN apk add --no-cache curl
 
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --requirement requirements.txt
