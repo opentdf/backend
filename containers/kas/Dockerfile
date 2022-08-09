@@ -58,10 +58,8 @@ ARG TARGETARCH
 RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-3.16/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
 
 # Install application dependencies
-COPY kas_app/Pipfile* /kas_app/
 COPY kas_app/requirements.txt /kas_app/
 COPY kas_app/setup.py /kas_app/
-COPY kas_core/Pipfile* /kas_core/
 COPY kas_core/setup.py /kas_core/
 COPY kas_core/requirements.txt /kas_core/
 RUN pip3 install --no-cache-dir --upgrade pip setuptools pipenv && \
