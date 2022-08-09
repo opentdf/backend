@@ -283,10 +283,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
 
+  # "isolated" - meaning these do not depend or build on `python_base`
   build-and-publish-isolated:
-    # if: ${{ github.event_name == 'push'}}
-    # needs:
-    #   - build-base
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - integration-test
     permissions:
       contents: read
       packages: write
@@ -296,7 +297,7 @@ jobs:
         repo:
           - kas
           - keycloak-bootstrap
-    timeout-minutes: 90
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
