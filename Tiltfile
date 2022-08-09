@@ -74,6 +74,7 @@ if not os.path.exists(
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/python-base",
     context="containers/python_base",
+    platform=DOCKER_PLATFORM,
     build_args={
         "ALPINE_VERSION": ALPINE_VERSION,
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
@@ -84,6 +85,7 @@ docker_build(
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
     "./containers/keycloak-protocol-mapper/keycloak-containers/server",
+    platform=DOCKER_PLATFORM,
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
     },
@@ -92,6 +94,7 @@ docker_build(
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
     "./containers/keycloak-bootstrap",
+    platform=DOCKER_PLATFORM,
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
     },
@@ -100,6 +103,7 @@ docker_build(
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak",
     context="./containers/keycloak-protocol-mapper",
+    platform=DOCKER_PLATFORM,
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
         "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
@@ -111,11 +115,13 @@ docker_build(
 
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+    platform=DOCKER_PLATFORM,
     context="./containers/entitlement-pdp",
 )
 
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+    platform=DOCKER_PLATFORM,
     context="./containers/entity-resolution",
 )
 
@@ -133,7 +139,7 @@ docker_build(
     # And BTW the Tilt docs say "Equivalent to the docker build --platform flag."
     # but this is a lie - the "docker build" flag takes a list of platforms and will
     # do parallel crossbuilds - this will not. Boo.
-    platform=DOCKER_PLATFORMS,
+    platform=DOCKER_PLATFORM,
     live_update=[
         sync("./containers/kas", "/app"),
         run(
@@ -147,6 +153,7 @@ for microservice in ["attributes", "entitlements", "entitlement_store"]:
     image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
     docker_build(
         image_name,
+        platform=DOCKER_PLATFORM,
         build_args={
             "ALPINE_VERSION": ALPINE_VERSION,
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
