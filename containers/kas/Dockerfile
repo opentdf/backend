@@ -1,13 +1,13 @@
 ARG PY_VERSION=3.10
 ARG CONTAINER_REGISTRY=docker.io
-ARG PDP_VER=v1.2.0
+ARG PDP_VER=1.2.0
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
 FROM golang:1.18-alpine AS gobuilder
 RUN apk add --no-cache git=~2
 RUN mkdir /dist
-RUN GOBIN=/dist go install github.com/virtru/access-pdp@${PDP_VER}
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@v$PDP_VER
 
 # stage - build
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
