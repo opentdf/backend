@@ -48,8 +48,10 @@ RUN apk add --no-cache --upgrade \
 # 1. A LONG time to compile (like 30 mins)
 # 2. Doesn't offer wheels for ARM64+ALPINE
 # So, in the interest of making builds faster, grab this wheel from the `linuxserver.io` project
+# Naturally, the version used here should match the version in `requirements.txt`, or pip will try to fetch and compile.
+# There might be a way to do this nicely in requirements.txt with pip direct references
 ARG TARGETARCH
-RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-${ALPINE_VERSION}/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
+RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-"$ALPINE_VERSION"/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
 
 # Install application dependencies
 COPY kas_app/requirements.txt /kas_app/
