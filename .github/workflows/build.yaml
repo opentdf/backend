@@ -321,7 +321,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           build-args: |-
-            ALPINE_VERSION=3.15
+            ALPINE_VERSION=3.16
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
           context: ./containers/${{ matrix.repo }}
