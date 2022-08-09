@@ -74,6 +74,7 @@ keycloak:
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: ghcr.io/opentdf/keycloak
+    tag: main
   postgresql:
     enabled: false
   externalDatabase:
