@@ -15,6 +15,8 @@ COPY entitlements_bootstrap.py /project/entitlements_bootstrap.py
 COPY attributes_bootstrap.py /project/attributes_bootstrap.py
 COPY requirements.txt /project/
 
+RUN apk add --no-cache curl
+
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --requirement requirements.txt
 
