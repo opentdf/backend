@@ -911,8 +911,7 @@ def createClient(keycloak_admin, realm_name, client):
             addClientMappers(keycloak_admin, keycloak_client_id, client["mappers"])
 
     except Exception as e:
-        logger.error(f"Error creating client {client['payload']} in realm {realm_name}")
-        logger.error(str(e))
+        logger.error(f"Error creating client {client['payload']} in realm {realm_name}: {e}", exc_info=True)
 
 
 def createUser(keycloak_admin, realm_name, user):
@@ -945,31 +944,31 @@ def createRealm(keycloak_admin, realm_name, payload):
     
 
 def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
-    for realm in keycloak_config:
-        logger.debug("Login admin %s %s", kc_url, kc_admin_user)
-        keycloak_admin = KeycloakAdmin(
-            server_url=kc_url,
-            username=kc_admin_user,
-            password=kc_admin_pass,
-            realm_name="master",
-        )
-
-        if "payload" in realm:
-            createRealm(keycloak_admin, realm["name"], realm["payload"])
-        keycloak_admin = KeycloakAdmin(
-            server_url=kc_url,
-            username=kc_admin_user,
-            password=kc_admin_pass,
-            realm_name=realm["name"],
-            user_realm_name="master",
-        )            
-        if "clients" in realm:
-            for client in realm["clients"]:
-                logger.debug(f"Client {client}")
-                createClient(keycloak_admin, realm["name"], client)
-        if "users" in realm:
-            for user in realm["users"]:
-                createUser(keycloak_admin, realm["name"], user)
+    logger.debug("Login admin %s %s", kc_url, kc_admin_user)
+    keycloak_admin_root = KeycloakAdmin(
+        server_url=kc_url,
+        username=kc_admin_user,
+        password=kc_admin_pass,
+        realm_name="master",
+    )
+    for realm_dict in keycloak_config:
+        realm_name = realm_dict["name"]
+        if payload := realm_dict.get("payload"):
+            createRealm(keycloak_admin, realm_name, payload)
+            keycloak_admin = KeycloakAdmin(
+                server_url=kc_url,
+                username=kc_admin_user,
+                password=kc_admin_pass,
+                realm_name=realm_name,
+                user_realm_name="master",
+            )
+        else:
+            keycloak_admin = keycloak_admin_root
+        for client in realm_dict.get("clients") or []:
+            logger.debug(f"Client {client}")
+            createClient(keycloak_admin, realm_name, client)
+        for user in realm_dict.get("users") or []:
+            createUser(keycloak_admin, realm_name, user)
 
 
 def kc_bootstrap():
@@ -982,7 +981,7 @@ def kc_bootstrap():
         with open("/etc/virtru-config/config.yaml") as f:
             bootstrap_config = yaml.safe_load(f)
     except FileNotFoundError:
-        logger.error("Not found: /etc/virtru-config/config.yaml", exc_info=1)
+        logger.error("Not found: [/etc/virtru-config/config.yaml]; defaulting to sample configuration", exc_info=1)
         bootstrap_config = None
 
     
