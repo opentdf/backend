@@ -695,7 +695,9 @@ def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, prel
 
     realms = keycloak_admin.get_realms()
     realm_exist = check_matched({"realm": realm_name}, realms)
-    if not realm_exist:
+    if realm_exist:
+        logger.debug("Realm aready present [%s] as [%s]", realm_name, realm_exist)
+    else:
         logger.info("Create realm %s", realm_name)
         keycloak_admin.create_realm(
             # payload={"realm": realm_name, "enabled": "true", "attributes": {"frontendUrl": "http://keycloak-http:8080/auth/realms/tdf"}}, skip_exists=True
