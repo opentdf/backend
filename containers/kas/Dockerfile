@@ -11,6 +11,7 @@ RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
 
 # stage - build
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
+ARG ALPINE_VERSION
 # Install apk dependencies
 RUN apk add --no-cache --upgrade \
     gcc \
@@ -51,7 +52,7 @@ RUN apk add --no-cache --upgrade \
 # Naturally, the version used here should match the version in `requirements.txt`, or pip will try to fetch and compile.
 # There might be a way to do this nicely in requirements.txt with pip direct references
 ARG TARGETARCH
-RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-"$ALPINE_VERSION"/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
+RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-${ALPINE_VERSION}/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
 
 # Install application dependencies
 COPY kas_app/requirements.txt /kas_app/
