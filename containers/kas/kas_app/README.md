@@ -46,7 +46,8 @@ docker run -p "127.0.0.1:4000:8000" opentdf/kas
 A KAS server can be run from either dev or test, but only test has the testing scripts installed. Run both in separate windows to simultaneously test and run the server. Command lines assume your working directory is the kas_app subdirectory. Before you start, make sure your pipenv is configured via:
 
 ```bash
-pipenv pipenv install --dev
+python3 -m venv env && source env/bin/activate
+pip3 install -r requirements.txt
 ```
 
 #### Run the server
