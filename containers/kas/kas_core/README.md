@@ -91,12 +91,13 @@ To get user creds, you'll need to follow [the guide in our devops wiki](https://
 2. Run the following script:
 
 ```sh
-pipenv install --dev
-pipenv run python3 -m build
+python3 -m venv env && source env/bin/activate
+pip3 install -r requirements.txt
+python3 -m build
 
 TWINE_USERNAME=_DTGU7S2 \
 SOURCE_DATE_EPOCH=$(git show -s --format=%ct) \
-pipenv run python3 -m twine upload dist/* --repository-url https://nexus.mgmt.virtru.com/repository/pypi-private/
+python3 -m twine upload dist/* --repository-url https://nexus.mgmt.virtru.com/repository/pypi-private/
 ```
 
 ### Consuming this package
