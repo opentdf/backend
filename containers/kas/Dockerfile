@@ -21,6 +21,7 @@ RUN apk add --no-cache --upgrade \
     zlib-dev \
     jpeg-dev \
     libffi-dev \
+    grpc \
     openssl
 
 # Install pip dependencies
@@ -48,8 +49,8 @@ RUN apk add --no-cache --upgrade \
 # 1. A LONG time to compile
 # 2. Doesn't offer wheels for ARM64+ALPINE
 # So, in the interest of making builds faster, grab this wheel from the `linuxserver.io` project
-ARG TARGETARCH
-RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-3.16/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
+# ARG TARGETARCH
+# RUN if [ "$TARGETARCH" == "arm64" ] ; then pip3 install https://wheels.linuxserver.io/alpine-3.16/grpcio-1.47.0-cp310-cp310-linux_aarch64.whl ; fi
 
 # Install application dependencies
 COPY kas_app/requirements.txt /kas_app/
