@@ -7,16 +7,6 @@ FRONTEND_CHART_TAG = "0.0.0-sha-93bb332"
 
 backend(extra_helm_parameters=["-f", "./tests/integration/backend-with-frontend.yaml"])
 
-local_resource(
-    "wait-for-bootstrap",
-    cmd=[
-        "tests/integration/wait-for-ready.sh",
-        "job/keycloak-bootstrap",
-        "15m",
-        "default",
-    ],
-)
-
 helm_resource(
     "opentdf-abacus",
     "oci://ghcr.io/opentdf/charts/abacus",
@@ -35,5 +25,5 @@ helm_resource(
         "oidc.serverUrl=%s/auth/" % EXTERNAL_URL,
     ],
     labels="frontend",
-    resource_deps=["wait-for-bootstrap"],
+    resource_deps=["backend"],
 )

@@ -33,7 +33,9 @@ spec:
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ ( include "bootstrap.oidc.externalUrl" . ) }}
+              value: {{ ( include "bootstrap.opentdf.externalUrl" . ) }}
+            - name: OPENTDF_REDIRECT_URIS
+              value: {{ ( include "bootstrap.opentdf.redirectUris" . ) }}
             - name: KEYCLOAK_INTERNAL_URL
               value: {{ ( include "bootstrap.oidc.internalUrl" . ) }}
             - name: keycloak_admin_username

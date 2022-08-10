@@ -24,9 +24,10 @@ logger.setLevel(logging.DEBUG)
 
 # 1. The URL stuff outside the cluster will use to resolve services (public, browser and non-browser clients)
 # 2. The URL stuff inside the cluster will use to resolve keycloak (private, non-browser clients)
-otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432").rstrip(
-    "/"
-)
+base_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432").rstrip("/")
+redirect_uris = [
+    s.rstrip("/") for s in os.getenv("OPENTDF_REDIRECT_URIS", base_url).split()
+]
 kc_internal_url = os.getenv(
     "KEYCLOAK_INTERNAL_URL", "http://keycloak-http/auth"
 ).rstrip("/")
@@ -231,9 +232,9 @@ def createTestClientForX509Flow(keycloak_admin):
                 "directAccessGrantsEnabled": "true",
                 "serviceAccountsEnabled": "true",
                 "clientAuthenticatorType": "client-x509",
-                "baseUrl": f"{otdf_frontend_url}/",
+                "baseUrl": base_url,
                 "protocol": "openid-connect",
-                "redirectUris": [f"{otdf_frontend_url}/*"],
+                "redirectUris": redirect_uris,
                 "webOrigins": ["+"],
                 "attributes": {"x509.subjectdn": "CN=(.*)(?:$)"},
             },
@@ -281,9 +282,9 @@ def createTestClientForBrowserAuthFlow(keycloak_admin):
             "clientId": client_id,
             "publicClient": "true",
             "standardFlowEnabled": "true",
-            "baseUrl": f"{otdf_frontend_url}/",
+            "baseUrl": base_url,
             "protocol": "openid-connect",
-            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -361,9 +362,9 @@ def createTestClientTDFAttributes(keycloak_admin):
             "publicClient": "true",
             "standardFlowEnabled": "true",
             "fullScopeAllowed": "false",
-            "baseUrl": f"{otdf_frontend_url}/",
+            "baseUrl": base_url,
             "protocol": "openid-connect",
-            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -381,7 +382,7 @@ def createTestClientTDFAttributes(keycloak_admin):
 
 def createTestClientTDFEntitlements(keycloak_admin):
     client_id = "tdf-entitlement"
-    base_url = os.getenv("ENTITLEMENT_HOST", "http://localhost:4030").rstrip("/")
+    e_base_url = os.getenv("ENTITLEMENT_HOST", "http://localhost:4030").rstrip("/")
     logger.debug("Creating client %s configured for browser auth flow", client_id)
     keycloak_admin.create_client(
         payload={
@@ -389,9 +390,9 @@ def createTestClientTDFEntitlements(keycloak_admin):
             "publicClient": "true",
             "standardFlowEnabled": "true",
             "fullScopeAllowed": "false",
-            "baseUrl": f"{otdf_frontend_url}/",
+            "baseUrl": e_base_url,
             "protocol": "openid-connect",
-            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -421,7 +422,7 @@ def createTestClientTDFEntityResolution(keycloak_admin):
             "standardFlowEnabled": "true",
             "protocol": "openid-connect",
             "publicClient": "false",
-            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
@@ -464,7 +465,7 @@ def createTestClientForAbacusWebAuth(keycloak_admin):
             "clientAuthenticatorType": "client-secret",
             "serviceAccountsEnabled": "true",
             "protocol": "openid-connect",
-            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "redirectUris": redirect_uris,
             "webOrigins": ["+"],
         },
         skip_exists=True,
@@ -515,9 +516,9 @@ def createTestClientForDCRAuth(keycloak_admin):
             "standardFlowEnabled": "true",
             "clientAuthenticatorType": "client-secret",
             "serviceAccountsEnabled": "true",
-            "baseUrl": f"{otdf_frontend_url}",
+            "baseUrl": base_url,
             "protocol": "openid-connect",
-            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "redirectUris": redirect_uris,
             "webOrigins": ["+"],
         },
         skip_exists=True,
@@ -545,7 +546,7 @@ def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
             "secret": client_secret,
             "serviceAccountsEnabled": "true",
             "publicClient": "false",
-            "redirectUris": [f"{otdf_frontend_url}/*"],
+            "redirectUris": redirect_uris,
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
             },  # Needed to make UserInfo return signed JWT
@@ -800,9 +801,7 @@ def createTDFPKIRealm(
             payload={
                 "realm": realm_name,
                 "enabled": "true",
-                "attributes": {
-                    "frontendUrl": f"{otdf_frontend_url}/auth/realms/tdf-pki"
-                },
+                "attributes": {"frontendUrl": f"{base_url}/auth/realms/tdf-pki"},
             },
             skip_exists=True,
         )
@@ -876,7 +875,7 @@ def findAndReplace(obj, str_to_find, replace_with):
 def replaceYamlVars(config):
     # replace yaml vars
     config = findAndReplace(config, "{{ hostname }}", kc_internal_url)
-    config = findAndReplace(config, "{{ externalUrl }}", otdf_frontend_url)
+    config = findAndReplace(config, "{{ externalUrl }}", base_url)
     return config
 
 
