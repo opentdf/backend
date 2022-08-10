@@ -73,8 +73,8 @@ keycloak:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
-    repository: ghcr.io/opentdf/keycloak
-    tag: main
+    repository: quay.io/keycloak/keycloak
+    tag: 18.0.2
   postgresql:
     enabled: false
   externalDatabase:
