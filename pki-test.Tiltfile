@@ -22,19 +22,10 @@ local_resource(
 
 
 local_resource(
-    "wait-for-bootstrap",
-    cmd=[
-        "tests/integration/wait-for-ready.sh",
-        "job/xtest-keycloak-bootstrap",
-        "15m",
-        "default",
-    ],
-)
-local_resource(
     "pki-test",
     "python3 tests/integration/pki-test/client_pki_test.py",
     resource_deps=[
-        "wait-for-bootstrap",
+        "backend",
         "kubectl-portforward-https",
         "kubectl-portforward-http",
     ],
