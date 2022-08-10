@@ -53,11 +53,6 @@ all_secrets = {
     ]
 }
 
-if not os.path.exists(
-    "./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"
-):
-    local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
-
 
 #   o8o
 #   `"'
@@ -80,13 +75,6 @@ docker_build(
     },
 )
 
-docker_build(
-    CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
-    "./containers/keycloak-protocol-mapper/keycloak-containers/server",
-    build_args={
-        "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-    },
-)
 
 docker_build(
     CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
@@ -101,7 +89,6 @@ docker_build(
     context="./containers/keycloak-protocol-mapper",
     build_args={
         "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-        "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
         "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
         "MAVEN_VERSION": "3.8.4",
         "JDK_VERSION": "11",

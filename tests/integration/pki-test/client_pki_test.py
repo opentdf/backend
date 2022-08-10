@@ -3,7 +3,7 @@ import sys
 from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
 
 # encrypt the file and apply the policy on tdf file and also decrypt.
-OIDC_ENDPOINT = "https://keycloakx-http:4567"
+OIDC_ENDPOINT = "https://keycloakx-http:65432"
 KAS_URL = "http://localhost:65432/api/kas"
 
 try:

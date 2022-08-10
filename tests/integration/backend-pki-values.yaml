@@ -32,10 +32,14 @@ keycloakx:
       value: keycloak_database
     - name: KC_DB_URL_PORT
       value: "5432"
+    - name: KC_DB_USERNAME
+      value: postgres
+    - name: KC_DB_PASSWORD
+      value: otdf-pgsql-admin
     - name: KC_HOSTNAME
-      value: "keycloakx-http:4567"
+      value: "keycloakx-http:65432"
     - name: KC_HOSTNAME_ADMIN
-      value: "keycloakx-http:4567"
+      value: "keycloakx-http:65432"
     - name: KC_SPI_X509CERT_LOOKUP_PROVIDER
       value: nginx
     - name: KC_SPI_X509CERT_LOOKUP_NGINX_SSL_CLIENT_CERT
