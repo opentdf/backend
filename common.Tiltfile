@@ -196,6 +196,14 @@ def backend(extra_helm_parameters=[]):
         "helm dependency update",
         dir="./charts/backend",
     )
+    # FIXME: I've had to add the `--wait` option, so the helm apply command
+    # takes longer than the default timeout for any apply command of 30s.
+    # This fixes an issue where the dependant resources (e.g. xtest) run
+    # immediately after the apply command, causing race conditions with their
+    # configurator scripts and the built-in bootstrap script.
+    # Hopefully, either tilt or the helm_resource extension will be improved
+    # to avoid this change (or maybe everything will just get faster)
+    update_settings(k8s_upsert_timeout_secs=300)
     helm_resource(
         name="backend",
         chart="./charts/backend",
@@ -220,6 +228,7 @@ def backend(extra_helm_parameters=[]):
             ("kas.image.repo", "kas.image.tag"),
         ],
         flags=[
+            "--wait",
             "--dependency-update",
             "--set",
             "entity-resolution.secret.keycloak.clientSecret=123-456",

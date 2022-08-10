@@ -160,7 +160,7 @@ jobs:
           pip3 install opentdf
 
           export TILTFILE_FILE=xtest.Tiltfile
-          echo "::set-env name=TILTFILE_FILE::$TILTFILE_FILE"
+          echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           tilt ci -f ${TILTFILE_FILE}
           # Debugging prints
           kubectl get deployments
@@ -172,10 +172,11 @@ jobs:
           # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
           # Tilt's mess.
           export TILTFILE_FILE=pki-test.Tiltfile
+          echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           docker system prune -af
           kubectl get deployments
           kubectl get pods
-          tilt ci -f pki-test.Tiltfile
+          tilt ci -f ${TILTFILE_FILE}
       - name: Get Keycloak logs on failure
         if: failure()
         run: |-
