@@ -153,25 +153,20 @@ jobs:
           cd tests/containers/clients
           echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
-      - name: Run integration test Tiltfile
+      - name: Run xtest.Tiltfile
         run: |-
-          # This is needed for PKI test
+          export TILTFILE_FILE=xtest.Tiltfile
+          echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
+          tilt ci -f ${TILTFILE_FILE}
+          tilt down -f ${TILTFILE_FILE}
+      - name: Run pki-test.Tiltfile
+        run: |-
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
-
-          tilt ci -f Tiltfile
-
-          # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
-          # up after itself if you install things The Normal Way outside of of Tilt.
-          # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
-          # Tilt's mess.
+          export TILTFILE_FILE=pki-test.Tiltfile
+          echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           docker system prune -af
-          # So, we let it install the Helm chart, ignore it's misreporting of failures,
-          # and wait for health ourselves (from the k8s control plane, not tilt)
-          tilt ci -f xtest.Tiltfile
-          kubectl get deployments
-          kubectl get pods
-          tilt ci -f pki-test.Tiltfile
+          tilt ci -f ${TILTFILE_FILE}
       - name: Get Keycloak logs on failure
         if: failure()
         run: |-
@@ -179,6 +174,7 @@ jobs:
           # Sometimes, PKI tests only are failing randomly in CI with 400 errors when calling Keycloak.
           # This is to help debug that
           kubectl logs keycloak-0
+          tilt down -f ${TILTFILE_FILE}
 
   publish-helm-charts:
     runs-on: ubuntu-latest
@@ -423,7 +419,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
-    timeout-minutes: 30
+    timeout-minutes: 10
     permissions:
       contents: read
       packages: write
