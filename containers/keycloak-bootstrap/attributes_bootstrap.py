@@ -95,6 +95,7 @@ def createPreloaded(keycloak_admin, realm, keycloak_auth_url,
         realm_name=realm,
     ) 
 
+    logger.debug("Connecting to realm [%s] on [%s] with user [%s] for client [%s]", realm, keycloak_auth_url, attribute_username, attribute_clientid)
     authToken = keycloak_openid.token(attribute_username, attribute_password)
 
     # Create authorities
@@ -110,18 +111,10 @@ def createPreloaded(keycloak_admin, realm, keycloak_auth_url,
 
 
 def attributes_bootstrap():
+    logger.info("Running Attributes/PGSQL bootstrap")
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
     keycloak_auth_url = kc_internal_url + "/"
-    attribute_realm = os.getenv("ATTRIBUTES_REALM")
-
-    keycloak_admin = KeycloakAdmin(
-        server_url=keycloak_auth_url,
-        username=username,
-        password=password,
-        realm_name=attribute_realm,
-        user_realm_name="master",
-    )
 
     # Preloaded authorities
     try:
@@ -139,9 +132,20 @@ def attributes_bootstrap():
         logger.warning("Not found: /etc/virtru-config/attributes.yaml", exc_info=1)
         preloaded_attributes = None
 
+    if not preloaded_attributes and not preloaded_authorities:
+        return
+
+    attribute_realm = os.getenv("ATTRIBUTES_REALM")
+
+    keycloak_admin = KeycloakAdmin(
+        server_url=keycloak_auth_url,
+        username=username,
+        password=password,
+        realm_name=attribute_realm,
+        user_realm_name="master",
+    )
+
     #TDF
     createPreloaded(
         keycloak_admin, attribute_realm, keycloak_auth_url, preloaded_authorities, preloaded_attributes
     )
-
-    return True

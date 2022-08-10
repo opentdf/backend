@@ -30,7 +30,6 @@ keycloak:
   password: mykeycloakpassword
   # if provided, will use custom configuration instead
   customConfig: null
-  realm: tdf
   passwordUsers: testuser@virtru.com,user1,user2
   npeClients: null
   preloadedClients: null

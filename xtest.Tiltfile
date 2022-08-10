@@ -30,6 +30,7 @@ local_resource(
         "15m",
         "default",
     ],
+    resource_deps=["backend"],
 )
 
 k8s_yaml("tests/integration/xtest.yaml")

@@ -972,6 +972,7 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
 
 
 def kc_bootstrap():
+    logger.info("Running Keycloak bootstrap")
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
     keycloak_auth_url = kc_internal_url + "/"

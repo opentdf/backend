@@ -92,6 +92,8 @@ def insertEntitlementAttrsForRealm(
         client_id=cliend_id,
         realm_name="tdf",
     )  # Entitlements endpoint always uses `tdf` realm client creds
+
+    logger.debug("Connecting to realm [tdf] on [%s] with user [%s] for client [%s]", entitlement_host, username, cliend_id)
     authToken = keycloak_openid.token(username, password)
 
     insertAttrsForUsers(
@@ -104,6 +106,7 @@ def insertEntitlementAttrsForRealm(
 
 
 def entitlements_bootstrap():
+    logger.info("Running Entitlement/PGSQL bootstrap")
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
 

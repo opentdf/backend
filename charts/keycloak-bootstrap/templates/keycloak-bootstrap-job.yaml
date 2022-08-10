@@ -52,20 +52,30 @@ spec:
             - name: CLIENT_SECRET
               value: {{ . }}
             {{- end }}
-            - name: realm
-              value: {{ .Values.keycloak.realm }}
+            {{- with .Values.attributes.hostname }}
             - name: ATTRIBUTE_AUTHORITY_HOST
-              value: {{ .Values.attributes.hostname }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.entitlements.hostname }}
             - name: ENTITLEMENT_HOST
-              value: {{ .Values.entitlements.hostname }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.clientId }}
             - name: ATTRIBUTES_CLIENT_ID
-              value: {{ .Values.attributes.clientId }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.username }}
             - name: ATTRIBUTES_USERNAME
-              value: {{ .Values.attributes.username }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.password }}
             - name: ATTRIBUTES_PASSWORD
-              value: {{ .Values.attributes.password }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.realm }}
             - name: ATTRIBUTES_REALM
               value: {{ .Values.attributes.realm }}
+            {{- end }}
           {{- with .Values.secretRef }}
           envFrom:
             - secretRef:
