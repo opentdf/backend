@@ -2,7 +2,7 @@
 # NOTE - The version is also needed in the site-packages COPY command below
 # context must be parent folder
 ARG PY_VERSION=3.10
-ARG ALPINE_VERSION=6
+ARG ALPINE_VERSION=3.16
 ARG CONTAINER_REGISTRY=docker.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 

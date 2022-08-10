@@ -29,8 +29,6 @@ docker_build(
     "opentdf/tests-clients",
     context="./",
     dockerfile="./tests/containers/clients/Dockerfile",
-    # todo: (PLAT-1650) Force to x86 mode until we have a python built in arch64
-    platform="linux/amd64",
 )
 k8s_yaml("tests/integration/xtest.yaml")
 

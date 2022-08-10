@@ -158,9 +158,6 @@ jobs:
           export TILTFILE_FILE=xtest.Tiltfile
           echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           tilt ci -f ${TILTFILE_FILE}
-          # Debugging prints
-          kubectl get deployments
-          kubectl get pods
           tilt down -f ${TILTFILE_FILE}
       - name: Run pki-test.Tiltfile
         run: |-
@@ -169,8 +166,6 @@ jobs:
           export TILTFILE_FILE=pki-test.Tiltfile
           echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           docker system prune -af
-          kubectl get deployments
-          kubectl get pods
           tilt ci -f ${TILTFILE_FILE}
       - name: Get Keycloak logs on failure
         if: failure()
@@ -424,7 +419,7 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
-    timeout-minutes: 60
+    timeout-minutes: 10
     permissions:
       contents: read
       packages: write

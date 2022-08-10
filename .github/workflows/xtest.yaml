@@ -48,24 +48,11 @@ jobs:
           minikube-version: 1.26.0
           # This should be in sync with the setup-tools version above
           kubernetes-version: 1.24.1
-      - name: tilt-ci
+      - name: tilt-ci xtest
+        run: |-
+          tilt ci -f xtest.Tiltfile
+      - name: tilt-ci pki-test
         run: |-
           kubectl version
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
-
-          tilt ci -f xtest.Tiltfile
-          # Debugging prints
-          kubectl get deployments
-          kubectl get pods
-
-          # Tilt rebuilding everything all the time, and (as per usual) doesn't clean
-          # up after itself if you install things The Normal Way outside of of Tilt.
-          # So, if you aren't managing your deployment with pure Tilt, this is necessary to fix
-          # Tilt's mess.
-          docker system prune -af
-          # So, we let it install the Helm chart, ignore it's misreporting of failures,
-          # and wait for health ourselves (from the k8s control plane, not tilt)
           tilt ci -f pki-test.Tiltfile
-          # Debugging prints
-          kubectl get deployments
-          kubectl get pods
