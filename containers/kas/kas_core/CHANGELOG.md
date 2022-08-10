@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - https://github.com/opentdf/backend/pull/251
   - Remove deprecated/untested/OpenTDF-noncompliant functions (`upsert`/`rewrap`) and associated code in favor of
-  tested/supported/compliant endpoints `upsert_v2` and `rewrap_v2` (present since 0.7.x)
+  tested/supported/compliant endpoints `upsert_v2` and `rewrap_v2` (present since 0.7.x). As indicated by the major version bump, this is a (potentially) breaking API change. Consumers of this library still using the deprecated functions are advised to move to the new functions, or stay on a pre-1.x.x version.
 
 ## 0.8.6 - 2022-06-10
 
