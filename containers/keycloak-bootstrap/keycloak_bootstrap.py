@@ -73,10 +73,9 @@ def createUsersInRealm(keycloak_admin):
             new_user = keycloak_admin.create_user(
                 {"username": username, "enabled": True}
             )
-            logger.info("Created new user %s", new_user)
+            logger.info("Created new user %s (%s)", username, new_user)
         except Exception as e:
-            logger.warning("Could not create user %s!", username)
-            logger.warning(str(e))
+            logger.warning("Could not create user for %s!", username, exc_info=True)
     passwordedUsers = os.getenv(
         "passwordUsers", "testuser@virtru.com,user1,user2"
     ).split(",")
@@ -883,7 +882,7 @@ def replaceYamlVars(config):
 
 def addClientMappers(keycloak_admin, keycloak_client_id, mappers):
     for mapper in mappers:
-        logger.info("Assigning mapper to client %s", keycloak_client_id)
+        logger.debug("Assigning mapper %s to client %s", mapper, keycloak_client_id)
         try:
             keycloak_admin.add_mapper_to_client(
                 keycloak_client_id,
@@ -922,7 +921,7 @@ def createClient(keycloak_admin, realm_name, client):
         return
     try:
         client_id = client["payload"]["clientId"]
-        logger.debug("Creating client %s", client_id)
+        logger.debug("Creating client %s within realm %s", client_id, realm_name)
         keycloak_admin.create_client(
             payload=client["payload"],
             skip_exists=True,
@@ -947,7 +946,7 @@ def createUser(keycloak_admin, realm_name, user):
         return
     try:
         new_user = keycloak_admin.create_user(user["payload"])
-        logger.info("Created new user %s", new_user)
+        logger.info("Created new user %s within realm %s", new_user, realm_name)
 
         if "roles" in user:
             addRolesToUser(keycloak_admin, new_user, user["roles"])
@@ -957,15 +956,17 @@ def createUser(keycloak_admin, realm_name, user):
 
 
 def createRealm(keycloak_admin, realm_name, payload):
-    logger.info("Creating realm %s", realm_name)
     realms = keycloak_admin.get_realms()
     realm_exist = check_matched({"realm": realm_name}, realms)
-    if not realm_exist:
+    if realm_exist:
+        logger.debug("Realm already exists %s", realm_name)
+    else:
+        logger.info("Creating realm %s", realm_name)
         keycloak_admin.create_realm(
             payload=payload,
             skip_exists=True,
         )
-        logger.info("Created realm %s", realm_name)
+        logger.debug("Created realm %s", realm_name)
 
 
 def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
@@ -980,6 +981,7 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
         realm_name = realm_dict["name"]
         if payload := realm_dict.get("payload"):
             createRealm(keycloak_admin, realm_name, payload)
+        if realm_name and realm_name != "master":
             keycloak_admin = KeycloakAdmin(
                 server_url=kc_url,
                 username=kc_admin_user,

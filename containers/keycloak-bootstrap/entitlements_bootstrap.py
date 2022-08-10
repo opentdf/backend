@@ -18,7 +18,15 @@ kc_internal_url = os.getenv(
 
 def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authToken):
     users = keycloak_admin.get_users()
-    logger.info(f"Got users: {users}")
+    logger.debug("Got users: %s", users)
+
+    expected_users = set(user_attr_map.keys())
+    missing_users = expected_users - set([user["username"] for user in users])
+    if missing_users:
+        logger.warning(
+            "Not all users listed in custom realm config found. Missing %s",
+            missing_users,
+        )
 
     for user in users:
         if user["username"] not in user_attr_map:
@@ -48,6 +56,14 @@ def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authTok
 
 def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, authToken):
     clients = keycloak_admin.get_clients()
+    logger.debug("Got clients: %s", clients)
+
+    expected_clients = set(client_attr_map.keys())
+    missing_clients = expected_clients - set([client["clientId"] for client in clients])
+    if missing_clients:
+        logger.warning(
+            "Not all clients listed in realm config found. Missing %s", missing_clients
+        )
 
     for client in clients:
         if client["clientId"] not in client_attr_map:
@@ -116,7 +132,7 @@ def insertEntitlementAttrsForRealm(
     insertAttrsForClients(
         keycloak_admin, entitlement_host, entity_attrmap, authToken["access_token"]
     )
-    logger.info("Finished inserting attrs for realm: [%s]", target_realm)
+    logger.info("Finished inserting entitlement attrs for realm: [%s]", target_realm)
 
 
 def entitlements_bootstrap():
