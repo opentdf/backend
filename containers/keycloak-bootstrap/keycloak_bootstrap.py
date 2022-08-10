@@ -24,10 +24,15 @@ logger.setLevel(logging.DEBUG)
 
 # 1. The URL stuff outside the cluster will use to resolve services (public, browser and non-browser clients)
 # 2. The URL stuff inside the cluster will use to resolve keycloak (private, non-browser clients)
-otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432").rstrip("/")
-kc_internal_url = os.getenv("KEYCLOAK_INTERNAL_URL", "http://keycloak-http/auth").rstrip("/")
+otdf_frontend_url = os.getenv("OPENTDF_EXTERNAL_URL", "http://localhost:65432").rstrip(
+    "/"
+)
+kc_internal_url = os.getenv(
+    "KEYCLOAK_INTERNAL_URL", "http://keycloak-http/auth"
+).rstrip("/")
 pki_browser = os.getenv("ENABLE_PKI_BROWSER", "")
 pki_direct = os.getenv("ENABLE_PKI_DIRECTGRANT", "")
+
 
 def check_matched(pattern, allData):
     filtered_item = [
@@ -36,6 +41,7 @@ def check_matched(pattern, allData):
     if filtered_item is not None:
         return filtered_item
     return []
+
 
 def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
     for item in preloaded_users:
@@ -195,7 +201,7 @@ def addVirtruDCRSPIREMapper(keycloak_admin, keycloak_client_id):
                     "userinfo.token.claim": "true",
                     "user_workload.namespace": "default",
                     "user_workload.parentid": "spiffe://example.org/ns/spire/sa/spire-agent",
-                    "user_workload.selectors": "k8s:pod-label:tdfdatacleanroom:enabled, k8s:ns:default"
+                    "user_workload.selectors": "k8s:pod-label:tdfdatacleanroom:enabled, k8s:ns:default",
                 },
                 "name": "DCR Spire Registration Mapper",
                 "protocolMapper": "virtru-spire-protocolmapper",
@@ -316,9 +322,13 @@ def createTestClientTDFClient(keycloak_admin):
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
+
 def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clients):
     for item in preloaded_clients:
-        logger.debug("Creating preloaded client %s configured for clientcreds flow", item["clientId"])
+        logger.debug(
+            "Creating preloaded client %s configured for clientcreds flow",
+            item["clientId"],
+        )
         keycloak_admin.create_client(
             payload={
                 "clientId": item["clientId"],
@@ -327,7 +337,9 @@ def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clien
                 "secret": item["clientSecret"],
                 "serviceAccountsEnabled": "true",
                 "publicClient": "false",
-                "redirectUris": [keycloak_auth_url + "admin/" + item["clientId"] + "/console"],
+                "redirectUris": [
+                    keycloak_auth_url + "admin/" + item["clientId"] + "/console"
+                ],
                 "attributes": {
                     "user.info.response.signature.alg": "RS256"
                 },  # Needed to make UserInfo return signed JWT
@@ -395,6 +407,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
 
+
 def createTestClientTDFEntityResolution(keycloak_admin):
     client_id = "tdf-entity-resolution-service"
     client_secret = "123-456"
@@ -405,14 +418,14 @@ def createTestClientTDFEntityResolution(keycloak_admin):
             "secret": client_secret,
             "directAccessGrantsEnabled": "true",
             "clientAuthenticatorType": "client-secret",
-            "serviceAccountsEnabled":  "true",
+            "serviceAccountsEnabled": "true",
             "standardFlowEnabled": "true",
             "protocol": "openid-connect",
             "publicClient": "false",
             "redirectUris": [f"{otdf_frontend_url}/*"],
             "webOrigins": ["+"],
             "attributes": {
-            "user.info.response.signature.alg": "RS256"
+                "user.info.response.signature.alg": "RS256"
             },  # Needed to make UserInfo return signed JWT
         },
         skip_exists=True,
@@ -429,12 +442,16 @@ def createTestClientTDFEntityResolution(keycloak_admin):
 
     serviceAcctUser = keycloak_admin.get_client_service_account_user(keycloak_client_id)
     serviceAcctUserId = serviceAcctUser["id"]
-    logger.info("Client %s, Service Account User ID=%s", realmManagerClient, serviceAcctUserId)
-
+    logger.info(
+        "Client %s, Service Account User ID=%s", realmManagerClient, serviceAcctUserId
+    )
 
     # Add role mappings for client
-    keycloak_admin.assign_client_role(serviceAcctUserId, realmManagerClient, [queryUsers, viewUsers, queryClients, viewClients])
-
+    keycloak_admin.assign_client_role(
+        serviceAcctUserId,
+        realmManagerClient,
+        [queryUsers, viewUsers, queryClients, viewClients],
+    )
 
 
 def createTestClientForAbacusWebAuth(keycloak_admin):
@@ -488,7 +505,9 @@ def createTestClientForAbacusLocalAuth(keycloak_admin):
 def createTestClientForDCRAuth(keycloak_admin):
     client_id = "dcr-test"
     client_secret = "123-456"
-    logger.debug("Creating public client %s configured for DCR Jupyter auth flow", client_id)
+    logger.debug(
+        "Creating public client %s configured for DCR Jupyter auth flow", client_id
+    )
     keycloak_admin.create_client(
         payload={
             "clientId": client_id,
@@ -626,10 +645,12 @@ def createDirectAuthFlowX509(keycloak_admin, realm_name, flow_name, provider_nam
                 payload={"newName": flow_name}, flow_alias="direct grant"
             )
 
-    data_direct_grant_flow_executions = keycloak_admin.get_authentication_flow_executions(flow_name)
+    data_direct_grant_flow_executions = (
+        keycloak_admin.get_authentication_flow_executions(flow_name)
+    )
     for key in data_direct_grant_flow_executions:
-        if key.get('level') == 0:
-            keycloak_admin.delete_authentication_flow_execution(key.get('id'))
+        if key.get("level") == 0:
+            keycloak_admin.delete_authentication_flow_execution(key.get("id"))
 
     payload_config = {"provider": provider_name}
     params_path = {"realm-name": realm_name, "flow-alias": flow_name}
@@ -682,7 +703,9 @@ def updateMasterRealm(kc_admin_user, kc_admin_pass, kc_url):
     createTestClientForAbacusLocalAuth(keycloak_admin)
 
 
-def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, preloaded_users):
+def createTDFRealm(
+    kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, preloaded_users
+):
     realm_name = "tdf"
 
     logger.debug("Login admin %s %s", kc_url, kc_admin_user)
@@ -745,18 +768,20 @@ def createTDFRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, prel
     createTestClientForAbacusWebAuth(keycloak_admin)
     createTestClientForAbacusLocalAuth(keycloak_admin)
 
-    #create preloaded clients
+    # create preloaded clients
     if preloaded_clients is not None:
         createPreloadedTDFClients(keycloak_admin, kc_url, preloaded_clients)
 
     createUsersInRealm(keycloak_admin)
 
-    #create preloaded users
+    # create preloaded users
     if preloaded_users is not None:
         createPreloadedUsersInRealm(keycloak_admin, preloaded_users)
 
 
-def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, preloaded_users):
+def createTDFPKIRealm(
+    kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, preloaded_users
+):
     # BEGIN PKI
     realm_name = "tdf-pki"
 
@@ -814,25 +839,23 @@ def createTDFPKIRealm(kc_admin_user, kc_admin_pass, kc_url, preloaded_clients, p
         # X.509 Client Certificate Authentication to a Browser Flow
         # https://www.keycloak.org/docs/latest/server_admin/index.html#adding-x-509-client-certificate-authentication-to-a-browser-flow
         createBrowserAuthFlowX509(
-            keycloak_admin,
-            realm_name,
-            "X509_Browser",
-            "auth-x509-client-username-form"
+            keycloak_admin, realm_name, "X509_Browser", "auth-x509-client-username-form"
         )
 
     createTestClientForX509Flow(keycloak_admin)
 
-    #create preloaded clients
+    # create preloaded clients
     if preloaded_clients is not None:
         createPreloadedTDFClients(keycloak_admin, kc_url, preloaded_clients)
 
     createUsersInRealm(keycloak_admin)
 
-    #create preloaded users
+    # create preloaded users
     if preloaded_users is not None:
-        createPreloadedUsersInRealm(keycloak_admin, preloaded_users)    
+        createPreloadedUsersInRealm(keycloak_admin, preloaded_users)
 
     # END PKI
+
 
 def findAndReplace(obj, str_to_find, replace_with):
     if type(obj) is str:
@@ -844,11 +867,12 @@ def findAndReplace(obj, str_to_find, replace_with):
         return new_list
     elif type(obj) is dict:
         new_dict = {}
-        for k,v in obj.items():
+        for k, v in obj.items():
             new_dict[k] = findAndReplace(v, str_to_find, replace_with)
         return new_dict
     else:
         return obj
+
 
 def replaceYamlVars(config):
     # replace yaml vars
@@ -900,7 +924,7 @@ def createClient(keycloak_admin, realm_name, client):
         client_id = client["payload"]["clientId"]
         logger.debug("Creating client %s", client_id)
         keycloak_admin.create_client(
-            payload = client["payload"],
+            payload=client["payload"],
             skip_exists=True,
         )
 
@@ -911,7 +935,10 @@ def createClient(keycloak_admin, realm_name, client):
             addClientMappers(keycloak_admin, keycloak_client_id, client["mappers"])
 
     except Exception as e:
-        logger.error(f"Error creating client {client['payload']} in realm {realm_name}: {e}", exc_info=True)
+        logger.error(
+            f"Error creating client {client['payload']} in realm {realm_name}: {e}",
+            exc_info=True,
+        )
 
 
 def createUser(keycloak_admin, realm_name, user):
@@ -919,9 +946,7 @@ def createUser(keycloak_admin, realm_name, user):
         logger.error("User configs must have payloads")
         return
     try:
-        new_user = keycloak_admin.create_user(
-            user["payload"]
-        )
+        new_user = keycloak_admin.create_user(user["payload"])
         logger.info("Created new user %s", new_user)
 
         if "roles" in user:
@@ -941,7 +966,7 @@ def createRealm(keycloak_admin, realm_name, payload):
             skip_exists=True,
         )
         logger.info("Created realm %s", realm_name)
-    
+
 
 def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
     logger.debug("Login admin %s %s", kc_url, kc_admin_user)
@@ -982,10 +1007,11 @@ def kc_bootstrap():
         with open("/etc/virtru-config/config.yaml") as f:
             bootstrap_config = yaml.safe_load(f)
     except FileNotFoundError:
-        logger.error("Not found: [/etc/virtru-config/config.yaml]; defaulting to sample configuration", exc_info=1)
+        logger.error(
+            "Not found: [/etc/virtru-config/config.yaml]; defaulting to sample configuration",
+            exc_info=1,
+        )
         bootstrap_config = None
-
-    
 
     # use the custom config
     if bootstrap_config is not None:
@@ -1011,11 +1037,18 @@ def kc_bootstrap():
 
         updateMasterRealm(username, password, keycloak_auth_url)
 
-        
-        createTDFRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
+        createTDFRealm(
+            username, password, keycloak_auth_url, preloaded_clients, preloaded_users
+        )
 
         # If either browser PKI or direct grant PKI configured, create PKI realm
-        if ((pki_browser == "true") or (pki_direct == "true")):
-            createTDFPKIRealm(username, password, keycloak_auth_url, preloaded_clients, preloaded_users)
+        if (pki_browser == "true") or (pki_direct == "true"):
+            createTDFPKIRealm(
+                username,
+                password,
+                keycloak_auth_url,
+                preloaded_clients,
+                preloaded_users,
+            )
 
     return True  # It is pointless to return True here, as we arent' checking the return values of the previous calls (and don't really need to)
