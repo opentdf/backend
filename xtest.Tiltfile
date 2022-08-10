@@ -2,39 +2,32 @@
 # reference https://docs.tilt.dev/api.html
 # extensions https://github.com/tilt-dev/tilt-extensions
 
-load("./common.Tiltfile", "backend")
+load("./common.Tiltfile", "backend", "CONTAINER_REGISTRY", "OIDC_CLIENT_SECRET")
 
-backend(extra_helm_parameters=["-f", "./tests/integration/backend-xtest-values.yaml"])
+backend()
 
-
-#    db    db d888888b d88888b .d8888. d888888b
-#    `8b  d8' `~~88~~' 88'     88'  YP `~~88~~'
-#     `8bd8'     88    88ooooo `8bo.      88
-#     .dPYb.     88    88~~~~~   `Y8b.    88
-#    .8P  Y8.    88    88.     db   8D    88
-#    YP    YP    YP    Y88888P `8888Y'    YP
-
-docker_build(
-    "opentdf/tests-clients",
-    context="./",
-    dockerfile="./tests/containers/clients/Dockerfile",
-    # todo: (PLAT-1650) Force to x86 mode until we have a python built in arch64
-    platform="linux/amd64",
+k8s_yaml(
+    helm(
+        "charts/keycloak-bootstrap",
+        "xtest-keycloak-bootstrap",
+        values=["./tests/integration/backend-keycloak-bootstrap-values.xtest.yaml"],
+        set=[
+            "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
+            "global.opentdf.common.oidcInternalHost=http://keycloak-http",
+            "global.opentdf.common.oidcUrlPath=auth",
+            "image.repo=" + CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
+        ],
+    )
 )
 
-local_resource(
-    "wait-for-bootstrap",
-    cmd=[
-        "tests/integration/wait-for-ready.sh",
-        "job/keycloak-bootstrap",
-        "15m",
-        "default",
-    ],
+k8s_resource(
+    "xtest-keycloak-bootstrap",
+    labels="xtest",
     resource_deps=["backend"],
 )
 
 k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
-    "opentdf-xtest", resource_deps=["wait-for-bootstrap"], labels="xtest"
+    "opentdf-xtest", resource_deps=["xtest-keycloak-bootstrap"], labels="xtest"
 )
