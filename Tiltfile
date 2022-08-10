@@ -10,7 +10,7 @@ load("ext://min_tilt_version", "min_tilt_version")
 
 min_tilt_version("0.30")
 
-ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.15")
+ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.16")
 PY_VERSION = os.environ.get("PY_VERSION", "3.10")
 KEYCLOAK_BASE_VERSION = str(
     local('cut -d- -f1 < "{}"'.format("containers/keycloak-protocol-mapper/VERSION"))

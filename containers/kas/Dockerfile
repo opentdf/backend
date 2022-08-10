@@ -1,17 +1,17 @@
-# NOTE - This base image is used here, but it should also really be used in other places such as the e2e test
-# NOTE - The version is also needed in the site-packages COPY command below and should be x.x not x.x.x
 ARG PY_VERSION=3.10
 ARG CONTAINER_REGISTRY=docker.io
-ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
-FROM golang:1.18-alpine AS gobuilder
-RUN apk add --no-cache git=~2
+FROM golang:1.18 AS gobuilder
 RUN mkdir /dist
 RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
 
-FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
+# stage - build
+FROM python:${PY_VERSION} AS build
+
+# Install pip dependencies
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 # Establish a working directory in the container for tdf3_kas. This directory
 # does not exist but will be created. All future commands root from here.
@@ -24,39 +24,33 @@ ENV PYTHONUNBUFFERED 1
 # NOTE - This must match the UID set for the certs in scripts/genkey_apps or the value passed in via docker --user
 ENV KAS_UID ${KAS_UID:-909}
 
-# Install the dependencies
-RUN apk add --no-cache --upgrade \
-    git \
-    cargo \
-    openssl-dev \
-    python3-dev
-
 # Install application dependencies
-COPY kas_app/Pipfile* /kas_app/
+COPY kas_app/requirements.txt /kas_app/
 COPY kas_app/setup.py /kas_app/
-COPY kas_core/Pipfile* /kas_core/
 COPY kas_core/setup.py /kas_core/
-RUN pip3 install --no-cache-dir --upgrade pip setuptools pipenv && \
-  pipenv install --dev --system --deploy --ignore-pipfile --verbose
+COPY kas_core/requirements.txt /kas_core/
+RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
+    pip3 install --no-cache-dir -r requirements.txt
 # Install and compiile application
 COPY kas_app /kas_app/
 COPY kas_core /kas_core/
 RUN python3 -m compileall .
 
 # stage - production server
-FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS production
+FROM python:${PY_VERSION}-slim AS production
+
 ARG PY_VERSION
+
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
-RUN apk add --no-cache --upgrade \
-    libressl
+
 RUN pip3 install \
     gunicorn \
     gunicorn[gthread] \
     wsgicors
 
 # Add kas user and kas group
-RUN addgroup -S kas && adduser -S --uid ${KAS_UID:-909} kas -G kas
+RUN addgroup --system kas && adduser --system --uid ${KAS_UID:-909} kas --ingroup kas
 
 COPY --from=build --chown=kas:kas /kas_app/ /kas_app
 COPY --from=build --chown=kas:kas /kas_core/ /kas_core
@@ -69,8 +63,12 @@ RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 # We use it because we need to launch multiple processes from a single Docker
 # entrypoint - this is a valid pattern, and in fact upstream Docker Desktop bundles
 # `tini` expressly for this purpose - we're adding it here.
-RUN apk add --no-cache tini
-
+#
+ENV TINI_VERSION=v0.19.0
+# Note that this is automatically populated by `docker build/buildx` to be the correct target architecture (arm64/amd64)
+ARG TARGETARCH
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /sbin/tini
+RUN chmod 755 /sbin/tini
 # Copy over the standalone binary that is the PDP grpc server, as well as the
 # tini launch script that starts both the PDP grpc server and KAS process.
 RUN mkdir -p /opentdf/bin

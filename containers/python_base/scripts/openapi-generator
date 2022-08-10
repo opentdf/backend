@@ -7,7 +7,7 @@ export PATH="$PATH:$APP_DIR"
 
 monolog TRACE "Running [$0${1+ }$*]"
 
-: "${ALPINE_VERSION:="3.15"}"
+: "${ALPINE_VERSION:="3.16"}"
 : "${PY_VERSION:="3.10"}"
 
 if ! cd "$PROJECT_ROOT"; then
