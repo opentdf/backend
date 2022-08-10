@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]: https://github.com/opentdf/backend/compare/main...HEAD
 
+## 1.0.0 - 2022-08-10
+
+- https://github.com/opentdf/backend/pull/251
+  - Remove deprecated/untested/OpenTDF-noncompliant functions (`upsert`/`rewrap`) and associated code in favor of
+  tested/supported/compliant endpoints `upsert_v2` and `rewrap_v2` (present since 0.7.x)
+
 ## 0.8.6 - 2022-06-10
 
 - PLAT-1641
