@@ -17,7 +17,7 @@ spec:
             /tests/token-exchange-basic.sh
         env:
         - name: VIRTRU_OIDC_ENDPOINT
-          value: "http://keycloakx-http.default:80"
+          value: "http://keycloak-http.default:80"
         - name: VIRTRU_SDK_KAS_ENDPOINT
           value: "http://kas.default.svc.cluster.local:8000"
       restartPolicy: Never

@@ -11,6 +11,11 @@ kas:
       host.docker.internal: *paths
 
 keycloakx:
+  fullnameOverride: keycloak
+  image:
+    # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
+    repository: quay.io/keycloak/keycloak
+    tag: 18.0.2
   command:
     - "/opt/keycloak/bin/kc.sh"
     - "--verbose"
@@ -35,11 +40,11 @@ keycloakx:
     - name: KC_DB_USERNAME
       value: postgres
     - name: KC_DB_PASSWORD
-      value: otdf-pgsql-admin
+      value: myPostgresPassword
     - name: KC_HOSTNAME
-      value: "keycloakx-http:65432"
+      value: "keycloak-http:65432"
     - name: KC_HOSTNAME_ADMIN
-      value: "keycloakx-http:65432"
+      value: "keycloak-http:65432"
     - name: KC_SPI_X509CERT_LOOKUP_PROVIDER
       value: nginx
     - name: KC_SPI_X509CERT_LOOKUP_NGINX_SSL_CLIENT_CERT
@@ -49,11 +54,15 @@ keycloakx:
     - name: KEYCLOAK_X509CERT_LOOKUP_NGINX_SSL_CERTIFICATE_CHAIN_LENGTH
       value: "2"
     - name: KC_HTTPS_CERTIFICATE_FILE
-      value: "/opt/keycloak/conf/tls.crt"
+      value: "/etc/x509/https/tls.crt"
     - name: KC_HTTPS_CERTIFICATE_KEY_FILE
-      value: "/opt/keycloak/conf/tls.key"
+      value: "/etc/x509/https/tls.key"
     - name: KC_PROXY
       value: "edge"
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
     - name: JAVA_OPTS_APPEND
       value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
   ingress:
@@ -62,7 +71,7 @@ keycloakx:
     servicePort: https
     rules:
       - # Ingress host
-        host: "keycloakx-http"
+        host: "keycloak-http"
         # Paths for the host
         paths:
           - path: /
@@ -80,10 +89,10 @@ keycloakx:
       nginx.ingress.kubernetes.io/auth-tls-pass-certificate-to-upstream: "true"
 
     hosts:
-      - keycloakx-http
+      - keycloak-http
     tls:
       - hosts:
-          - "keycloakx-http"
+          - "keycloak-http"
         secretName: x509-secret
 
   extraVolumes: |

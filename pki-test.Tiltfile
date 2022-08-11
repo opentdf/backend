@@ -7,7 +7,7 @@
 # we have to work around it.
 local_resource(
     "kubectl-portforward-https",
-    serve_cmd="kubectl port-forward service/ingress-nginx-controller 4567:443",
+    serve_cmd="kubectl port-forward service/ingress-nginx-controller 65432:443",
 )
 # Why do we have to port-forward TWICE? We really shouldn't need to, BUT the PKI tests assume clients auth with Keycloak
 # via OIDC on 4567, and contact KAS via 65432 - there should be no particular reason why we can't use the same one for both
