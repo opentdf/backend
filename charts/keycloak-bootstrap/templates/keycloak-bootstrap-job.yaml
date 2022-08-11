@@ -33,7 +33,9 @@ spec:
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ ( include "bootstrap.oidc.externalUrl" . ) }}
+              value: {{ ( include "bootstrap.opentdf.externalUrl" . ) }}
+            - name: OPENTDF_REDIRECT_URIS
+              value: {{ ( include "bootstrap.opentdf.redirectUris" . ) }}
             - name: KEYCLOAK_INTERNAL_URL
               value: {{ ( include "bootstrap.oidc.internalUrl" . ) }}
             - name: keycloak_admin_username
@@ -52,20 +54,30 @@ spec:
             - name: CLIENT_SECRET
               value: {{ . }}
             {{- end }}
-            - name: realm
-              value: {{ .Values.keycloak.realm }}
+            {{- with .Values.attributes.hostname }}
             - name: ATTRIBUTE_AUTHORITY_HOST
-              value: {{ .Values.attributes.hostname }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.entitlements.hostname }}
             - name: ENTITLEMENT_HOST
-              value: {{ .Values.entitlements.hostname }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.clientId }}
             - name: ATTRIBUTES_CLIENT_ID
-              value: {{ .Values.attributes.clientId }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.username }}
             - name: ATTRIBUTES_USERNAME
-              value: {{ .Values.attributes.username }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.password }}
             - name: ATTRIBUTES_PASSWORD
-              value: {{ .Values.attributes.password }}
+              value: {{ . }}
+            {{- end }}
+            {{- with .Values.attributes.realm }}
             - name: ATTRIBUTES_REALM
-              value: {{ .Values.attributes.realm }}
+              value: {{ . }}
+            {{- end }}
           {{- with .Values.secretRef }}
           envFrom:
             - secretRef:

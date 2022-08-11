@@ -102,7 +102,7 @@ keycloakx:
         paths: *paths
       - host: opentdf.local
         paths: *paths
-    tls: null
+    tls: []
 
 keycloak-bootstrap:
 

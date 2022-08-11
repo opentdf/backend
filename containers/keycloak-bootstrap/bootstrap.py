@@ -11,11 +11,8 @@ logger.setLevel(logging.DEBUG)
 
 
 def main():
-    logger.info("Running Keycloak bootstrap")
     kc_bootstrap()
-    logger.info("Running Attributes/PGSQL bootstrap")
     attributes_bootstrap()
-    logger.info("Running Entitlement/PGSQL bootstrap")
     entitlements_bootstrap()
 
 

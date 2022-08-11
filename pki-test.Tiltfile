@@ -1,3 +1,7 @@
+load("./common.Tiltfile", "backend")
+
+backend(extra_helm_parameters=["-f", "./tests/integration/backend-pki-values.yaml"])
+
 # TODO PKI tests involve only clients, Ingress and Keycloak - they are not backend tests, they are frontend tests,
 # and we should move them out of this repo if we keep them at all.
 #
@@ -7,30 +11,15 @@
 # we have to work around it.
 local_resource(
     "kubectl-portforward-https",
-    serve_cmd="kubectl port-forward service/ingress-nginx-controller 65432:443",
-)
-# Why do we have to port-forward TWICE? We really shouldn't need to, BUT the PKI tests assume clients auth with Keycloak
-# via OIDC on 4567, and contact KAS via 65432 - there should be no particular reason why we can't use the same one for both
-local_resource(
-    "kubectl-portforward-http",
-    serve_cmd="kubectl port-forward service/ingress-nginx-controller 65432:80",
+    serve_cmd="kubectl port-forward service/ingress-nginx-controller 4567:443",
+    resource_deps=["ingress-nginx-controller"],
 )
 
-
-local_resource(
-    "wait-for-bootstrap",
-    cmd=[
-        "tests/integration/wait-for-ready.sh",
-        "job/xtest-keycloak-bootstrap",
-        "15m",
-        "default",
-    ],
-)
 local_resource(
     "pki-test",
     "python3 tests/integration/pki-test/client_pki_test.py",
     resource_deps=[
-        "wait-for-bootstrap",
+        "backend",
         "kubectl-portforward-https",
         "kubectl-portforward-http",
     ],

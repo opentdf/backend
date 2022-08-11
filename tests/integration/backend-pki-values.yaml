@@ -42,9 +42,9 @@ keycloakx:
     - name: KC_DB_PASSWORD
       value: myPostgresPassword
     - name: KC_HOSTNAME
-      value: "keycloak-http:65432"
+      value: "keycloak-http:4567"
     - name: KC_HOSTNAME_ADMIN
-      value: "keycloak-http:65432"
+      value: "keycloak-http:4567"
     - name: KC_SPI_X509CERT_LOOKUP_PROVIDER
       value: nginx
     - name: KC_SPI_X509CERT_LOOKUP_NGINX_SSL_CLIENT_CERT
