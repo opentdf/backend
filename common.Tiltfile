@@ -46,10 +46,6 @@ all_secrets = {
 
 
 def backend(extra_helm_parameters=[]):
-    if not os.path.exists(
-        "./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"
-    ):
-        local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
 
     #   o8o
     #   `"'
