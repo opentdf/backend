@@ -69,14 +69,6 @@ def backend(extra_helm_parameters=[]):
     )
 
     docker_build(
-        CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
-        "./containers/keycloak-protocol-mapper/keycloak-containers/server",
-        build_args={
-            "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-        },
-    )
-
-    docker_build(
         CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
         "./containers/keycloak-bootstrap",
         build_args={
