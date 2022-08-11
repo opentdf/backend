@@ -222,6 +222,8 @@ jobs:
           helm dependency update backend
           helm package backend
           echo "Packaged Helm chart [backend] as " *.tgz
+          echo "[backend] chart Chart.yaml is -\n "
+          cat backend/Chart.yaml
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz 
   build-base:
