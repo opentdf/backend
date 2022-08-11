@@ -81,8 +81,6 @@ def backend(extra_helm_parameters=[]):
         context="./containers/keycloak-protocol-mapper",
         build_args={
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-            "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY
-            + "/opentdf/keycloak-multiarch-base",
             "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
             "MAVEN_VERSION": "3.8.4",
             "JDK_VERSION": "11",
