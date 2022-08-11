@@ -75,6 +75,10 @@ keycloakx:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: quay.io/keycloak/keycloak
     tag: 18.0.2
+  command:
+    - "/opt/keycloak/bin/kc.sh"
+    - "--verbose"
+    - "start-dev"
   postgresql:
     enabled: false
   externalDatabase:
