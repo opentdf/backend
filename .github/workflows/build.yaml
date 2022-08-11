@@ -203,7 +203,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          logout: false
       - name: push
         run: |
           scripts/update-charts
