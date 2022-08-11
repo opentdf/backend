@@ -213,7 +213,7 @@ jobs:
                 echo "Packaging Helm chart $d..."
                 helm package $d
                 echo "Packaged as" *.tgz
-                helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+                helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi
           done
@@ -223,7 +223,7 @@ jobs:
           helm dependency update backend
           helm package backend
           echo "Packaged Helm chart [backend] as " *.tgz
-          helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz 
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
