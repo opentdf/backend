@@ -38,7 +38,7 @@ Create chart name and version as used by the chart label.
 
 
 {{/*
-Create OIDC Internal Url from a common value (if it exists)   
+Create OIDC Internal Url from a common value (if it exists)
 */}}
 {{- define "bootstrap.oidc.internalUrl" }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
@@ -49,7 +49,7 @@ Create OIDC Internal Url from a common value (if it exists)
 {{- end }}
 
 {{/*
-Create OIDC External Url from a common value (if it exists)   
+Create OIDC External Url from a common value (if it exists)
 */}}
 {{- define "bootstrap.oidc.externalUrl" }}
 {{- $extHost := .Values.global.opentdf.common.oidcExternalHost }}
@@ -58,4 +58,19 @@ Create OIDC External Url from a common value (if it exists)
 {{- else }}
 {{- default $extHost }}
 {{- end }}
+{{- end }}
+
+{{/*
+The base URL for clients by default
+*/}}
+{{- define "bootstrap.opentdf.externalUrl" }}
+{{- .Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalHost }}
+{{- end }}
+
+{{/*
+Valid redirect URIs
+*/}}
+{{- define "bootstrap.opentdf.redirectUris" }}
+{{- $defHost := (.Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalHost) }}
+{{- join " " .Values.opentdf.redirectUris | default (printf "%s/*" $defHost) }}
 {{- end }}
