@@ -14,8 +14,9 @@ keycloakx:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
-    repository: quay.io/keycloak/keycloak
-    tag: 18.0.2
+    repository: ghcr.io/opentdf/keycloak
+    tag: head
+    pullPolicy: IfNotPresent
   command:
     - "/opt/keycloak/bin/kc.sh"
     - "--verbose"
