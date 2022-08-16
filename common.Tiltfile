@@ -201,53 +201,22 @@ def backend(extra_helm_parameters=[]):
     # Hopefully, either tilt or the helm_resource extension will be improved
     # to avoid this change (or maybe everything will just get faster)
     update_settings(k8s_upsert_timeout_secs=300)
-    helm_resource(
+    yaml = helm(
+        BACKEND_DIR + "./charts/backend",
         name="backend",
-        chart=BACKEND_DIR + "/charts/backend",
-        image_deps=[
-            CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-            CONTAINER_REGISTRY + "/opentdf/keycloak",
-            CONTAINER_REGISTRY + "/opentdf/attributes",
-            CONTAINER_REGISTRY + "/opentdf/entitlements",
-            CONTAINER_REGISTRY + "/opentdf/entitlement_store",
-            CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-            CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-            CONTAINER_REGISTRY + "/opentdf/kas",
-        ],
-        image_keys=[
-            ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
-            ("keycloakx.image.repository", "keycloakx.image.tag"),
-            ("attributes.image.repo", "attributes.image.tag"),
-            ("entitlements.image.repo", "entitlements.image.tag"),
-            ("entitlement_store.image.repo", "entitlement_store.image.tag"),
-            ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
-            ("entity-resolution.image.repo", "entity-resolution.image.tag"),
-            ("kas.image.repo", "kas.image.tag"),
-        ],
-        flags=[
-            "--wait",
-            "--dependency-update",
-            "--set",
+        set=[
             "entity-resolution.secret.keycloak.clientSecret=123-456",
-            "--set",
             "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
-            "--set",
             "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
-            "--set",
             "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD,
-            "--set",
             "kas.envConfig.attrAuthorityCert=%s"
             % all_secrets["ATTR_AUTHORITY_CERTIFICATE"],
-            "--set",
             "kas.envConfig.ecCert=%s" % all_secrets["KAS_EC_SECP256R1_CERTIFICATE"],
-            "--set",
             "kas.envConfig.cert=%s" % all_secrets["KAS_CERTIFICATE"],
-            "--set",
             "kas.envConfig.ecPrivKey=%s" % all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
-            "--set",
             "kas.envConfig.privKey=%s" % all_secrets["KAS_PRIVATE_KEY"],
         ]
         + extra_helm_parameters,
-        labels="opentdf",
-        resource_deps=["helm-dep-update", "ingress-nginx-controller"],
     )
+    print(yaml)
+    k8s_yaml(yaml)
