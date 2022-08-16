@@ -6,6 +6,12 @@ FRONTEND_IMAGE_TAG = "main"
 FRONTEND_CHART_TAG = "0.0.0-sha-93bb332"
 
 backend(extra_helm_parameters=["-f", "./tests/integration/backend-with-frontend.yaml"])
+docker_build(
+        "opentdf/abacus",
+        "../frontend"
+        # dockerfile="../frontend/DockerfileTests"
+)
+# k8s_yaml("./tests/integration/frontend-local.yaml")
 
 helm_resource(
     "opentdf-abacus",
