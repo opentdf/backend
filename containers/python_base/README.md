@@ -1,5 +1,8 @@
 ## Base
 
+Provides a standard base for python microservices and job containers, including
+a recommended set of dependencies, including `requests`, `fastapi`, and others.
+
 ### Base build image
 
 #### Docker Hub

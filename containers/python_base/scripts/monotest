@@ -66,9 +66,12 @@ _single_pytest() {
   [ -f "scripts/test.env" ] && . scripts/test.env
 
   if [[ $CLEAN_VENV ]]; then
-      rm -rf .venv
+    rm -rf .venv
   fi
-  pip3 install --requirement requirements.txt
+  if [[ $package =~ /python_base$ ]]; then
+    pip3 install --requirement ../python_base/requirements.txt || exit 1
+  fi
+  pip3 install --requirement requirements.txt || exit 1
 
   if [[ $coverage ]]; then
     python3 -m coverage run --branch --source=. -m pytest
@@ -99,7 +102,7 @@ _single_package() {
     _single_pytest "$@"
     rval=$?
     if [[ $rval -ne 0 ]]; then
-        monolog DEBUG "Failed [$1]"
+      monolog DEBUG "Failed [$1]"
     else
       monolog DEBUG "Passed [$1]"
     fi
