@@ -50,7 +50,21 @@ all_secrets = {
 }
 
 
-def backend(extra_helm_parameters=[]):
+def prefix_list(prefix, list):
+    return [x for y in zip([prefix] * len(list), list) for x in y]
+
+
+def dict_to_equals_list(dict):
+    return ["%s=%s" % (k, v) for k, v in dict.items()]
+
+
+def dict_to_helm_set_list(dict):
+    combined = dict_to_equals_list(dict)
+    return prefix_list("--set", combined)
+
+
+# values: equivalent to values
+def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
 
     #   o8o
     #   `"'
@@ -192,61 +206,69 @@ def backend(extra_helm_parameters=[]):
         "helm dependency update",
         dir=BACKEND_DIR + "/charts/backend",
     )
-    # FIXME: I've had to add the `--wait` option, so the helm apply command
-    # takes longer than the default timeout for any apply command of 30s.
-    # This fixes an issue where the dependant resources (e.g. xtest) run
-    # immediately after the apply command, causing race conditions with their
-    # configurator scripts and the built-in bootstrap script.
-    # Hopefully, either tilt or the helm_resource extension will be improved
-    # to avoid this change (or maybe everything will just get faster)
-    update_settings(k8s_upsert_timeout_secs=1200)
-    helm_resource(
-        name="backend",
-        chart=BACKEND_DIR + "/charts/backend",
-        image_deps=[
-            CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-            CONTAINER_REGISTRY + "/opentdf/keycloak",
-            CONTAINER_REGISTRY + "/opentdf/attributes",
-            CONTAINER_REGISTRY + "/opentdf/entitlements",
-            CONTAINER_REGISTRY + "/opentdf/entitlement_store",
-            CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-            CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-            CONTAINER_REGISTRY + "/opentdf/kas",
-        ],
-        image_keys=[
-            ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
-            ("keycloak.image.repository", "keycloak.image.tag"),
-            ("attributes.image.repo", "attributes.image.tag"),
-            ("entitlements.image.repo", "entitlements.image.tag"),
-            ("entitlement_store.image.repo", "entitlement_store.image.tag"),
-            ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
-            ("entity-resolution.image.repo", "entity-resolution.image.tag"),
-            ("kas.image.repo", "kas.image.tag"),
-        ],
-        flags=[
-            "--wait",
-            "--dependency-update",
-            "--set",
-            "entity-resolution.secret.keycloak.clientSecret=123-456",
-            "--set",
-            "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
-            "--set",
-            "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
-            "--set",
-            "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD,
-            "--set",
-            "kas.envConfig.attrAuthorityCert=%s"
-            % all_secrets["ATTR_AUTHORITY_CERTIFICATE"],
-            "--set",
-            "kas.envConfig.ecCert=%s" % all_secrets["KAS_EC_SECP256R1_CERTIFICATE"],
-            "--set",
-            "kas.envConfig.cert=%s" % all_secrets["KAS_CERTIFICATE"],
-            "--set",
-            "kas.envConfig.ecPrivKey=%s" % all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
-            "--set",
-            "kas.envConfig.privKey=%s" % all_secrets["KAS_PRIVATE_KEY"],
-        ]
-        + extra_helm_parameters,
-        labels="opentdf",
-        resource_deps=["helm-dep-update", "ingress-nginx-controller"],
-    )
+
+    set_values = {
+        "entity-resolution.secret.keycloak.clientSecret": "123-456",
+        "secrets.opaPolicyPullSecret": opaPolicyPullSecret,
+        "secrets.oidcClientSecret": OIDC_CLIENT_SECRET,
+        "secrets.postgres.dbPassword": POSTGRES_PASSWORD,
+        "kas.envConfig.attrAuthorityCert": all_secrets["ATTR_AUTHORITY_CERTIFICATE"],
+        "kas.envConfig.ecCert": all_secrets["KAS_EC_SECP256R1_CERTIFICATE"],
+        "kas.envConfig.cert": all_secrets["KAS_CERTIFICATE"],
+        "kas.envConfig.ecPrivKey": all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
+        "kas.envConfig.privKey": all_secrets["KAS_PRIVATE_KEY"],
+    }
+    set_values.update(set)
+
+    if devmode:
+        # NOTE: Run `helm dep update` outside of tilt, as there isn't a good
+        # way to make it happen earlier.
+        k8s_yaml(
+            helm(
+                BACKEND_DIR + "/charts/backend",
+                name="backend",
+                set=dict_to_equals_list(set_values),
+                values=values,
+            ),
+        )
+    else:
+        # FIXME: I've had to add the `--wait` option, so the helm apply command
+        # takes longer than the default timeout for any apply command of 30s.
+        # This fixes an issue where the dependant resources (e.g. xtest) run
+        # immediately after the apply command, causing race conditions with their
+        # configurator scripts and the built-in bootstrap script.
+        # Hopefully, either tilt or the helm_resource extension will be improved
+        # to avoid this change (or maybe everything will just get faster)
+        update_settings(k8s_upsert_timeout_secs=1200)
+        helm_resource(
+            name="backend",
+            chart=BACKEND_DIR + "/charts/backend",
+            image_deps=[
+                CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
+                CONTAINER_REGISTRY + "/opentdf/keycloak",
+                CONTAINER_REGISTRY + "/opentdf/attributes",
+                CONTAINER_REGISTRY + "/opentdf/entitlements",
+                CONTAINER_REGISTRY + "/opentdf/entitlement_store",
+                CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+                CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+                CONTAINER_REGISTRY + "/opentdf/kas",
+            ],
+            image_keys=[
+                ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
+                ("keycloak.image.repository", "keycloak.image.tag"),
+                ("attributes.image.repo", "attributes.image.tag"),
+                ("entitlements.image.repo", "entitlements.image.tag"),
+                ("entitlement_store.image.repo", "entitlement_store.image.tag"),
+                ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
+                ("entity-resolution.image.repo", "entity-resolution.image.tag"),
+                ("kas.image.repo", "kas.image.tag"),
+            ],
+            flags=[
+                "--wait",
+                "--dependency-update",
+            ]
+            + dict_to_helm_set_list(set_values)
+            + prefix_list("-f", values),
+            labels="opentdf",
+            resource_deps=["helm-dep-update", "ingress-nginx-controller"],
+        )
