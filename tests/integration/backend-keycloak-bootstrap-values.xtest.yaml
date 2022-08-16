@@ -4,7 +4,7 @@ keycloak:
   username: keycloakadmin
   password: mykeycloakpassword
   customConfig:  
-  - name: 
+  - name: tdf
     payload:
       realm: tdf
       enabled: "true"      
