@@ -123,9 +123,8 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
         logger.debug("--- Fetch attributes from OpenTDF Attribute authority [namespaces to fetch = %s] ---", namespaces)
 
         attrs = []
+        namespaces = set([x if "/attr/" not in x else x.split("/attr/")[0] for x in namespaces])
         for namespace in namespaces:
-            if "attr" in namespace:
-                namespace = namespace.split("attr")[0][:-1]
             ns_attrdefs = self._fetch_definition_from_authority_by_ns(namespace)
             _translate_otdf_attrdefs(ns_attrdefs)
             attrs = attrs + ns_attrdefs
