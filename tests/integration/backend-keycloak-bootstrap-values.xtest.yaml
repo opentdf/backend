@@ -4,7 +4,10 @@ keycloak:
   username: keycloakadmin
   password: mykeycloakpassword
   customConfig:  
-  - name: tdf      
+  - name: tdf
+    payload:
+      realm: tdf
+      enabled: "true"      
     clients:
     - payload:
         clientId: test-client-1
