@@ -978,8 +978,6 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
     )
     for realm_dict in keycloak_config:
         realm_name = realm_dict["name"]
-        if payload := realm_dict.get("payload"):
-            createRealm(keycloak_admin, realm_name, payload)
         if realm_name and realm_name != "master":
             keycloak_admin = KeycloakAdmin(
                 server_url=kc_url,
@@ -990,6 +988,8 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
             )
         else:
             keycloak_admin = keycloak_admin_root
+        if payload := realm_dict.get("payload"):
+            createRealm(keycloak_admin, realm_name, payload)
         for client in realm_dict.get("clients") or []:
             logger.debug(f"Client {client}")
             createClient(keycloak_admin, realm_name, client)
