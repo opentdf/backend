@@ -43,7 +43,6 @@ secretRef:
 
 keycloak:
   clientId: tdf-client
-  clientSecret: 123-456
   # if provided, will use custom configuration instead
   customConfig: null
   passwordUsers: testuser@virtru.com,user1,user2

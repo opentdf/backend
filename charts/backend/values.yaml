@@ -41,6 +41,7 @@ secrets:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin
   keycloakBootstrap:
+    clientSecret: 123-456
     attributes:
       username: user1
       password: testuser123
