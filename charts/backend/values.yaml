@@ -41,8 +41,6 @@ secrets:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin
   keycloakBootstrap:
-    keycloak:
-      clientSecret: 123-456
     attributes:
       username: user1
       password: testuser123
@@ -97,7 +95,6 @@ keycloakx:
   postgresql:
     enabled: false
   externalDatabase:
-    host: opentdf-postgresql
     database: keycloak_database
   extraEnv: |
     - name: KC_LOG_LEVEL
@@ -141,7 +138,7 @@ keycloakx:
 
 keycloak-bootstrap:
   secretRef:
-    name: keycloak-bootstrap-secret
+    name: keycloak-bootstrap-secrets
   keycloak:
     clientId: tdf-client
     realm: tdf
