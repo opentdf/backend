@@ -1,6 +1,6 @@
 -i https://pypi.org/simple
--e git+https://github.com/virtru/access-pdp@b80608fb8048cfdd8e49de8ad9f231828a36e72e#egg=accesspdp&subdirectory=clients/python/accesspdp
--e git+https://github.com/virtru/access-pdp@b80608fb8048cfdd8e49de8ad9f231828a36e72e#egg=attributes&subdirectory=clients/python/attributes
+-e git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=accesspdp&subdirectory=clients/python/accesspdp
+-e git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=attributes&subdirectory=clients/python/attributes
 attrs==21.4.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 bitstruct==8.15.1
 certifi==2022.5.18.1; python_version >= '3.6'
@@ -9,7 +9,7 @@ charset-normalizer==2.0.12; python_full_version >= '3.5.0'
 click==8.1.3; python_version >= '3.7'
 clickclick==20.10.2
 connexion==2.13.1
-cryptography==37.0.2
+cryptography==37.0.4
 flask==2.1.2
 grpcio==1.47.0
 gunicorn==20.1.0
@@ -27,9 +27,10 @@ pycparser==2.21; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.
 pyjwt==2.4.0
 pyparsing==3.0.9; python_full_version >= '3.6.8'
 pyrsistent==0.18.1; python_version >= '3.7'
+pytest==7.1.1
 python-json-logger==2.0.2
 pyyaml==6.0; python_version >= '3.6'
-requests==2.28.0
+requests==2.28.1
 setuptools==62.3.3; python_version >= '3.7'
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 statsd==3.3.0
