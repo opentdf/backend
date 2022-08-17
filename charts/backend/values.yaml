@@ -23,6 +23,16 @@ global:
       #   - name: my-existing-ghcr-pullsecret
       #   - name: my-other-pullsecret
       imagePullSecrets: []
+      keycloak:
+        user: keycloakadmin
+        password: mykeycloakpassword
+      postgres:
+        # postgres server's k8s name or global DNS for external server
+        host: opentdf-postgresql
+        # postgres server port
+        port: 5432
+        # The database name within the given server
+        database: tdf_database
 
 secrets:
   opaPolicyPullSecret:
@@ -30,9 +40,13 @@ secrets:
   postgres:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin
-  keycloak:
-    user: keycloakadmin
-    password: mykeycloakpassword
+  keycloakBootstrap:
+    keycloak:
+      clientSecret: 123-456
+    attributes:
+      username: user1
+      password: testuser123
+
 
 attributes:
   fullnameOverride: opentdf-attributes
@@ -126,20 +140,16 @@ keycloakx:
     tls: []
 
 keycloak-bootstrap:
-
+  secretRef:
+    name: keycloak-bootstrap-secret
   keycloak:
-    username: keycloakadmin
-    password: mykeycloakpassword
     clientId: tdf-client
-    clientSecret: 123-456
     realm: tdf
 
   attributes:
     hostname: http://opentdf-attributes:4020
     realm: tdf
     clientId: dcr-test
-    username: user1
-    password: testuser123
     preloadedAuthorities:
     - https://example.com
     preloadedAttributes:

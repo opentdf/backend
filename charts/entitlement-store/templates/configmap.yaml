@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: {{ include "entitlement-store.name" . }}-cm
 data:
-  POSTGRES_DATABASE: {{ .Values.postgres.database | quote }}
-  POSTGRES_HOST: {{ .Values.postgres.host | quote }}
+  POSTGRES_DATABASE: {{ .Values.global.opentdf.common.postgres.database | quote }}
+  POSTGRES_HOST: {{ .Values.global.opentdf.common.postgres.host | quote }}
   POSTGRES_SCHEMA: {{ .Values.postgres.schema | quote }}
   POSTGRES_USER: {{ .Values.postgres.user | quote }}
   SERVER_LOG_LEVEL: {{ .Values.logLevel | quote }}
