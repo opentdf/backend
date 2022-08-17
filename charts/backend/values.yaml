@@ -12,7 +12,7 @@ global:
     common:
       externalUrl: http://localhost:65432
       # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-      oidcInternalHost: http://keycloak-http
+      oidcInternalHost: http://keycloak-http:8080
       # The url path (no precedding / ) to keycloak
       oidcUrlPath: auth
       # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
@@ -95,6 +95,8 @@ keycloakx:
     - "start-dev"
   postgresql:
     enabled: false
+  service:
+    httpPort: 8080
   externalDatabase:
     database: keycloak_database
   extraEnv: |
@@ -122,20 +124,7 @@ keycloakx:
     - secretRef:
         name: 'opentdf-keycloak-secret'
   ingress:
-    enabled: true
-    ingressClassName: nginx
-    rules:
-      - host: localhost
-        paths: &paths
-          - path: /auth(/|$)(.*)
-            pathType: Prefix
-      - host: host.docker.internal
-        paths: *paths
-      - host: offline.demo.internal
-        paths: *paths
-      - host: opentdf.local
-        paths: *paths
-    tls: []
+    enabled: false
 
 keycloak-bootstrap:
   secretRef:

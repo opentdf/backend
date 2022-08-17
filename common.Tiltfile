@@ -148,32 +148,6 @@ def backend(extra_helm_parameters=[]):
                 ),
             ],
         )
-    #     o8o
-    #     `"'
-    #    oooo  ooo. .oo.    .oooooooo oooo d8b  .ooooo.   .oooo.o  .oooo.o
-    #    `888  `888P"Y88b  888' `88b  `888""8P d88' `88b d88(  "8 d88(  "8
-    #     888   888   888  888   888   888     888ooo888 `"Y88b.  `"Y88b.
-    #     888   888   888  `88bod8P'   888     888    .o o.  )88b o.  )88b
-    #    o888o o888o o888o `8oooooo.  d888b    `Y8bod8P' 8""888P' 8""888P'
-    #                      d"     YD
-    #                      "Y88888P'
-    #
-    # TODO should integrate with a service mesh and stop deploying our own ingress
-    # We need to have big headers for the huge bearer tokens we pass around
-    # https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
-
-    helm_remote(
-        "ingress-nginx",
-        repo_url="https://kubernetes.github.io/ingress-nginx",
-        set=["controller.config.large-client-header-buffers=20 32k"],
-        version="4.0.16",
-    )
-
-    k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
-
-    # TODO not sure why this needs to be installed separately, but
-    # our ingress config won't work without it.
-    k8s_yaml(BACKEND_DIR + "/tests/integration/ingress-class.yaml")
 
     #                                           o8o
     #                                           `"'
@@ -193,14 +167,8 @@ def backend(extra_helm_parameters=[]):
         "helm dependency update",
         dir=BACKEND_DIR + "/charts/backend",
     )
-    # FIXME: I've had to add the `--wait` option, so the helm apply command
-    # takes longer than the default timeout for any apply command of 30s.
-    # This fixes an issue where the dependant resources (e.g. xtest) run
-    # immediately after the apply command, causing race conditions with their
-    # configurator scripts and the built-in bootstrap script.
-    # Hopefully, either tilt or the helm_resource extension will be improved
-    # to avoid this change (or maybe everything will just get faster)
     update_settings(k8s_upsert_timeout_secs=300)
+    # Use helm template function, print k8s yaml, then kubectl apply
     yaml = helm(
         BACKEND_DIR + "./charts/backend",
         name="backend",
@@ -220,3 +188,12 @@ def backend(extra_helm_parameters=[]):
     )
     print(yaml)
     k8s_yaml(yaml)
+
+#
+#    Port Forwards
+#
+    k8s_resource(workload='opentdf-attributes', port_forwards='54020:4020')
+    k8s_resource(workload='opentdf-entitlements', port_forwards='54030:4030')
+    k8s_resource(workload='opentdf-kas', port_forwards='58000:8000')
+    k8s_resource(workload='opentdf-postgresql', port_forwards='55432:5432')
+    k8s_resource(workload='keycloak', port_forwards='58080:8080', links=['http://localhost:58080/auth/'])
