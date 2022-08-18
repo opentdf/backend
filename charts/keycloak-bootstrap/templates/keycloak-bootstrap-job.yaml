@@ -19,8 +19,21 @@ spec:
           #
           # JBOSS keycloak is super slow, and if we start this job immediately and rely on job backoffs to do this,
           # it takes a lot longer because of increasing backoff durations as Keycloak comes up.
+          #
+          # The following conditional istioTerminationHack  does 2 things:
+          # 1. Waits for the Istio proxy sidecar to be ready before continuing.
+          # 2. Tells the istio proxy sidecar to exit once we're done - otherwise
+          # it will keep running and the job will never complete - this is arguably not a bug,
+          # since you don't _want_ your mesh proxy to quit normally.
+          # For more details, see Istio bug: https://github.com/istio/istio/issues/11659
+          # (this arguably isn't an Istio bug, but a Kube one, since you don't WANT containers in a Pod to be able to
+          # terminate their own Pod's proxy)
           args:
             - |-
+              {{- if .Values.istioTerminationHack }}
+              trap "curl --max-time 2 -s -f -XPOST http://127.0.0.1:15000/quitquitquit" EXIT
+              while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do sleep 1; done              
+              {{- end }}
               echo "[INFO] Waiting for service [{{ ( include "bootstrap.oidc.internalUrl" . ) }}]"
               while ! curl -f {{ ( include "bootstrap.oidc.internalUrl" . ) }}/realms/master; do
                 sleep 1
@@ -38,20 +51,10 @@ spec:
               value: {{ ( include "bootstrap.opentdf.redirectUris" . ) }}
             - name: KEYCLOAK_INTERNAL_URL
               value: {{ ( include "bootstrap.oidc.internalUrl" . ) }}
-            - name: keycloak_admin_username
-              value: {{ .Values.keycloak.username }}
-            {{- with .Values.keycloak.password }}
-            - name: keycloak_admin_password
-              value: {{ . }}
-            {{- end }}
             - name: passwordUsers
               value: {{ .Values.keycloak.passwordUsers }}
             {{- with .Values.keycloak.clientId }}
             - name: CLIENT_ID
-              value: {{ . }}
-            {{- end }}
-            {{- with .Values.keycloak.clientSecret }}
-            - name: CLIENT_SECRET
               value: {{ . }}
             {{- end }}
             {{- with .Values.attributes.hostname }}
@@ -64,14 +67,6 @@ spec:
             {{- end }}
             {{- with .Values.attributes.clientId }}
             - name: ATTRIBUTES_CLIENT_ID
-              value: {{ . }}
-            {{- end }}
-            {{- with .Values.attributes.username }}
-            - name: ATTRIBUTES_USERNAME
-              value: {{ . }}
-            {{- end }}
-            {{- with .Values.attributes.password }}
-            - name: ATTRIBUTES_PASSWORD
               value: {{ . }}
             {{- end }}
             {{- with .Values.attributes.realm }}

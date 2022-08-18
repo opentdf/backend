@@ -7,6 +7,13 @@ global:
       oidcUrlPath: auth
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
+      postgres:
+        # postgres server's k8s name or global DNS for external server
+        host: opentdf-postgresql
+        # postgres server port
+        port: 5432
+        # The database name within the given server
+        database: tdf_database
 
 # Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
@@ -123,13 +130,7 @@ affinity: {}
 
 # Configuration for the database backend
 postgres:
-  # postgres server's k8s name or global DNS for external server
-  host: opentdf-postgresql
-  # postgres server port
-  port: 5432
   # Must be a postgresql user with the tdf_entitlement_manager role
   user: tdf_entitlement_manager
-  # The database name within the given server
-  database: tdf_database
   # The entitlement schema
   schema: tdf_entitlement

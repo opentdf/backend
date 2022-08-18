@@ -945,7 +945,7 @@ async def create_authorities_crud(request):
     "/authorities",
     tags=["Authorities"],
     dependencies=[Depends(get_auth)],
-    status_code=NO_CONTENT,
+    status_code=ACCEPTED,
     responses={
         202: {
             "description": "No Content",
