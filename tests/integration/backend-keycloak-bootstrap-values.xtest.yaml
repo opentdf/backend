@@ -1,8 +1,6 @@
 fullnameOverride: "xtest-keycloak-bootstrap"
 name: "xtest-keycloak-bootstrap"
 keycloak:
-  username: keycloakadmin
-  password: mykeycloakpassword
   customConfig:  
   - name: tdf
     payload:
