@@ -154,6 +154,7 @@ jobs:
           echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run xtest.Tiltfile
         run: |-
+          helm dependency update ./charts/backend
           export TILTFILE_FILE=xtest.Tiltfile
           echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           tilt ci -f ${TILTFILE_FILE}

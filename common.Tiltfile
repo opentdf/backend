@@ -159,14 +159,6 @@ def backend(extra_helm_parameters=[]):
     #
     # usage https://docs.tilt.dev/helm.html#helm-options
 
-    # Unfortunately, due to how Tilt (doesn't) work with Helm (a common refrain),
-    # `helm upgrade --dependency-update` doesn't solve the issue like it does with plain Helm.
-    # So, do it out of band as a shellout.
-    local_resource(
-        "helm-dep-update",
-        "helm dependency update",
-        dir=BACKEND_DIR + "/charts/backend",
-    )
     update_settings(k8s_upsert_timeout_secs=300)
     # Use helm template function, print k8s yaml, then kubectl apply
     yaml = helm(
