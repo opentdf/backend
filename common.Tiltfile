@@ -10,10 +10,16 @@ load("ext://min_tilt_version", "min_tilt_version")
 
 min_tilt_version("0.30")
 
+BACKEND_DIR = os.getcwd()
+
 ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.16")
 PY_VERSION = os.environ.get("PY_VERSION", "3.10")
 KEYCLOAK_BASE_VERSION = str(
-    local('cut -d- -f1 < "{}"'.format("containers/keycloak-protocol-mapper/VERSION"))
+    local(
+        'cut -d- -f1 < "{}/{}"'.format(
+            BACKEND_DIR, "containers/keycloak-protocol-mapper/VERSION"
+        )
+    )
 ).strip()
 
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
@@ -60,7 +66,7 @@ def backend(extra_helm_parameters=[]):
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/python-base",
-        context="containers/python_base",
+        context=BACKEND_DIR + "/containers/python_base",
         build_args={
             "ALPINE_VERSION": ALPINE_VERSION,
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
@@ -70,7 +76,7 @@ def backend(extra_helm_parameters=[]):
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-        "./containers/keycloak-bootstrap",
+        BACKEND_DIR + "/containers/keycloak-bootstrap",
         build_args={
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
         },
@@ -78,7 +84,7 @@ def backend(extra_helm_parameters=[]):
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/keycloak",
-        context="./containers/keycloak-protocol-mapper",
+        context=BACKEND_DIR + "/containers/keycloak-protocol-mapper",
         build_args={
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
             "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
@@ -89,12 +95,12 @@ def backend(extra_helm_parameters=[]):
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-        context="./containers/entitlement-pdp",
+        context=BACKEND_DIR + "/containers/entitlement-pdp",
     )
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-        context="./containers/entity-resolution",
+        context=BACKEND_DIR + "/containers/entity-resolution",
     )
 
     docker_build(
@@ -105,12 +111,12 @@ def backend(extra_helm_parameters=[]):
             "PY_VERSION": PY_VERSION,
             "PYTHON_BASE_IMAGE_SELECTOR": "",
         },
-        context="containers/kas",
+        context=BACKEND_DIR + "/containers/kas",
         live_update=[
-            sync("./containers/kas", "/app"),
+            sync(BACKEND_DIR + "/containers/kas", "/app"),
             run(
                 "cd /app && pip install -r requirements.txt",
-                trigger="./containers/kas/requirements.txt",
+                trigger=BACKEND_DIR + "/containers/kas/requirements.txt",
             ),
         ],
     )
@@ -126,14 +132,19 @@ def backend(extra_helm_parameters=[]):
                 "PYTHON_BASE_IMAGE_SELECTOR": "",
             },
             container_args=["--reload"],
-            context="containers",
-            dockerfile="./containers/" + microservice + "/Dockerfile",
+            context=BACKEND_DIR + "/containers",
+            dockerfile=BACKEND_DIR + "/containers/" + microservice + "/Dockerfile",
             live_update=[
-                sync("./containers/python_base", "/app/python_base"),
-                sync("./containers/" + microservice, "/app/" + microservice),
+                sync(BACKEND_DIR + "/containers/python_base", "/app/python_base"),
+                sync(
+                    BACKEND_DIR + "/containers/" + microservice, "/app/" + microservice
+                ),
                 run(
                     "cd /app/ && pip install -r requirements.txt",
-                    trigger="./containers/" + microservice + "/requirements.txt",
+                    trigger=BACKEND_DIR
+                    + "/containers/"
+                    + microservice
+                    + "/requirements.txt",
                 ),
             ],
         )
@@ -162,7 +173,7 @@ def backend(extra_helm_parameters=[]):
 
     # TODO not sure why this needs to be installed separately, but
     # our ingress config won't work without it.
-    k8s_yaml("tests/integration/ingress-class.yaml")
+    k8s_yaml(BACKEND_DIR + "/tests/integration/ingress-class.yaml")
 
     #                                           o8o
     #                                           `"'
@@ -180,7 +191,7 @@ def backend(extra_helm_parameters=[]):
     local_resource(
         "helm-dep-update",
         "helm dependency update",
-        dir="./charts/backend",
+        dir=BACKEND_DIR + "/charts/backend",
     )
     # FIXME: I've had to add the `--wait` option, so the helm apply command
     # takes longer than the default timeout for any apply command of 30s.
@@ -192,7 +203,7 @@ def backend(extra_helm_parameters=[]):
     update_settings(k8s_upsert_timeout_secs=300)
     helm_resource(
         name="backend",
-        chart="./charts/backend",
+        chart=BACKEND_DIR + "/charts/backend",
         image_deps=[
             CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
             CONTAINER_REGISTRY + "/opentdf/keycloak",
