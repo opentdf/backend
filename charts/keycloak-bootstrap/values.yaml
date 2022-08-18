@@ -23,17 +23,26 @@ global:
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
+# Is istio in place and requires a wait on the sidecar.
+istioTerminationHack: false
+
 opentdf:
   # Base URL for clients. Defaults to oidcExternalHost
   externalUrl:
   # A list of valid redirect paths. Defaults to externalUrl
   redirectUris:
 
+# Expect a secret with following keys:
+# - keycloak_admin_username:
+# - keycloak_admin_password:
+# - CLIENT_SECRET:
+# - ATTRIBUTES_USERNAME:
+# - ATTRIBUTES_PASSWORD:
+secretRef:
+  name: keycloak-bootstrap-secrets
+
 keycloak:
   clientId: tdf-client
-  clientSecret: 123-456
-  username: keycloakadmin
-  password: mykeycloakpassword
   # if provided, will use custom configuration instead
   customConfig: null
   passwordUsers: testuser@virtru.com,user1,user2
@@ -52,8 +61,6 @@ attributes:
   hostname: http://opentdf-attributes
   realm: tdf
   clientId: dcr-test
-  username: user1
-  password: testuser123
   preloadedAuthorities: null
     # - http://example.fun
     # - http://testing123.fun
