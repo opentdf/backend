@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "entitlements.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.global.opentdf.common.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}

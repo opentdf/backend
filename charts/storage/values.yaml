@@ -23,6 +23,10 @@ image:
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
+
 # Select a specific name for the resource, instead of the default, opentdf-storage
 nameOverride: ""
 

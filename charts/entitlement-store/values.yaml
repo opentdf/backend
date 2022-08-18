@@ -27,6 +27,10 @@ serverPublicName: "entitlement-store"
 
 # Configure the container image to use in the deployment.
 image:
+  # Override for global.opentdf.common.oidcInternalHost & url path
+  internalHost:
+  # Override for global.opentdf.common.oidcExternalHost & url path
+  externalHost:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/entitlement_store
@@ -34,6 +38,10 @@ image:
   # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
+
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
 
 # Select a specific name for the resource, instead of the default, opentdf-entitlement-store
 nameOverride: ""
@@ -100,3 +108,9 @@ postgres:
   user: tdf_entitlement_reader
   # The entitlement schema
   schema: tdf_entitlement
+  # Override for global.opentdf.common.postgres.host
+  host:
+  # Override for global.opentdf.common.postgres.post
+  port:
+  # Override for global.opentdf.common.postgres.database
+  database:

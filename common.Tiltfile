@@ -5,7 +5,6 @@
 
 load("ext://helm_remote", "helm_remote")
 load("ext://helm_resource", "helm_resource", "helm_repo")
-load("ext://secret", "secret_from_dict", "secret_yaml_generic")
 load("ext://min_tilt_version", "min_tilt_version")
 
 min_tilt_version("0.30")

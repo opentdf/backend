@@ -42,6 +42,10 @@ openapiUrl: ""
 # in the form of an environment variable such as:
 # OIDC_CLIENT_SECRET: myclientsecret
 oidc:
+  # Override for global.opentdf.common.oidcInternalHost & url path
+  internalHost:
+  # Override for global.opentdf.common.oidcExternalHost & url path
+  externalHost:
   realm: tdf
   clientId: tdf-attributes
   scopes: email
@@ -55,6 +59,10 @@ image:
   # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
+
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
 
 # Select a specific name for the resource, instead of the default, opentdf-attributes
 nameOverride: ""
@@ -134,3 +142,9 @@ postgres:
   user: tdf_attribute_manager
   # The entitlement schema
   schema: tdf_attribute
+  # Override for global.opentdf.common.postgres.host
+  host:
+  # Override for global.opentdf.common.postgres.post
+  port:
+  # Override for global.opentdf.common.postgres.database
+  database:

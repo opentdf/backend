@@ -66,7 +66,7 @@ Create the name of the service account to use
 Create oidc endpoint from a common value    
 */}}
 {{- define "kas.oidcPubkeyEndpoint" }}
-{{- default .Values.global.opentdf.common.oidcInternalBaseUrl }}
+{{- coalesce .Values.endpoints.oidcPubkeyEndpoint .Values.global.opentdf.common.oidcInternalBaseUrl }}
 {{- end }}
 
 {{- define "kas.secretName" -}}

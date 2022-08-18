@@ -13,8 +13,8 @@ data:
   OIDC_TOKEN_URL: {{ ( include "attributes.oidc.externalUrl" . ) }}/realms/{{ .Values.oidc.realm}}/protocol/openid-connect/token
   OIDC_SCOPES: {{ .Values.oidc.scopes | quote  }}
   OPENAPI_URL: {{ .Values.openapiUrl | quote }}
-  POSTGRES_DATABASE: {{ .Values.global.opentdf.common.postgres.database | quote  }}
-  POSTGRES_HOST: {{ .Values.global.opentdf.common.postgres.host | quote  }}
+  POSTGRES_DATABASE: {{ coalesce .Values.postgres.database .Values.global.opentdf.common.postgres.database | quote  }}
+  POSTGRES_HOST: {{ coalesce .Values.postgres.host .Values.global.opentdf.common.postgres.host | quote  }}
   POSTGRES_SCHEMA: {{ .Values.postgres.schema | quote  }}
   POSTGRES_USER: {{ .Values.postgres.user | quote  }}
   SERVER_LOG_LEVEL: {{ .Values.logLevel | quote }}

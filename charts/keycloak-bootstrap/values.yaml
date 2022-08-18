@@ -26,8 +26,12 @@ global:
 # Is istio in place and requires a wait on the sidecar.
 istioTerminationHack: false
 
+# Deprecated. Use opentdf.externalUrl
+externalUrl:
+
 opentdf:
-  # Base URL for clients. Defaults to oidcExternalBaseUrl
+  # Base URL for clients. Defaults to oidcExternalBaseUrl. A client app's homepage
+  # Defaults to OIDC url without path attached.
   externalUrl:
   # A list of valid redirect paths. Defaults to externalUrl
   redirectUris:
@@ -43,6 +47,9 @@ secretRef:
 
 keycloak:
   clientId: tdf-client
+
+  # override for global.opentdf.common.oidcExternalHost
+  hostname:
   # if provided, will use custom configuration instead
   customConfig: null
   passwordUsers: testuser@virtru.com,user1,user2

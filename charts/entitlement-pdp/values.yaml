@@ -13,6 +13,10 @@ image:
   # tag: 0.0.5
   pullPolicy: IfNotPresent
 
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets when set
+imagePullSecrets:
+
 secret:
   opaPolicyPullSecret: "YOUR_GHCR_PAT_HERE"
 

@@ -46,32 +46,32 @@ spec:
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ ( include "bootstrap.opentdf.externalUrl" . ) }}
+              value: {{ ( include "bootstrap.opentdf.externalUrl" . ) | quote }}
             - name: OPENTDF_REDIRECT_URIS
-              value: {{ ( include "bootstrap.opentdf.redirectUris" . ) }}
+              value: {{ ( include "bootstrap.opentdf.redirectUris" . ) | quote }}
             - name: KEYCLOAK_INTERNAL_URL
-              value: {{ ( include "bootstrap.oidc.internalUrl" . ) }}
+              value: {{ ( include "bootstrap.oidc.internalUrl" . ) | quote }}
             - name: passwordUsers
               value: {{ .Values.keycloak.passwordUsers }}
             {{- with .Values.keycloak.clientId }}
             - name: CLIENT_ID
-              value: {{ . }}
+              value: {{ . | quote }}
             {{- end }}
             {{- with .Values.attributes.hostname }}
             - name: ATTRIBUTE_AUTHORITY_HOST
-              value: {{ . }}
+              value: {{ . | quote }}
             {{- end }}
             {{- with .Values.entitlements.hostname }}
             - name: ENTITLEMENT_HOST
-              value: {{ . }}
+              value: {{ . | quote }}
             {{- end }}
             {{- with .Values.attributes.clientId }}
             - name: ATTRIBUTES_CLIENT_ID
-              value: {{ . }}
+              value: {{ . | quote }}
             {{- end }}
             {{- with .Values.attributes.realm }}
             - name: ATTRIBUTES_REALM
-              value: {{ . }}
+              value: {{ . | quote }}
             {{- end }}
           {{- with .Values.secretRef }}
           envFrom:
@@ -86,7 +86,7 @@ spec:
           configMap:
             name: {{ include "keycloak-bootstrap.fullname" . }}-cm
       restartPolicy: Never
-      {{- with .Values.global.opentdf.common.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}

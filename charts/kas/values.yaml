@@ -2,7 +2,7 @@
 global:
   opentdf:
     common:
-      oidcInternalBaseUrl: http://localhost:65432
+      oidcInternalBaseUrl: http://keycloak-http
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
@@ -35,6 +35,10 @@ image:
   # tag: main
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
+
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
 
 # Select a specific name for the resource, instead of the default, opentdf-kas
 nameOverride: ""
@@ -132,8 +136,8 @@ maxUnavailable: 1
 endpoints:
   attrHost: http://opentdf-attributes:4020
   statsdHost: opentdf-statsd
-  # TODO replace this with a template var instead of a hardcode when Keycloak charts are merged into opentdf/backend.
-  oidcPubkeyEndpoint: http://opentdf-keycloak
+  # Local override for global.opentdf.common.oidcInternalBaseUrl + path
+  oidcPubkeyEndpoint:
 
 # Adds a container livenessProbe, if set.
 livenessProbe:
