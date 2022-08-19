@@ -34,5 +34,5 @@ Create chart name and version as used by the chart label.
 Create OIDC Internal Url from a common value   
 */}}
 {{- define "entityresolution.keycloakUrl" }}
-{{- default .Values.global.opentdf.common.oidcInternalHost }}
+{{- default .Values.global.opentdf.common.oidcInternalBaseUrl }}
 {{- end }}

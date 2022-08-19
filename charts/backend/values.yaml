@@ -10,13 +10,12 @@ boostrapKeycloak: true
 global:
   opentdf:
     common:
-      externalUrl: http://localhost:65432
       # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-      oidcInternalHost: http://keycloak-http
-      # The url path (no precedding / ) to keycloak
+      oidcInternalBaseUrl: http://keycloak-http
+      # The url path (no preceding / ) to keycloak
       oidcUrlPath: auth
       # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-      oidcExternalHost: http://localhost:65432
+      oidcExternalBaseUrl: http://localhost:65432
       # Any existing image pull secrets subcharts should use
       # e.g.
       # imagePullSecrets:
