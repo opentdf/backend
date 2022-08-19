@@ -42,9 +42,9 @@ Create OIDC Internal Url from a common value (if it exists)
 */}}
 {{- define "bootstrap.oidc.internalUrl" }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalHost .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.opentdf.common.oidcInternalHost }}
+{{- default .Values.global.opentdf.common.oidcInternalBaseUrl }}
 {{- end }}
 {{- end }}
 
@@ -52,7 +52,7 @@ Create OIDC Internal Url from a common value (if it exists)
 Create OIDC External Url from a common value (if it exists)
 */}}
 {{- define "bootstrap.oidc.externalUrl" }}
-{{- $extHost := .Values.global.opentdf.common.oidcExternalHost }}
+{{- $extHost := .Values.global.opentdf.common.oidcExternalBaseUrl }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
 {{- printf "%s/%s" $extHost .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
@@ -64,13 +64,13 @@ Create OIDC External Url from a common value (if it exists)
 The base URL for clients by default
 */}}
 {{- define "bootstrap.opentdf.externalUrl" }}
-{{- .Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalHost }}
+{{- .Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalBaseUrl }}
 {{- end }}
 
 {{/*
 Valid redirect URIs
 */}}
 {{- define "bootstrap.opentdf.redirectUris" }}
-{{- $defHost := (.Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalHost) }}
+{{- $defHost := (.Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalBaseUrl) }}
 {{- join " " .Values.opentdf.redirectUris | default (printf "%s/*" $defHost) }}
 {{- end }}
