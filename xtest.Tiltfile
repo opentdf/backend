@@ -13,7 +13,7 @@ k8s_yaml(
         values=["./tests/integration/backend-keycloak-bootstrap-values.xtest.yaml"],
         set=[
             "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
-            "global.opentdf.common.oidcInternalHost=http://keycloak-http",
+            "global.opentdf.common.oidcInternalHost=http://keycloak-http:8080",
             "global.opentdf.common.oidcUrlPath=auth",
             "image.repo=" + CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
         ],
