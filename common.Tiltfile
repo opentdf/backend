@@ -162,7 +162,7 @@ def backend(extra_helm_parameters=[]):
     update_settings(k8s_upsert_timeout_secs=300)
     # Use helm template function, print k8s yaml, then kubectl apply
     yaml = helm(
-        BACKEND_DIR + "./charts/backend",
+        BACKEND_DIR + "/charts/backend",
         name="backend",
         set=[
             "entity-resolution.secret.keycloak.clientSecret=123-456",
