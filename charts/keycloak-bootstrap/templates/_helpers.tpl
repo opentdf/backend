@@ -43,11 +43,13 @@ Create OIDC Internal Url from a common value (if it exists)
 {{- define "bootstrap.oidc.internalUrl" }}
 {{- if .Values.keycloak.hostname }}
 {{- .Values.keycloak.hostname }}
+{{- else }}
 {{- $host := .Values.global.opentdf.common.oidcInternalBaseUrl -}}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
 {{- printf "%s/%s" $host .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
 {{- $host }}
+{{- end }}
 {{- end }}
 {{- end }}
 
