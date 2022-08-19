@@ -48,7 +48,7 @@ secretRef:
 keycloak:
   clientId: tdf-client
 
-  # override for global.opentdf.common.oidcExternalHost
+  # override for global.opentdf.common.oidcExternalBaseUrl
   hostname:
   # if provided, will use custom configuration instead
   customConfig: null

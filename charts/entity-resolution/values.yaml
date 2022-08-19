@@ -30,7 +30,7 @@ config:
   disableTracing: "false"
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   keycloak:
-    # Override for global.opentdf.common.oidcInternalHost
+    # Override for global.opentdf.common.oidcInternalBaseUrl
     url:
     realm: "tdf"
     clientId: "tdf-entity-resolution-service"

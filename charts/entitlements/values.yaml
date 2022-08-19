@@ -42,9 +42,9 @@ openapiUrl: ""
 # in the form of an environment variable such as:
 # OIDC_CLIENT_SECRET: myclientsecret
 oidc:
-  # Override for global.opentdf.common.oidcInternalHost & url path
+  # Override for global.opentdf.common.oidcInternalBaseUrl & url path
   internalHost:
-  # Override for global.opentdf.common.oidcExternalHost & url path
+  # Override for global.opentdf.common.oidcExternalBaseUrl & url path
   externalHost:
   realm: tdf
   clientId: tdf-entitlement

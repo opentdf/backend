@@ -27,9 +27,9 @@ serverPublicName: "entitlement-store"
 
 # Configure the container image to use in the deployment.
 image:
-  # Override for global.opentdf.common.oidcInternalHost & url path
+  # Override for global.opentdf.common.oidcInternalBaseUrl & url path
   internalHost:
-  # Override for global.opentdf.common.oidcExternalHost & url path
+  # Override for global.opentdf.common.oidcExternalBaseUrl & url path
   externalHost:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
