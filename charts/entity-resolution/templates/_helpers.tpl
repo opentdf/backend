@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "entityresolution.name" -}}
+{{- define "entity-resolution.name" -}}
 {{- default .Chart.Name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "entityresolution.fullname" -}}
+{{- define "entity-resolution.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -26,13 +26,13 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "entityresolution.chart" -}}
+{{- define "entity-resolution.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
 Create OIDC Internal Url from a common value   
 */}}
-{{- define "entityresolution.keycloakUrl" }}
+{{- define "entity-resolution.keycloakUrl" }}
 {{- coalesce .Values.config.keycloak.url .Values.global.opentdf.common.oidcInternalBaseUrl }}
 {{- end }}

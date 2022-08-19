@@ -39,7 +39,7 @@ spec:
                 {{- toYaml . | nindent 16 }}
             {{- end }}
             - configMapRef:
-                name: {{ include "attributes.name" . }}-cm
+                name: {{ include "attributes.fullname" . }}-cm
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

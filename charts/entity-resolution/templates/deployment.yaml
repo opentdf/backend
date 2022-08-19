@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "entity-resolution.fullname" . }}
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
     app: {{ .Values.name }}
-    chart: {{ template "entityresolution.chart" . }}
+    chart: {{ include "entity-resolution.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
@@ -31,52 +31,52 @@ spec:
           - name: LISTEN_PORT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: listenPort
           - name: EXTERNAL_HOST
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: externalHost
           - name: VERBOSE
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: verbose
           - name: DISABLE_TRACING
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: disableTracing
           - name: OTLP_COLLECTOR_ENDPOINT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: otlpCollectorEndpoint
           - name: KEYCLOAK_URL
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakUrl
           - name: KEYCLOAK_REALM
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakRealm
           - name: KEYCLOAK_LEGACY
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakLegacy
           - name: KEYCLOAK_CLIENT_ID
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakClientId
           - name: KEYCLOAK_CLIENT_SECRET
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.name }}-keycloak-client-secret
+                name: {{ include "entity-resolution.fullname" . }}-keycloak-client-secret
                 key: keycloakClientSecret
         ports:
           - containerPort: {{ .Values.config.listenPort }}

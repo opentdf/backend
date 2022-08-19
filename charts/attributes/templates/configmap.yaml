@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "attributes.name" . }}-cm
+  name: {{ include "attributes.fullname" . }}-cm
 data:
   # TODO /auth and /token are well-known and can be hardcoded
   # we do not need two config properties for this - just one.

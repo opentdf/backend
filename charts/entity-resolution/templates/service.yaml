@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "entity-resolution.fullname" . }}
   labels:
     app: {{ .Values.name }}
-    chart: {{ template "entityresolution.chart" . }}
+    chart: {{ include "entity-resolution.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:

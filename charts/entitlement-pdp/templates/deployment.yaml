@@ -1,12 +1,13 @@
+{{- $cm := include "entitlement-pdp.fullname" | printf "%s-cm" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "entitlement-pdp.fullname" . }}
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
     app: {{ .Values.name }}
-    chart: {{ template "entitlementpdp.chart" . }}
+    chart: {{ include "entitlement-pdp.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
@@ -31,37 +32,37 @@ spec:
           - name: LISTEN_PORT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: listenPort
           - name: EXTERNAL_HOST
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: externalHost
           - name: VERBOSE
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: verbose
           - name: DISABLE_TRACING
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: disableTracing
           - name: OTLP_COLLECTOR_ENDPOINT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: otlpCollectorEndpoint
           - name: OPA_CONFIG_PATH
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: opaConfigPath
           - name: OPA_POLICYBUNDLE_PULLCRED
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.name }}-secret
+                name: {{ include "entitlement-pdp.fullname" }}-secret
                 key: opaPolicyPullSecret
         ports:
           - containerPort: {{ .Values.config.listenPort }}
@@ -90,7 +91,7 @@ spec:
       volumes:
         - name: opa-config
           configMap:
-            name: {{ .Values.name }}-config
+            name: {{ $cm }}
             # An array of keys from the ConfigMap to create as files
             items:
             - key: "opa-config.yaml"

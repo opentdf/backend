@@ -1,4 +1,8 @@
-name: 'opentdf-entity-resolution'
+# Optionally override the fully qualified name
+fullnameOverride: ""
+
+# Optionally override the name
+nameOverride: ""
 
 # Global values that may be overridden by a parent chart.
 global:
