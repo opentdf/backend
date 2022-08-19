@@ -2,7 +2,7 @@
 global:
   opentdf:
     common:
-      oidcInternalHost: http://localhost:65432
+      oidcInternalBaseUrl: http://localhost:65432
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 

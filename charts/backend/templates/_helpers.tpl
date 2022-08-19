@@ -35,9 +35,20 @@ Create Keycloak External Url
 */}}
 {{- define "backend.keycloak.externalUrl" }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.opentdf.common.oidcExternalHost .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcExternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.opentdf.common.oidcExternalHost }}
+{{- default .Values.global.opentdf.common.oidcExternalBaseUrl }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create Keycloak hostname by extracting from the external url base .Values.global.opentdf.common.oidcExternalBaseUrl
+*/}}
+{{- define "backend.keycloak.externalHostname" }}
+{{- if hasPrefix "http://" .Values.global.opentdf.common.oidcExternalBaseUrl }}
+{{- default ( trimPrefix "http://" .Values.global.opentdf.common.oidcExternalBaseUrl ) }}
+{{- else }}
+{{- default ( trimPrefix "https://" .Values.global.opentdf.common.oidcExternalBaseUrl ) }}
 {{- end }}
 {{- end }}
 

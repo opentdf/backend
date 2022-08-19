@@ -66,9 +66,9 @@ Create OIDC Internal Url from a common value
 */}}
 {{- define "attributes.oidc.internalUrl" }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalHost .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.opentdf.common.oidcInternalHost }}
+{{- default .Values.global.opentdf.common.oidcInternalBaseUrl }}
 {{- end }}
 {{- end }}
 
@@ -78,8 +78,8 @@ Create OIDC External Url from a common value
 */}}
 {{- define "attributes.oidc.externalUrl" }}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.opentdf.common.oidcExternalHost .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcExternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default .Values.global.opentdf.common.oidcExternalHost }}
+{{- default .Values.global.opentdf.common.oidcExternalBaseUrl }}
 {{- end }}
 {{- end }}
