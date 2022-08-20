@@ -3,15 +3,15 @@ kind: Service
 metadata:
   name: {{ include "entity-resolution.fullname" . }}
   labels:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}
     chart: {{ include "entity-resolution.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   ports:
   - port: {{ .Values.config.listenPort }}
-    name: {{ .Values.name }}
+    name: include "entity-resolution.fullname"
     appProtocol: http
     targetPort: {{ .Values.config.listenPort }}
   selector:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}

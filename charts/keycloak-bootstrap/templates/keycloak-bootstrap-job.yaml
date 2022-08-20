@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: {{ .Values.name }}
   labels:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}
     chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
     release: "{{ $.Release.Name }}"
     heritage: "{{ $.Release.Service }}"
@@ -76,7 +76,7 @@ spec:
           {{- with .Values.secretRef }}
           envFrom:
             - secretRef:
-                {{- toYaml . | nindent 16 }}
+                {{- tpl . $ | nindent 16 }}
           {{- end }}
           volumeMounts:
             - name: keycloak-bootstrap-config-volume

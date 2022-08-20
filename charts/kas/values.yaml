@@ -46,9 +46,6 @@ nameOverride: ""
 # The fully qualified appname override
 fullnameOverride: ""
 
-labels:
-  app: "kas"
-
 # A service account to create
 serviceAccount:
   # Specifies whether a service account should be created

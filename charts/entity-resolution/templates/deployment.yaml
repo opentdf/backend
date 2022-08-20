@@ -5,7 +5,7 @@ metadata:
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}
     chart: {{ include "entity-resolution.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -13,18 +13,18 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}
+      app: {{ .Chart.Name | quote }}
       release: {{ .Release.Name }}
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}
+        app: {{ .Chart.Name | quote }}
         release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ .Values.name }}
+      - name: {{ include "entity-resolution.fullname" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:

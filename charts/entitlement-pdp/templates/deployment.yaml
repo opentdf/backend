@@ -1,4 +1,4 @@
-{{- $cm := include "entitlement-pdp.fullname" | printf "%s-cm" -}}
+{{- $cm := include "entitlement-pdp.fullname" . | printf "%s-cm" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,7 +6,7 @@ metadata:
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}
     chart: {{ include "entitlement-pdp.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
@@ -14,18 +14,18 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}
+      app: {{ .Chart.Name | quote }}
       release: {{ .Release.Name }}
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}
+        app: {{ .Chart.Name | quote }}
         release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ .Values.name }}
+      - name: {{ include "entitlement-pdp.fullname" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
@@ -59,11 +59,18 @@ spec:
               configMapKeyRef:
                 name: {{ $cm }}
                 key: opaConfigPath
+          {{- if .Values.createPolicySecret }}
           - name: OPA_POLICYBUNDLE_PULLCRED
             valueFrom:
               secretKeyRef:
-                name: {{ include "entitlement-pdp.fullname" }}-secret
+                name: {{ include "entitlement-pdp.fullname" . }}-secret
                 key: opaPolicyPullSecret
+          {{- end }}
+        envFrom:
+          {{- with .Values.secretRef }}
+          - secretRef:
+            {{- tpl . $ | nindent 12 }}
+          {{- end }}
         ports:
           - containerPort: {{ .Values.config.listenPort }}
         volumeMounts:

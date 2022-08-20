@@ -32,6 +32,7 @@ dependencies:
     condition: embedded.postgresql
     tags: ["third-party"]
   - name: keycloakx
+    alias: keycloak
     repository: https://codecentric.github.io/helm-charts
     version: 1.4.2
     condition: embedded.keycloak

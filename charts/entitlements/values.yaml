@@ -92,8 +92,8 @@ securityContext: {}
 # JSON to locate a k8s secret containing environment variables.
 # Notably, this file should include the following environemnt variable definitions:
 #     POSTGRES_PASSWORD: Password corresponding to postgres.user below
-secretRef:
-  name: entitlements-secrets
+secretRef: |-
+  name: {{ template "entitlements.fullname" . }}-secret
 
 # Service configuation information.
 service:

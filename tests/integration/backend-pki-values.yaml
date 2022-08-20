@@ -10,7 +10,7 @@ kas:
           pathType: Prefix
       host.docker.internal: *paths
 
-keycloakx:
+keycloak:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image

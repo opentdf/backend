@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "entitlement-pdp.fullname" . }}-cm
   labels:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}
     chart: {{ include "entitlement-pdp.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}

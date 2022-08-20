@@ -36,10 +36,10 @@ spec:
           envFrom:
             {{- with .Values.secretRef }}
             - secretRef:
-                {{- toYaml . | nindent 16 }}
+              {{- tpl . $ | nindent 14 }}
             {{- end }}
             - configMapRef:
-                name: {{ include "attributes.fullname" . }}-cm
+              name: {{ include "attributes.fullname" . }}-cm
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

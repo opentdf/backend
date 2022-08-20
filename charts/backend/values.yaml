@@ -53,6 +53,8 @@ secrets:
 
 attributes:
   fullnameOverride: opentdf-attributes
+  secretRef: |-
+    name: "{{ template "attributes.fullname" . }}-otdf-secret"
 entitlement-pdp:
   opaConfig:
     policy:
@@ -62,6 +64,8 @@ entitlement-pdp:
       useStaticPolicy: true
   config:
     disableTracing: true
+  secretRef: |-
+    name: "{{ template "entitlement-pdp.fullname" . }}-otdf-secret"
 entitlement-store:
   fullnameOverride: opentdf-entitlement-store
 entitlements:
@@ -86,7 +90,7 @@ kas:
     verbose: "true"
     disableTracing: "true"
 
-keycloakx:
+keycloak:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
@@ -101,7 +105,7 @@ keycloakx:
     enabled: false
   externalDatabase:
     database: keycloak_database
-  extraEnv: |
+  extraEnv: |-
     - name: KC_LOG_LEVEL
       value: INFO
     - name: CLAIMS_URL
@@ -122,9 +126,9 @@ keycloakx:
       value: "edge"
     - name: JAVA_OPTS_APPEND
       value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
-  extraEnvFrom: |
+  extraEnvFrom: |-
     - secretRef:
-        name: 'opentdf-keycloak-secret'
+        name: "{{ include "keycloak.fullname" . }}-otdf-secret"
   ingress:
     enabled: true
     ingressClassName: nginx
@@ -142,8 +146,8 @@ keycloakx:
     tls: []
 
 keycloak-bootstrap:
-  secretRef:
-    name: keycloak-bootstrap-secrets
+  secretRef: |-
+    name: "{{ template "keycloak-bootstrap.fullname" . }}-otdf-secret"
   keycloak:
     clientId: tdf-client
     realm: tdf
@@ -215,9 +219,11 @@ keycloak-bootstrap:
 
 postgresql:
   #  configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
-  fullnameOverride: opentdf-postgresql
+  fullnameOverride: postgresql
   image:
     debug: true
-  existingSecret: opentdf-postgres-secret
+  existingSecret: >
+    {{ template "postgresql.primary.fullname" . }}-otdf-secret
   initdbUser: postgres
-  initdbScriptsSecret: opentdf-postgresql-initdb-secret
+  initdbScriptsSecret: >
+    {{ include "backend.fullname" $ }}-initdb-secret

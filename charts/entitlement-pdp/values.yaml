@@ -1,4 +1,3 @@
-name: 'opentdf-entitlement-pdp'
 replicaCount: 3
 
 # Global values that may be overridden by a parent chart.
@@ -19,6 +18,9 @@ imagePullSecrets:
 
 secret:
   opaPolicyPullSecret: "YOUR_GHCR_PAT_HERE"
+
+# Additional secrets. You can also add opa
+secretRef:
 
 opaConfigMountPath: "/etc/opa/config"
 

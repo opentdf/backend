@@ -9,8 +9,8 @@ metadata:
 spec:
   ports:
   - port: {{ .Values.config.listenPort }}
-    name: {{ .Values.name }}
+    name: {{ include "entitlement-pdp.fullname" . }}
     appProtocol: http
     targetPort: {{ .Values.config.listenPort }}
   selector:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}

@@ -1,4 +1,3 @@
-name: "keycloak-bootstrap"
 replicaCount: 1
 job:
   backoffLimit: 25
@@ -42,8 +41,8 @@ opentdf:
 # - CLIENT_SECRET:
 # - ATTRIBUTES_USERNAME:
 # - ATTRIBUTES_PASSWORD:
-secretRef:
-  name: keycloak-bootstrap-secrets
+secretRef: |-
+  name: {{ template "keycloak-bootstrap.fullname" . }}-secret
 
 keycloak:
   clientId: tdf-client
