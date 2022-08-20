@@ -52,10 +52,11 @@ secrets:
 
 
 attributes:
-  fullnameOverride: opentdf-attributes
+  fullnameOverride: attributes
   secretRef: |-
     name: "{{ template "attributes.fullname" . }}-otdf-secret"
 entitlement-pdp:
+  fullnameOverride: entitlement-pdp
   opaConfig:
     policy:
       # `Tilt` tries make docker image caching automagic, but it isn't particularly
@@ -67,15 +68,16 @@ entitlement-pdp:
   secretRef: |-
     name: "{{ template "entitlement-pdp.fullname" . }}-otdf-secret"
 entitlement-store:
-  fullnameOverride: opentdf-entitlement-store
+  fullnameOverride: entitlement-store
 entitlements:
-  fullnameOverride: opentdf-entitlements
+  fullnameOverride: entitlements
 entity-resolution:
+  fullnameOverride: entity-resolution
   config:
     keycloak:
       legacy: true
 kas:
-  fullnameOverride: opentdf-kas
+  fullnameOverride: kas
   endpoints:
     easHost: http://opentdf-attributes:4020
     statsdHost: opentdf-statsd
@@ -146,6 +148,7 @@ keycloak:
     tls: []
 
 keycloak-bootstrap:
+  fullnameOverride: keycloak-bootstrap
   secretRef: |-
     name: "{{ template "keycloak-bootstrap.fullname" . }}-otdf-secret"
   keycloak:
@@ -223,7 +226,7 @@ postgresql:
   image:
     debug: true
   existingSecret: >
-    {{ template "postgresql.primary.fullname" . }}-otdf-secret
+    {{ include "postgresql.primary.fullname" . }}-otdf-secret
   initdbUser: postgres
   initdbScriptsSecret: >
-    {{ include "backend.fullname" $ }}-initdb-secret
+    {{ include "postgresql.primary.fullname" . }}-initdb-secret
