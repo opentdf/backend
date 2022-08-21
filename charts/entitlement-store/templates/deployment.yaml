@@ -39,7 +39,7 @@ spec:
                 {{- tpl . $ | nindent 16 }}
             {{- end }}
             - configMapRef:
-              name: {{ include "entitlement-store.name" . }}-cm
+                name: {{ include "entitlement-store.name" . }}-cm
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
