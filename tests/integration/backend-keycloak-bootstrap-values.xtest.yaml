@@ -1,5 +1,12 @@
 fullnameOverride: "xtest-keycloak-bootstrap"
 name: "xtest-keycloak-bootstrap"
+secretRef: |-
+  name: keycloak-bootstrap-otdf-secret
+global:
+  opentdf:
+    common:
+      oidcInternalBaseUrl: http://keycloak-http
+      oidcUrlPath: auth
 keycloak:
   customConfig:  
   - name: tdf
@@ -90,7 +97,7 @@ keycloak:
           type: password
 
 attributes:
-  hostname: http://opentdf-attributes:4020
+  hostname: http://attributes:4020
   realm: tdf
   clientId: dcr-test
   username: user1
@@ -119,7 +126,7 @@ attributes:
 
 
 entitlements:
-  hostname: http://opentdf-entitlements:4030
+  hostname: http://entitlements:4030
   realms:
   - name: tdf
     clientId: dcr-test

@@ -99,7 +99,7 @@ def createPreloaded(
     attribute_username = os.getenv("ATTRIBUTES_USERNAME")
     attribute_password = os.getenv("ATTRIBUTES_PASSWORD")
     attribute_host = os.getenv(
-        "ATTRIBUTE_AUTHORITY_HOST", "http://opentdf-attributes:4020"
+        "ATTRIBUTE_AUTHORITY_HOST", "http://attributes:4020"
     ).rstrip("/")
 
     keycloak_openid = KeycloakOpenID(

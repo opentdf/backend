@@ -6,7 +6,7 @@ global:
       imagePullSecrets: []
       postgres:
         # postgres server's k8s name or global DNS for external server
-        host: opentdf-postgresql
+        host: postgresql
         # postgres server port
         port: 5432
         # The database name within the given server
@@ -43,7 +43,7 @@ image:
 # Overrides global.opentdf.common.imagePullSecrets
 imagePullSecrets:
 
-# Select a specific name for the resource, instead of the default, opentdf-entitlement-store
+# Select a specific name for the resource, instead of the default, entitlement-store
 nameOverride: ""
 
 # The fully qualified appname override

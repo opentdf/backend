@@ -67,7 +67,7 @@ keycloak:
     # - username: user4
     #   password: testuser12345
 attributes:
-  hostname: http://opentdf-attributes
+  hostname: http://attributes
   realm: tdf
   clientId: dcr-test
   preloadedAuthorities: null
@@ -95,7 +95,7 @@ attributes:
   #   - C
   #   - D
 entitlements:
-  hostname: http://opentdf-entitlements
+  hostname: http://entitlements
   realms:
   - name: tdf
     clientId: dcr-test

@@ -84,7 +84,7 @@ kas:
   fullnameOverride: kas
   endpoints:
     attrHost: http://attributes:4020
-    statsdHost: opentdf-statsd
+    statsdHost: statsd
   envConfig:
     attrAuthorityCert:
     ecCert:
@@ -188,7 +188,7 @@ keycloak-bootstrap:
       - PRF
 
   entitlements:
-    hostname: http://entitlements:4020
+    hostname: http://entitlements:4030
     realms:
     - name: tdf
       clientId: dcr-test

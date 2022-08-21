@@ -40,7 +40,7 @@ image:
 # Overrides global.opentdf.common.imagePullSecrets
 imagePullSecrets:
 
-# Select a specific name for the resource, instead of the default, opentdf-kas
+# Select a specific name for the resource, instead of the default, kas
 nameOverride: ""
 
 # The fully qualified appname override
@@ -131,8 +131,8 @@ affinity: {}
 maxUnavailable: 1
 
 endpoints:
-  attrHost: http://opentdf-attributes:4020
-  statsdHost: opentdf-statsd
+  attrHost: http://attributes:4020
+  statsdHost: statsd
   # Local override for global.opentdf.common.oidcInternalBaseUrl + path
   oidcPubkeyEndpoint:
 
