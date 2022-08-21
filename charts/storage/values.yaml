@@ -27,7 +27,7 @@ image:
 # Overrides global.opentdf.common.imagePullSecrets
 imagePullSecrets:
 
-# Select a specific name for the resource, instead of the default, opentdf-storage
+# Select a specific name for the resource, instead of the default, storage
 nameOverride: ""
 
 # The fully qualified appname override

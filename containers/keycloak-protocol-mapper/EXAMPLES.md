@@ -44,7 +44,7 @@ Example:
     ![Google IDP Token Exchage Policy](./readme-images/ehpolicy.png?raw=true)
 
     2. Verify new client policy is displayed   
-    
+
     ![Google IDP Token Exchage Policy](./readme-images/google_idp_wexhpolicy.png?raw=true)
 4. Add token exchange permission to keycloak client
     1. Goto token exchange permission 
@@ -55,9 +55,9 @@ Example:
     
     ![Client IDP Token Exchage Policy](./readme-images/client_expolicy.png?raw=true)
 5. Auth to Google and copy access token: - [google oauth2 playground](https://developers.google.com/oauthplayground/)
-                    
+
 6. Try it out
-    
+
     params:
     - client_id = keycloak client id
     - client_secret = keycloak client secret
@@ -71,7 +71,7 @@ Example:
       --url http://localhost:8080/auth/realms/master/protocol/openid-connect/token \
       --header 'content-type: application/x-www-form-urlencoded' \
       --data 'client_id=test&client_secret=$CLIENT_SECRET&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&subject_token=$SUBJECT_TOKEN&subject_issuer=google&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token&audience=test'
-    ```     
+    ```
 
 
 ### Identity Broker

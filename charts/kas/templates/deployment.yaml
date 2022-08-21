@@ -36,7 +36,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ include "kas.secretName" . }} 
-            {{- if .Values.extraEnvSecretName }}    
+            {{- if .Values.extraEnvSecretName }}
             - secretRef:
                 name: {{ .Values.extraEnvSecretName }} 
             {{- end }}

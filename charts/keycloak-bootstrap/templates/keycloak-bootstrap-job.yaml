@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "keycloak-bootstrap.fullname" . }}
   labels:
     app: {{ .Chart.Name | quote }}
     chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
@@ -11,7 +11,7 @@ spec:
   template:
     spec:
       containers:
-        - name: {{ .Values.name }}
+        - name: {{ include "keycloak-bootstrap.fullname" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           command: ["/bin/sh", "-c"]
@@ -32,7 +32,7 @@ spec:
             - |-
               {{- if .Values.istioTerminationHack }}
               trap "curl --max-time 2 -s -f -XPOST http://127.0.0.1:15000/quitquitquit" EXIT
-              while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do sleep 1; done              
+              while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do sleep 1; done
               {{- end }}
               echo "[INFO] Waiting for service [{{ ( include "bootstrap.oidc.internalUrl" . ) }}]"
               while ! curl -f {{ ( include "bootstrap.oidc.internalUrl" . ) }}/realms/master; do

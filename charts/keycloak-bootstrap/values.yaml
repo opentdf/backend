@@ -1,3 +1,6 @@
+# Select a specific name for the resource, instead of the default, keycloak-bootstrap
+nameOverride: ""
+
 replicaCount: 1
 job:
   backoffLimit: 25

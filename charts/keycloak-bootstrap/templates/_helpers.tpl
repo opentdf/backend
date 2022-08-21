@@ -8,7 +8,7 @@
 Expand the name of the chart.
 */}}
 {{- define "keycloak-bootstrap.name" -}}
-{{- default .Chart.Name | trunc 63 | trimSuffix "-" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
