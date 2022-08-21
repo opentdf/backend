@@ -9,13 +9,17 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/part-of: kas
 data:
-  ATTR_AUTHORITY_HOST: {{ coalesce .Values.endpoints.attrHost .Values.endpoints.easHost | quote  }}
+  {{- with (coalesce .Values.endpoints.attrHost .Values.endpoints.easHost) }}
+  ATTR_AUTHORITY_HOST: {{ tpl . $ | quote  }}
+  {{- end }}
   FLASK_DEBUG: {{ .Values.flaskDebug | quote }}
   GUNICORN_WORKERS: {{ .Values.gunicornWorkers | default 1 | quote }}
   KEYCLOAK_HOST: {{ include "kas.oidcPubkeyEndpoint" . | quote }}
   LOGLEVEL: {{ .Values.logLevel | quote }}
   VERBOSE: {{ .Values.pdp.verbose | quote }}
-  STATSD_HOST: {{ .Values.endpoints.statsdHost | quote }}
+  {{- with .Values.endpoints.statsdHost }}
+  STATSD_HOST: {{ tpl . $ | quote  }}
+  {{- end }}
   DISABLE_TRACING: {{ .Values.pdp.disableTracing | quote }}
 
   USE_KEYCLOAK: "1"

@@ -55,23 +55,23 @@ spec:
               value: {{ .Values.keycloak.passwordUsers }}
             {{- with .Values.keycloak.clientId }}
             - name: CLIENT_ID
-              value: {{ . | quote }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.attributes.hostname }}
             - name: ATTRIBUTE_AUTHORITY_HOST
-              value: {{ . | quote }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.entitlements.hostname }}
             - name: ENTITLEMENT_HOST
-              value: {{ . | quote }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.attributes.clientId }}
             - name: ATTRIBUTES_CLIENT_ID
-              value: {{ . | quote }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.attributes.realm }}
             - name: ATTRIBUTES_REALM
-              value: {{ . | quote }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
           {{- with .Values.secretRef }}
           envFrom:

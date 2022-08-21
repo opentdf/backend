@@ -32,7 +32,7 @@ global:
         password: mykeycloakpassword
       postgres:
         # postgres server's k8s name or global DNS for external server
-        host: opentdf-postgresql
+        host: postgresql
         # postgres server port
         port: 5432
         # The database name within the given server
@@ -69,8 +69,12 @@ entitlement-pdp:
     name: "{{ template "entitlement-pdp.fullname" . }}-otdf-secret"
 entitlement-store:
   fullnameOverride: entitlement-store
+  secretRef: |-
+    name: "{{ template "entitlement-store.fullname" . }}-otdf-secret"
 entitlements:
   fullnameOverride: entitlements
+  secretRef: |-
+    name: "{{ template "entitlements.fullname" . }}-otdf-secret"
 entity-resolution:
   fullnameOverride: entity-resolution
   config:
@@ -79,7 +83,7 @@ entity-resolution:
 kas:
   fullnameOverride: kas
   endpoints:
-    easHost: http://opentdf-attributes:4020
+    attrHost: http://attributes:4020
     statsdHost: opentdf-statsd
   envConfig:
     attrAuthorityCert:
@@ -97,7 +101,7 @@ keycloak:
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: ghcr.io/opentdf/keycloak
-    tag: head
+    tag: main
     pullPolicy: IfNotPresent
   command:
     - "/opt/keycloak/bin/kc.sh"
@@ -111,7 +115,7 @@ keycloak:
     - name: KC_LOG_LEVEL
       value: INFO
     - name: CLAIMS_URL
-      value: http://opentdf-entitlement-pdp:3355/entitlements
+      value: http://entitlement-pdp:3355/entitlements
     - name: KC_DB
       value: postgres
     - name: KC_DB_URL_PORT
@@ -156,7 +160,7 @@ keycloak-bootstrap:
     realm: tdf
 
   attributes:
-    hostname: http://opentdf-attributes:4020
+    hostname: http://attributes:4020
     realm: tdf
     clientId: dcr-test
     preloadedAuthorities:
@@ -184,7 +188,7 @@ keycloak-bootstrap:
       - PRF
 
   entitlements:
-    hostname: http://opentdf-entitlements:4030
+    hostname: http://entitlements:4020
     realms:
     - name: tdf
       clientId: dcr-test

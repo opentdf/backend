@@ -15,7 +15,7 @@ keycloak:
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: ghcr.io/opentdf/keycloak
-    tag: head
+    tag: main
     pullPolicy: IfNotPresent
   command:
     - "/opt/keycloak/bin/kc.sh"
@@ -29,11 +29,11 @@ keycloak:
     - name: KC_LOG_LEVEL
       value: INFO
     - name: CLAIMS_URL
-      value: http://opentdf-entitlement-pdp:3355/entitlements
+      value: http://entitlement-pdp:3355/entitlements
     - name: KC_DB
       value: postgres
     - name: KC_DB_URL_HOST
-      value: opentdf-postgresql
+      value: postgresql
     - name: KC_DB_URL_DATABASE
       value: keycloak_database
     - name: KC_DB_URL_PORT
