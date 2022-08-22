@@ -68,6 +68,7 @@ keycloak:
       value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
   ingress:
     enabled: true
+    # TODO: Fix usage with other rest endpoints
     ingressClassName: nginx
     servicePort: https
     rules:
@@ -75,12 +76,13 @@ keycloak:
         host: "keycloak-http"
         # Paths for the host
         paths:
-          - path: /
+          - path: /auth(/|$)(.*)
             pathType: Prefix
     annotations:
       kubernetes.io/tls-acme: "true"
       ingress.kubernetes.io/affinity: cookie
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/rewrite-target: /auth/$2
       nginx.ingress.kubernetes.io/proxy-ssl-secret: "default/x509-secret"
       nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
       nginx.ingress.kubernetes.io/proxy-ssl-verify-depth: "2"
