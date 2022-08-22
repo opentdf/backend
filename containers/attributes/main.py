@@ -13,7 +13,7 @@ from requests.packages.urllib3.util.retry import Retry
 
 import databases as databases
 import sqlalchemy
-from asyncpg import UniqueViolationError
+from asyncpg import UniqueViolationError, ForeignKeyViolationError
 from fastapi import (
     FastAPI,
     Body,
@@ -976,7 +976,13 @@ async def delete_authorities_crud(request):
             table_authority.c.name == request.authority
         )
     )
-    await database.execute(statement)
+    try:
+        await database.execute(statement)
+    except ForeignKeyViolationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+            detail=f"Delete failed due to foreign-key constraint: {str(e)}"
+        ) from e
     return {}
 
 
