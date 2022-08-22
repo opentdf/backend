@@ -981,7 +981,7 @@ async def delete_authorities_crud(request):
     except ForeignKeyViolationError as e:
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=f"Delete failed due to foreign-key constraint: {str(e)}"
+            detail=f"Unable to delete non-empty authority"
         ) from e
     return {}
 
