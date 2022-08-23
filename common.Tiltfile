@@ -5,7 +5,6 @@
 
 load("ext://helm_remote", "helm_remote")
 load("ext://helm_resource", "helm_resource", "helm_repo")
-load("ext://secret", "secret_from_dict", "secret_yaml_generic")
 load("ext://min_tilt_version", "min_tilt_version")
 
 min_tilt_version("0.30")
@@ -166,7 +165,7 @@ def backend(extra_helm_parameters=[]):
         "ingress-nginx",
         repo_url="https://kubernetes.github.io/ingress-nginx",
         set=["controller.config.large-client-header-buffers=20 32k"],
-        version="4.0.16",
+        version="4.2.1",
     )
 
     k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
@@ -200,7 +199,7 @@ def backend(extra_helm_parameters=[]):
     # configurator scripts and the built-in bootstrap script.
     # Hopefully, either tilt or the helm_resource extension will be improved
     # to avoid this change (or maybe everything will just get faster)
-    update_settings(k8s_upsert_timeout_secs=300)
+    update_settings(k8s_upsert_timeout_secs=1200)
     helm_resource(
         name="backend",
         chart=BACKEND_DIR + "/charts/backend",
@@ -216,7 +215,7 @@ def backend(extra_helm_parameters=[]):
         ],
         image_keys=[
             ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
-            ("keycloakx.image.repository", "keycloakx.image.tag"),
+            ("keycloak.image.repository", "keycloak.image.tag"),
             ("attributes.image.repo", "attributes.image.tag"),
             ("entitlements.image.repo", "entitlements.image.tag"),
             ("entitlement_store.image.repo", "entitlement_store.image.tag"),

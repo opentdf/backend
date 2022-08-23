@@ -1,68 +1,76 @@
+{{- $cm := include "entitlement-pdp.fullname" . | printf "%s-cm" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "entitlement-pdp.fullname" . }}
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
-    app: {{ .Values.name }}
-    chart: {{ template "entitlementpdp.chart" . }}
+    app: {{ .Chart.Name | quote }}
+    chart: {{ include "entitlement-pdp.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}
+      app: {{ .Chart.Name | quote }}
       release: {{ .Release.Name }}
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}
+        app: {{ .Chart.Name | quote }}
         release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ .Values.name }}
+      - name: {{ include "entitlement-pdp.fullname" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
           - name: LISTEN_PORT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: listenPort
           - name: EXTERNAL_HOST
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: externalHost
           - name: VERBOSE
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: verbose
           - name: DISABLE_TRACING
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: disableTracing
           - name: OTLP_COLLECTOR_ENDPOINT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: otlpCollectorEndpoint
           - name: OPA_CONFIG_PATH
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ $cm }}
                 key: opaConfigPath
+          {{- if .Values.createPolicySecret }}
           - name: OPA_POLICYBUNDLE_PULLCRED
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.name }}-secret
+                name: {{ include "entitlement-pdp.fullname" . }}-secret
                 key: opaPolicyPullSecret
+          {{- end }}
+        envFrom:
+          {{- with .Values.secretRef }}
+          - secretRef:
+              {{- tpl . $ | nindent 14 }}
+          {{- end }}
         ports:
           - containerPort: {{ .Values.config.listenPort }}
         volumeMounts:
@@ -90,12 +98,12 @@ spec:
       volumes:
         - name: opa-config
           configMap:
-            name: {{ .Values.name }}-config
+            name: {{ $cm }}
             # An array of keys from the ConfigMap to create as files
             items:
             - key: "opa-config.yaml"
               path: "opa-config.yaml"
-      {{- with .Values.global.opentdf.common.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}

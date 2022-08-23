@@ -6,7 +6,7 @@ global:
       imagePullSecrets: []
       postgres:
         # postgres server's k8s name or global DNS for external server
-        host: opentdf-postgresql
+        host: postgresql
         # postgres server port
         port: 5432
         # The database name within the given server
@@ -27,6 +27,10 @@ serverPublicName: "entitlement-store"
 
 # Configure the container image to use in the deployment.
 image:
+  # Override for global.opentdf.common.oidcInternalBaseUrl & url path
+  internalHost:
+  # Override for global.opentdf.common.oidcExternalBaseUrl & url path
+  externalHost:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/entitlement_store
@@ -35,7 +39,11 @@ image:
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# Select a specific name for the resource, instead of the default, opentdf-entitlement-store
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
+
+# Select a specific name for the resource, instead of the default, entitlement-store
 nameOverride: ""
 
 # The fully qualified appname override
@@ -65,8 +73,8 @@ securityContext: {}
 #     POSTGRES_PASSWORD: Password corresponding to postgres.user below
 #     KAS_CERTIFICATE: Public key for Key Access service
 #     KAS_EC_SECP256R1_CERTIFICATE: Public key (EC Mode) for Key Access service
-secretRef:
-  name: entitlement-store-secrets
+secretRef: |-
+  name: {{ template "entitlement-store.fullname" . }}-secret
 
 # Service configuation information.
 service:
@@ -100,3 +108,9 @@ postgres:
   user: tdf_entitlement_reader
   # The entitlement schema
   schema: tdf_entitlement
+  # Override for global.opentdf.common.postgres.host
+  host:
+  # Override for global.opentdf.common.postgres.post
+  port:
+  # Override for global.opentdf.common.postgres.database
+  database:

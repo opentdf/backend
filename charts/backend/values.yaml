@@ -1,4 +1,9 @@
-name: 'opentdf-backend'
+# Optionally override the fully qualified name
+fullnameOverride: ""
+
+# Optionally override the name
+nameOverride: ""
+
 
 embedded:
   keycloak: true
@@ -27,7 +32,7 @@ global:
         password: mykeycloakpassword
       postgres:
         # postgres server's k8s name or global DNS for external server
-        host: opentdf-postgresql
+        host: postgresql
         # postgres server port
         port: 5432
         # The database name within the given server
@@ -47,8 +52,11 @@ secrets:
 
 
 attributes:
-  fullnameOverride: opentdf-attributes
+  fullnameOverride: attributes
+  secretRef: |-
+    name: "{{ template "attributes.fullname" . }}-otdf-secret"
 entitlement-pdp:
+  fullnameOverride: entitlement-pdp
   opaConfig:
     policy:
       # `Tilt` tries make docker image caching automagic, but it isn't particularly
@@ -57,19 +65,26 @@ entitlement-pdp:
       useStaticPolicy: true
   config:
     disableTracing: true
+  secretRef: |-
+    name: "{{ template "entitlement-pdp.fullname" . }}-otdf-secret"
 entitlement-store:
-  fullnameOverride: opentdf-entitlement-store
+  fullnameOverride: entitlement-store
+  secretRef: |-
+    name: "{{ template "entitlement-store.fullname" . }}-otdf-secret"
 entitlements:
-  fullnameOverride: opentdf-entitlements
+  fullnameOverride: entitlements
+  secretRef: |-
+    name: "{{ template "entitlements.fullname" . }}-otdf-secret"
 entity-resolution:
+  fullnameOverride: entity-resolution
   config:
     keycloak:
       legacy: true
 kas:
-  fullnameOverride: opentdf-kas
+  fullnameOverride: kas
   endpoints:
-    easHost: http://opentdf-attributes:4020
-    statsdHost: opentdf-statsd
+    attrHost: http://attributes:4020
+    statsdHost: statsd
   envConfig:
     attrAuthorityCert:
     ecCert:
@@ -81,12 +96,12 @@ kas:
     verbose: "true"
     disableTracing: "true"
 
-keycloakx:
+keycloak:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: ghcr.io/opentdf/keycloak
-    tag: head
+    tag: main
     pullPolicy: IfNotPresent
   command:
     - "/opt/keycloak/bin/kc.sh"
@@ -96,11 +111,11 @@ keycloakx:
     enabled: false
   externalDatabase:
     database: keycloak_database
-  extraEnv: |
+  extraEnv: |-
     - name: KC_LOG_LEVEL
       value: INFO
     - name: CLAIMS_URL
-      value: http://opentdf-entitlement-pdp:3355/entitlements
+      value: http://entitlement-pdp:3355/entitlements
     - name: KC_DB
       value: postgres
     - name: KC_DB_URL_PORT
@@ -117,12 +132,14 @@ keycloakx:
       value: "edge"
     - name: JAVA_OPTS_APPEND
       value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
-  extraEnvFrom: |
+  extraEnvFrom: |-
     - secretRef:
-        name: 'opentdf-keycloak-secret'
+        name: "{{ include "keycloak.fullname" . }}-otdf-secret"
   ingress:
     enabled: true
     ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /auth/$2
     rules:
       - host: localhost
         paths: &paths
@@ -137,14 +154,15 @@ keycloakx:
     tls: []
 
 keycloak-bootstrap:
-  secretRef:
-    name: keycloak-bootstrap-secrets
+  fullnameOverride: keycloak-bootstrap
+  secretRef: |-
+    name: "{{ template "keycloak-bootstrap.fullname" . }}-otdf-secret"
   keycloak:
     clientId: tdf-client
     realm: tdf
 
   attributes:
-    hostname: http://opentdf-attributes:4020
+    hostname: http://attributes:4020
     realm: tdf
     clientId: dcr-test
     preloadedAuthorities:
@@ -172,7 +190,7 @@ keycloak-bootstrap:
       - PRF
 
   entitlements:
-    hostname: http://opentdf-entitlements:4030
+    hostname: http://entitlements:4030
     realms:
     - name: tdf
       clientId: dcr-test
@@ -210,9 +228,11 @@ keycloak-bootstrap:
 
 postgresql:
   #  configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
-  fullnameOverride: opentdf-postgresql
+  fullnameOverride: postgresql
   image:
     debug: true
-  existingSecret: opentdf-postgres-secret
+  existingSecret: >
+    {{ include "postgresql.primary.fullname" . }}-otdf-secret
   initdbUser: postgres
-  initdbScriptsSecret: opentdf-postgresql-initdb-secret
+  initdbScriptsSecret: >
+    {{ include "postgresql.primary.fullname" . }}-initdb-secret

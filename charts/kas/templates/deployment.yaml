@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "kas.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.global.opentdf.common.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -36,7 +36,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ include "kas.secretName" . }} 
-            {{- if .Values.extraEnvSecretName }}    
+            {{- if .Values.extraEnvSecretName }}
             - secretRef:
                 name: {{ .Values.extraEnvSecretName }} 
             {{- end }}

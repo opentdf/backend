@@ -65,7 +65,7 @@ cli/bin/opentdf.mjs encrypt \
   --kasEndpoint http://localhost:65432/kas \
   --oidcEndpoint http://localhost:65432/keycloak \
   --auth tdf:tdf-client:123-456 \
-  --attributes http://opentdf-kas/attr/default/value/default \
+  --attributes http://kas/attr/default/value/default \
   --output sample.tdf \
   plaintext.txt
 

@@ -2,7 +2,7 @@
 global:
   opentdf:
     common:
-      oidcInternalBaseUrl: http://localhost:65432
+      oidcInternalBaseUrl: http://keycloak-http
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
@@ -36,14 +36,15 @@ image:
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# Select a specific name for the resource, instead of the default, opentdf-kas
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
+
+# Select a specific name for the resource, instead of the default, kas
 nameOverride: ""
 
 # The fully qualified appname override
 fullnameOverride: ""
-
-labels:
-  app: "kas"
 
 # A service account to create
 serviceAccount:
@@ -130,10 +131,10 @@ affinity: {}
 maxUnavailable: 1
 
 endpoints:
-  attrHost: http://opentdf-attributes:4020
-  statsdHost: opentdf-statsd
-  # TODO replace this with a template var instead of a hardcode when Keycloak charts are merged into opentdf/backend.
-  oidcPubkeyEndpoint: http://opentdf-keycloak
+  attrHost: http://attributes:4020
+  statsdHost: statsd
+  # Local override for global.opentdf.common.oidcInternalBaseUrl + path
+  oidcPubkeyEndpoint:
 
 # Adds a container livenessProbe, if set.
 livenessProbe:
