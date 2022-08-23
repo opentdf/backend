@@ -10,12 +10,12 @@ kas:
           pathType: Prefix
       host.docker.internal: *paths
 
-keycloakx:
+keycloak:
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: ghcr.io/opentdf/keycloak
-    tag: head
+    tag: main
     pullPolicy: IfNotPresent
   command:
     - "/opt/keycloak/bin/kc.sh"
@@ -29,11 +29,11 @@ keycloakx:
     - name: KC_LOG_LEVEL
       value: INFO
     - name: CLAIMS_URL
-      value: http://opentdf-entitlement-pdp:3355/entitlements
+      value: http://entitlement-pdp:3355/entitlements
     - name: KC_DB
       value: postgres
     - name: KC_DB_URL_HOST
-      value: opentdf-postgresql
+      value: postgresql
     - name: KC_DB_URL_DATABASE
       value: keycloak_database
     - name: KC_DB_URL_PORT
@@ -68,6 +68,7 @@ keycloakx:
       value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
   ingress:
     enabled: true
+    # TODO: Fix usage with other rest endpoints
     ingressClassName: nginx
     servicePort: https
     rules:
@@ -75,12 +76,13 @@ keycloakx:
         host: "keycloak-http"
         # Paths for the host
         paths:
-          - path: /
+          - path: /auth(/|$)(.*)
             pathType: Prefix
     annotations:
       kubernetes.io/tls-acme: "true"
       ingress.kubernetes.io/affinity: cookie
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/rewrite-target: /auth/$2
       nginx.ingress.kubernetes.io/proxy-ssl-secret: "default/x509-secret"
       nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
       nginx.ingress.kubernetes.io/proxy-ssl-verify-depth: "2"

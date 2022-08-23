@@ -1,13 +1,18 @@
 fullnameOverride: "xtest-keycloak-bootstrap"
 name: "xtest-keycloak-bootstrap"
+secretRef: |-
+  name: keycloak-bootstrap-otdf-secret
+global:
+  opentdf:
+    common:
+      oidcInternalBaseUrl: http://keycloak-http
+      oidcUrlPath: auth
 keycloak:
-  username: keycloakadmin
-  password: mykeycloakpassword
   customConfig:  
   - name: tdf
     payload:
       realm: tdf
-      enabled: "true"      
+      enabled: "true"
     clients:
     - payload:
         clientId: test-client-1
@@ -89,10 +94,10 @@ keycloak:
         enabled: "true"
         credentials:
         - value: testuser123
-          type: password          
+          type: password
 
 attributes:
-  hostname: http://opentdf-attributes:4020
+  hostname: http://attributes:4020
   realm: tdf
   clientId: dcr-test
   username: user1
@@ -121,13 +126,13 @@ attributes:
 
 
 entitlements:
-  hostname: http://opentdf-entitlements:4030
+  hostname: http://entitlements:4030
   realms:
   - name: tdf
     clientId: dcr-test
     username: user1
     password: testuser123
-    preloadedClaims:            
+    preloadedClaims:
       test-client-1:
         - http://testing123.fun/attr/Language/value/french
         - http://testing123.fun/attr/Language/value/spanish
@@ -137,7 +142,7 @@ entitlements:
         - https://example.com/attr/Classification/value/C
         - http://testing123.fun/attr/Language/value/spanish
         - http://testing123.fun/attr/Color/value/green
-      
+
 externalUrl: http://localhost:65432
 
 job:

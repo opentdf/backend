@@ -1,5 +1,3 @@
-
-
 helm repo add secureCodeBox https://charts.securecodebox.io
 
 # Create a new namespace for the secureCodeBox Operator
@@ -7,7 +5,6 @@ kubectl create namespace securecodebox-system
 
 # Install the Operator & CRD's
 helm --namespace securecodebox-system upgrade --install securecodebox-operator --version 3.1.1 secureCodeBox/operator
-
 
 helm upgrade --install zap-advanced secureCodeBox/zap-advanced
 
@@ -22,12 +19,12 @@ data:
   2-zap-advanced-scan-${service_name}.yaml: |-
     contexts:
       - name: scb-context-${service_name}
-        url: http://opentdf-${service}/
+        url: http://${service}/
     apis:
       - name: scb-api-${service_name}
         context: scb-context-${service_name}
         format: openapi
-        url: http://opentdf-${service}/openapi.json
+        url: http://${service}/openapi.json
 ---
 apiVersion: "execution.securecodebox.io/v1"
 kind: Scan
@@ -39,7 +36,7 @@ spec:
   scanType: "zap-advanced-scan"
   parameters:
     - "-t"
-    - "http://opentdf-${service}/"
+    - "http://${service}/"
     - "-r"
     - "HTML"
   volumeMounts:

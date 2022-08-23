@@ -63,44 +63,45 @@ Create the name of the service account to use
 
 
 {{/*
-Create oidc endpoint from a common value    
+Create oidc endpoint from a common value
 */}}
 {{- define "kas.oidcPubkeyEndpoint" }}
-{{- default .Values.global.opentdf.common.oidcInternalHost }}
+{{- $t := coalesce .Values.endpoints.oidcPubkeyEndpoint .Values.global.opentdf.common.oidcInternalBaseUrl }}
+{{- tpl $t $ | nindent 16 }}
 {{- end }}
 
 {{- define "kas.secretName" -}}
 {{- if .Values.externalSecretName }}
-{{- default .Values.externalSecretName }}
+{{- .Values.externalSecretName }}
 {{- else }}
 {{- printf "%s-secrets" ( include "kas.name" . ) }}
 {{- end }}
 {{- end }}
 
 {{- define "kas.secretFromString" -}}
-{{- if and (not .root.Values.externalEnvSecretName) (.value)  }}
-{{- default .value | b64enc }}
+{{- if and (not .root.Values.externalEnvSecretName) .value }}
+{{- b64enc .value }}
 {{- else }}
-{{- default "" }}
+{{- "" }}
 {{- end }}
-{{- end -}}
+{{- end }}
 
 {{- define "kas.ATTR_AUTHORITY_CERTIFICATE" }}
-{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.attrAuthorityCert ) ) }}
+{{- dict "root" . "value" .Values.envConfig.attrAuthorityCert | include "kas.secretFromString" }}
 {{- end }}
 
 {{- define "kas.KAS_EC_SECP256R1_CERTIFICATE" }}
-{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.ecCert ) ) }}
+{{- dict "root" . "value" .Values.envConfig.ecCert | include "kas.secretFromString" }}
 {{- end }}
 
 {{- define "kas.KAS_CERTIFICATE" }}
-{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.cert ) ) }}
+{{- dict "root" . "value" .Values.envConfig.cert | include "kas.secretFromString" }}
 {{- end }}
 
 {{- define "kas.KAS_EC_SECP256R1_PRIVATE_KEY" }}
-{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.ecPrivKey ) ) }}
+{{- dict "root" . "value" .Values.envConfig.ecPrivKey | include "kas.secretFromString" }}
 {{- end }}
 
 {{- define "kas.KAS_PRIVATE_KEY" }}
-{{- default ( include "kas.secretFromString" (dict "root" . "value" .Values.envConfig.privKey ) ) }}
+{{- dict "root" . "value" .Values.envConfig.privKey | include "kas.secretFromString" }}
 {{- end }}

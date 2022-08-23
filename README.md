@@ -121,7 +121,7 @@ helm repo remove keycloak
 - Install [helm](https://helm.sh/)
     - On macOS via Homebrew: `brew install helm`
     - Others see https://helm.sh/docs/intro/install/
-    
+
 - Officially tagged and released container images and Helm charts are stored in Github's ghcr.io OCI image repository.
   - [You must follow github's instructions to log into that repository, and your cluster must have a valid pull secret for this registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
   - You must override the [`backend` chart's](./charts/backend) `global.opentdf.common.imagePullSecrets` property and supply it with the name of your cluster's existing/valid pull secret.
