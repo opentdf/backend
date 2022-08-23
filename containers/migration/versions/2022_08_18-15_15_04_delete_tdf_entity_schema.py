@@ -17,7 +17,8 @@ depends_on = None
 
 
 def upgrade():
-    op.drop_table("entity", schema="tdf_entity")
+    op.execute("DROP TABLE IF EXISTS tdf_entity")
+    op.execute("DROP ROLE IF EXISTS tdf_entity_manager")
     op.execute("DROP ROLE IF EXISTS tdf_entity_manager")
     op.execute("DROP SCHEMA IF EXISTS tdf_entity CASCADE")
 
