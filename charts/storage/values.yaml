@@ -23,7 +23,11 @@ image:
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# Select a specific name for the resource, instead of the default, opentdf-storage
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
+
+# Select a specific name for the resource, instead of the default, storage
 nameOverride: ""
 
 # The fully qualified appname override
@@ -51,8 +55,8 @@ securityContext: {}
 # JSON to locate a k8s secret containing environment variables.
 # Notably, this file should include the following environemnt variable definitions:
 #     POSTGRES_PASSWORD: Password corresponding to postgres.user below
-secretRef:
-  name: storage-secrets
+secretRef: |-
+  name: {{ template "storage.fullname" . }}-secret
 
 # Service configuation information.
 service:

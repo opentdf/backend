@@ -104,9 +104,9 @@ def insertEntitlementAttrsForRealm(
     # entitlement_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
     # entitlement_username = os.getenv("ENTITLEMENT_USERNAME")
     # entitlement_password = os.getenv("ENTITLEMENT_PASSWORD")
-    entitlement_host = os.getenv(
-        "ENTITLEMENT_HOST", "http://opentdf-entitlements:4030"
-    ).rstrip("/")
+    entitlement_host = os.getenv("ENTITLEMENT_HOST", "http://entitlements:4030").rstrip(
+        "/"
+    )
 
     keycloak_openid = KeycloakOpenID(
         # NOTE: `realm_name` IS NOT == `target_realm` here

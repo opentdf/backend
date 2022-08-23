@@ -8,7 +8,7 @@
 Expand the name of the chart.
 */}}
 {{- define "keycloak-bootstrap.name" -}}
-{{- default .Chart.Name | trunc 63 | trimSuffix "-" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -41,22 +41,15 @@ Create chart name and version as used by the chart label.
 Create OIDC Internal Url from a common value (if it exists)
 */}}
 {{- define "bootstrap.oidc.internalUrl" }}
-{{- if .Values.global.opentdf.common.oidcUrlPath }}
-{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
+{{- if .Values.keycloak.hostname }}
+{{- .Values.keycloak.hostname }}
 {{- else }}
-{{- default .Values.global.opentdf.common.oidcInternalBaseUrl }}
-{{- end }}
-{{- end }}
-
-{{/*
-Create OIDC External Url from a common value (if it exists)
-*/}}
-{{- define "bootstrap.oidc.externalUrl" }}
-{{- $extHost := .Values.global.opentdf.common.oidcExternalBaseUrl }}
+{{- $host := .Values.global.opentdf.common.oidcInternalBaseUrl -}}
 {{- if .Values.global.opentdf.common.oidcUrlPath }}
-{{- printf "%s/%s" $extHost .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" $host .Values.global.opentdf.common.oidcUrlPath }}
 {{- else }}
-{{- default $extHost }}
+{{- $host }}
+{{- end }}
 {{- end }}
 {{- end }}
 
@@ -64,13 +57,14 @@ Create OIDC External Url from a common value (if it exists)
 The base URL for clients by default
 */}}
 {{- define "bootstrap.opentdf.externalUrl" }}
-{{- .Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalBaseUrl }}
+{{- coalesce .Values.opentdf.externalUrl .Values.externalUrl .Values.global.opentdf.common.oidcExternalBaseUrl
+  | required "Please define the abacus host URL for redirects" }}
 {{- end }}
 
 {{/*
 Valid redirect URIs
 */}}
 {{- define "bootstrap.opentdf.redirectUris" }}
-{{- $defHost := (.Values.opentdf.externalUrl | default .Values.global.opentdf.common.oidcExternalBaseUrl) }}
+{{- $defHost := coalesce .Values.opentdf.externalUrl .Values.externalUrl .Values.global.opentdf.common.oidcExternalBaseUrl }}
 {{- join " " .Values.opentdf.redirectUris | default (printf "%s/*" $defHost) }}
 {{- end }}
