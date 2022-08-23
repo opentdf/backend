@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "attributes.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.global.opentdf.common.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -36,10 +36,10 @@ spec:
           envFrom:
             {{- with .Values.secretRef }}
             - secretRef:
-                {{- toYaml . | nindent 16 }}
+                {{- tpl . $ | nindent 16 }}
             {{- end }}
             - configMapRef:
-                name: {{ include "attributes.name" . }}-cm
+                name: {{ include "attributes.fullname" . }}-cm
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

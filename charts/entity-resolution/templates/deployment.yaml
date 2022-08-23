@@ -1,82 +1,82 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "entity-resolution.fullname" . }}
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
-    app: {{ .Values.name }}
-    chart: {{ template "entityresolution.chart" . }}
+    app: {{ .Chart.Name | quote }}
+    chart: {{ include "entity-resolution.chart" . | quote }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.name }}
+      app: {{ .Chart.Name | quote }}
       release: {{ .Release.Name }}
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: {{ .Values.name }}
+        app: {{ .Chart.Name | quote }}
         release: {{ .Release.Name }}
     spec:
       containers:
-      - name: {{ .Values.name }}
+      - name: {{ include "entity-resolution.fullname" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
           - name: LISTEN_PORT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: listenPort
           - name: EXTERNAL_HOST
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: externalHost
           - name: VERBOSE
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: verbose
           - name: DISABLE_TRACING
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: disableTracing
           - name: OTLP_COLLECTOR_ENDPOINT
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: otlpCollectorEndpoint
           - name: KEYCLOAK_URL
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakUrl
           - name: KEYCLOAK_REALM
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakRealm
           - name: KEYCLOAK_LEGACY
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakLegacy
           - name: KEYCLOAK_CLIENT_ID
             valueFrom:
               configMapKeyRef:
-                name: {{ .Values.name }}-config
+                name: {{ include "entity-resolution.fullname" . }}-cm
                 key: keycloakClientId
           - name: KEYCLOAK_CLIENT_SECRET
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.name }}-keycloak-client-secret
+                name: {{ include "entity-resolution.fullname" . }}-keycloak-client-secret
                 key: keycloakClientSecret
         ports:
           - containerPort: {{ .Values.config.listenPort }}
@@ -98,7 +98,7 @@ spec:
             port: {{ .Values.config.listenPort }}
           failureThreshold: 30
           periodSeconds: 10
-      {{- with .Values.global.opentdf.common.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
