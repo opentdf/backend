@@ -79,29 +79,6 @@ services:
       timeout: "2s"
       start_period: "5s"
       retries: 1
-  entity:
-    build:
-      args:
-        - PY_VERSION=${PY_VERSION:-3.10}
-      context: ../containers/service_entity
-    depends_on:
-      - migration
-    environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=tdf_entity_manager
-      - POSTGRES_PASSWORD=myPostgresPassword
-      - POSTGRES_DATABASE=tdf_database
-      - POSTGRES_SCHEMA=tdf_entity
-    expose:
-      - 4040
-    restart: always
-    healthcheck:
-      test: "wget -O /dev/null -T 1 localhost:4040/healthz?probe=liveness"
-      interval: "60s"
-      timeout: "2s"
-      start_period: "5s"
-      retries: 1
   kas:
     build:
       args:
