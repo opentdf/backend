@@ -2,8 +2,9 @@ name: Tagging
 
 on:
   push:
-    tags:
-      - '*.*.*'
+    branches: feature/version-updates
+    # tags:
+    #   - '*.*.*'
 
 jobs:
   docker:
