@@ -54,6 +54,15 @@ jobs:
               helm template "$d"
             fi
           done
+      - name: Render Backend With Custom Values
+        run: |
+          cd charts
+          for val_file in ../tests/sample-values/backend-*.yaml ; do
+            if [ -f "backend/Chart.yaml" ]; then
+              echo "Rendering backend with custom values from [${val_file}]..."
+              helm template -f "${val_file}" $d"
+            fi
+          done
 
   scriptcheck:
     runs-on: ubuntu-latest
