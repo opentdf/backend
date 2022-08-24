@@ -60,7 +60,7 @@ jobs:
           for val_file in ../tests/sample-values/backend-*.yaml ; do
             if [ -f "backend/Chart.yaml" ]; then
               echo "Rendering backend with custom values from [${val_file}]..."
-              helm template -f "${val_file}" $d"
+              helm template -f "${val_file}" backend
             fi
           done
 
