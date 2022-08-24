@@ -9,7 +9,7 @@ embedded:
   keycloak: true
   postgresql: true
 
-boostrapKeycloak: true
+bootstrapKeycloak: true
 
 # Global values that may be overridden by a parent chart.
 global:
