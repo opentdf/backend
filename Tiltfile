@@ -5,4 +5,9 @@
 
 load("./common.Tiltfile", "backend")
 
-backend()
+ingress_enable = {
+    ("%s.ingress.enabled" % s): "true"
+    for s in ["attributes", "entitlements", "kas", "keycloak"]
+}
+
+backend(set=ingress_enable)
