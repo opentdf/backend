@@ -148,24 +148,24 @@ keycloak:
   http:
     # Sets KC_HTTP_RELATIVE_PATH
     relativePath: "/auth"
-    # Sets KC_HTTP_ENABLED via backend chart
-    enabled: "true"
   database:
     # Sets KC_DB_URL_PORT
     port: 5432
     # Sets KC_DB
     vendor: postgres
-  claims:
-    # Sets CLAIMS_URL
-    url: http://entitlement-pdp:3355/entitlements
-  hostname:
-    # Sets  KC_HOSTNAME_STRICT_HTTPS
-    strictHttps: "false"
-    # Sets KC_HOSTNAME_STRICT
-    strict: "false"
   extraEnv: |-
     - name: KC_LOG_LEVEL
       value: INFO
+    - name: CLAIMS_URL
+      value: http://entitlement-pdp:3355/entitlements
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_FEATURES
+      value: preview, token-exchange
     - name: JAVA_OPTS_APPEND
       value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
   extraEnvFrom: |-

@@ -21,6 +21,18 @@ keycloak:
     - "/opt/keycloak/bin/kc.sh"
     - "--verbose"
     - "start-dev"
+  proxy:
+    enabled: true
+    # Sets KC_PROXY
+    mode: edge
+  http:
+    # Sets KC_HTTP_RELATIVE_PATH
+    relativePath: "/auth"
+  database:
+    # Sets KC_DB_URL_PORT
+    port: 5432
+    # Sets KC_DB
+    vendor: postgres
   extraEnv: |
     - name: KEYCLOAK_ADMIN
       value: keycloakadmin
@@ -30,14 +42,10 @@ keycloak:
       value: INFO
     - name: CLAIMS_URL
       value: http://entitlement-pdp:3355/entitlements
-    - name: KC_DB
-      value: postgres
     - name: KC_DB_URL_HOST
       value: postgresql
     - name: KC_DB_URL_DATABASE
       value: keycloak_database
-    - name: KC_DB_URL_PORT
-      value: "5432"
     - name: KC_DB_USERNAME
       value: postgres
     - name: KC_DB_PASSWORD
@@ -58,8 +66,6 @@ keycloak:
       value: "/etc/x509/https/tls.crt"
     - name: KC_HTTPS_CERTIFICATE_KEY_FILE
       value: "/etc/x509/https/tls.key"
-    - name: KC_PROXY
-      value: "edge"
     - name: KC_HTTP_ENABLED
       value: "true"
     - name: KC_HOSTNAME_STRICT_HTTPS
