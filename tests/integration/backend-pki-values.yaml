@@ -33,6 +33,8 @@ keycloak:
     port: 5432
     # Sets KC_DB
     vendor: postgres
+  postgresql:
+    enabled: false
   extraEnv: |
     - name: KEYCLOAK_ADMIN
       value: keycloakadmin
