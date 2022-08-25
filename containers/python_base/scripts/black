@@ -72,7 +72,7 @@ _list-changed() {
   # this line:
   # git diff --name-only \
   git diff --name-only --cached --diff-filter=ACM |
-    grep -e '\.py$' -e '^Tiltfile'
+    grep -e '\.py$' -e '^Tiltfile' -e "\.Tiltfile$"
 }
 
 _list-all() {

@@ -63,7 +63,9 @@ def dict_to_helm_set_list(dict):
     return prefix_list("--set", combined)
 
 
-# values: equivalent to values
+# values: list of values files
+# set: dictionary of value_name: value pairs
+# extra_helm_parameters: only valid when devmode=False; passed to underlying `helm update` command
 def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
 
     #   o8o
