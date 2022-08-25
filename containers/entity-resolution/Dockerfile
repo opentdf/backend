@@ -1,6 +1,6 @@
-FROM golang:1.18-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
-ARG GOLANGCI_VERSION=v1.46.2
+ARG GOLANGCI_VERSION=v1.49.0
 ARG COVERAGE_THRESH_PCT=55
 
 ENV GO111MODULE=on \
@@ -10,8 +10,9 @@ ENV GO111MODULE=on \
 RUN apk add --no-cache git=~2 wget=~1
 
 # Get test coverage tool and swagger codegen
-RUN go install github.com/klmitch/overcover@latest \
-    && go install github.com/swaggo/swag/cmd/swag@latest
+RUN go install github.com/klmitch/overcover@latest && \
+    go install github.com/swaggo/swag/cmd/swag@v1.8.4 && \
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_VERSION}
 
 WORKDIR /build
 
@@ -32,12 +33,8 @@ RUN go mod vendor
 # Later, it will be copied as the / (root) of the output image.
 RUN mkdir /dist
 
-# Run linters
-SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
-RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ./ ${GOLANGCI_VERSION}
-
 # TODO this is very slow on `arm64` - like 5x slower
-RUN ./golangci-lint --version && ./golangci-lint run --timeout 20m
+RUN golangci-lint --version && golangci-lint run --timeout 20m
 
 # Run tests
 RUN go test --coverprofile cover.out ./...
@@ -50,7 +47,7 @@ RUN go build -o /dist/entity-resolution-service
 
 
 # Create the minimal runtime image
-FROM golang:1.18-alpine AS emptyfinal
+FROM golang:1.19-alpine AS emptyfinal
 
 COPY --chown=0:0 --from=builder /dist/entity-resolution-service /entity-resolution-service
 
