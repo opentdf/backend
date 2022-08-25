@@ -107,7 +107,7 @@ paths:
     get:
       responses:
         "200":
-          description: ""
+          description: OK
         "503":
           description: Service Unavailable
           schema:
