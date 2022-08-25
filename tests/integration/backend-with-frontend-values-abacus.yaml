@@ -1,0 +1,14 @@
+basePath: ""
+oidc:
+  clientId: dcr-test
+  queryRealms: tdf
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: localhost
+      paths: &paths
+        - path: /
+          pathType: Prefix
+    - host: opentdf.local
+      paths: *paths
