@@ -1,0 +1,8 @@
+linters:
+  # Enable extra, very helpful sublinters beyond the default set
+  # https://golangci-lint.run/usage/linters/#enabled-by-default-linters
+  enable:
+    - bodyclose
+    - gosec
+    - misspell
+    - exportloopref

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/opentdf/v2/entitlement-pdp/handlers"
 
@@ -84,7 +85,10 @@ func main() {
 	defer opaPDPCancel()
 
 	server := &http.Server{
-		Addr: fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
+		Addr:              fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
+		ReadTimeout:       time.Second * 30,
+		WriteTimeout:      time.Second * 30,
+		ReadHeaderTimeout: time.Second * 30,
 	}
 
 	//This otel HTTP handler middleware simply traces all handled request for you - DD needs it
