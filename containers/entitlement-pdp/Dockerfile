@@ -2,6 +2,8 @@ FROM golang:1.19-alpine AS builder
 
 ARG GOLANGCI_VERSION=v1.49.0
 ARG COVERAGE_THRESH_PCT=19
+ARG OPCR_POLICY_VERSION=v0.1.37
+ARG OVERCOVER_VERSION=v1.2.1
 
 ENV GO111MODULE=on \
     CGO_ENABLED=0
@@ -10,7 +12,7 @@ ENV GO111MODULE=on \
 RUN apk add --no-cache git=~2 wget=~1
 
 # Get test coverage tool and swagger codegen
-RUN go install github.com/klmitch/overcover@latest && \
+RUN go install github.com/klmitch/overcover@${OVERCOVER_VERSION} && \
     go install github.com/swaggo/swag/cmd/swag@v1.8.4 && \
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_VERSION}
 
@@ -50,10 +52,10 @@ RUN go build -o /dist/entitlement-pdp
 # but until we have a local OCI registry for offline scenarios, just pack a
 # .tar.gz policy bundle into the cache which can (if OPA is configured accordingly) be used as a fallback
 # when the remote OCI bundle is unreachable.
-RUN go install github.com/opcr-io/policy/cmd/policy@latest
+RUN go install github.com/opcr-io/policy/cmd/policy@${OPCR_POLICY_VERSION}
 
-RUN policy build entitlement-policy -t local:main \
-    && policy save local:main \
+RUN policy build entitlement-policy -t local:$(cat <VERSION) \
+    && policy save local:$(cat <VERSION) \
     && cp bundle.tar.gz /dist/bundle.tar.gz
 
 # Create the minimal runtime image
