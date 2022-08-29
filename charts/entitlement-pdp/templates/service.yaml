@@ -11,5 +11,4 @@ spec:
     appProtocol: http
     targetPort: {{ .Values.config.listenPort }}
   selector:
-  labels:
     {{- include "entitlement-pdp.selectorLabels" . | nindent 4 }}
