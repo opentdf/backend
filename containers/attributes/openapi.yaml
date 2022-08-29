@@ -6,7 +6,7 @@ info:
   license:
     name: BSD 3-Clause Clear
     url: https://github.com/opentdf/backend/blob/main/LICENSE
-  version: 0.9.0
+  version: 1.1.0
   x-logo:
     url: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
 paths:
@@ -170,6 +170,10 @@ paths:
                     - Proprietary
                     - BusinessSensitive
                     - Open
+                  group_by:
+                    authority: https://opentdf.io
+                    name: ClassificationUS
+                    value: Proprietary
         "422":
           description: Validation Error
           content:
@@ -198,6 +202,10 @@ paths:
                 - Proprietary
                 - BusinessSensitive
                 - Open
+              group_by:
+                authority: https://opentdf.io
+                name: ClassificationUS
+                value: Proprietary
         required: true
       responses:
         "200":
@@ -244,6 +252,10 @@ paths:
                 - Proprietary
                 - BusinessSensitive
                 - Open
+              group_by:
+                authority: https://opentdf.io
+                name: ClassificationUS
+                value: Proprietary
         required: true
       responses:
         "200":
@@ -262,6 +274,10 @@ paths:
                   - Proprietary
                   - BusinessSensitive
                   - Open
+                group_by:
+                  authority: https://opentdf.io
+                  name: ClassificationUS
+                  value: Proprietary
         "422":
           description: Validation Error
           content:
@@ -352,6 +368,35 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
       security:
         - OAuth2AuthorizationCodeBearer: []
+    delete:
+      tags:
+        - Authorities
+      summary: Delete Authorities
+      operationId: delete_authorities_authorities_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorityDefinition"
+            example:
+              authority: https://opentdf.io
+        required: true
+      responses:
+        "202":
+          description: No Content
+          content:
+            application/json:
+              schema: {}
+              example:
+                detail: Item deleted
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+      security:
+        - OAuth2AuthorizationCodeBearer: []
 components:
   schemas:
     AttributeDefinition:
@@ -386,6 +431,8 @@ components:
           title: State
           maxLength: 64
           type: string
+        group_by:
+          $ref: "#/components/schemas/AttributeInstance"
       example:
         authority: https://opentdf.io
         name: IntellectualProperty
@@ -396,6 +443,36 @@ components:
           - Proprietary
           - BusinessSensitive
           - Open
+        group_by:
+          authority: https://opentdf.io
+          name: ClassificationUS
+          value: Proprietary
+    AttributeInstance:
+      title: AttributeInstance
+      required:
+        - authority
+        - name
+        - value
+      type: object
+      properties:
+        authority:
+          title: Authority
+          maxLength: 2000
+          minLength: 1
+          type: string
+          format: uri
+        name:
+          title: Name
+          maxLength: 2000
+          type: string
+        value:
+          title: Value
+          maxLength: 2000
+          type: string
+      example:
+        authority: https://opentdf.io
+        name: IntellectualProperty
+        value: Proprietary
     AuthorityDefinition:
       title: AuthorityDefinition
       required:
@@ -454,8 +531,12 @@ components:
           tokenUrl: ""
 tags:
   - name: Attributes
-    description: "Operations to view data attributes. TDF protocol supports ABAC (Attribute Based Access Control). \n        This allows TDF protocol to implement policy driven and highly scalable access control mechanism."
+    description: |-
+      Operations to view data attributes. TDF protocol supports ABAC (Attribute Based Access Control).
+              This allows TDF protocol to implement policy driven and highly scalable access control mechanism.
   - name: Authorities
     description: Operations to view and create attribute authorities.
   - name: Attributes Definitions
     description: "Operations to manage the rules and metadata of attributes. "
+servers:
+  - url: /

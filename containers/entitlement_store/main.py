@@ -9,6 +9,7 @@ from typing import List, Optional
 import databases as databases
 import sqlalchemy
 from fastapi import FastAPI, Request
+from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel, Field
 
 app = FastAPI()
@@ -54,19 +55,47 @@ async def add_response_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="OpenTDF",
+        version="1.1.0",
+        license_info={
+            "name": "BSD 3-Clause Clear",
+            "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
+        },
+        routes=app.routes,
+    )
+    openapi_schema["info"]["x-logo"] = {
+        "url": "https://avatars.githubusercontent.com/u/90051847?s=200&v=4"
+    }
+    openapi_schema["servers"] = [{"url": os.getenv("SERVER_ROOT_PATH", "")}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
+
+
 class EntitleRequest(BaseModel):
     primary_entity_id: str = Field(
         ...,  # Field is required, no default value
-        description=("The identifier for the primary entity entitlements will be fetched for. "
-                     "For PE auth, this will be a PE ID. For NPE auth, this will be an NPE ID.")
-        )
+        description=(
+            "The identifier for the primary entity entitlements will be fetched for. "
+            "For PE auth, this will be a PE ID. For NPE auth, this will be an NPE ID."
+        ),
+    )
     secondary_entity_ids: Optional[List[str]] = Field(
         [],
-        description=("Optional. For PE auth, this will be one or more "
-                     "NPE IDs (client-on-behalf-of-user). "
-                     "For NPE auth, this may be either empty (client-on-behalf-of-itself) "
-                     "or populated with one or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)")
-        )
+        description=(
+            "Optional. For PE auth, this will be one or more "
+            "NPE IDs (client-on-behalf-of-user). "
+            "For NPE auth, this may be either empty (client-on-behalf-of-itself) "
+            "or populated with one or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)"
+        ),
+    )
 
     class Config:
         schema_extra = {
@@ -75,6 +104,7 @@ class EntitleRequest(BaseModel):
                 "secondaryEntityIds": ["46a871f2-6d2a-4d27-b727-e619cfaf4e7b"],
             }
         }
+
 
 class AttributeDisplay(BaseModel):
     attribute: str
@@ -85,20 +115,23 @@ class EntityEntitlements(BaseModel):
     entity_identifier: str
     entity_attributes: List[AttributeDisplay]
 
-@app.post("/entitle",
-          tags=["Entitlements"],
-          response_model=List[EntityEntitlements])
+
+@app.post("/entitle", tags=["Entitlements"], response_model=List[EntityEntitlements])
 async def fetch_entitlements(request: EntitleRequest):
     logger.info("/entitle POST [%s]", request)
 
     entity_entitlements = []
-    fetchedEntitlements = await get_entitlements_for_entity_id(request.primary_entity_id)
+    fetchedEntitlements = await get_entitlements_for_entity_id(
+        request.primary_entity_id
+    )
     logger.debug("fetchedEntitlements [%s]", fetchedEntitlements)
     entity_entitlements.append(fetchedEntitlements)
 
     # Get any additional entitlements for any secondary entities involved in this entitlement grant request.
     for secondary_entity_id in request.secondary_entity_ids:
-        entity_entitlements.append(await get_entitlements_for_entity_id(secondary_entity_id))
+        entity_entitlements.append(
+            await get_entitlements_for_entity_id(secondary_entity_id)
+        )
 
     logger.debug("Returning entitlements: [%s]", entity_entitlements)
     logger.debug("Returning entitlements for entity 0: [%s]", entity_entitlements[0])
@@ -130,6 +163,7 @@ async def read_liveness(probe: ProbeType = ProbeType.liveness):
     if probe == ProbeType.readiness:
         await database.execute("SELECT 1")
 
+
 async def get_entitlements_for_entity_id(entityId: str):
     attributes = []
     query = table_entity_attribute.select().where(
@@ -140,7 +174,11 @@ async def get_entitlements_for_entity_id(entityId: str):
     for row in result:
         uri = f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
         logger.debug("Got attr: [%s]", uri)
-        attributes.append(AttributeDisplay(attribute=uri, displayName=row.get(table_entity_attribute.c.name)))
+        attributes.append(
+            AttributeDisplay(
+                attribute=uri, displayName=row.get(table_entity_attribute.c.name)
+            )
+        )
 
     entity_entitlements = EntityEntitlements(
         entity_identifier=entityId,
@@ -149,6 +187,7 @@ async def get_entitlements_for_entity_id(entityId: str):
 
     logger.debug("Returning entitlements: [%s]", entity_entitlements)
     return entity_entitlements
+
 
 if __name__ == "__main__":
     print(json.dumps(app.openapi()), file=sys.stdout)

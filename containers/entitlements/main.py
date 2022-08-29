@@ -35,9 +35,7 @@ from python_base import Pagination, get_query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-logging.basicConfig(
-    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL")
-)
+logging.basicConfig(stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL"))
 logger = logging.getLogger(__package__)
 
 swagger_ui_init_oauth = {
@@ -51,7 +49,7 @@ swagger_ui_init_oauth = {
 
 
 class Settings(BaseSettings):
-    openapi_url: str = os.getenv("SERVER_ROOT_PATH", "")+"/openapi.json"
+    openapi_url: str = os.getenv("SERVER_ROOT_PATH", "") + "/openapi.json"
     base_path: str = os.getenv("SERVER_ROOT_PATH", "")
 
 
@@ -63,7 +61,9 @@ app = FastAPI(
     servers=[{"url": settings.base_path}],
     swagger_ui_init_oauth=swagger_ui_init_oauth,
     openapi_url=settings.openapi_url,
-    swagger_ui_parameters={"url": os.getenv("SERVER_ROOT_PATH", "")+settings.openapi_url},
+    swagger_ui_parameters={
+        "url": os.getenv("SERVER_ROOT_PATH", "") + settings.openapi_url
+    },
 )
 
 # OpenAPI
@@ -81,7 +81,10 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title="OpenTDF",
         version="1.1.0",
-        license_info={"name": "BSD 3-Clause Clear", "url": "https://github.com/opentdf/backend/blob/main/LICENSE"},
+        license_info={
+            "name": "BSD 3-Clause Clear",
+            "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
+        },
         routes=app.routes,
         tags=tags_metadata,
     )
@@ -110,14 +113,6 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
     tokenUrl=os.getenv("OIDC_TOKEN_URL", ""),
 )
 
-keycloak_openid = KeycloakOpenID(
-    # trailing / is required
-    server_url=os.getenv("OIDC_SERVER_URL"),
-    client_id=os.getenv("OIDC_CLIENT_ID"),
-    realm_name=os.getenv("OIDC_REALM"),
-    client_secret_key=os.getenv("OIDC_CLIENT_SECRET"),
-    verify=True,
-)
 
 def get_retryable_request():
     retry_strategy = Retry(total=3, backoff_factor=1)
@@ -149,9 +144,7 @@ async def get_idp_public_key(realm_id):
 
     if not response.ok:
         logger.warning("No public key found for Keycloak realm %s", realm_id)
-        raise RuntimeError(
-            f"Failed to download Keycloak public key: [{response.text}]"
-        )
+        raise RuntimeError(f"Failed to download Keycloak public key: [{response.text}]")
 
     try:
         resp_json = response.json()
@@ -165,8 +158,11 @@ async def get_idp_public_key(realm_id):
 {resp_json['public_key']}
 -----END PUBLIC KEY-----"""
 
-    logger.debug("Keycloak public key for realm %s: [%s]", realm_id, keycloak_public_key)
+    logger.debug(
+        "Keycloak public key for realm %s: [%s]", realm_id, keycloak_public_key
+    )
     return keycloak_public_key
+
 
 # Looks as `iss` header field of token - if this is a Keycloak-issued token,
 # `iss` will have a value like 'https://<KEYCLOAK_SERVER>/auth/realms/<REALMID>
@@ -183,6 +179,7 @@ def try_extract_realm(unverified_jwt):
     # the realm name for a keycloak-issued token.
     return urlparse(issuer_url).path.rsplit("/", 1)[-1]
 
+
 def has_aud(unverified_jwt, audience):
     aud = unverified_jwt["aud"]
     if not aud:
@@ -195,11 +192,20 @@ def has_aud(unverified_jwt, audience):
         return False
     return True
 
+
 async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
+    keycloak_openid = KeycloakOpenID(
+        # trailing / is required
+        server_url=os.getenv("OIDC_SERVER_URL"),
+        client_id=os.getenv("OIDC_CLIENT_ID"),
+        realm_name=os.getenv("OIDC_REALM"),
+        client_secret_key=os.getenv("OIDC_CLIENT_SECRET"),
+        verify=True,
+    )
     try:
         unverified_decode = keycloak_openid.decode_token(
             token,
-            key='',
+            key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
         if not has_aud(unverified_decode, "tdf-entitlement"):
@@ -367,12 +373,9 @@ class Entitlements(BaseModel):
         }
     },
 )
-async def read_relationship(
-    auth_token=Depends(get_auth),
-    name: Optional[str] = "test"
-):
-    query = (
-        table_entity_attribute.select().where(table_entity_attribute.c.name == name)
+async def read_relationship(auth_token=Depends(get_auth), name: Optional[str] = "test"):
+    query = table_entity_attribute.select().where(
+        table_entity_attribute.c.name == name
     )  # .where(entity_attribute.c.userid == request.userId)
     result = await database.fetch_all(query)
     relationships: List[EntityAttributeRelationship] = []
