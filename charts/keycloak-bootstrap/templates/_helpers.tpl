@@ -1,4 +1,4 @@
-{{- define "imagePullSecret" }}
+{{- define "entity-resolution.imagePullSecret" }}
 {{- with .Values.global.imageCredentials }}
 {{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" .registry .username .password .email (printf "%s:%s" .username .password | b64enc) | b64enc }}
 {{- end }}
@@ -35,6 +35,27 @@ Create chart name and version as used by the chart label.
 {{- define "keycloak-bootstrap.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+
+{{/*
+Common labels
+*/}}
+{{- define "keycloak-bootstrap.labels" -}}
+helm.sh/chart: {{ include "keycloak-bootstrap.chart" . }}
+{{ include "keycloak-bootstrap.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "keycloak-bootstrap.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "keycloak-bootstrap.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
 
 
 {{/*

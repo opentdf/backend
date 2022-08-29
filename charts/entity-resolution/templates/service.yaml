@@ -3,10 +3,7 @@ kind: Service
 metadata:
   name: {{ include "entity-resolution.fullname" . }}
   labels:
-    app: {{ .Chart.Name | quote }}
-    chart: {{ include "entity-resolution.chart" . | quote }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "entity-resolution.labels" . | nindent 4 }}
 spec:
   ports:
   - port: {{ .Values.config.listenPort }}

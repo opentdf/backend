@@ -6,24 +6,20 @@ metadata:
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
-    app: {{ .Chart.Name | quote }}
-    chart: {{ include "entitlement-pdp.chart" . | quote }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "entitlement-pdp.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Chart.Name | quote }}
-      release: {{ .Release.Name }}
+      {{- include "entitlement-pdp.selectorLabels" . | nindent 6 }}
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name | quote }}
-        release: {{ .Release.Name }}
+        {{- include "entitlement-pdp.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "entitlement-pdp.serviceAccountName" . }}
       containers:
       - name: {{ include "entitlement-pdp.fullname" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
