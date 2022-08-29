@@ -1,28 +1,42 @@
-name: 'opentdf-backend'
+# Optionally override the fully qualified name
+fullnameOverride: ""
+
+# Optionally override the name
+nameOverride: ""
+
 
 embedded:
   keycloak: true
   postgresql: true
 
-boostrapKeycloak: true
+bootstrapKeycloak: true
 
 # Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
-      externalUrl: http://localhost:65432
       # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-      oidcInternalHost: http://keycloak-http
-      # The url path (no precedding / ) to keycloak
+      oidcInternalBaseUrl: http://keycloak-http
+      # The url path (no preceding / ) to keycloak
       oidcUrlPath: auth
       # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
-      oidcExternalHost: http://localhost:65432
+      oidcExternalBaseUrl: http://localhost:65432
       # Any existing image pull secrets subcharts should use
       # e.g.
       # imagePullSecrets:
       #   - name: my-existing-ghcr-pullsecret
       #   - name: my-other-pullsecret
       imagePullSecrets: []
+      keycloak:
+        user: keycloakadmin
+        password: mykeycloakpassword
+      postgres:
+        # postgres server's k8s name or global DNS for external server
+        host: postgresql
+        # postgres server port
+        port: 5432
+        # The database name within the given server
+        database: tdf_database
 
 secrets:
   opaPolicyPullSecret:
@@ -30,13 +44,29 @@ secrets:
   postgres:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin
-  keycloak:
-    user: keycloakadmin
-    password: mykeycloakpassword
+  keycloakBootstrap:
+    clientSecret: 123-456
+    attributes:
+      username: user1
+      password: testuser123
+
 
 attributes:
-  fullnameOverride: opentdf-attributes
+  fullnameOverride: attributes
+  secretRef: |-
+    name: "{{ template "attributes.fullname" . }}-otdf-secret"
+  ingress:
+    enabled: false
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    className: nginx
+    hosts:
+      localhost: &pathsAttributes
+        "/api/attributes(/|$)(.*)":
+          pathType: Prefix
+      opentdf.local: *pathsAttributes
 entitlement-pdp:
+  fullnameOverride: entitlement-pdp
   opaConfig:
     policy:
       # `Tilt` tries make docker image caching automagic, but it isn't particularly
@@ -45,25 +75,52 @@ entitlement-pdp:
       useStaticPolicy: true
   config:
     disableTracing: true
+  secretRef: |-
+    name: "{{ template "entitlement-pdp.fullname" . }}-otdf-secret"
 entitlement-store:
-  fullnameOverride: opentdf-entitlement-store
+  fullnameOverride: entitlement-store
+  secretRef: |-
+    name: "{{ template "entitlement-store.fullname" . }}-otdf-secret"
 entitlements:
-  fullnameOverride: opentdf-entitlements
+  fullnameOverride: entitlements
+  secretRef: |-
+    name: "{{ template "entitlements.fullname" . }}-otdf-secret"
+  ingress:
+    enabled: false
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    className: nginx
+    hosts:
+      localhost: &pathsEntitlements
+        "/api/entitlements(/|$)(.*)":
+          pathType: Prefix
+      opentdf.local: *pathsEntitlements
 entity-resolution:
+  fullnameOverride: entity-resolution
   config:
     keycloak:
       legacy: true
 kas:
-  fullnameOverride: opentdf-kas
+  fullnameOverride: kas
   endpoints:
-    easHost: http://opentdf-attributes:4020
-    statsdHost: opentdf-statsd
+    attrHost: http://attributes:4020
+    statsdHost: statsd
   envConfig:
     attrAuthorityCert:
     ecCert:
     cert:
     ecPrivKey:
     privKey:
+  ingress:
+    enabled: false
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    className: nginx
+    hosts:
+      localhost: &pathsKas
+        "/api/kas(/|$)(.*)":
+          pathType: Prefix
+      opentdf.local: *pathsKas
   logLevel: DEBUG
   pdp:
     verbose: "true"
@@ -75,50 +132,65 @@ keycloak:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
     repository: ghcr.io/opentdf/keycloak
     tag: main
+    pullPolicy: IfNotPresent
+  command:
+    - "/opt/keycloak/bin/kc.sh"
+    - "--verbose"
+    - "start-dev"
   postgresql:
     enabled: false
   externalDatabase:
-    host: opentdf-postgresql
     database: keycloak_database
-  extraEnv: |
+  extraEnv: |-
+    - name: KC_LOG_LEVEL
+      value: INFO
     - name: CLAIMS_URL
-      value: http://opentdf-entitlement-pdp:3355/entitlements
+      value: http://entitlement-pdp:3355/entitlements
+    - name: KC_DB
+      value: postgres
+    - name: KC_DB_URL_PORT
+      value: "5432"
+    - name: KC_HTTP_RELATIVE_PATH
+      value: "/auth"
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+    - name: KC_HTTP_ENABLED
+      value: "true"
+    - name: KC_PROXY
+      value: "edge"
     - name: JAVA_OPTS_APPEND
-      value: -Dkeycloak.profile=preview -Dkeycloak.profile.feature.token_exchange=enabled
-  extraEnvFrom: |
+      value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
+  extraEnvFrom: |-
     - secretRef:
-        name: 'opentdf-keycloak-secret'
+        name: "{{ include "keycloak.fullname" . }}-otdf-secret"
   ingress:
-    enabled: true
+    enabled: false
     ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /auth/$2
     rules:
       - host: localhost
         paths: &paths
           - path: /auth(/|$)(.*)
             pathType: Prefix
-      - host: host.docker.internal
-        paths: *paths
-      - host: offline.demo.internal
-        paths: *paths
       - host: opentdf.local
         paths: *paths
     tls: []
 
 keycloak-bootstrap:
-
+  fullnameOverride: keycloak-bootstrap
+  secretRef: |-
+    name: "{{ template "keycloak-bootstrap.fullname" . }}-otdf-secret"
   keycloak:
-    username: keycloakadmin
-    password: mykeycloakpassword
     clientId: tdf-client
-    clientSecret: 123-456
     realm: tdf
 
   attributes:
-    hostname: http://opentdf-attributes:4020
+    hostname: http://attributes:4020
     realm: tdf
     clientId: dcr-test
-    username: user1
-    password: testuser123
     preloadedAuthorities:
     - https://example.com
     preloadedAttributes:
@@ -144,7 +216,7 @@ keycloak-bootstrap:
       - PRF
 
   entitlements:
-    hostname: http://opentdf-entitlements:4030
+    hostname: http://entitlements:4030
     realms:
     - name: tdf
       clientId: dcr-test
@@ -182,9 +254,11 @@ keycloak-bootstrap:
 
 postgresql:
   #  configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
-  fullnameOverride: opentdf-postgresql
+  fullnameOverride: postgresql
   image:
     debug: true
-  existingSecret: opentdf-postgres-secret
+  existingSecret: >
+    {{ include "postgresql.primary.fullname" . }}-otdf-secret
   initdbUser: postgres
-  initdbScriptsSecret: opentdf-postgresql-initdb-secret
+  initdbScriptsSecret: >
+    {{ include "postgresql.primary.fullname" . }}-initdb-secret

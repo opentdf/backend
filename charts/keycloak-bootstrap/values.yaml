@@ -1,4 +1,6 @@
-name: "keycloak-bootstrap"
+# Select a specific name for the resource, instead of the default, keycloak-bootstrap
+nameOverride: ""
+
 replicaCount: 1
 job:
   backoffLimit: 25
@@ -17,23 +19,39 @@ pki:
 global:
   opentdf:
     common:
-      oidcInternalHost: http://keycloak-http
-      oidcExternalHost: http://localhost:65432
+      oidcInternalBaseUrl: http://keycloak-http
+      oidcExternalBaseUrl: http://localhost:65432
       oidcUrlPath: auth
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
+# Is istio in place and requires a wait on the sidecar.
+istioTerminationHack: false
+
+# Deprecated. Use opentdf.externalUrl
+externalUrl:
+
 opentdf:
-  # Base URL for clients. Defaults to oidcExternalHost
+  # Base URL for clients. Defaults to oidcExternalBaseUrl. A client app's homepage
+  # Defaults to OIDC url without path attached.
   externalUrl:
   # A list of valid redirect paths. Defaults to externalUrl
   redirectUris:
 
+# Expect a secret with following keys:
+# - keycloak_admin_username:
+# - keycloak_admin_password:
+# - CLIENT_SECRET:
+# - ATTRIBUTES_USERNAME:
+# - ATTRIBUTES_PASSWORD:
+secretRef: |-
+  name: {{ template "keycloak-bootstrap.fullname" . }}-secret
+
 keycloak:
   clientId: tdf-client
-  clientSecret: 123-456
-  username: keycloakadmin
-  password: mykeycloakpassword
+
+  # override for global.opentdf.common.oidcExternalBaseUrl
+  hostname:
   # if provided, will use custom configuration instead
   customConfig: null
   passwordUsers: testuser@virtru.com,user1,user2
@@ -49,11 +67,9 @@ keycloak:
     # - username: user4
     #   password: testuser12345
 attributes:
-  hostname: http://opentdf-attributes
+  hostname: http://attributes
   realm: tdf
   clientId: dcr-test
-  username: user1
-  password: testuser123
   preloadedAuthorities: null
     # - http://example.fun
     # - http://testing123.fun
@@ -79,7 +95,7 @@ attributes:
   #   - C
   #   - D
 entitlements:
-  hostname: http://opentdf-entitlements
+  hostname: http://entitlements
   realms:
   - name: tdf
     clientId: dcr-test

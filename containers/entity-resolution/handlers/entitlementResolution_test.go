@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+//nolint:gosec
 const token_resp string = `
 { 
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
@@ -104,6 +104,8 @@ func Test_BadRequest_Get(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
+
 	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 }
 
@@ -123,6 +125,7 @@ func Test_BadRequestPost(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	// no type
@@ -134,6 +137,7 @@ func Test_BadRequestPost(t *testing.T) {
 	handler2.ServeHTTP(w2, testReq2)
 
 	resp2 := w2.Result()
+	defer resp2.Body.Close()
 	assert.Equal(t, http.StatusBadRequest, resp2.StatusCode)
 }
 
@@ -154,10 +158,12 @@ func Test_ByEmail(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
+
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var deserializedResp []EntityResolution
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	err = json.Unmarshal(body, &deserializedResp)
 	assert.Nil(t, err)
@@ -191,10 +197,11 @@ func Test_ByGroupEmail(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var deserializedResp []EntityResolution
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	err = json.Unmarshal(body, &deserializedResp)
 	assert.Nil(t, err)
@@ -219,10 +226,11 @@ func Test_ByUsername(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var deserializedResp []EntityResolution
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	err = json.Unmarshal(body, &deserializedResp)
 	assert.Nil(t, err)

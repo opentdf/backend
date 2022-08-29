@@ -11,30 +11,64 @@ kas:
       host.docker.internal: *paths
 
 keycloak:
+  fullnameOverride: keycloak
+  image:
+    # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
+    repository: ghcr.io/opentdf/keycloak
+    tag: main
+    pullPolicy: IfNotPresent
+  command:
+    - "/opt/keycloak/bin/kc.sh"
+    - "--verbose"
+    - "start-dev"
   extraEnv: |
-    - name: KEYCLOAK_LOGLEVEL
-      value: INFO
-    - name: KEYCLOAK_USER
+    - name: KEYCLOAK_ADMIN
       value: keycloakadmin
-    - name: KEYCLOAK_PASSWORD
+    - name: KEYCLOAK_ADMIN_PASSWORD
       value: mykeycloakpassword
+    - name: KC_LOG_LEVEL
+      value: INFO
     - name: CLAIMS_URL
-      value: http://opentdf-entitlement-pdp:3355/entitlements
-    - name: DB_VENDOR
+      value: http://entitlement-pdp:3355/entitlements
+    - name: KC_DB
       value: postgres
-    - name: DB_ADDR
-      value: opentdf-postgresql
-    - name: DB_DATABASE
+    - name: KC_DB_URL_HOST
+      value: postgresql
+    - name: KC_DB_URL_DATABASE
       value: keycloak_database
-    - name: DB_PORT
+    - name: KC_DB_URL_PORT
       value: "5432"
-    - name: KEYCLOAK_PROXY_ADDRESS_FORWARDING
+    - name: KC_DB_USERNAME
+      value: postgres
+    - name: KC_DB_PASSWORD
+      value: myPostgresPassword
+    - name: KC_HOSTNAME
+      value: "keycloak-http:4567"
+    - name: KC_HOSTNAME_ADMIN
+      value: "keycloak-http:4567"
+    - name: KC_SPI_X509CERT_LOOKUP_PROVIDER
+      value: nginx
+    - name: KC_SPI_X509CERT_LOOKUP_NGINX_SSL_CLIENT_CERT
+      value: "ssl-client-cert"
+    - name: KEYCLOAK_X509CERT_LOOKUP_NGINX_SSL_CERT_CHAIN_PREFIX
+      value: "USELESS"
+    - name: KEYCLOAK_X509CERT_LOOKUP_NGINX_SSL_CERTIFICATE_CHAIN_LENGTH
+      value: "2"
+    - name: KC_HTTPS_CERTIFICATE_FILE
+      value: "/etc/x509/https/tls.crt"
+    - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+      value: "/etc/x509/https/tls.key"
+    - name: KC_PROXY
+      value: "edge"
+    - name: KC_HTTP_ENABLED
       value: "true"
-    - name: X509_CA_BUNDLE
-      value: /etc/x509/https/ca.crt
-
+    - name: KC_HOSTNAME_STRICT_HTTPS
+      value: "false"
+    - name: JAVA_OPTS_APPEND
+      value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
   ingress:
     enabled: true
+    # TODO: Fix usage with other rest endpoints
     ingressClassName: nginx
     servicePort: https
     rules:
@@ -42,12 +76,13 @@ keycloak:
         host: "keycloak-http"
         # Paths for the host
         paths:
-          - path: /
+          - path: /auth(/|$)(.*)
             pathType: Prefix
     annotations:
       kubernetes.io/tls-acme: "true"
       ingress.kubernetes.io/affinity: cookie
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/rewrite-target: /auth/$2
       nginx.ingress.kubernetes.io/proxy-ssl-secret: "default/x509-secret"
       nginx.ingress.kubernetes.io/proxy-ssl-verify: "off"
       nginx.ingress.kubernetes.io/proxy-ssl-verify-depth: "2"
@@ -70,15 +105,3 @@ keycloak:
   extraVolumeMounts: |
     - name: x509
       mountPath: /etc/x509/https
-  startupScripts:
-    keycloak.cli: |
-      embed-server --server-config=standalone-ha.xml --std-out=echo
-      batch
-      /subsystem=keycloak-server/spi=x509cert-lookup:write-attribute(name=default-provider, value="nginx")
-      /subsystem=keycloak-server/spi=x509cert-lookup/provider=default:remove
-      /subsystem=keycloak-server/spi=x509cert-lookup/provider=nginx:add(enabled=true,properties={sslClientCert => "ssl-client-cert", sslCertChainPrefix => "USELESS",     certificateChainLength => "2"})
-      /subsystem=logging/logger=org.keycloak.authentication.authenticators.x509/:add(category=org.keycloak.authentication.authenticators.x509,level=TRACE)
-      /subsystem=logging/logger=org.keycloak.services.x509/:add(category=org.keycloak.services.x509,level=TRACE)
-      /subsystem=logging/logger=com.virtru.keycloak.AttributeOIDCProtocolMapper/:add(category=com.virtru.keycloak.AttributeOIDCProtocolMapper,level=TRACE)
-      run-batch
-      stop-embedded-server

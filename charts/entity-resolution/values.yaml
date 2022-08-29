@@ -1,10 +1,14 @@
-name: 'opentdf-entity-resolution'
+# Optionally override the fully qualified name
+fullnameOverride: ""
+
+# Optionally override the name
+nameOverride: ""
 
 # Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
-      oidcInternalHost: "http://keycloak-http"
+      oidcInternalBaseUrl: "http://keycloak-http"
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
@@ -13,6 +17,10 @@ image:
   repo: ghcr.io/opentdf/entity-resolution
   # tag: 0.0.5 # Chart AppVersion will be used if this is not explicitly set.
   pullPolicy: IfNotPresent
+
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
 
 createKeycloakClientSecret: true
 secret:
@@ -26,6 +34,8 @@ config:
   disableTracing: "false"
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   keycloak:
+    # Override for global.opentdf.common.oidcInternalBaseUrl
+    url:
     realm: "tdf"
     clientId: "tdf-entity-resolution-service"
     # See https://github.com/Nerzal/gocloak/issues/346

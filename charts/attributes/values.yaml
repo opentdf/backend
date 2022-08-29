@@ -2,11 +2,18 @@
 global:
   opentdf:
     common:
-      oidcInternalHost: http://keycloak-http
-      oidcExternalHost: http://localhost:65432
+      oidcInternalBaseUrl: http://keycloak-http
+      oidcExternalBaseUrl: http://localhost:65432
       oidcUrlPath: auth
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
+      postgres:
+        # postgres server's k8s name or global DNS for external server
+        host: postgresql
+        # postgres server port
+        port: 5432
+        # The database name within the given server
+        database: tdf_database
 
 # Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
@@ -35,6 +42,10 @@ openapiUrl: ""
 # in the form of an environment variable such as:
 # OIDC_CLIENT_SECRET: myclientsecret
 oidc:
+  # Override for global.opentdf.common.oidcInternalBaseUrl & url path
+  internalHost:
+  # Override for global.opentdf.common.oidcExternalBaseUrl & url path
+  externalHost:
   realm: tdf
   clientId: tdf-attributes
   scopes: email
@@ -49,7 +60,11 @@ image:
   # The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# Select a specific name for the resource, instead of the default, opentdf-attributes
+# JSON passed to the deployment's template.spec.imagePullSecrets.
+# Overrides global.opentdf.common.imagePullSecrets
+imagePullSecrets:
+
+# Select a specific name for the resource, instead of the default, attributes
 nameOverride: ""
 
 # The fully qualified appname override
@@ -77,8 +92,8 @@ securityContext: {}
 # JSON to locate a k8s secret containing environment variables.
 # Notably, this file should include the following environemnt variable definitions:
 #     POSTGRES_PASSWORD: Password corresponding to postgres.user below
-secretRef:
-  name: attributes-secrets
+secretRef: |-
+  name: "{{ template "attributes.fullname" . }}-secret"
 
 # Service configuation information.
 service:
@@ -123,13 +138,13 @@ affinity: {}
 
 # Configuration for the database backend
 postgres:
-  # postgres server's k8s name or global DNS for external server
-  host: opentdf-postgresql
-  # postgres server port
-  port: 5432
   # Must be a postgres user with tdf_attribute_manager role
   user: tdf_attribute_manager
-  # The database name within the given server
-  database: tdf_database
   # The entitlement schema
   schema: tdf_attribute
+  # Override for global.opentdf.common.postgres.host
+  host:
+  # Override for global.opentdf.common.postgres.post
+  port:
+  # Override for global.opentdf.common.postgres.database
+  database:

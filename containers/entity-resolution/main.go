@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 	"net/http"
 
 	"github.com/caarlos0/env"
@@ -79,7 +80,10 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr: fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
+		Addr:              fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
+		ReadTimeout:       time.Second * 30,
+		WriteTimeout:      time.Second * 30,
+		ReadHeaderTimeout: time.Second * 30,
 	}
 
 	http.Handle("/docs/", handlers.GetSwaggerHandler(server.Addr))

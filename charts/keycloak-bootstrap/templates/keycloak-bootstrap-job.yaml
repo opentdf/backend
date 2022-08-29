@@ -1,9 +1,9 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Values.name }}
+  name: {{ include "keycloak-bootstrap.fullname" . }}
   labels:
-    app: {{ .Values.name }}
+    app: {{ .Chart.Name | quote }}
     chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
     release: "{{ $.Release.Name }}"
     heritage: "{{ $.Release.Service }}"
@@ -11,7 +11,7 @@ spec:
   template:
     spec:
       containers:
-        - name: {{ .Values.name }}
+        - name: {{ include "keycloak-bootstrap.fullname" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           command: ["/bin/sh", "-c"]
@@ -19,8 +19,21 @@ spec:
           #
           # JBOSS keycloak is super slow, and if we start this job immediately and rely on job backoffs to do this,
           # it takes a lot longer because of increasing backoff durations as Keycloak comes up.
+          #
+          # The following conditional istioTerminationHack  does 2 things:
+          # 1. Waits for the Istio proxy sidecar to be ready before continuing.
+          # 2. Tells the istio proxy sidecar to exit once we're done - otherwise
+          # it will keep running and the job will never complete - this is arguably not a bug,
+          # since you don't _want_ your mesh proxy to quit normally.
+          # For more details, see Istio bug: https://github.com/istio/istio/issues/11659
+          # (this arguably isn't an Istio bug, but a Kube one, since you don't WANT containers in a Pod to be able to
+          # terminate their own Pod's proxy)
           args:
             - |-
+              {{- if .Values.istioTerminationHack }}
+              trap "curl --max-time 2 -s -f -XPOST http://127.0.0.1:15000/quitquitquit" EXIT
+              while ! curl -s -f http://127.0.0.1:15020/healthz/ready; do sleep 1; done
+              {{- end }}
               echo "[INFO] Waiting for service [{{ ( include "bootstrap.oidc.internalUrl" . ) }}]"
               while ! curl -f {{ ( include "bootstrap.oidc.internalUrl" . ) }}/realms/master; do
                 sleep 1
@@ -33,55 +46,37 @@ spec:
             - name: ENABLE_PKI_BROWSER
               value: {{ .Values.pki.browserEnable | quote }}
             - name: OPENTDF_EXTERNAL_URL
-              value: {{ ( include "bootstrap.opentdf.externalUrl" . ) }}
+              value: {{ ( include "bootstrap.opentdf.externalUrl" . ) | quote }}
             - name: OPENTDF_REDIRECT_URIS
-              value: {{ ( include "bootstrap.opentdf.redirectUris" . ) }}
+              value: {{ ( include "bootstrap.opentdf.redirectUris" . ) | quote }}
             - name: KEYCLOAK_INTERNAL_URL
-              value: {{ ( include "bootstrap.oidc.internalUrl" . ) }}
-            - name: keycloak_admin_username
-              value: {{ .Values.keycloak.username }}
-            {{- with .Values.keycloak.password }}
-            - name: keycloak_admin_password
-              value: {{ . }}
-            {{- end }}
+              value: {{ ( include "bootstrap.oidc.internalUrl" . ) | quote }}
             - name: passwordUsers
               value: {{ .Values.keycloak.passwordUsers }}
             {{- with .Values.keycloak.clientId }}
             - name: CLIENT_ID
-              value: {{ . }}
-            {{- end }}
-            {{- with .Values.keycloak.clientSecret }}
-            - name: CLIENT_SECRET
-              value: {{ . }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.attributes.hostname }}
             - name: ATTRIBUTE_AUTHORITY_HOST
-              value: {{ . }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.entitlements.hostname }}
             - name: ENTITLEMENT_HOST
-              value: {{ . }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.attributes.clientId }}
             - name: ATTRIBUTES_CLIENT_ID
-              value: {{ . }}
-            {{- end }}
-            {{- with .Values.attributes.username }}
-            - name: ATTRIBUTES_USERNAME
-              value: {{ . }}
-            {{- end }}
-            {{- with .Values.attributes.password }}
-            - name: ATTRIBUTES_PASSWORD
-              value: {{ . }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
             {{- with .Values.attributes.realm }}
             - name: ATTRIBUTES_REALM
-              value: {{ . }}
+              value: {{ tpl . $ | quote }}
             {{- end }}
           {{- with .Values.secretRef }}
           envFrom:
             - secretRef:
-                {{- toYaml . | nindent 16 }}
+                {{- tpl . $ | nindent 16 }}
           {{- end }}
           volumeMounts:
             - name: keycloak-bootstrap-config-volume
@@ -91,7 +86,7 @@ spec:
           configMap:
             name: {{ include "keycloak-bootstrap.fullname" . }}-cm
       restartPolicy: Never
-      {{- with .Values.global.opentdf.common.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}

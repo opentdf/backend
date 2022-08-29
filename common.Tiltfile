@@ -5,15 +5,20 @@
 
 load("ext://helm_remote", "helm_remote")
 load("ext://helm_resource", "helm_resource", "helm_repo")
-load("ext://secret", "secret_from_dict", "secret_yaml_generic")
 load("ext://min_tilt_version", "min_tilt_version")
 
 min_tilt_version("0.30")
 
+BACKEND_DIR = os.getcwd()
+
 ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.16")
 PY_VERSION = os.environ.get("PY_VERSION", "3.10")
 KEYCLOAK_BASE_VERSION = str(
-    local('cut -d- -f1 < "{}"'.format("containers/keycloak-protocol-mapper/VERSION"))
+    local(
+        'cut -d- -f1 < "{}/{}"'.format(
+            BACKEND_DIR, "containers/keycloak-protocol-mapper/VERSION"
+        )
+    )
 ).strip()
 
 CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
@@ -45,11 +50,23 @@ all_secrets = {
 }
 
 
-def backend(extra_helm_parameters=[]):
-    if not os.path.exists(
-        "./containers/keycloak-protocol-mapper/keycloak-containers/server/Dockerfile"
-    ):
-        local("make keycloak-repo-clone", dir="./containers/keycloak-protocol-mapper")
+def prefix_list(prefix, list):
+    return [x for y in zip([prefix] * len(list), list) for x in y]
+
+
+def dict_to_equals_list(dict):
+    return ["%s=%s" % (k, v) for k, v in dict.items()]
+
+
+def dict_to_helm_set_list(dict):
+    combined = dict_to_equals_list(dict)
+    return prefix_list("--set", combined)
+
+
+# values: list of values files
+# set: dictionary of value_name: value pairs
+# extra_helm_parameters: only valid when devmode=False; passed to underlying `helm update` command
+def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
 
     #   o8o
     #   `"'
@@ -64,7 +81,7 @@ def backend(extra_helm_parameters=[]):
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/python-base",
-        context="containers/python_base",
+        context=BACKEND_DIR + "/containers/python_base",
         build_args={
             "ALPINE_VERSION": ALPINE_VERSION,
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
@@ -73,16 +90,8 @@ def backend(extra_helm_parameters=[]):
     )
 
     docker_build(
-        CONTAINER_REGISTRY + "/opentdf/keycloak-multiarch-base",
-        "./containers/keycloak-protocol-mapper/keycloak-containers/server",
-        build_args={
-            "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-        },
-    )
-
-    docker_build(
         CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-        "./containers/keycloak-bootstrap",
+        BACKEND_DIR + "/containers/keycloak-bootstrap",
         build_args={
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
         },
@@ -90,11 +99,9 @@ def backend(extra_helm_parameters=[]):
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/keycloak",
-        context="./containers/keycloak-protocol-mapper",
+        context=BACKEND_DIR + "/containers/keycloak-protocol-mapper",
         build_args={
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-            "KEYCLOAK_BASE_IMAGE": CONTAINER_REGISTRY
-            + "/opentdf/keycloak-multiarch-base",
             "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
             "MAVEN_VERSION": "3.8.4",
             "JDK_VERSION": "11",
@@ -103,12 +110,12 @@ def backend(extra_helm_parameters=[]):
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-        context="./containers/entitlement-pdp",
+        context=BACKEND_DIR + "/containers/entitlement-pdp",
     )
 
     docker_build(
         CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-        context="./containers/entity-resolution",
+        context=BACKEND_DIR + "/containers/entity-resolution",
     )
 
     docker_build(
@@ -119,12 +126,12 @@ def backend(extra_helm_parameters=[]):
             "PY_VERSION": PY_VERSION,
             "PYTHON_BASE_IMAGE_SELECTOR": "",
         },
-        context="containers/kas",
+        context=BACKEND_DIR + "/containers/kas",
         live_update=[
-            sync("./containers/kas", "/app"),
+            sync(BACKEND_DIR + "/containers/kas", "/app"),
             run(
                 "cd /app && pip install -r requirements.txt",
-                trigger="./containers/kas/requirements.txt",
+                trigger=BACKEND_DIR + "/containers/kas/requirements.txt",
             ),
         ],
     )
@@ -140,14 +147,19 @@ def backend(extra_helm_parameters=[]):
                 "PYTHON_BASE_IMAGE_SELECTOR": "",
             },
             container_args=["--reload"],
-            context="containers",
-            dockerfile="./containers/" + microservice + "/Dockerfile",
+            context=BACKEND_DIR + "/containers",
+            dockerfile=BACKEND_DIR + "/containers/" + microservice + "/Dockerfile",
             live_update=[
-                sync("./containers/python_base", "/app/python_base"),
-                sync("./containers/" + microservice, "/app/" + microservice),
+                sync(BACKEND_DIR + "/containers/python_base", "/app/python_base"),
+                sync(
+                    BACKEND_DIR + "/containers/" + microservice, "/app/" + microservice
+                ),
                 run(
                     "cd /app/ && pip install -r requirements.txt",
-                    trigger="./containers/" + microservice + "/requirements.txt",
+                    trigger=BACKEND_DIR
+                    + "/containers/"
+                    + microservice
+                    + "/requirements.txt",
                 ),
             ],
         )
@@ -169,14 +181,14 @@ def backend(extra_helm_parameters=[]):
         "ingress-nginx",
         repo_url="https://kubernetes.github.io/ingress-nginx",
         set=["controller.config.large-client-header-buffers=20 32k"],
-        version="4.0.16",
+        version="4.2.1",
     )
 
     k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
 
     # TODO not sure why this needs to be installed separately, but
     # our ingress config won't work without it.
-    k8s_yaml("tests/integration/ingress-class.yaml")
+    k8s_yaml(BACKEND_DIR + "/tests/integration/ingress-class.yaml")
 
     #                                           o8o
     #                                           `"'
@@ -194,63 +206,71 @@ def backend(extra_helm_parameters=[]):
     local_resource(
         "helm-dep-update",
         "helm dependency update",
-        dir="./charts/backend",
+        dir=BACKEND_DIR + "/charts/backend",
     )
-    # FIXME: I've had to add the `--wait` option, so the helm apply command
-    # takes longer than the default timeout for any apply command of 30s.
-    # This fixes an issue where the dependant resources (e.g. xtest) run
-    # immediately after the apply command, causing race conditions with their
-    # configurator scripts and the built-in bootstrap script.
-    # Hopefully, either tilt or the helm_resource extension will be improved
-    # to avoid this change (or maybe everything will just get faster)
-    update_settings(k8s_upsert_timeout_secs=300)
-    helm_resource(
-        name="backend",
-        chart="./charts/backend",
-        image_deps=[
-            CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-            CONTAINER_REGISTRY + "/opentdf/keycloak",
-            CONTAINER_REGISTRY + "/opentdf/attributes",
-            CONTAINER_REGISTRY + "/opentdf/entitlements",
-            CONTAINER_REGISTRY + "/opentdf/entitlement_store",
-            CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-            CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-            CONTAINER_REGISTRY + "/opentdf/kas",
-        ],
-        image_keys=[
-            ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
-            ("keycloak.image.repository", "keycloak.image.tag"),
-            ("attributes.image.repo", "attributes.image.tag"),
-            ("entitlements.image.repo", "entitlements.image.tag"),
-            ("entitlement_store.image.repo", "entitlement_store.image.tag"),
-            ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
-            ("entity-resolution.image.repo", "entity-resolution.image.tag"),
-            ("kas.image.repo", "kas.image.tag"),
-        ],
-        flags=[
-            "--wait",
-            "--dependency-update",
-            "--set",
-            "entity-resolution.secret.keycloak.clientSecret=123-456",
-            "--set",
-            "secrets.opaPolicyPullSecret=%s" % opaPolicyPullSecret,
-            "--set",
-            "secrets.oidcClientSecret=%s" % OIDC_CLIENT_SECRET,
-            "--set",
-            "secrets.postgres.dbPassword=%s" % POSTGRES_PASSWORD,
-            "--set",
-            "kas.envConfig.attrAuthorityCert=%s"
-            % all_secrets["ATTR_AUTHORITY_CERTIFICATE"],
-            "--set",
-            "kas.envConfig.ecCert=%s" % all_secrets["KAS_EC_SECP256R1_CERTIFICATE"],
-            "--set",
-            "kas.envConfig.cert=%s" % all_secrets["KAS_CERTIFICATE"],
-            "--set",
-            "kas.envConfig.ecPrivKey=%s" % all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
-            "--set",
-            "kas.envConfig.privKey=%s" % all_secrets["KAS_PRIVATE_KEY"],
-        ]
-        + extra_helm_parameters,
-        labels="opentdf",
-        resource_deps=["helm-dep-update", "ingress-nginx-controller"],
-    )
+
+    set_values = {
+        "entity-resolution.secret.keycloak.clientSecret": "123-456",
+        "secrets.opaPolicyPullSecret": opaPolicyPullSecret,
+        "secrets.oidcClientSecret": OIDC_CLIENT_SECRET,
+        "secrets.postgres.dbPassword": POSTGRES_PASSWORD,
+        "kas.envConfig.attrAuthorityCert": all_secrets["ATTR_AUTHORITY_CERTIFICATE"],
+        "kas.envConfig.ecCert": all_secrets["KAS_EC_SECP256R1_CERTIFICATE"],
+        "kas.envConfig.cert": all_secrets["KAS_CERTIFICATE"],
+        "kas.envConfig.ecPrivKey": all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
+        "kas.envConfig.privKey": all_secrets["KAS_PRIVATE_KEY"],
+    }
+    set_values.update(set)
+
+    if devmode:
+        # NOTE: Run `helm dep update` outside of tilt, as there isn't a good
+        # way to make it happen earlier.
+        k8s_yaml(
+            helm(
+                BACKEND_DIR + "/charts/backend",
+                name="backend",
+                set=dict_to_equals_list(set_values),
+                values=values,
+            ),
+        )
+    else:
+        # FIXME: I've had to add the `--wait` option, so the helm apply command
+        # takes longer than the default timeout for any apply command of 30s.
+        # This fixes an issue where the dependant resources (e.g. xtest) run
+        # immediately after the apply command, causing race conditions with their
+        # configurator scripts and the built-in bootstrap script.
+        # Hopefully, either tilt or the helm_resource extension will be improved
+        # to avoid this change (or maybe everything will just get faster)
+        update_settings(k8s_upsert_timeout_secs=1200)
+        helm_resource(
+            name="backend",
+            chart=BACKEND_DIR + "/charts/backend",
+            image_deps=[
+                CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
+                CONTAINER_REGISTRY + "/opentdf/keycloak",
+                CONTAINER_REGISTRY + "/opentdf/attributes",
+                CONTAINER_REGISTRY + "/opentdf/entitlements",
+                CONTAINER_REGISTRY + "/opentdf/entitlement_store",
+                CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+                CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+                CONTAINER_REGISTRY + "/opentdf/kas",
+            ],
+            image_keys=[
+                ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
+                ("keycloak.image.repository", "keycloak.image.tag"),
+                ("attributes.image.repo", "attributes.image.tag"),
+                ("entitlements.image.repo", "entitlements.image.tag"),
+                ("entitlement_store.image.repo", "entitlement_store.image.tag"),
+                ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
+                ("entity-resolution.image.repo", "entity-resolution.image.tag"),
+                ("kas.image.repo", "kas.image.tag"),
+            ],
+            flags=[
+                "--wait",
+                "--dependency-update",
+            ]
+            + dict_to_helm_set_list(set_values)
+            + prefix_list("-f", values),
+            labels="opentdf",
+            resource_deps=["helm-dep-update", "ingress-nginx-controller"],
+        )

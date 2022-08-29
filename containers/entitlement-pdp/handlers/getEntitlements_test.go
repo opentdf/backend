@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -66,11 +66,12 @@ func Test_GetEntitlementsHandler_CallsPDP_Success(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var deserializedResp []EntityEntitlement
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	err = json.Unmarshal(body, &deserializedResp)
 	assert.Nil(t, err)
@@ -99,6 +100,7 @@ func Test_GetEntitlementsHandler_CallsPDP_Error(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
@@ -118,6 +120,7 @@ func Test_GetEntitlementsHandler_RejectsNonPOST(t *testing.T) {
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
+	defer resp.Body.Close()
 
 	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
 

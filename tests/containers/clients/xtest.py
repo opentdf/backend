@@ -17,10 +17,14 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 tmp_dir = "tmp/"
 
-SDK_PATHS = {"py_service": "py/service.py", "py_encrypt": "py/encrypt.py", "py_decrypt": "py/decrypt.py"}
+SDK_PATHS = {
+    "py_service": "py/service.py",
+    "py_encrypt": "py/encrypt.py",
+    "py_decrypt": "py/decrypt.py",
+}
 
 KAS_ENDPOINT = os.getenv("KAS_ENDPOINT", "http://host.docker.internal:65432/kas")
-ATTRIBUTES_ENDPOINT = os.getenv("ATTRIBUTES_ENDPOINT", "http://opentdf-attributes:4020")
+ATTRIBUTES_ENDPOINT = os.getenv("ATTRIBUTES_ENDPOINT", "http://attributes:4020")
 OIDC_ENDPOINT = os.getenv("OIDC_ENDPOINT", "http://host.docker.internal:65432/keycloak")
 ORGANIZATION_NAME = "tdf"
 CLIENT_ID = "tdf-client"
@@ -31,22 +35,29 @@ ATTRIBUTES_CLIENT_SECRET = "123-456"
 CLIENTS = {
     CLIENT_ID: "123-456",
     TEST_CLIENT_1: "123-456-789",
-    TEST_CLIENT_2: "123-456-789"
+    TEST_CLIENT_2: "123-456-789",
 }
 ALL_OF_SUCCESS = ["http://testing123.fun/attr/Language/value/spanish"]
-ALL_OF_FAILURE = ["http://testing123.fun/attr/Language/value/spanish", "http://testing123.fun/attr/Language/value/french"]
-ANY_OF_SUCCESS = ["http://testing123.fun/attr/Color/value/green", "http://testing123.fun/attr/Color/value/blue"]
+ALL_OF_FAILURE = [
+    "http://testing123.fun/attr/Language/value/spanish",
+    "http://testing123.fun/attr/Language/value/french",
+]
+ANY_OF_SUCCESS = [
+    "http://testing123.fun/attr/Color/value/green",
+    "http://testing123.fun/attr/Color/value/blue",
+]
 ANY_OF_FAILURE = ["http://testing123.fun/attr/Color/value/blue"]
 HIERARCHY_SUCCESS = ["https://example.com/attr/Classification/value/U"]
 HIERARCHY_FAILURE = ["https://example.com/attr/Classification/value/TS"]
 ATTR_TESTS = {
-    "allOf": ALL_OF_SUCCESS, 
-    "allOf fail": ALL_OF_FAILURE, 
-    "anyOf": ANY_OF_SUCCESS, 
-    "anyOf fail": ANY_OF_FAILURE, 
-    "hierarchy": HIERARCHY_SUCCESS, 
-    "hierarchy fail": HIERARCHY_FAILURE
+    "allOf": ALL_OF_SUCCESS,
+    "allOf fail": ALL_OF_FAILURE,
+    "anyOf": ANY_OF_SUCCESS,
+    "anyOf fail": ANY_OF_FAILURE,
+    "hierarchy": HIERARCHY_SUCCESS,
+    "hierarchy fail": HIERARCHY_FAILURE,
 }
+
 
 def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
     c = [
@@ -171,7 +182,9 @@ def teardown():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Cross-test various TDF libraries and services.")
+    parser = argparse.ArgumentParser(
+        description="Cross-test various TDF libraries and services."
+    )
     parser.add_argument(
         "--large",
         help="Use a 5 GiB File; doesn't work with nano sdks",
@@ -210,11 +223,13 @@ def main():
         )
         if args.attrtest:
             logger.info("TDF3 ATTRIBUTE TESTS:")
-            failed += run_attribute_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
+            failed += run_attribute_tests(
+                tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file
+            )
             logger.info("NANO ATTRIBUTE TESTS:")
             failed += run_attribute_tests(
-            nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
-        )
+                nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
+            )
     finally:
         if not args.no_teardown:
             teardown()
@@ -233,6 +248,7 @@ def run_service_tests(service_test):
             failed += [f"{x}"]
     return failed
 
+
 def run_attribute_tests(sdks_encrypt, sdks_decrypt, pt_file):
     logger.info("--- run_attribute_tests %s => %s", sdks_encrypt, sdks_decrypt)
 
@@ -243,18 +259,32 @@ def run_attribute_tests(sdks_encrypt, sdks_decrypt, pt_file):
         for y in sdks_decrypt:
             serial_attr = 1
             for name, attrs in ATTR_TESTS.items():
-                rt_func = test_cross_roundtrip_failure if "fail" in name else test_cross_roundtrip
+                rt_func = (
+                    test_cross_roundtrip_failure
+                    if "fail" in name
+                    else test_cross_roundtrip
+                )
                 logger.info(f"Test #{serial}.{serial_attr}: {name}")
                 try:
-                    rt_func(x, y, f"{serial}.{serial_attr}", pt_file, attributes=attrs,
-                            encrypt_client=TEST_CLIENT_1, decrypt_client=TEST_CLIENT_2)
+                    rt_func(
+                        x,
+                        y,
+                        f"{serial}.{serial_attr}",
+                        pt_file,
+                        attributes=attrs,
+                        encrypt_client=TEST_CLIENT_1,
+                        decrypt_client=TEST_CLIENT_2,
+                    )
                 except Exception as e:
-                    logger.error("Exception with pass (%s => %s) %s", x, y, name, exc_info=True)
+                    logger.error(
+                        "Exception with pass (%s => %s) %s", x, y, name, exc_info=True
+                    )
                     failed += [f"{name} {x}=>{y}"]
                 finally:
                     serial_attr += 1
             serial += 1
     return failed
+
 
 def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file, attributes=None):
     logger.info("--- run_cli_tests %s => %s", sdks_encrypt, sdks_decrypt)
@@ -274,8 +304,15 @@ def run_cli_tests(sdks_encrypt, sdks_decrypt, pt_file, attributes=None):
 
 # Test a roundtrip across the two referenced sdks.
 # Returns True if test succeeded, false otherwise.
-def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file, attributes=None,
-     encrypt_client=CLIENT_ID, decrypt_client=CLIENT_ID):
+def test_cross_roundtrip(
+    encrypt_sdk,
+    decrypt_sdk,
+    serial,
+    pt_file,
+    attributes=None,
+    encrypt_client=CLIENT_ID,
+    decrypt_client=CLIENT_ID,
+):
     logger.info(
         "--- Begin Test #%s: Roundtrip encrypt(%s) --> decrypt(%s)",
         serial,
@@ -301,8 +338,15 @@ def test_cross_roundtrip(encrypt_sdk, decrypt_sdk, serial, pt_file, attributes=N
     logger.info("Test #%s, (%s->%s): Succeeded!", serial, encrypt_sdk, decrypt_sdk)
 
 
-def test_cross_roundtrip_failure(encrypt_sdk, decrypt_sdk, serial, pt_file, attributes=None,
-     encrypt_client=CLIENT_ID, decrypt_client=CLIENT_ID):
+def test_cross_roundtrip_failure(
+    encrypt_sdk,
+    decrypt_sdk,
+    serial,
+    pt_file,
+    attributes=None,
+    encrypt_client=CLIENT_ID,
+    decrypt_client=CLIENT_ID,
+):
     logger.info(
         "--- Begin Test #%s: Roundtrip encrypt(%s) --> decrypt(%s)",
         serial,
@@ -330,7 +374,7 @@ def test_cross_roundtrip_failure(encrypt_sdk, decrypt_sdk, serial, pt_file, attr
 
 def gen_pt(*, large):
     pt_file = "%stest-plain-%s.txt" % (tmp_dir, "large" if large else "small")
-    length = (5 * 2 ** 30) if large else 128
+    length = (5 * 2**30) if large else 128
     with open(pt_file, "w") as f:
         for i in range(0, length, 16):
             f.write("{:15,d}\n".format(i))

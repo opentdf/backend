@@ -43,17 +43,6 @@ CREATE TABLE IF NOT EXISTS tdf_entitlement.entity_attribute
 );
 CREATE INDEX entity_id_index ON tdf_entitlement.entity_attribute (entity_id);
 
-CREATE SCHEMA IF NOT EXISTS tdf_entity;
-CREATE TABLE IF NOT EXISTS tdf_entity.entity
-(
-    id        SERIAL PRIMARY KEY,
-    is_person BOOLEAN NOT NULL,
-    state     INTEGER,
-    entity_id VARCHAR,
-    name      VARCHAR,
-    email     VARCHAR
-);
-
 -- tdf_attribute
 CREATE ROLE tdf_attribute_manager WITH LOGIN PASSWORD 'myPostgresPassword';
 GRANT USAGE ON SCHEMA tdf_attribute TO tdf_attribute_manager;
@@ -69,8 +58,3 @@ CREATE ROLE tdf_entitlement_reader WITH LOGIN PASSWORD 'myPostgresPassword';
 GRANT USAGE ON SCHEMA tdf_entitlement TO tdf_entitlement_reader;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA tdf_entitlement TO tdf_entitlement_reader;
 GRANT SELECT ON tdf_entitlement.entity_attribute TO tdf_entitlement_reader;
--- tdf_entity
-CREATE ROLE tdf_entity_manager WITH LOGIN PASSWORD 'myPostgresPassword';
-GRANT USAGE ON SCHEMA tdf_entity TO tdf_entity_manager;
-GRANT USAGE ON ALL SEQUENCES IN SCHEMA tdf_entity TO tdf_entity_manager;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA tdf_entity TO tdf_entity_manager;
