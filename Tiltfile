@@ -4,6 +4,7 @@
 # helm remote usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
 
 load("./common.Tiltfile", "backend")
+load("./abacus.Tiltfile", "frontend")
 
 ingress_enable = {
     ("%s.ingress.enabled" % s): "true"
@@ -11,3 +12,4 @@ ingress_enable = {
 }
 
 backend(set=ingress_enable)
+frontend()
