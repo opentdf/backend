@@ -48,7 +48,8 @@ jobs:
         with:
           build-args: |-
             CONTAINER_REGISTRY=ghcr.io
-          context: ./containers/${{ matrix.repo }}
+          context: ./containers
+          file: ./containers/${{ matrix.repo }}/Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: true
           # commenting out for testing
