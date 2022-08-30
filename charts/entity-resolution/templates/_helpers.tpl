@@ -36,3 +36,35 @@ Create OIDC Internal Url from a common value
 {{- define "entity-resolution.keycloakUrl" }}
 {{- coalesce .Values.config.keycloak.url .Values.global.opentdf.common.oidcInternalBaseUrl }}
 {{- end }}
+
+
+{{/*
+Common labels
+*/}}
+{{- define "entity-resolution.labels" -}}
+helm.sh/chart: {{ include "entity-resolution.chart" . }}
+{{ include "entity-resolution.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "entity-resolution.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "entity-resolution.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "entity-resolution.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "entity-resolution.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
