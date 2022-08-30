@@ -51,8 +51,6 @@ jobs:
           context: ./containers
           file: ./containers/${{ matrix.repo }}/Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: true
-          # commenting out for testing
-          # push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
