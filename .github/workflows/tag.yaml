@@ -17,11 +17,14 @@ jobs:
           - entitlement_store
           - attributes
           - entitlements
-          # what else??
-          # - kas
-          # - keycloak-bootstrap 
-          # - entitlement-pdp
-          # - entity-resolution
+          - kas
+          - keycloak-bootstrap 
+          - entitlement-pdp
+          - entity-resolution
+          - python-base
+          - entitlement-pdp/entitlements-policybundle
+          - keycloak
+          - claims
     steps:
       -
         name: Checkout
