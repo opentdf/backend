@@ -2,18 +2,25 @@
 
 openapi: 3.0.2
 info:
-  title: FastAPI
-  version: 0.1.0
+  title: OpenTDF
+  license:
+    name: BSD 3-Clause Clear
+    url: https://github.com/opentdf/backend/blob/main/LICENSE
+  version: 1.1.0
+  x-logo:
+    url: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
 paths:
-  /claims:
+  /entitle:
     post:
-      summary: Create Entitlements Object For Jwt Claims
-      operationId: create_entitlements_object_for_jwt_claims_claims_post
+      tags:
+        - Entitlements
+      summary: Fetch Entitlements
+      operationId: fetch_entitlements_entitle_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/ClaimsRequest"
+              $ref: "#/components/schemas/EntitleRequest"
         required: true
       responses:
         "200":
@@ -21,7 +28,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EntitlementsObject"
+                title: Response Fetch Entitlements Entitle Post
+                type: array
+                items:
+                  $ref: "#/components/schemas/EntityEntitlements"
         "422":
           description: Validation Error
           content:
@@ -42,90 +52,32 @@ components:
         displayName:
           title: Displayname
           type: string
-    ClaimsRequest:
-      title: ClaimsRequest
+    EntitleRequest:
+      title: EntitleRequest
       required:
-        - clientPublicSigningKey
-        - primaryEntityId
+        - primary_entity_id
       type: object
       properties:
-        algorithm:
-          title: Algorithm
+        primary_entity_id:
+          title: Primary Entity Id
           type: string
-        clientPublicSigningKey:
-          title: Clientpublicsigningkey
-          type: string
-          description: The client's public signing key. This will be echoed back as-is in the custom claims response. If the IdP does not forward this, or the field is empty, no claims should be returned and the request rejected as malformed.
-        primaryEntityId:
-          title: Primaryentityid
-          type: string
-          description: The identifier for the primary entity seeking claims. For PE auth, this will be a PE ID. For NPE auth, this will be an NPE ID.
-        secondaryEntityIds:
-          title: Secondaryentityids
+          description: The identifier for the primary entity entitlements will be fetched for. For PE auth, this will be a PE ID. For NPE auth, this will be an NPE ID.
+        secondary_entity_ids:
+          title: Secondary Entity Ids
           type: array
           items:
             type: string
           description: Optional. For PE auth, this will be one or more NPE IDs (client-on-behalf-of-user). For NPE auth, this may be either empty (client-on-behalf-of-itself) or populated with one or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
           default: []
       example:
-        algorithm: ec:secp256r1
-        clientPublicSigningKey: |
-          -----BEGIN PUBLIC KEY-----
-          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Q9axUqaxEfhOO2+0Xw+
-          swa5Rb2RV0xeTX3GC9DeORv9Ip49oNy+RXvaMsdNKspPWYZZEswrz2+ftwcQOSU+
-          efRCbGIwbSl8QBfKV9nGLlVmpDydcAIajc7YvWjQnDTEpHcJdo9y7/oogG7YcEmq
-          S3NtVJXCmbc4DyrZpc2BmZD4y9417fSiNjTTYY3Fc19lQz07hxDQLgMT21N4N0Fz
-          mD6EkiEpG5sdpDT/NIuGjFnJEPfqIs6TnPaX2y1OZ2/JzC+mldJFZuEqJZ/6qq/e
-          Ylp04nWrSnXhPpTuxNZ5J0GcPbpcFgdT8173qmm5m5jAjiFCr735lH7USl15H2fW
-          TwIDAQAB
-          -----END PUBLIC KEY-----
         primaryEntityId: 31c871f2-6d2a-4d27-b727-e619cfaf4e7a
         secondaryEntityIds:
           - 46a871f2-6d2a-4d27-b727-e619cfaf4e7b
-    EntitlementsObject:
-      title: EntitlementsObject
-      required:
-        - client_public_signing_key
-        - entitlements
-      type: object
-      properties:
-        client_public_signing_key:
-          title: Client Public Signing Key
-          type: string
-        entitlements:
-          title: Entitlements
-          type: array
-          items:
-            $ref: "#/components/schemas/EntityEntitlements"
-        tdf_spec_version:
-          title: Tdf Spec Version
-          type: string
-      example:
-        entitlements:
-          - entity_identifier: cliententityid-14443434-1111343434-asdfdffff
-            entity_attributes:
-              - attribute: https://example.com/attr/Classification/value/S
-                displayName: classification
-              - attribute: https://example.com/attr/COI/value/PRX
-                displayName: category of intent
-          - entity_identifier: dd-ff-eeeeee1134r34434-user-beta
-            entity_attributes:
-              - attribute: https://example.com/attr/Classification/value/U
-                displayName: classification
-              - attribute: https://example.com/attr/COI/value/PRZ
-                displayName: category of intent
-        client_public_signing_key: |-
-          -----BEGIN PUBLIC KEY-----
-          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy18Efi6+3vSELpbK58gC
-          A9vJxZtoRHR604yi707h6nzTsTSNUg5mNzt/nWswWzloIWCgA7EPNpJy9lYn4h1Z
-          6LhxEgf0wFcaux0/C19dC6WRPd6 ... XzNO4J38CoFz/
-          wwIDAQAB
-          -----END PUBLIC KEY-----
-        "tdf_spec_version:": 4.2.1
     EntityEntitlements:
       title: EntityEntitlements
       required:
         - entity_identifier
+        - entity_attributes
       type: object
       properties:
         entity_identifier:
@@ -136,7 +88,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AttributeDisplay"
-          default: []
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -165,3 +116,5 @@ components:
         type:
           title: Error Type
           type: string
+servers:
+  - url: /

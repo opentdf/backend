@@ -4,7 +4,7 @@ import (
 	ctx "context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"go.opentelemetry.io/otel"
@@ -81,7 +81,7 @@ func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handl
 		logger.Debug("GetEntitlementsHandler - reading request body")
 
 		//Read + consume body
-		bodBytes, err := ioutil.ReadAll(req.Body)
+		bodBytes, err := io.ReadAll(req.Body)
 		defer req.Body.Close()
 		if err != nil {
 			logger.Errorf("Couldn't read client request! Error was %s", err)

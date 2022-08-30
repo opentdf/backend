@@ -3,10 +3,7 @@ kind: Job
 metadata:
   name: {{ include "keycloak-bootstrap.fullname" . }}
   labels:
-    app: {{ .Chart.Name | quote }}
-    chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-    release: "{{ $.Release.Name }}"
-    heritage: "{{ $.Release.Service }}"
+    {{- include "keycloak-bootstrap.labels" . | nindent 4 }}
 spec:
   template:
     spec:
