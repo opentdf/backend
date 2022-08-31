@@ -21,9 +21,6 @@ jobs:
           - keycloak-bootstrap 
           - entitlement-pdp
           - entity-resolution
-          - python-base
-          - entitlement-pdp/entitlements-policybundle
-          - keycloak
           - claims
     steps:
       -
