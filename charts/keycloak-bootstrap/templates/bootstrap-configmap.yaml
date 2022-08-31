@@ -3,9 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "keycloak-bootstrap.fullname" . }}-cm
   labels:
-    chart: "{{ $.Chart.Name }}-{{ $.Chart.Version }}"
-    release: "{{ $.Release.Name }}"
-    heritage: "{{ $.Release.Service }}"
+    {{- include "keycloak-bootstrap.labels" . | nindent 4 }}
 data:
   config.yaml: |-
 {{ toYaml .Values.keycloak.customConfig | indent 4 }}

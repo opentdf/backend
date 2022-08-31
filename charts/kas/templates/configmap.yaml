@@ -3,10 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "kas.name" . }}-cm
   labels:
-    app.kubernetes.io/name: {{ include "kas.name" . }}-cm
-    helm.sh/chart: {{ include "kas.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "kas.labels" . | nindent 4 }}
     app.kubernetes.io/part-of: kas
 data:
   {{- with (coalesce .Values.endpoints.attrHost .Values.endpoints.easHost) }}
