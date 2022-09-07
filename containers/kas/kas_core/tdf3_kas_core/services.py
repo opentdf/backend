@@ -133,12 +133,13 @@ def _decode_and_validate_oidc_jwt(context, key_master):
 
 
 def _get_tdf_claims(context, key_master):
-    """Serializes the decoded and validated JWT into KAS's object model stuff.
-    """
-    decodedJwt = _decode_and_validate_oidc_jwt(context, key_master)
-    claims = Claims.load_from_raw_data(decodedJwt)
-
-    return claims
+    """Serializes the decoded and validated JWT into KAS's object model stuff."""
+    try:
+        decodedJwt = _decode_and_validate_oidc_jwt(context, key_master)
+        claims = Claims.load_from_raw_data(decodedJwt)
+        return claims
+    except ValueError as e:
+        raise UnauthorizedError("Claims absent or invalid") from e
 
 
 def _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_runner):
@@ -153,14 +154,18 @@ def _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_
     data_attribute_definition_namespaces = list(
         original_policy.data_attributes.cluster_namespaces
     )
-    logger.debug(f"Got data attr def namespaces: {data_attribute_definition_namespaces}")
+    logger.debug(
+        f"Got data attr def namespaces: {data_attribute_definition_namespaces}"
+    )
 
     # Do we even have any data attributes? If we do, run the plugins to fetch their
     # corresponding definitions from all configured authorities.
     #
     # Otherwise, just skip the plugin update - no data attrs to fetch for.
     if data_attribute_definition_namespaces:
-        data_attribute_definitions = plugin_runner.fetch_attributes(data_attribute_definition_namespaces)
+        data_attribute_definitions = plugin_runner.fetch_attributes(
+            data_attribute_definition_namespaces
+        )
 
     return data_attribute_definitions
 
@@ -193,7 +198,13 @@ def rewrap_v2(data, context, plugin_runner, key_master):
     if "signedRequestToken" not in data:
         raise AuthorizationError("Request not authorized")
 
-    logger.debug("SIGNER PUBKEY: {}".format(signer_public_key.public_bytes(encoding=Encoding.PEM, format=PublicFormat.SubjectPublicKeyInfo).decode("ascii")))
+    logger.debug(
+        "SIGNER PUBKEY: {}".format(
+            signer_public_key.public_bytes(
+                encoding=Encoding.PEM, format=PublicFormat.SubjectPublicKeyInfo
+            ).decode("ascii")
+        )
+    )
 
     try:
         decoded = jwt.decode(
@@ -254,7 +265,9 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
     except ValueError as e:
         raise BadRequestError(f"Error in Policy or Key Binding [{e}]") from e
 
-    data_attr_defs = _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_runner)
+    data_attr_defs = _fetch_attribute_definitions_from_authority_plugins(
+        original_policy, plugin_runner
+    )
 
     # Run any rewrap plugins.
     (policy, res) = plugin_runner.update(original_policy, claims, key_access, context)
@@ -400,7 +413,9 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         policy_data_as_byte.decode("utf-8")
     )
 
-    data_attr_defs = _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_runner)
+    data_attr_defs = _fetch_attribute_definitions_from_authority_plugins(
+        original_policy, plugin_runner
+    )
 
     # Run any rewrap plugins.
     (policy, res) = plugin_runner.update(original_policy, claims, key_access, context)
@@ -510,7 +525,9 @@ def upsert_v2(data, context, plugin_runner, key_master):
     )
 
     # Run the plugins
-    messages = plugin_runner.upsert(original_policy, claims.entity_attributes, key_access, context)
+    messages = plugin_runner.upsert(
+        original_policy, claims.entity_attributes, key_access, context
+    )
 
     logger.debug("UPSERTV2 SERVICE FINISH: Upsert Status Messages = [%s]", messages)
 
