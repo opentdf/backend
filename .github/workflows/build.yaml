@@ -192,8 +192,8 @@ jobs:
       # If we publish helm charts before we finish publishing the images
       # they depend on, we can get into weirdness where the chart is pullable
       # but the images are not, yet. Avoid that.
-      - build-and-publish-with-shared-base
-      - build-and-publish-isolated
+      - build-and-publish
+      - build-and-publish-policybundle
     permissions:
       packages: write
       contents: read
@@ -232,6 +232,7 @@ jobs:
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz
+
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
