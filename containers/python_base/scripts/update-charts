@@ -104,7 +104,11 @@ case "$1" in
     monolog DEBUG "Tagged release update"
     for x in $(cd "${PROJECT_ROOT}"/charts/ && ls); do
       if [ -f "$x/Chart.yaml" ]; then
-        set-appVersion "$x"
+        if [[ $2 ]]; then
+          set-appVersion "$x" "$2"
+        else
+          set-appVersion "$x"
+        fi
         set-version "$x"
       fi
     done
