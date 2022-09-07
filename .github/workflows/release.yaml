@@ -49,4 +49,4 @@ jobs:
           helm package backend
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
-          rm *.tgz 
+          rm *.tgz

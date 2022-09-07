@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Select keycloak base version
-        run: | 
+        run: |
           KEYCLOAK_BASE_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
           echo "::set-output name=KEYCLOAK_BASE_VERSION::$KEYCLOAK_BASE_VERSION"
         id: keycloak-base-version
@@ -192,8 +192,8 @@ jobs:
       # If we publish helm charts before we finish publishing the images
       # they depend on, we can get into weirdness where the chart is pullable
       # but the images are not, yet. Avoid that.
-      - build-and-publish-with-shared-base
-      - build-and-publish-isolated
+      - build-and-publish
+      - build-and-publish-policybundle
     permissions:
       packages: write
       contents: read
@@ -231,7 +231,8 @@ jobs:
           helm package backend
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
-          rm *.tgz 
+          rm *.tgz
+
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
@@ -286,10 +287,10 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
 
-  # "isolated" - meaning these do not depend or build on `python_base`
-  build-and-publish-isolated:
+  build-and-publish:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
+      - build-base
       - integration-test
     permissions:
       contents: read
@@ -298,9 +299,14 @@ jobs:
     strategy:
       matrix:
         repo:
+          - attributes
+          - entitlement-pdp
+          - entitlement_store
+          - entitlements
+          - entity-resolution
           - kas
           - keycloak-bootstrap
-    timeout-minutes: 45
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
@@ -328,51 +334,7 @@ jobs:
             ALPINE_VERSION=3.16
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
-          context: ./containers/${{ matrix.repo }}
-          platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  build-and-publish:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    needs:
-      - integration-test
-    permissions:
-      contents: read
-      packages: write
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        repo:
-          - entitlement-pdp
-          - entity-resolution
-    timeout-minutes: 40
-    steps:
-      - uses: actions/checkout@v3
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ghcr.io/opentdf/${{ matrix.repo }}
-          tags: |
-            type=ref,event=branch
-            type=sha
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: publish
-        uses: docker/build-push-action@v3
-        with:
-          build-args: |-
-            CONTAINER_REGISTRY=ghcr.io
+            PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}
           context: ./containers/${{ matrix.repo }}
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
@@ -406,7 +368,7 @@ jobs:
       - name: Setup policy OCI bundler tool
         uses: actions/setup-go@v3
         with:
-          go-version: '>=1.18.0'
+          go-version: ">=1.18.0"
       - name: Build policy bundle
         if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
@@ -421,56 +383,6 @@ jobs:
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
-
-  build-and-publish-with-shared-base:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    needs:
-      - build-base
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      packages: write
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        repo:
-          - entitlement_store
-          - attributes
-          - entitlements
-    steps:
-      - uses: actions/checkout@v3
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ghcr.io/opentdf/${{ matrix.repo }}
-          tags: |
-            type=ref,event=branch
-            type=sha
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: publish
-        uses: docker/build-push-action@v3
-        with:
-          build-args: |-
-            ALPINE_VERSION=3.16
-            CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.10
-            PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}
-          context: ./containers
-          file: ./containers/${{ matrix.repo }}/Dockerfile
-          platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
   custom-keycloak-image:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
