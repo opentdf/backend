@@ -147,8 +147,7 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
                 "PYTHON_BASE_IMAGE_SELECTOR": "",
             },
             container_args=["--reload"],
-            context=BACKEND_DIR + "/containers",
-            dockerfile=BACKEND_DIR + "/containers/" + microservice + "/Dockerfile",
+            context=BACKEND_DIR + "/containers/" + microservice,
             live_update=[
                 sync(BACKEND_DIR + "/containers/python_base", "/app/python_base"),
                 sync(
