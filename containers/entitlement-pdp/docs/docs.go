@@ -86,7 +86,7 @@ const docTemplate = `{
                 "summary": "Check service status",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     },
                     "503": {
                         "description": "Service Unavailable",

@@ -5,24 +5,20 @@ metadata:
   annotations:
     proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
   labels:
-    app: {{ .Chart.Name | quote }}
-    chart: {{ include "entity-resolution.chart" . | quote }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "entity-resolution.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Chart.Name | quote }}
-      release: {{ .Release.Name }}
+      {{- include "entity-resolution.selectorLabels" . | nindent 6 }}
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name | quote }}
-        release: {{ .Release.Name }}
+        {{- include "entity-resolution.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "entity-resolution.serviceAccountName" . }}
       containers:
       - name: {{ include "entity-resolution.fullname" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}

@@ -4,7 +4,13 @@ import os
 import sys
 import requests
 from enum import Enum
-from http.client import NO_CONTENT, BAD_REQUEST, ACCEPTED, INTERNAL_SERVER_ERROR, NOT_FOUND
+from http.client import (
+    NO_CONTENT,
+    BAD_REQUEST,
+    ACCEPTED,
+    INTERNAL_SERVER_ERROR,
+    NOT_FOUND,
+)
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
@@ -50,7 +56,7 @@ swagger_ui_init_oauth = {
 
 
 class Settings(BaseSettings):
-    openapi_url: str = os.getenv("SERVER_ROOT_PATH", "")+"/openapi.json"
+    openapi_url: str = os.getenv("SERVER_ROOT_PATH", "") + "/openapi.json"
     base_path: str = os.getenv("SERVER_ROOT_PATH", "")
 
 
@@ -62,7 +68,9 @@ app = FastAPI(
     servers=[{"url": settings.base_path}],
     swagger_ui_init_oauth=swagger_ui_init_oauth,
     openapi_url=settings.openapi_url,
-    swagger_ui_parameters={"url": os.getenv("SERVER_ROOT_PATH", "")+settings.openapi_url}
+    swagger_ui_parameters={
+        "url": os.getenv("SERVER_ROOT_PATH", "") + settings.openapi_url
+    },
 )
 
 app.add_middleware(
@@ -78,15 +86,6 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
     authorizationUrl=os.getenv("OIDC_AUTHORIZATION_URL", ""),
     # format f"{keycloak_url}realms/{realm}/protocol/openid-connect/token"
     tokenUrl=os.getenv("OIDC_TOKEN_URL", ""),
-)
-
-keycloak_openid = KeycloakOpenID(
-    # trailing / is required
-    server_url=os.getenv("OIDC_SERVER_URL"),
-    client_id=os.getenv("OIDC_CLIENT_ID"),
-    realm_name=os.getenv("OIDC_REALM"),
-    client_secret_key=os.getenv("OIDC_CLIENT_SECRET"),
-    verify=True,
 )
 
 
@@ -170,6 +169,14 @@ def has_aud(unverified_jwt, audience):
 
 
 async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
+    keycloak_openid = KeycloakOpenID(
+        # trailing / is required
+        server_url=os.getenv("OIDC_SERVER_URL"),
+        client_id=os.getenv("OIDC_CLIENT_ID"),
+        realm_name=os.getenv("OIDC_REALM"),
+        client_secret_key=os.getenv("OIDC_CLIENT_SECRET"),
+        verify=True,
+    )
     logger.debug(token)
     if logger.isEnabledFor(logging.DEBUG):
         pprint(vars(keycloak_openid))
@@ -220,19 +227,19 @@ table_attribute = sqlalchemy.Table(
     "attribute",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column("namespace_id",
-                      sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey("attribute_namespace.id"),
-                      ),
+    sqlalchemy.Column(
+        "namespace_id",
+        sqlalchemy.Integer,
+        sqlalchemy.ForeignKey("attribute_namespace.id"),
+    ),
     sqlalchemy.Column("state", sqlalchemy.VARCHAR),
     sqlalchemy.Column("rule", sqlalchemy.VARCHAR),
     sqlalchemy.Column("name", sqlalchemy.VARCHAR),
     sqlalchemy.Column("description", sqlalchemy.VARCHAR),
     sqlalchemy.Column("values_array", sqlalchemy.ARRAY(sqlalchemy.TEXT)),
-    sqlalchemy.Column("group_by_attr",
-                      sqlalchemy.Integer,
-                      sqlalchemy.ForeignKey("attribute.id")
-                      ),
+    sqlalchemy.Column(
+        "group_by_attr", sqlalchemy.Integer, sqlalchemy.ForeignKey("attribute.id")
+    ),
     sqlalchemy.Column("group_by_attrval", sqlalchemy.TEXT),
 )
 
@@ -259,6 +266,7 @@ async def add_response_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 
+
 # OpenAPI
 tags_metadata = [
     {
@@ -282,7 +290,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="OpenTDF",
-        version="0.9.0",
+        version="1.1.0",
         license_info={
             "name": "BSD 3-Clause Clear",
             "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
@@ -310,6 +318,7 @@ class RuleEnum(str, Enum):
 class AuthorityUrl(AnyUrl):
     max_length = 2000
 
+
 class AttributeInstance(BaseModel):
     authority: AuthorityUrl
     name: Annotated[str, Field(max_length=2000)]
@@ -320,9 +329,10 @@ class AttributeInstance(BaseModel):
             "example": {
                 "authority": "https://opentdf.io",
                 "name": "IntellectualProperty",
-                "value": "Proprietary"
+                "value": "Proprietary",
             }
         }
+
 
 class AttributeDefinition(BaseModel):
     authority: AuthorityUrl
@@ -346,8 +356,8 @@ class AttributeDefinition(BaseModel):
                 "group_by": {
                     "authority": "https://opentdf.io",
                     "name": "ClassificationUS",
-                    "value": "Proprietary"
-                }
+                    "value": "Proprietary",
+                },
             }
         }
 
@@ -410,16 +420,16 @@ oidc_scheme = OpenIdConnect(
     },
 )
 async def read_attributes(
-        authority: Optional[AuthorityUrl] = None,
-        name: Optional[str] = None,
-        rule: Optional[str] = None,
-        order: Optional[str] = None,
-        sort: Optional[str] = Query(
-            "",
-            regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
-        ),
-        db: Session = Depends(get_db),
-        pager: Pagination = Depends(Pagination),
+    authority: Optional[AuthorityUrl] = None,
+    name: Optional[str] = None,
+    rule: Optional[str] = None,
+    order: Optional[str] = None,
+    sort: Optional[str] = Query(
+        "",
+        regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
+    ),
+    db: Session = Depends(get_db),
+    pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
@@ -498,8 +508,8 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
                             "group_by": {
                                 "authority": "https://opentdf.io",
                                 "name": "ClassificationUS",
-                                "value": "Proprietary"
-                            }
+                                "value": "Proprietary",
+                            },
                         }
                     ]
                 }
@@ -519,19 +529,21 @@ async def read_attributes_crud(schema, db, filter_args, sort_args):
 # then we won't need this endpoint alias anymore and can drop it
 # (since KAS<->attribute service is east-west traffic)
 # For now, let's at least just alias the deprecated endpoint to the same implementation to avoid confusing people.
-@app.get("/v1/attrName", response_model=List[AttributeDefinition], include_in_schema=False)
+@app.get(
+    "/v1/attrName", response_model=List[AttributeDefinition], include_in_schema=False
+)
 async def read_attributes_definitions(
-        request: Request,
-        authority: Optional[AuthorityUrl] = None,
-        name: Optional[str] = None,
-        rule: Optional[str] = None,
-        order: Optional[str] = None,
-        sort: Optional[str] = Query(
-            "",
-            regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
-        ),
-        db: Session = Depends(get_db),
-        pager: Pagination = Depends(Pagination),
+    request: Request,
+    authority: Optional[AuthorityUrl] = None,
+    name: Optional[str] = None,
+    rule: Optional[str] = None,
+    order: Optional[str] = None,
+    sort: Optional[str] = Query(
+        "",
+        regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
+    ),
+    db: Session = Depends(get_db),
+    pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
     if authority:
@@ -542,7 +554,9 @@ async def read_attributes_definitions(
                 list(authorities.values()).index(authority)
             ]
         except ValueError:
-            raise HTTPException(status_code=NOT_FOUND, detail=f"Authority {authority} does not exist") 
+            raise HTTPException(
+                status_code=NOT_FOUND, detail=f"Authority {authority} does not exist"
+            )
     if name:
         filter_args["name"] = name
     if order:
@@ -585,17 +599,20 @@ async def read_attributes_definitions(
                 # If this attr has a group_by, get the name of the authority
                 # TODO there is probably a nicer SQL query that does all this in one go.
                 # For the sake of clarity, doing it individually.
-                groupby_authority_q = table_authority.select().where(table_authority.c.id == groupby_attr.namespace_id)
+                groupby_authority_q = table_authority.select().where(
+                    table_authority.c.id == groupby_attr.namespace_id
+                )
                 groupby_authority = await database.fetch_one(groupby_authority_q)
                 if not groupby_authority:
                     raise HTTPException(
                         status_code=INTERNAL_SERVER_ERROR,
-                        detail=f"Group-by attribute authority {groupby_attr.namespace_id} does not exist")
+                        detail=f"Group-by attribute authority {groupby_attr.namespace_id} does not exist",
+                    )
 
                 attr_def.group_by = AttributeInstance(
                     authority=groupby_authority.name,
                     name=groupby_attr.name,
-                    value=row.group_by_attrval
+                    value=row.group_by_attrval,
                 )
 
             attributes.append(attr_def)
@@ -638,8 +655,8 @@ async def read_attributes_definitions(
                         "group_by": {
                             "authority": "https://opentdf.io",
                             "name": "ClassificationUS",
-                            "value": "Proprietary"
-                        }
+                            "value": "Proprietary",
+                        },
                     }
                 }
             }
@@ -647,21 +664,21 @@ async def read_attributes_definitions(
     },
 )
 async def create_attributes_definitions(
-        request: AttributeDefinition = Body(
-            ...,
-            example={
+    request: AttributeDefinition = Body(
+        ...,
+        example={
+            "authority": "https://opentdf.io",
+            "name": "IntellectualProperty",
+            "rule": "hierarchy",
+            "state": "published",
+            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+            "group_by": {
                 "authority": "https://opentdf.io",
-                "name": "IntellectualProperty",
-                "rule": "hierarchy",
-                "state": "published",
-                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-                "group_by": {
-                    "authority": "https://opentdf.io",
-                    "name": "ClassificationUS",
-                    "value": "Proprietary"
-                }
+                "name": "ClassificationUS",
+                "value": "Proprietary",
             },
-        )
+        },
+    )
 ):
     return await create_attributes_definitions_crud(request)
 
@@ -677,7 +694,9 @@ async def create_attributes_definitions_crud(request):
     group_attr_id = None
     if request.group_by:
         # Groupby
-        group_authority_query = table_authority.select().where(table_authority.c.name == request.group_by.authority)
+        group_authority_query = table_authority.select().where(
+            table_authority.c.name == request.group_by.authority
+        )
         group_authority = await database.fetch_one(group_authority_query)
         if not group_authority:
             raise HTTPException(
@@ -688,7 +707,7 @@ async def create_attributes_definitions_crud(request):
         attr_def_q = table_attribute.select().where(
             and_(
                 table_attribute.c.namespace_id == group_authority.id,
-                table_attribute.c.name == request.group_by.name
+                table_attribute.c.name == request.group_by.name,
             )
         )
 
@@ -718,7 +737,7 @@ async def create_attributes_definitions_crud(request):
         state=request.state,
         rule=request.rule,
         group_by_attr=group_attr_id,
-        group_by_attrval=(request.group_by.value if group_attr_id else None)
+        group_by_attrval=(request.group_by.value if group_attr_id else None),
     )
     try:
         await database.execute(query)
@@ -756,21 +775,21 @@ async def create_attributes_definitions_crud(request):
     },
 )
 async def update_attribute_definition(
-        request: AttributeDefinition = Body(
-            ...,
-            example={
+    request: AttributeDefinition = Body(
+        ...,
+        example={
+            "authority": "https://opentdf.io",
+            "name": "IntellectualProperty",
+            "rule": "hierarchy",
+            "state": "published",
+            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+            "group_by": {
                 "authority": "https://opentdf.io",
-                "name": "IntellectualProperty",
-                "rule": "hierarchy",
-                "state": "published",
-                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-                "group_by": {
-                    "authority": "https://opentdf.io",
-                    "name": "ClassificationUS",
-                    "value": "Proprietary"
-                }
+                "name": "ClassificationUS",
+                "value": "Proprietary",
             },
-        )
+        },
+    )
 ):
     return await update_attribute_definition_crud(request)
 
@@ -796,7 +815,9 @@ async def update_attribute_definition_crud(request):
     group_attr_id = None
     if request.group_by:
         # Groupby
-        group_authority_query = table_authority.select().where(table_authority.c.name == request.group_by.authority)
+        group_authority_query = table_authority.select().where(
+            table_authority.c.name == request.group_by.authority
+        )
         group_authority = await database.fetch_one(group_authority_query)
         if not group_authority:
             raise HTTPException(
@@ -807,7 +828,7 @@ async def update_attribute_definition_crud(request):
         attr_def_q = table_attribute.select().where(
             and_(
                 table_attribute.c.namespace_id == group_authority.id,
-                table_attribute.c.name == request.group_by.name
+                table_attribute.c.name == request.group_by.name,
             )
         )
 
@@ -821,16 +842,20 @@ async def update_attribute_definition_crud(request):
 
         group_attr_id = group_attr.id
 
-    query = table_attribute.update().where(
-        and_(
-            table_authority.c.name == request.authority,
-            table_attribute.c.name == request.name,
+    query = (
+        table_attribute.update()
+        .where(
+            and_(
+                table_authority.c.name == request.authority,
+                table_attribute.c.name == request.name,
+            )
         )
-    ).values(
-        values_array=request.order,
-        rule=request.rule,
-        group_by_attr=group_attr_id,
-        group_by_attrval=(request.group_by.value if group_attr_id else None)
+        .values(
+            values_array=request.order,
+            rule=request.rule,
+            group_by_attr=group_attr_id,
+            group_by_attrval=(request.group_by.value if group_attr_id else None),
+        )
     )
 
     await database.execute(query)
@@ -851,16 +876,16 @@ async def update_attribute_definition_crud(request):
     },
 )
 async def delete_attributes_definitions(
-        request: AttributeDefinition = Body(
-            ...,
-            example={
-                "authority": "https://opentdf.io",
-                "name": "IntellectualProperty",
-                "rule": "hierarchy",
-                "state": "published",
-                "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
-            },
-        )
+    request: AttributeDefinition = Body(
+        ...,
+        example={
+            "authority": "https://opentdf.io",
+            "name": "IntellectualProperty",
+            "rule": "hierarchy",
+            "state": "published",
+            "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
+        },
+    )
 ):
     return await delete_attributes_definitions_crud(request)
 
@@ -916,9 +941,9 @@ async def read_authorities_crud():
     },
 )
 async def create_authorities(
-        request: AuthorityDefinition = Body(
-            ..., example={"authority": "https://opentdf.io"}
-        )
+    request: AuthorityDefinition = Body(
+        ..., example={"authority": "https://opentdf.io"}
+    )
 ):
     return await create_authorities_crud(request)
 
@@ -954,9 +979,9 @@ async def create_authorities_crud(request):
     },
 )
 async def delete_authorities(
-        request: AuthorityDefinition = Body(
-            ..., example={"authority": "https://opentdf.io"}
-        )
+    request: AuthorityDefinition = Body(
+        ..., example={"authority": "https://opentdf.io"}
+    )
 ):
     return await delete_authorities_crud(request)
 
@@ -967,21 +992,18 @@ async def delete_authorities_crud(request):
 
     if not result:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Record not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
         )
 
     statement = table_authority.delete().where(
-        and_(
-            table_authority.c.name == request.authority
-        )
+        and_(table_authority.c.name == request.authority)
     )
     try:
         await database.execute(statement)
     except ForeignKeyViolationError as e:
         raise HTTPException(
             status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=f"Unable to delete non-empty authority"
+            detail=f"Unable to delete non-empty authority",
         ) from e
     return {}
 
@@ -992,3 +1014,7 @@ def check_duplicates(hierarchy_list):
         return False
     else:
         return True
+
+
+if __name__ == "__main__":
+    print(json.dumps(app.openapi()), file=sys.stdout)

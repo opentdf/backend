@@ -29,3 +29,34 @@ Create chart name and version as used by the chart label.
 {{- define "entitlement-pdp.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "entitlement-pdp.labels" -}}
+helm.sh/chart: {{ include "entitlement-pdp.chart" . }}
+{{ include "entitlement-pdp.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "entitlement-pdp.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "entitlement-pdp.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "entitlement-pdp.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "entitlement-pdp.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}

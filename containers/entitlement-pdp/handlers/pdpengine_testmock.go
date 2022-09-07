@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-//A faked tdf client that meets the interface rules of the real one, to aid in testing
+// A faked tdf client that meets the interface rules of the real one, to aid in testing
 type MockPDPEngine struct {
 	mock.Mock
 }

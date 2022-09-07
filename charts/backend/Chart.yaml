@@ -40,5 +40,5 @@ dependencies:
   - name: keycloak-bootstrap
     repository: file://../keycloak-bootstrap
     version: 0.4.4
-    condition: boostrapKeycloak
+    condition: bootstrapKeycloak
     tags: ["utility"]
