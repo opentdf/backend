@@ -41,7 +41,7 @@ jobs:
         run: >-
           docker buildx imagetools create 
               ghcr.io/opentdf/${{ matrix.repo }}:sha-$(git rev-parse --short HEAD)
-              --tag ghcr.io/opentdf/${{ matrix.repo }}:${{ event.release.release.tag }}
+              --tag ghcr.io/opentdf/${{ matrix.repo }}:${{ github.event.release.release.tag }}
 
   policybundle:
     permissions:
@@ -74,7 +74,7 @@ jobs:
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           policy tag ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle:sha-$(git rev-parse --short HEAD) \
-              "${{ event.release.release.tag }}"
+              "${{ github.event.release.release.tag }}"
 
   publish-helm-charts-release:
     runs-on: ubuntu-latest
