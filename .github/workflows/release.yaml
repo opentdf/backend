@@ -13,7 +13,7 @@ jobs:
   version:
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: "${{ github.event.release.release.tag }}"
+      RELEASE_TAG: "${{ github.event.release.release.tag_name}}"
     outputs:
       CORE_VERSION: "${{ steps.info.outputs.CORE }}"
       FULL_VERSION: "${{ steps.info.outputs.FULL }}"
