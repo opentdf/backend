@@ -35,7 +35,6 @@ jobs:
       packages: write
       contents: read
     env:
-      CORE_VERSION: "${{ needs.config.outputs.CORE_VERSION }}"
       FULL_VERSION: "${{ needs.config.outputs.FULL_VERSION }}"
       SHA_TAG: "${{ needs.config.outputs.SHA_TAG }}"
     strategy:
@@ -65,7 +64,6 @@ jobs:
           docker buildx imagetools create 
               "ghcr.io/opentdf/${{ matrix.repo }}:${SHA_VERSION}"
               --tag "ghcr.io/opentdf/${{ matrix.repo }}:${FULL_VERSION}"
-              --tag "ghcr.io/opentdf/${{ matrix.repo }}:${CORE_VERSION}"
 
   policybundle:
     needs: [config]
@@ -76,7 +74,6 @@ jobs:
     timeout-minutes: 30
     env:
       BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
-      CORE_VERSION: "${{ needs.config.outputs.CORE_VERSION }}"
       FULL_VERSION: "${{ needs.config.outputs.FULL_VERSION }}"
       SHA_TAG: "${{ needs.config.outputs.SHA_TAG }}"
     steps:
@@ -103,8 +100,7 @@ jobs:
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           policy pull "${BUNDLETAG}:${SHA_TAG}"
           policy tag "${BUNDLETAG}:${SHA_TAG}" "${BUNDLETAG}:${FULL_VERSION}"
-          policy tag "${BUNDLETAG}:${SHA_TAG}" "${BUNDLETAG}:${CORE_VERSION}"
-          policy push "${BUNDLETAG}:${FULL_VERSION}" "${BUNDLETAG}:${CORE_VERSION}"
+          policy push "${BUNDLETAG}:${FULL_VERSION}"
 
   publish-helm-charts-release:
     runs-on: ubuntu-latest
