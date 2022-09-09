@@ -30,13 +30,13 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: 
-      - config
+      - version
     permissions:
       packages: write
       contents: read
     env:
-      FULL_VERSION: "${{ needs.config.outputs.FULL_VERSION }}"
-      SHA_TAG: "${{ needs.config.outputs.SHA_TAG }}"
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
     strategy:
       matrix:
         repo:
@@ -66,7 +66,8 @@ jobs:
               --tag "ghcr.io/opentdf/${{ matrix.repo }}:${FULL_VERSION}"
 
   policybundle:
-    needs: [config]
+    needs: 
+      - version
     permissions:
       packages: write
       contents: read
@@ -74,8 +75,8 @@ jobs:
     timeout-minutes: 30
     env:
       BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
-      FULL_VERSION: "${{ needs.config.outputs.FULL_VERSION }}"
-      SHA_TAG: "${{ needs.config.outputs.SHA_TAG }}"
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
@@ -107,12 +108,12 @@ jobs:
     permissions:
       packages: write
       contents: read
-    needs:
-      - config
+    needs: 
       - docker
       - policybundle
+      - version
     env:
-      FULL_VERSION: "${{ needs.config.outputs.FULL_VERSION }}"
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
