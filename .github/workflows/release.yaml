@@ -43,14 +43,13 @@ jobs:
     strategy:
       matrix:
         repo:
-          - entitlement_store
           - attributes
+          - entitlement_store
+          - entitlement-pdp
           - entitlements
+          - entity-resolution
           - kas
           - keycloak-bootstrap
-          - entitlement-pdp
-          - entity-resolution
-          - claims
     timeout-minutes: 30
     steps:
       - name: Checkout
