@@ -13,7 +13,7 @@ jobs:
   version:
     runs-on: ubuntu-latest
     env:
-      RELEASE_TAG: "${{ github.event.release.release.tag_name}}"
+      RELEASE_TAG: "${{ github.event.release.tag_name}}"
     outputs:
       CORE_VERSION: "${{ steps.info.outputs.CORE }}"
       FULL_VERSION: "${{ steps.info.outputs.FULL }}"
@@ -21,6 +21,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
+      - run: echo -e "$EVENT_CONTEXT\n"
+        env:
+          EVENT_CONTEXT: ${{ toJson(github.event) }}
       - run: |-
           echo "::set-output name=CORE::${RELEASE_TAG%%-*}"
           echo "::set-output name=FULL::${RELEASE_TAG}"
