@@ -1,5 +1,5 @@
 ARG PY_VERSION=3.10
-ARG CONTAINER_REGISTRY=docker.io
+ARG CONTAINER_REGISTRY=ghcr.io
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
