@@ -1,32 +1,29 @@
+load("ext://helm_resource", "helm_resource", "helm_repo")
 load("./common.Tiltfile", "backend")
 
 EXTERNAL_URL = "http://localhost:65432"
-FRONTEND_DIR = "../frontend"
-CONTAINER_REGISTRY = os.environ.get("CONTAINER_REGISTRY", "ghcr.io")
+FRONTEND_IMAGE_TAG = "main"
+FRONTEND_CHART_TAG = "0.0.0-sha-93bb332"
 
-ingress_enable = {
-    ("%s.ingress.enabled" % s): "true"
-    for s in ["attributes", "entitlements", "kas", "keycloak"]
-}
+backend(extra_helm_parameters=["-f", "./tests/integration/backend-with-frontend.yaml"])
 
-backend(set=ingress_enable)
-
-docker_build(
-    CONTAINER_REGISTRY + "/opentdf/abacus",
-    FRONTEND_DIR,
-    dockerfile=FRONTEND_DIR + "/Dockerfile",
+helm_resource(
+    "opentdf-abacus",
+    "oci://ghcr.io/opentdf/charts/abacus",
+    flags=[
+        "--version",
+        FRONTEND_CHART_TAG,
+        "-f",
+        "./tests/integration/backend-with-frontend-values-abacus.yaml",
+        "--set",
+        "attributes.serverUrl=%s/api/attributes" % EXTERNAL_URL,
+        "--set",
+        "entitlements.serverUrl=%s/api/entitlements" % EXTERNAL_URL,
+        "--set",
+        "image.tag=%s" % FRONTEND_IMAGE_TAG,
+        "--set",
+        "oidc.serverUrl=%s/auth/" % EXTERNAL_URL,
+    ],
+    labels="frontend",
+    resource_deps=["backend"],
 )
-EXTERNAL_URL = "http://localhost:65432"
-k8s_yaml(
-    helm(
-        FRONTEND_DIR + "/charts/abacus",
-        "abacus",
-        set=[
-            "attributes.serverUrl=%s/api/attributes" % EXTERNAL_URL,
-            "entitlements.serverUrl=%s/api/entitlements" % EXTERNAL_URL,
-            "oidc.serverUrl=%s/auth/" % EXTERNAL_URL,
-        ],
-        values=["./tests/integration/frontend-local.yaml"],
-    )
-)
-k8s_resource("abacus")
