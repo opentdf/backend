@@ -281,6 +281,8 @@ jobs:
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
           context: ./containers/python_base
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -329,6 +331,8 @@ jobs:
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
           context: ./containers/${{ matrix.repo }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -374,6 +378,8 @@ jobs:
           build-args: |-
             CONTAINER_REGISTRY=ghcr.io
           context: ./containers/${{ matrix.repo }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -466,6 +472,8 @@ jobs:
             PY_VERSION=3.10
             PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}
           context: ./containers
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           file: ./containers/${{ matrix.repo }}/Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
