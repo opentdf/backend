@@ -91,17 +91,3 @@ def test_metadata_from_raw():
     assert metadata.data == expected
 
 
-def test_metadata_from_raw_with_iv_prepend():
-    """Test raw_data factory with encryption."""
-    expected = {"foo": "bar"}
-    expected_encoded = str.encode(json.dumps(expected))
-    secret = AESGCM.generate_key(bit_length=128)
-    (encrypted, iv) = aes_gcm_encrypt(expected_encoded, secret)
-    raw_metadata = {
-        "algorithm": "AES_GCM",
-        "iv": base64.b64encode(iv),
-        "ciphertext": base64.b64encode(iv + encrypted),
-    }
-    metadata = MetaData.from_raw(raw_metadata, secret)
-    assert isinstance(metadata, MetaData)
-    assert metadata.data == expected
