@@ -6,8 +6,6 @@ classes must exist before the Adjudicator code is interpreted.
 
 from .key_master import KeyMaster  # noqa: F401
 
-from .metadata import MetaData  # noqa: F401
-
 from .context import Context  # noqa: F401
 
 from .crypto import Crypto  # noqa: F401
