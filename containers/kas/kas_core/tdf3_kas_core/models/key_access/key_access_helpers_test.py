@@ -196,7 +196,6 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
 
 def test_add_metadata_values_without_metadata_in_raw_dict():
     """Test add metadata values with no encrypted metadata field."""
-    expected = {}
 
     secret = AESGCM.generate_key(bit_length=128)
     wrapped_secret = WrappedKey(secret)
@@ -207,7 +206,7 @@ def test_add_metadata_values_without_metadata_in_raw_dict():
     print(kao.metadata)
 
     # Metadata object should be empty
-    assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
+    assert kao.metadata is None
 
 
 def test_exception_on_not_providing_wrapped_key():

@@ -97,6 +97,11 @@ def decrypt_metadata_string(raw_dict, wrapped_key=None, private_key=None):
     key is not always available, so there may be a metadata-specific symmetric
     encryption key that is delivered wrapped in some form.
     """
+
+    if "encryptedMetadata" not in raw_dict:
+        logger.debug("EncryptedMetadata not provided; returning None.")
+        return None
+
     if private_key is None:
         logger.error("No private key in %s", raw_dict)
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
