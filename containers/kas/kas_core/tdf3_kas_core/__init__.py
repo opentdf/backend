@@ -1,6 +1,5 @@
 """TDF3 KAS Core Exports."""
 
-from .models import MetaData  # noqa: F401
 from .models import Crypto  # noqa: F401
 
 from .models import Policy  # noqa: F401
