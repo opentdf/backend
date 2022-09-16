@@ -10,4 +10,14 @@ ingress_enable = {
     for s in ["attributes", "entitlements", "kas", "keycloak"]
 }
 
-backend(set=ingress_enable)
+openapi_enable = {
+    ("%s.openapiUrl" % s): "/openapi"
+    for s in ["attributes", "entitlements"]
+}
+
+server_root = {
+    ("%s.serverRootPath" % s): ("/api/%s" % s)
+    for s in ["attributes", "entitlements"]
+}
+
+backend(set=dict(ingress_enable.items() + openapi_enable.items() + server_root.items()))
