@@ -38,7 +38,7 @@ setup(
         "statsd",
         "swagger-ui-bundle",
         "wsgicors",
-        "attributes @ git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=attributes&subdirectory=clients/python/attributes",
-        "accesspdp @ git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=accesspdp&subdirectory=clients/python/accesspdp",
+        "attributes @ git+https://github.com/virtru/access-pdp#egg=attributes&subdirectory=clients/python/attributes",
+        "accesspdp @ git+https://github.com/virtru/access-pdp#egg=accesspdp&subdirectory=clients/python/accesspdp",
     ],
 )
