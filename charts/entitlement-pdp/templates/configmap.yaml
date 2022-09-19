@@ -38,6 +38,6 @@ data:
           min_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
           max_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
 
-    {{ if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /var/opa/policycache{{ end }}
+    {{ if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /tmp/opa/policycache{{ end }}
 
 {{ toYaml .Values.opaConfig.extraConfigYaml | indent 4 }}
