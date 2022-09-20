@@ -64,7 +64,8 @@ FROM golang:1.19-alpine AS emptyfinal
 ENV HOME=/opt/entitlement-pdp
 ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
 
-RUN mkdir -p -m 777 $CACHEDIR
+RUN mkdir -p $CACHEDIR
+RUN chmod -R 777 /opt/entitlement-pdp
 
 COPY --chown=root:root --from=builder /dist/entitlement-pdp /entitlement-pdp
 COPY --chown=root:root --chmod=777 --from=builder /dist/bundle.tar.gz $CACHEDIR/bundle.tar.gz
