@@ -13,7 +13,7 @@ dependencies:
     version: 0.0.1
   - name: entitlement-pdp
     repository: file://../entitlement-pdp
-    version: 0.0.9
+    version: 0.0.10
   - name: entitlement-store
     repository: file://../entitlement-store
     version: 0.0.1
