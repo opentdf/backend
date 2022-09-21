@@ -66,6 +66,7 @@ attributes:
           pathType: Prefix
       host.docker.internal: *pathsAttributes
       opentdf.local: *pathsAttributes
+      '': *pathsAttributes
 entitlement-pdp:
   fullnameOverride: entitlement-pdp
   opaConfig:
@@ -97,6 +98,7 @@ entitlements:
           pathType: Prefix
       host.docker.internal: *pathsEntitlements
       opentdf.local: *pathsEntitlements
+      '': *pathsEntitlements
 entity-resolution:
   fullnameOverride: entity-resolution
   config:
@@ -124,6 +126,7 @@ kas:
           pathType: Prefix
       host.docker.internal: *pathsKas
       opentdf.local: *pathsKas
+      '': *pathsKas
   logLevel: DEBUG
   pdp:
     verbose: "true"
@@ -182,6 +185,8 @@ keycloak:
         paths: *paths
       - host: opentdf.local
         paths: *paths
+      - paths: *paths
+        host: ''
     tls: []
 
 keycloak-bootstrap:
