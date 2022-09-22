@@ -488,6 +488,8 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
 
     if allowed is True:
         logger.debug("========= Rewrap allowed = %s", allowed)
+        logger.debug(f"Claims: {claims.user_id=}, {claims.entity_attributes=} is allowed access to data with policy {policy}")
+
         # Re-wrap the kas-wrapped key with the entity's public key.
         if key_access.wrapped_key is not None:
             wrapped_key = WrappedKey.from_raw(key_access.wrapped_key, kas_private)
