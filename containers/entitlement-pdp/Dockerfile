@@ -61,7 +61,15 @@ RUN policy build entitlement-policy -t local:$(cat <VERSION) \
 # Create the minimal runtime image
 FROM golang:1.19-alpine AS emptyfinal
 
+ENV HOME=/opt/entitlement-pdp
+ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
+
+RUN mkdir -p $CACHEDIR
+RUN chmod -R 777 /opt/entitlement-pdp
+
 COPY --chown=root:root --from=builder /dist/entitlement-pdp /entitlement-pdp
-COPY --chown=root:root --from=builder /dist/bundle.tar.gz /tmp/opa/policycache/bundles/entitlement-policy/bundle.tar.gz
+COPY --chown=root:root --chmod=777 --from=builder /dist/bundle.tar.gz $CACHEDIR/bundle.tar.gz
+
+WORKDIR $HOME
 
 ENTRYPOINT ["/entitlement-pdp"]
