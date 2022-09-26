@@ -60,7 +60,8 @@ RUN policy build entitlement-policy -t local:$(cat <VERSION) \
 
 # Create the minimal runtime image
 FROM golang:1.19-alpine AS emptyfinal
-
+# CVE-2022-40674 - updating here until alpine does a relase with the fix - this can be removed once released
+RUN apk info expat && apk update expat=2.4.9-r0 && apk info expat
 ENV HOME=/opt/entitlement-pdp
 ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
 

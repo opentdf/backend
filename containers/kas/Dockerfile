@@ -40,7 +40,8 @@ RUN python3 -m compileall .
 FROM python:${PY_VERSION}-slim AS production
 
 ARG PY_VERSION
-
+# CVE-2022-40674 - updating here until alpine does a relase with the fix - this can be removed once released
+RUN apk info expat && apk update expat=2.4.9-r0 && apk info expat
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
 

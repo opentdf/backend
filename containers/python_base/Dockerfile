@@ -3,6 +3,8 @@ ARG ALPINE_VERSION=3.16
 
 # stage - build
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
+# CVE-2022-40674 - updating here until alpine does a relase with the fix - this can be removed once released
+RUN apk info expat && apk update expat=2.4.9-r0 && apk info expat
 # Install apk dependencies
 RUN apk add --no-cache --upgrade \
     gcc \

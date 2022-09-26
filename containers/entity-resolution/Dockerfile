@@ -48,7 +48,8 @@ RUN go build -o /dist/entity-resolution-service
 
 # Create the minimal runtime image
 FROM golang:1.19-alpine AS emptyfinal
-
+# CVE-2022-40674 - updating here until alpine does a relase with the fix - this can be removed once released
+RUN apk info expat && apk update expat=2.4.9-r0 && apk info expat
 COPY --chown=0:0 --from=builder /dist/entity-resolution-service /entity-resolution-service
 
 ENTRYPOINT ["/entity-resolution-service"]
