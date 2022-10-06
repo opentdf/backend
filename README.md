@@ -218,3 +218,9 @@ Each genkey script has a brief help which you can access like
 - `./scripts/genkey-apps --help`
 - `./scripts/genkey-client --help`
 - `./scripts/genkey-reverse-proxy --help`
+
+##### If you faced with [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) issue running abacus locally
+
+Probably abacus running different port, you can adjust allowed origin in files
+`projects/backend/charts/entitlements/values.yaml`, `projects/backend/charts/attributes/values.yaml`
+take a look and change value for `serverCorsOrigins` field
