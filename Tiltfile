@@ -5,6 +5,10 @@
 
 load("./common.Tiltfile", "backend")
 
+config.define_string('allow-origin')
+cfg = config.parse()
+host_arg = cfg.get('allow-origin', "http://localhost:3000")
+
 ingress_enable = {
     ("%s.ingress.enabled" % s): "true"
     for s in ["attributes", "entitlements", "kas", "keycloak"]
@@ -20,4 +24,10 @@ server_root = {
     for s in ["attributes", "entitlements"]
 }
 
-backend(set=dict(ingress_enable.items() + openapi_enable.items() + server_root.items()))
+cors_origins = {
+    ("%s.serverCorsOrigins" % s): host_arg
+    for s in ["attributes", "entitlements"]
+}
+
+
+backend(set=dict(ingress_enable.items() + openapi_enable.items() + server_root.items() + cors_origins.items()))

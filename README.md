@@ -218,3 +218,9 @@ Each genkey script has a brief help which you can access like
 - `./scripts/genkey-apps --help`
 - `./scripts/genkey-client --help`
 - `./scripts/genkey-reverse-proxy --help`
+
+##### If you faced with [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) issue running abacus locally
+Probably abacus running different port, you can setup origin from tilt arguments.
+Arguments are optional and default value is `http://localhost:3000`
+
+`tilt up -- --allow-origin http://localhost:3000`
