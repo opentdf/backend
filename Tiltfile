@@ -26,6 +26,5 @@ cors_origins = {
 }
 
 merged_values = dict_union(ingress_enable, cors_origins)
-print(merged_values)
 
 backend(set=merged_values)
