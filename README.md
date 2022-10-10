@@ -220,7 +220,7 @@ Each genkey script has a brief help which you can access like
 - `./scripts/genkey-reverse-proxy --help`
 
 ##### If you faced with [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) issue running abacus locally
+Probably abacus running different port, you can setup origin from tilt arguments.
+Arguments are optional and default value is `http://localhost:3000`
 
-Probably abacus running different port, you can adjust allowed origin in files
-`projects/backend/charts/entitlements/values.yaml`, `projects/backend/charts/attributes/values.yaml`
-take a look and change value for `serverCorsOrigins` field
+`tilt up -- --localhost http://localhost:3000`

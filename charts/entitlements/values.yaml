@@ -32,7 +32,7 @@ serverPublicName: Entitlement
 serverRootPath: /
 
 # Allowed origins for CORS
-serverCorsOrigins: "http://localhost:3000"
+serverCorsOrigins: ""
 
 # Set to enable openapi endpoint
 openapiUrl: ""
