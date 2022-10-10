@@ -9,6 +9,7 @@ kas:
         "/api/kas(/|$)(.*)":
           pathType: Prefix
       host.docker.internal: *paths
+      opentdf.local: *paths
 
 keycloak:
   fullnameOverride: keycloak

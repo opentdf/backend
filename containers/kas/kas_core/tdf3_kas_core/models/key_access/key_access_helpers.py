@@ -1,14 +1,14 @@
 """KeyAccess helpers functions."""
 import logging
 import base64
-import logging
 import json
 
 from tdf3_kas_core.models import WrappedKey
-from tdf3_kas_core.models import MetaData
 
 from tdf3_kas_core.errors import BadRequestError
 from tdf3_kas_core.errors import KeyAccessError
+
+from tdf3_kas_core.util import aes_gcm_decrypt
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ def add_wrapped_values(kao, raw_dict, private_key=None, canonical_policy=None):
     return kao
 
 
-def add_metadata_values(kao, raw_dict, wrapped_key=None, private_key=None):
+def decrypt_metadata_string(raw_dict, wrapped_key=None, private_key=None):
     """Decrypt and unpack the metadata.
 
     Wrapped_key is (currently) the kas-wrapped symmetric object key, and
@@ -97,10 +97,10 @@ def add_metadata_values(kao, raw_dict, wrapped_key=None, private_key=None):
     key is not always available, so there may be a metadata-specific symmetric
     encryption key that is delivered wrapped in some form.
     """
+
     if "encryptedMetadata" not in raw_dict:
-        logger.debug("EncryptedMetadata not provided; creating empty MetaData model.")
-        kao.metadata = MetaData()
-        return kao
+        logger.debug("EncryptedMetadata not provided; returning None.")
+        return None
 
     if private_key is None:
         logger.error("No private key in %s", raw_dict)
@@ -123,9 +123,36 @@ def add_metadata_values(kao, raw_dict, wrapped_key=None, private_key=None):
     # Policies currently work with a single KAS environment.
     # Future implementations may support a multi-KAS environment.
     object_key = WrappedKey.from_raw(wrapped_key, private_key)
-    metadata = MetaData.from_raw(metadata_dict, object_key.plain_key)
+    metadata = decrypt_encrypted_metadata(metadata_dict, object_key.plain_key)
 
-    logger.debug("metadata = %s", metadata)
+    logger.debug("decrypted metadata = %s", metadata)
 
-    kao.metadata = metadata
-    return kao
+    return metadata
+
+
+def decrypt_encrypted_metadata(raw_metadata, secret):
+    """Decrypt `encryptedMetadata` and return the result as a metadata string.
+
+    Or raise an error if something goes wrong.
+    """
+    logger.debug("Unpacking raw metadata = %s", raw_metadata)
+
+    iv = base64.b64decode(raw_metadata["iv"])
+    logger.debug("IV = %s", iv)
+
+    ciphertext = base64.b64decode(raw_metadata["ciphertext"])
+    logger.debug("ciphertext = %s", ciphertext)
+
+    # Remove 12 bytes of the prepended IV that comes with the metadata
+    pure_ciphertext = ciphertext[12:]
+
+    logger.debug("pure_ciphertext = %s", pure_ciphertext)
+
+    data = aes_gcm_decrypt(pure_ciphertext, secret, iv)
+
+    logger.debug("metaData = %s", data)
+
+    if data:
+        return data
+    else:
+        return None

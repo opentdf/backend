@@ -10,6 +10,10 @@ global:
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
 
+# Determinies whether KAS uses the json formatter for logging, if false the
+# dev formatter is used. Default is true
+jsonLogger: "true"
+
 pdp:
   # Enables verbose mode for the internal PDP (policy decision point) KAS uses.
   # If `yes`, decisions will be logged with much additional detail

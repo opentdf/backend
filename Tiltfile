@@ -3,12 +3,6 @@
 # extensions https://github.com/tilt-dev/tilt-extensions
 # helm remote usage https://github.com/tilt-dev/tilt-extensions/tree/master/helm_remote#additional-parameters
 
-def dict_union(x, y):
-   z = {}
-   z.update(x)
-   z.update(y)
-   return z
-
 load("./common.Tiltfile", "backend")
 
 config.define_string('allow-origin')
@@ -20,11 +14,20 @@ ingress_enable = {
     for s in ["attributes", "entitlements", "kas", "keycloak"]
 }
 
+openapi_enable = {
+    ("%s.openapiUrl" % s): "/openapi"
+    for s in ["attributes", "entitlements"]
+}
+
+server_root = {
+    ("%s.serverRootPath" % s): ("/api/%s" % s)
+    for s in ["attributes", "entitlements"]
+}
+
 cors_origins = {
     ("%s.serverCorsOrigins" % s): host_arg
     for s in ["attributes", "entitlements"]
 }
 
-merged_values = dict_union(ingress_enable, cors_origins)
 
-backend(set=merged_values)
+backend(set=dict(ingress_enable.items() + openapi_enable.items() + server_root.items() + cors_origins.items()))

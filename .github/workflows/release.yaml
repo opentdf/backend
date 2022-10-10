@@ -10,20 +10,115 @@ on:
 # This workflow assumes the release tag is the literal Semver you want to use to stamp the release charts with.
 # This workflow will bake images into the (human-readable SEMVER from tag) charts using (generated from current tag SHA) tagged image builds, which presumably have already been built+pushed for this SHA
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: "${{ github.event.release.tag_name}}"
+    outputs:
+      CORE_VERSION: "${{ steps.info.outputs.CORE }}"
+      FULL_VERSION: "${{ steps.info.outputs.FULL }}"
+      SHA_TAG: "${{ steps.info.outputs.SHA }}"
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo -e "$EVENT_CONTEXT\n"
+        env:
+          EVENT_CONTEXT: ${{ toJson(github.event) }}
+      - run: |-
+          echo "::set-output name=CORE::${RELEASE_TAG%%-*}"
+          echo "::set-output name=FULL::${RELEASE_TAG}"
+          echo "::set-output name=SHA::sha-$(git rev-parse --short HEAD)"
+        id: info
+
+  docker:
+    runs-on: ubuntu-latest
+    needs:
+      - version
+    permissions:
+      packages: write
+      contents: read
+    env:
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
+    strategy:
+      matrix:
+        repo:
+          - attributes
+          - entitlement_store
+          - entitlement-pdp
+          - entitlements
+          - entity-resolution
+          - kas
+          - keycloak-bootstrap
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag existing images
+        run: >-
+          docker buildx imagetools create
+          "ghcr.io/opentdf/${{ matrix.repo }}:${SHA_TAG}"
+          --tag "ghcr.io/opentdf/${{ matrix.repo }}:${FULL_VERSION}"
+
+  policybundle:
+    needs:
+      - version
+    permissions:
+      packages: write
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+      - name: Setup OPA for running policy tests
+        uses: open-policy-agent/setup-opa@v1
+        with:
+          version: latest
+      - name: Setup policy OCI bundler tool
+        uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18.0"
+      - name: Build policy bundle
+        run: |
+          go install github.com/opcr-io/policy/cmd/policy@latest
+          cd containers/entitlement-pdp/entitlement-policy
+          policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+          policy pull "${BUNDLETAG}:${SHA_TAG}"
+          policy tag "${BUNDLETAG}:${SHA_TAG}" "${BUNDLETAG}:${FULL_VERSION}"
+          policy push "${BUNDLETAG}:${FULL_VERSION}"
+
   publish-helm-charts-release:
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
-    timeout-minutes: 10
+    needs:
+      - docker
+      - policybundle
+      - version
+    env:
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+    timeout-minutes: 30
     steps:
-      # Quick check to ensure the release we have is tagged with strict semver
-      # https://jubianchi.github.io/semver-check/#/
-      # e.g. no leading v.
-      # If this fails, you need to re-`git tag` your release commit with a valid semver tag
-      - uses: rubenesp87/semver-validation-action@0.0.6
-        with:
-          version: ${{ github.event.release.tag_name }}
       - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
         with:
@@ -38,7 +133,7 @@ jobs:
           logout: false
       - name: push
         run: |
-          scripts/update-charts release
+          scripts/update-charts release "${FULL_VERSION}"
           cd charts || exit 1
           for d in */ ; do
               if [ -f "$d/Chart.yaml" -a "$d" != "backend/" ]; then
@@ -56,4 +151,4 @@ jobs:
           helm package backend
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
-          rm *.tgz 
+          rm *.tgz

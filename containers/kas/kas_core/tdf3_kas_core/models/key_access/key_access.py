@@ -1,17 +1,13 @@
 """KeyAccess model."""
 import logging
 
-import logging
-
-from tdf3_kas_core.models import MetaData
-
 from tdf3_kas_core.errors import KeyAccessError
 from tdf3_kas_core.validation import attr_authority_check
 
 from .key_access_helpers import add_required_values
 from .key_access_helpers import add_remote_values
 from .key_access_helpers import add_wrapped_values
-from .key_access_helpers import add_metadata_values
+from .key_access_helpers import decrypt_metadata_string
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +80,8 @@ class KeyAccess(object):
             logger.setLevel(logging.DEBUG)  # dynamically escalate level
             raise KeyAccessError(msg)
 
-        kao = add_metadata_values(
-            kao, raw_dict, wrapped_key=kao.wrapped_key, private_key=private_key
+        kao.metadata = decrypt_metadata_string(
+            raw_dict, wrapped_key=kao.wrapped_key, private_key=private_key
         )
 
         logger.debug("Key Access Object Complete = %s", kao)
@@ -195,18 +191,15 @@ class KeyAccess(object):
 
     @metadata.setter
     def metadata(self, value):
-        """Set the metadata.
+        """Set the metadata. Will be either None or a simple string.
 
-        Must be MetaData instance or None.
+        Clients set the metadata string (freeform field).
+        Clients may request the metadata be decrypted, and can do what they like with
+        the string result.
+        KAS/PEP plugins may also do things with the string result. But KAS/PEP core should
+        not care what the contents are, and should simply decrypt the metadata.
         """
-        logger.debug("Setting metadata = %s", value)
-
-        if (value is None) or (not isinstance(value, MetaData)):
-            msg = f"Invalid metadata object, got {value}"
-            logger.error(msg)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
-            raise KeyAccessError(msg)
-
+        logger.debug("Setting metadata to = %s", value)
         self.__metadata = value
 
     @property
