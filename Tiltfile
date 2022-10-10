@@ -11,9 +11,9 @@ def dict_union(x, y):
 
 load("./common.Tiltfile", "backend")
 
-config.define_string('localhost')
+config.define_string('allow-origin')
 cfg = config.parse()
-localhost_arg = cfg.get('localhost', "http://localhost:3000")
+host_arg = cfg.get('allow-origin', "http://localhost:3000")
 
 ingress_enable = {
     ("%s.ingress.enabled" % s): "true"
@@ -21,7 +21,7 @@ ingress_enable = {
 }
 
 cors_origins = {
-    ("%s.serverCorsOrigins" % s): localhost_arg
+    ("%s.serverCorsOrigins" % s): host_arg
     for s in ["attributes", "entitlements"]
 }
 

@@ -223,4 +223,4 @@ Each genkey script has a brief help which you can access like
 Probably abacus running different port, you can setup origin from tilt arguments.
 Arguments are optional and default value is `http://localhost:3000`
 
-`tilt up -- --localhost http://localhost:3000`
+`tilt up -- --allow-origin http://localhost:3000`
