@@ -30,12 +30,14 @@ jobs:
         id: step_two
         run: |
           echo "${{ env.image_tag }}" # This will output 'main'
+      outputs:
+        image_tag: ${{ env.image_tag }}
   printImageTagAfterSet:
     needs: printImageTag
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "${{ env.image_tag }}" # This will output 'main'
+          echo "${{needs.printImageTag.outputs.image_tag}}" # This will output 'main'
 
   # attributes:
   #   name: Attributes
