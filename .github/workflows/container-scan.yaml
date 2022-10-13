@@ -15,7 +15,8 @@ on:
         default: main
   
 jobs:
-  printImageTag:
+  set-image-tag:
+    name: Set the image tag
     runs-on: ubuntu-latest
     steps:
       - if: github.event_name == 'workflow_dispatch'
@@ -32,23 +33,24 @@ jobs:
           echo "${{ env.image_tag }}" # This will output 'main'
     outputs:
       image_tag: ${{ env.image_tag }}
-  printImageTagAfterSet:
-    needs: printImageTag
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo "${{needs.printImageTag.outputs.image_tag}}" # This will output 'main'
-
-  # attributes:
-  #   name: Attributes
-  #   runs-on: ubuntu-20.04
+  # printImageTagAfterSet:
+  #   needs: set-image-tag
+  #   runs-on: ubuntu-latest
   #   steps:
-  #     - name: Echo image tag
-  #       run: |-
-  #         echo "Running with Image Tag: ${{ env.action_state }}'" 
-  #     - name: Attributes Scan
-  #       uses: aquasecurity/trivy-action@master
-  #       with:
-  #         image-ref: ghcr.io/opentdf/attributes:${{ env.action_state }}
-  #         format: 'sarif'
-  #         output: 'attributes-trivy-results.sarif'
+  #     - run: |
+  #         echo "${{needs.set-image-tag.outputs.image_tag}}" # This will output 'main'
+
+  attributes:
+    needs: set-image-tag
+    name: Attributes
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}'" 
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/attributes:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'attributes-trivy-results.sarif'
