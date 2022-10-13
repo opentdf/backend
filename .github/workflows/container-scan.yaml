@@ -33,20 +33,26 @@ jobs:
           echo "${{ env.image_tag }}" # This will output 'main'
     outputs:
       image_tag: ${{ env.image_tag }}
-  # attributes:
-  #   needs: set-image-tag
-  #   name: Attributes
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - name: Echo image tag
-  #       run: |-
-  #         echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}" 
-  #     - name: Attributes Scan
-  #       uses: aquasecurity/trivy-action@master
-  #       with:
-  #         image-ref: ghcr.io/opentdf/attributes:${{needs.set-image-tag.outputs.image_tag}}
-  #         format: 'sarif'
-  #         output: 'attributes-trivy-results.sarif'
+
+  attributes:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/attributes:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'attributes-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: attributes-trivy-results.sarif
+          path: attributes-trivy-results.sarif
+          retention-days: 5
 
   printImageTagAfterSet:
     needs: set-image-tag
