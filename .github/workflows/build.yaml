@@ -3,11 +3,12 @@ env:
   CONTAINER_ARCHS: linux/amd64,linux/arm64
 
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
   push:
     branches:
       - main
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
+ 
 jobs:
   config:
     runs-on: ubuntu-latest

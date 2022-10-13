@@ -1,82 +1,239 @@
-name: Trivy Analysis
-
+name: build
 on:
-  push:
-
+  # just using the PR for getting it setup
+  pull_request:
+    branches:
+      - main
+  # this will cause issues, need to trigger only after this runs on push to main
+  # workflow_run:
+  #   workflows: ["Build Backend"]
+  #   types:
+  #     - completed
+  workflow_dispatch:
+    inputs:
+      imageTag:
+        description: image tag
+        type: string
+        default: main
+        required: false
+  
 jobs:
-  trivy_analysis:
-    name: Trivy Analysis
-    runs-on: "ubuntu-18.04"
+  set-image-tag:
+    runs-on: ubuntu-latest
     steps:
-      - name: Run Trivy on python:3.6-slim-buster
+      - if: github.event_name == 'workflow_dispatch'
+        run: |-
+          echo "Running with Image Tag: ${{ inputs.imageTag }}"
+          echo "image_tag=${{ github.events.inputs.imageTag }}" >> $GITHUB_ENV
+      - if: github.event_name != 'workflow_dispatch'
+        run: |-
+          echo "Running with Image Tag: main"
+          echo "image_tag=main" >> $GITHUB_ENV
+      - name: Use the value
+        id: step_two
+        run: |
+          echo "${{ env.image_tag }}" # This will output 'main'
+    outputs:
+      image_tag: ${{ env.image_tag }}
+
+  attributes:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'python:3.6-slim-buster'
-          format: 'template'
-          template: '@/contrib/sarif.tpl'
-          output: 'trivy-slim-buster.sarif'
-          severity: 'CRITICAL,HIGH'
+          image-ref: ghcr.io/opentdf/attributes:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'attributes-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: attributes-trivy-results.sarif
+          path: attributes-trivy-results.sarif
+          retention-days: 5
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'attributes-trivy-results.sarif'
+      #     category: attributes
+
+  entitlements:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/entitlements:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'entitlements-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: entitlements-trivy-results.sarif
+          path: entitlements-trivy-results.sarif
+          retention-days: 5
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'entitlements-trivy-results.sarif'
+      #     category: entitlements
+
+  kas:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/kas:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'kas-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: kas-trivy-results.sarif
+          path: kas-trivy-results.sarif
+          retention-days: 5
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'kas-trivy-results.sarif'
+      #     category: kas
+
+  keycloak:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/keycloak:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'keycloak-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: keycloak-trivy-results.sarif
+          path: keycloak-trivy-results.sarif
+          retention-days: 5
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'keycloak-trivy-results.sarif'
+      #     category: keycloak
+
+  entitlement_store:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/entitlement_store:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'entitlement_store-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: entitlement_store-trivy-results.sarif
+          path: entitlement_store-trivy-results.sarif
+          retention-days: 5
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'entitlement_store-trivy-results.sarif'
+      #     category: entitlement_store
+
+  entitlement-pdp:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/entitlement-pdp:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'entitlement-pdp-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: entitlement-pdp-trivy-results.sarif
+          path: entitlement-pdp-trivy-results.sarif
+          retention-days: 5
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'entitlement-pdp-trivy-results.sarif'
+      #     category: entitlement-pdp
+
+  entity-resolution:
+    needs: set-image-tag
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Echo image tag
+        run: |-
+          echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
+      - name: Attributes Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/opentdf/entity-resolution:${{needs.set-image-tag.outputs.image_tag}}
+          format: 'sarif'
+          output: 'entity-resolution-trivy-results.sarif'
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: entity-resolution-trivy-results.sarif
+          path: entity-resolution-trivy-results.sarif
+          retention-days: 5
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v2
+      #   with:
+      #     sarif_file: 'entity-resolution-trivy-results.sarif'
+      #     category: entity-resolution
+
+  # printImageTagAfterSet:
+  #   needs: set-image-tag
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: |
+  #         echo "${{needs.set-image-tag.outputs.image_tag}}" # This will output 'main'
 
 
-# name: build
+# name: Trivy Analysis
+
 # on:
-#   pull_request:
-#     branches:
-#       - main
-#   workflow_run:
-#     workflows: ["Build Backend"]
-#     types:
-#       - completed
-#   workflow_dispatch:
-#     inputs:
-#       imageTag:
-#         description: image tag
-#         type: string
-#         default: main
-#         required: false
-  
-# jobs:
-#   set-image-tag:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - if: github.event_name == 'workflow_dispatch'
-#         run: |-
-#           echo "Running with Image Tag: ${{ inputs.imageTag }}"
-#           echo "image_tag=${{ github.events.inputs.imageTag }}" >> $GITHUB_ENV
-#       - if: github.event_name != 'workflow_dispatch'
-#         run: |-
-#           echo "Running with Image Tag: main"
-#           echo "image_tag=main" >> $GITHUB_ENV
-#       - name: Use the value
-#         id: step_two
-#         run: |
-#           echo "${{ env.image_tag }}" # This will output 'main'
-#     outputs:
-#       image_tag: ${{ env.image_tag }}
+#   push:
 
-#   attributes:
-#     needs: set-image-tag
-#     runs-on: ubuntu-20.04
+# jobs:
+#   trivy_analysis:
+#     name: Trivy Analysis
+#     runs-on: "ubuntu-18.04"
 #     steps:
-#       - name: Echo image tag
-#         run: |-
-#           echo "Running with Image Tag: ${{needs.set-image-tag.outputs.image_tag}}"
-#       - name: Attributes Scan
+#       - name: Run Trivy on python:3.6-slim-buster
 #         uses: aquasecurity/trivy-action@master
 #         with:
-#           image-ref: ghcr.io/opentdf/attributes:${{needs.set-image-tag.outputs.image_tag}}
-#           format: 'sarif'
-#           output: 'attributes-trivy-results.sarif'
-#       - name: 'Upload Artifact'
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: attributes-trivy-results.sarif
-#           path: attributes-trivy-results.sarif
-#           retention-days: 5
-
-#   printImageTagAfterSet:
-#     needs: set-image-tag
-#     runs-on: ubuntu-latest
-#     steps:
-#       - run: |
-#           echo "${{needs.set-image-tag.outputs.image_tag}}" # This will output 'main'
+#           image-ref: 'python:3.6-slim-buster'
+#           format: 'template'
+#           template: '@/contrib/sarif.tpl'
+#           output: 'trivy-slim-buster.sarif'
+#           severity: 'CRITICAL,HIGH'
