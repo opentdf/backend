@@ -15,16 +15,37 @@ on:
         default: main
   
 jobs:
-  attributes:
-    name: Attributes
-    runs-on: ubuntu-20.04
+  printImageTag:
+    runs-on: ubuntu-latest
     steps:
-      - name: Echo image tag
+      - if: github.event_name == 'workflow_dispatch'
         run: |-
-          echo "Running with Image Tag: ${{ github.events.inputs.imageTag }}'" 
-      # - name: Attributes Scan
-      #   uses: aquasecurity/trivy-action@master
-      #   with:
-      #     image-ref: ghcr.io/opentdf/attributes:${{ github.events.inputs.imageTag }}'
-      #     format: 'sarif'
-      #     output: 'attributes-trivy-results.sarif'
+          echo "Running with Image Tag: ${{ inputs.imageTag }}"
+          echo "image_tag=${{ github.events.inputs.imageTag }}" >> $GITHUB_ENV
+      - if: github.event_name != 'workflow_dispatch'
+        run: |-
+          echo "Running with Image Tag: main"
+          echo "image_tag=main" >> $GITHUB_ENV
+      - name: Use the value
+        id: step_two
+        run: |
+          echo "${{ env.image_tag }}" # This will output 'main'
+  printImageTagAfterSet:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "${{ env.image_tag }}" # This will output 'main'
+
+  # attributes:
+  #   name: Attributes
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - name: Echo image tag
+  #       run: |-
+  #         echo "Running with Image Tag: ${{ env.action_state }}'" 
+  #     - name: Attributes Scan
+  #       uses: aquasecurity/trivy-action@master
+  #       with:
+  #         image-ref: ghcr.io/opentdf/attributes:${{ env.action_state }}
+  #         format: 'sarif'
+  #         output: 'attributes-trivy-results.sarif'
