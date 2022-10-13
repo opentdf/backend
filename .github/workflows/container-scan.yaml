@@ -30,8 +30,8 @@ jobs:
         id: step_two
         run: |
           echo "${{ env.image_tag }}" # This will output 'main'
-      outputs:
-        image_tag: ${{ env.image_tag }}
+    outputs:
+      image_tag: ${{ env.image_tag }}
   printImageTagAfterSet:
     needs: printImageTag
     runs-on: ubuntu-latest
