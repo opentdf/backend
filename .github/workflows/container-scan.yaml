@@ -1,4 +1,4 @@
-name: build
+name: container-security-scan
 on:
   # just using the PR for getting it setup
   pull_request:
