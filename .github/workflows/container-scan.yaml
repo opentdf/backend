@@ -1,14 +1,16 @@
 name: container-security-scan
 on:
   # just using the PR for getting it setup
-  pull_request:
+  # pull_request:
+  #   branches:
+  #     - main
+#  this will cause issues, need to trigger only after this runs on push to main
+  workflow_run:
     branches:
       - main
-  # this will cause issues, need to trigger only after this runs on push to main
-  # workflow_run:
-  #   workflows: ["Build Backend"]
-  #   types:
-  #     - completed
+    workflows: ["Build Backend"]
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       imageTag:
@@ -23,7 +25,7 @@ jobs:
     steps:
       - if: github.event_name == 'workflow_dispatch'
         run: |-
-          echo "Running with Image Tag: ${{ inputs.imageTag }}"
+          echo "Running with Image Tag: ${{ github.events.inputs.imageTag }}"
           echo "image_tag=${{ github.events.inputs.imageTag }}" >> $GITHUB_ENV
       - if: github.event_name != 'workflow_dispatch'
         run: |-
