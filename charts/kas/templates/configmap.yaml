@@ -18,5 +18,6 @@ data:
   STATSD_HOST: {{ tpl . $ | quote  }}
   {{- end }}
   DISABLE_TRACING: {{ .Values.pdp.disableTracing | quote }}
+  JSON_LOGGER: {{ .Values.jsonLogger | default "true" | quote }}
 
   USE_KEYCLOAK: "1"

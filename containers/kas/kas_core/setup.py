@@ -34,7 +34,6 @@ setup(
         "python-json-logger",
         "requests",
         "statsd",
-        "swagger-ui-bundle",
         "wsgicors",
     ],
 )

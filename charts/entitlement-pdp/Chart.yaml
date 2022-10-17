@@ -2,7 +2,7 @@ apiVersion: v2
 name: entitlement-pdp
 description: An implementation of an ABAC Entity Entitlement Policy Decision Point
 type: application
-version: 0.0.9
+version: 0.0.10
 maintainers:
   - name: Virtru
 icon: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
