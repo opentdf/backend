@@ -180,7 +180,7 @@ public class AttributeOIDCProtocolMapperTest {
     }
 
     void commonSetup(String pkHeader, boolean setConfig, boolean userInfo, boolean userIsSvcAcct) {
-        server.deploy(TestApp.class);
+        server.deployOldStyle(TestApp.class);
         String url = TestPortProvider.generateURL("/base/endpoint");
         String clientId = "1234599998888";
 
