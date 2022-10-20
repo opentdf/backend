@@ -115,7 +115,7 @@
         <dependency>
             <groupId>org.apache.maven.surefire</groupId>
             <artifactId>surefire-logger-api</artifactId>
-            <version>3.0.0-M5</version>
+            <version>3.0.0-M7</version>
         </dependency>
     </dependencies>
 
@@ -124,12 +124,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.10.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.4.0</version>
                 <executions>
                     <!-- Run shade goal on package phase -->
                     <execution>
@@ -142,7 +142,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M7</version>
                 <executions>
                     <execution>
                         <id>default-tests</id>
