@@ -3,7 +3,7 @@
 
 1. Create Cluster: `ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf`
 2. Update Dependencies: `helm dependency update`
-3. Install Chart: `helm upgrade --install backend -f values.yaml -f deployment.yaml .`
+3. Install Chart: `helm upgrade --install backend -f values.yaml -f testing/deployment.yaml .`
 
 ## Cluster Status 
   To check to see if your cluster is running, enter the following command:
@@ -15,7 +15,7 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 
 helm install nginx-ingress-controller ingress-nginx/ingress-nginx --version 4.2.1 --set controller.config.large-client-header-buffers="20 32k"
 
-helm upgrade --install backend -f values.yaml -f deployment.yaml -f ingress.yaml .
+helm upgrade --install backend -f values.yaml -f testing/deployment.yaml -f testing/ingress.yaml .
 
 kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 65432:80
 ```
