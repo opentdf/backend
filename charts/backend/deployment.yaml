@@ -1,8 +1,11 @@
+keycloak:
+  image:
+    repository: ghcr.io/opentdf/keycloak
+    tag: 19.0.2
 entity-resolution:
   secret:
     keycloak:
       clientSecret: "123-456"
-
 kas:
   envConfig:
     ecCert: |
@@ -71,4 +74,3 @@ kas:
       BjBdiLpYpD/mX+JIuX3sS0iMw+l7FXlo3ExoHlKZtQ0KBX5J+jkGS2VdWX56KUjF
       FLe07Fs88GTbQvFk5QsBvw==
       -----END PRIVATE KEY-----
-
