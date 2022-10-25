@@ -39,6 +39,8 @@ global:
         database: tdf_database
 
 secrets:
+  opaPolicyPullSecret:
+  oidcClientSecret:
   postgres:
     dbUser: postgres
     dbPassword: otdf-pgsql-admin
