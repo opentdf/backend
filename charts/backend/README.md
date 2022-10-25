@@ -39,16 +39,3 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 1. Uninstall Chart: `helm uninstall backend`
 2. Uninstall Ingress (if used): `helm uninstall nginx-ingress-controller`
 3. Delete Cluster: `ctlptl delete cluster kind-opentdf`
-
-## Troubleshooting 
-Secrets Errors:
-```
-Error: unable to build kubernetes objects from release manifest: error validating "": error validating data: unknown object type "nil" in Secret.stringData.OIDC_CLIENT_SECRET
-```
-
-Add default values (or your own configured values) to the [backend/values.yaml](https://github.com/opentdf/backend/blob/main/charts/backend/values.yaml#L42) file:
-```
-secrets:
-  opaPolicyPullSecret: "xy"
-  oidcClientSecret: "xx"
-```
