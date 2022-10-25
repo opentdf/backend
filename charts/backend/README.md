@@ -4,7 +4,7 @@
 1. Create Cluster: `ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf`
 2. Update Dependencies: `helm dependency update`
 3. Run certs.env `source ../../certs/.env`
-3. Install Chart: 
+4. Install Chart: 
 ```
 helm upgrade --install backend -f values.yaml -f testing/deployment.yaml \
 --set kas.envConfig.attrAuthorityCert=$ATTR_AUTHORITY_CERTIFICATE \
