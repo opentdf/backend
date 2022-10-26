@@ -1,0 +1,8 @@
+keycloak:
+  image:
+    repository: ghcr.io/opentdf/keycloak
+    tag: 19.0.2
+entity-resolution:
+  secret:
+    keycloak:
+      clientSecret: "123-456"
