@@ -27,7 +27,6 @@ pyyaml==6.0; python_version >= '3.6'
 setuptools==62.3.2; python_version >= '3.7'
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 statsd==3.3.0
-swagger-ui-bundle==0.0.9
 -e ./../kas_core
 urllib3==1.26.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
 werkzeug==2.1.2; python_version >= '3.7'

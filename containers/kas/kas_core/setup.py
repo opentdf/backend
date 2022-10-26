@@ -36,7 +36,6 @@ setup(
         "python-json-logger",
         "requests",
         "statsd",
-        "swagger-ui-bundle",
         "wsgicors",
         "attributes @ git+https://github.com/virtru/access-pdp#egg=attributes&subdirectory=clients/python/attributes",
         "accesspdp @ git+https://github.com/virtru/access-pdp#egg=accesspdp&subdirectory=clients/python/accesspdp",
