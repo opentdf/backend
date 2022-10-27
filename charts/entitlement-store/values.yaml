@@ -2,6 +2,9 @@
 global:
   opentdf:
     common:
+      oidcInternalBaseUrl: http://keycloak-http
+      oidcExternalBaseUrl: http://localhost:65432
+      oidcUrlPath: auth
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
       postgres:
@@ -24,6 +27,24 @@ replicaCount: 1
 # the OpenAPI endpoint with an OAuth authentication
 serverPublicName: "entitlement-store"
 
+# Base path for this service. Allows serving multiple REST services from the
+# same origin, e.g. using an ingress with prefix mapping as suggested below.
+serverRootPath: /
+
+# Allowed origins for CORS
+serverCorsOrigins: ""
+
+# Set to enable openapi endpoint
+openapiUrl: ""
+
+oidc:
+  # Override for global.opentdf.common.oidcInternalBaseUrl & url path
+  internalHost:
+  # Override for global.opentdf.common.oidcExternalBaseUrl & url path
+  externalHost:
+  realm: tdf
+  clientId: tdf-attributes
+  scopes: email
 
 # Configure the container image to use in the deployment.
 image:
@@ -82,6 +103,13 @@ service:
   type: ClusterIP
   # Port to assign to the `http` port
   port: 5000
+
+ingress:
+  enabled: false
+  annotations: { }
+  className: null
+  hosts: { }
+  tls: null
 
 # Specify required limits for deploying this service to a pod.
 # We usually recommend not to specify default resources and to leave this as a conscious
