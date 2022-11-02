@@ -188,36 +188,6 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
         logger.warning(str(e))
 
 
-def addVirtruDCRSPIREMapper(keycloak_admin, keycloak_client_id):
-    logger.info("Assigning custom SPIRE mapper to client %s", keycloak_client_id)
-    try:
-        keycloak_admin.add_mapper_to_client(
-            keycloak_client_id,
-            payload={
-                "protocol": "openid-connect",
-                "config": {
-                    "id.token.claim": "true",
-                    "access.token.claim": "true",
-                    "userinfo.token.claim": "true",
-                    "user_workload.namespace": "default",
-                    "user_workload.parentid": "spiffe://example.org/ns/spire/sa/spire-agent",
-                    "user_workload.selectors": "k8s:pod-label:tdfdatacleanroom:enabled, k8s:ns:default",
-                },
-                "name": "DCR Spire Registration Mapper",
-                "protocolMapper": "virtru-spire-protocolmapper",
-            },
-        )
-    except Exception as e:
-        logger.warning(
-            "Could not add custom spire mapper to client %s - this likely means it is already there, so we can ignore this.",
-            keycloak_client_id,
-        )
-        logger.warning(
-            "Unfortunately python-keycloak doesn't seem to have a 'remove-mapper' function"
-        )
-        logger.warning(str(e))
-
-
 def createTestClientForX509Flow(keycloak_admin):
     client_id = "client_x509"
     clients = keycloak_admin.get_clients()
@@ -531,8 +501,6 @@ def createTestClientForDCRAuth(keycloak_admin):
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
-    addVirtruDCRSPIREMapper(keycloak_admin, keycloak_client_id)
-
 
 def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
     client_id = "exchange-target"
