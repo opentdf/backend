@@ -59,7 +59,7 @@ ATTR_TESTS = {
 }
 
 
-def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
+def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="tdf3"):
     c = [
         "npx",
         "@opentdf/cli",
@@ -73,6 +73,8 @@ def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
         f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
         "--output",
         rt_file,
+        "--containerType"
+        container,
     ]
     if attributes:
         c += ["--attributes", ",".join(attributes)]
@@ -80,8 +82,11 @@ def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
+def encrypt_web_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano"):
+    encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano")
 
-def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID):
+
+def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID, container="tdf3"):
     c = [
         "npx",
         "@opentdf/cli",
@@ -97,9 +102,14 @@ def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID):
         rt_file,
         "decrypt",
         ct_file,
+        "--containerType"
+        container,
     ]
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
+
+def decrypt_web_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano"):
+    decrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano")
 
 
 def encrypt_py_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
@@ -200,11 +210,11 @@ def main():
 
     service_test = set([service_py])
 
-    tdf3_sdks_to_encrypt = set([encrypt_py])
-    tdf3_sdks_to_decrypt = set([decrypt_py])
+    tdf3_sdks_to_encrypt = set([encrypt_py, encrypt_web])
+    tdf3_sdks_to_decrypt = set([decrypt_py, decrypt_web])
 
-    nano_sdks_to_encrypt = set([encrypt_web, encrypt_py_nano])
-    nano_sdks_to_decrypt = set([decrypt_web, decrypt_py_nano])
+    nano_sdks_to_encrypt = set([encrypt_web_nano, encrypt_py_nano])
+    nano_sdks_to_decrypt = set([decrypt_web_nano, decrypt_py_nano])
 
     logger.info("--- main")
     setup()
