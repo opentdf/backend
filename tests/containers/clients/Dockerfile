@@ -21,8 +21,6 @@ WORKDIR /wrk
 COPY ./tests/containers/clients/package.json \
  ./tests/containers/clients/package-lock.json \
  ./tests/containers/clients/requirements.txt \
- ./tests/containers/clients/opentdf-client-0.0.2.tgz \
- ./tests/containers/clients/opentdf-cli-0.0.2.tgz \
  /wrk/
 RUN npm install
 RUN pip3 install --requirement /wrk/requirements.txt || true
