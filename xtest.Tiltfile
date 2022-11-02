@@ -25,17 +25,13 @@ k8s_resource(
 
 # if running locally, export your GH PAT as CR_PAT
 AUTH_TOKEN = os.getenv("CR_PAT", "")
-if "NODE_AUTH_TOKEN" in os.environ:
-    AUTH_TOKEN=os.getenv("NODE_AUTH_TOKEN")
+if "NPM_TOKEN" in os.environ:
+    AUTH_TOKEN=os.getenv("NPM_TOKEN")
 
-docker_build(
-    "opentdf/tests-clients",
-    context="./",
-    dockerfile="./tests/containers/clients/Dockerfile",
-    build_args={"NPM_TOKEN":AUTH_TOKEN}
+local_resource(
+    "opentdf-xtest",
+    "tests/containers/clients/run-test.sh",
+    resource_deps=["xtest-keycloak-bootstrap"],
+    labels="xtest"
 )
-k8s_yaml("tests/integration/xtest.yaml")
 
-k8s_resource(
-    "opentdf-xtest", labels="xtest"
-)

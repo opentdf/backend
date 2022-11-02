@@ -135,6 +135,14 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+          cache: "pip"
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.x"
+          registry-url: https://npm.pkg.github.com
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
         with:
           setup-tools: |
@@ -159,11 +167,11 @@ jobs:
         run: |-
           kubectl version
           kubectl get pods -A
-      - name: config ghpr with pat
-        run: |-
-          cd tests/containers/clients
-          echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
-          echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
+      # - name: config ghpr with pat
+      #   run: |-
+      #     cd tests/containers/clients
+      #     echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
+      #     echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
       - name: Run xtest.Tiltfile
         run: |-
           export TILTFILE_FILE=xtest.Tiltfile
@@ -171,7 +179,10 @@ jobs:
           tilt ci -f ${TILTFILE_FILE}
           tilt down -f ${TILTFILE_FILE}
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KAS_ENDPOINT: http://localhost:65432/api/kas
+          OIDC_ENDPOINT: http://localhost:65432
+          ATTRIBUTES_ENDPOINT: http://localhost:65432/api/attributes
       - name: Run pki-test.Tiltfile
         run: |-
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts

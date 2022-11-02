@@ -61,6 +61,7 @@ ATTR_TESTS = {
 
 
 def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="tdf3"):
+    logger.info("inside encrypt web")
     c = [
         "npx",
         "@opentdf/cli",
