@@ -27,6 +27,7 @@ KAS_ENDPOINT = os.getenv("KAS_ENDPOINT", "http://host.docker.internal:65432/kas"
 ATTRIBUTES_ENDPOINT = os.getenv("ATTRIBUTES_ENDPOINT", "http://attributes:4020")
 OIDC_ENDPOINT = os.getenv("OIDC_ENDPOINT", "http://host.docker.internal:65432/keycloak")
 ORGANIZATION_NAME = "tdf"
+FULL_OIDC_ENDPOINT = OIDC_ENDPOINT+"/auth/realms/"+ORGANIZATION_NAME
 CLIENT_ID = "tdf-client"
 TEST_CLIENT_1 = "test-client-1"
 TEST_CLIENT_2 = "test-client-2"
@@ -68,12 +69,12 @@ def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, containe
         "--kasEndpoint",
         KAS_ENDPOINT,
         "--oidcEndpoint",
-        OIDC_ENDPOINT,
+        FULL_OIDC_ENDPOINT,
         "--auth",
-        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
+        f"{client_id}:{CLIENTS[client_id]}",
         "--output",
         rt_file,
-        "--containerType"
+        "--containerType",
         container,
     ]
     if attributes:
@@ -83,7 +84,7 @@ def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, containe
     subprocess.check_call(c)
 
 def encrypt_web_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano"):
-    encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano")
+    encrypt_web(ct_file, rt_file, attributes=attributes, client_id=client_id, container=container)
 
 
 def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID, container="tdf3"):
@@ -95,21 +96,21 @@ def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID, container="tdf3"):
         "--kasEndpoint",
         KAS_ENDPOINT,
         "--oidcEndpoint",
-        OIDC_ENDPOINT,
+        FULL_OIDC_ENDPOINT,
         "--auth",
-        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
+        f"{client_id}:{CLIENTS[client_id]}",
         "--output",
         rt_file,
+        "--containerType",
+        container,
         "decrypt",
         ct_file,
-        "--containerType"
-        container,
     ]
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
-def decrypt_web_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano"):
-    decrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="nano")
+def decrypt_web_nano(ct_file, rt_file, client_id=CLIENT_ID, container="nano"):
+    decrypt_web(ct_file, rt_file, client_id=client_id, container=container)
 
 
 def encrypt_py_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):

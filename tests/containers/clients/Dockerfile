@@ -3,9 +3,10 @@
 ARG NODE_VERSION=16
 ARG PY_OSS_VERSION=1.1.1
 ARG PY_TEST_VERSION=3.8
-ARG NODE_AUTH_TOKEN
 
 FROM node:${NODE_VERSION}
+
+ARG NPM_TOKEN
 
 RUN apt-get update || : && apt-get -y install \
   curl \
@@ -20,11 +21,13 @@ RUN python3 --version
 # test
 WORKDIR /wrk
 COPY ./tests/containers/clients/package.json \
+ ./tests/containers/clients/.npmrc \
  ./tests/containers/clients/package-lock.json \
  ./tests/containers/clients/requirements.txt \
  /wrk/
 
-RUN NODE_AUTH_TOKEN=${NODE_AUTH_TOKEN} npm install
+RUN npm install
+RUN rm -f .npmrc
 RUN pip3 install --requirement /wrk/requirements.txt || true
 COPY ./scripts /scripts
 COPY ./tests/containers/clients /wrk

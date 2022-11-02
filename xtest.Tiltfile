@@ -27,11 +27,12 @@ k8s_resource(
 AUTH_TOKEN = os.getenv("CR_PAT", "")
 if "NODE_AUTH_TOKEN" in os.environ:
     AUTH_TOKEN=os.getenv("NODE_AUTH_TOKEN")
+
 docker_build(
     "opentdf/tests-clients",
     context="./",
     dockerfile="./tests/containers/clients/Dockerfile",
-    build_args={"NODE_AUTH_TOKEN":AUTH_TOKEN}
+    build_args={"NPM_TOKEN":AUTH_TOKEN}
 )
 k8s_yaml("tests/integration/xtest.yaml")
 
