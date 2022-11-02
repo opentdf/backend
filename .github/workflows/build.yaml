@@ -130,6 +130,9 @@ jobs:
       - kas-unittest
       - config
     timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v3
       - uses: yokawasa/action-setup-kube-tools@v0.8.0
@@ -167,6 +170,8 @@ jobs:
           echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           tilt ci -f ${TILTFILE_FILE}
           tilt down -f ${TILTFILE_FILE}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run pki-test.Tiltfile
         run: |-
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts

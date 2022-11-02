@@ -3,6 +3,7 @@
 ARG NODE_VERSION=16
 ARG PY_OSS_VERSION=1.1.1
 ARG PY_TEST_VERSION=3.8
+ARG NODE_AUTH_TOKEN
 
 FROM node:${NODE_VERSION}
 
@@ -22,7 +23,8 @@ COPY ./tests/containers/clients/package.json \
  ./tests/containers/clients/package-lock.json \
  ./tests/containers/clients/requirements.txt \
  /wrk/
-RUN npm install
+
+RUN NODE_AUTH_TOKEN=${NODE_AUTH_TOKEN} npm install
 RUN pip3 install --requirement /wrk/requirements.txt || true
 COPY ./scripts /scripts
 COPY ./tests/containers/clients /wrk

@@ -23,13 +23,18 @@ k8s_resource(
     resource_deps=["backend"],
 )
 
+# if running locally, export your GH PAT as CR_PAT
+AUTH_TOKEN = os.getenv(CR_PAT, "")
+if "NODE_AUTH_TOKEN" in os.environ:
+    AUTH_TOKEN=os.getenv(NODE_AUTH_TOKEN)
 docker_build(
     "opentdf/tests-clients",
     context="./",
     dockerfile="./tests/containers/clients/Dockerfile",
+    build_args={"NODE_AUTH_TOKEN":AUTH_TOKEN}
 )
 k8s_yaml("tests/integration/xtest.yaml")
 
 k8s_resource(
-    "opentdf-xtest", resource_deps=["xtest-keycloak-bootstrap"], labels="xtest"
+    "opentdf-xtest", labels="xtest"
 )
