@@ -24,9 +24,9 @@ k8s_resource(
 )
 
 # if running locally, export your GH PAT as CR_PAT
-AUTH_TOKEN = os.getenv(CR_PAT, "")
+AUTH_TOKEN = os.getenv("CR_PAT", "")
 if "NODE_AUTH_TOKEN" in os.environ:
-    AUTH_TOKEN=os.getenv(NODE_AUTH_TOKEN)
+    AUTH_TOKEN=os.getenv("NODE_AUTH_TOKEN")
 docker_build(
     "opentdf/tests-clients",
     context="./",
