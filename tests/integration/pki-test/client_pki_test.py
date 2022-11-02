@@ -1,6 +1,6 @@
 import os
 import sys
-from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
+from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel, TDFStorageType
 
 # encrypt the file and apply the policy on tdf file and also decrypt.
 OIDC_ENDPOINT = "https://keycloak-http:4567"
@@ -25,8 +25,13 @@ try:
     # Plain text
     plain_text = "openTDF - Easily Protect Data Wherever It’s Created or Shared"
 
-    tdf_data = client.encrypt_string(plain_text)
-    decrypted_plain_text = client.decrypt_string(tdf_data)
+    sampleStringStorage = TDFStorageType()
+    sampleStringStorage.set_tdf_storage_string_type(plain_text)
+    tdf_data = client.encrypt_data(sampleStringStorage)
+
+    sampleEncryptedStringStorage = TDFStorageType()
+    sampleEncryptedStringStorage.set_tdf_storage_string_type(tdf_data)
+    decrypted_plain_text = client.decrypt_data(sampleEncryptedStringStorage)
 
     if plain_text == decrypted_plain_text:
         print("TDF3 zip format Encrypt/Decrypt is successful!!")
