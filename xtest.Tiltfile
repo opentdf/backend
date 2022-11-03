@@ -2,9 +2,14 @@
 # reference https://docs.tilt.dev/api.html
 # extensions https://github.com/tilt-dev/tilt-extensions
 
+ingress_enable = {
+    ("%s.ingress.enabled" % s): "true"
+    for s in ["attributes", "entitlements", "kas", "keycloak"]
+}
+
 load("./common.Tiltfile", "backend", "CONTAINER_REGISTRY", "OIDC_CLIENT_SECRET")
 
-backend()
+backend(set=ingress_enable.items())
 
 k8s_yaml(
     helm(
