@@ -36,7 +36,7 @@ def decrypt_file(
     tdfStorage = TDFStorageType()
     tdfStorage.set_tdf_storage_file_type(ct_file)
     client.decrypt_file(tdfStorage, rt_file)
-    
+
     logger.info("Decrypting file ")
 
 

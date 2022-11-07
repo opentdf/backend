@@ -13,7 +13,8 @@ from attributes.v1 import attributes_pb2
 
 logger = logging.getLogger(__name__)
 
-local_pdp = 'localhost:50052'
+local_pdp = "localhost:50052"
+
 
 class AccessPDP(object):
     """Access PDP (policy decision point) is the ABAC component that makes a boolean Yes/No decision about access
@@ -37,7 +38,9 @@ class AccessPDP(object):
         # Check to see if this claimset fails the dissem tests.
         self._check_dissem(policy.dissem, claims.user_id)
         # Then check the attributes
-        self._check_attributes(policy.data_attributes, claims.entity_attributes, attribute_definitions)
+        self._check_attributes(
+            policy.data_attributes, claims.entity_attributes, attribute_definitions
+        )
         # Passed all the tests, The entity who was issued this claimset is Worthy!
         return True
 
@@ -68,7 +71,9 @@ class AccessPDP(object):
             logger.debug(f"Entity {entity_id} is not on dissem list {dissem.list}")
             raise AuthorizationError("Entity is not on dissem list.")
 
-    def _check_attributes(self, data_attributes, entity_attributes, data_attribute_definitions):
+    def _check_attributes(
+        self, data_attributes, entity_attributes, data_attribute_definitions
+    ):
         access = True
         """Invoke the PDP over gRPC and obtain decisions.
 
@@ -86,18 +91,26 @@ class AccessPDP(object):
         entity_attrs = pdp_grpc.convert_entity_attrs(entity_attributes)
         data_attrs = pdp_grpc.convert_data_attrs(data_attributes)
 
-        req = accesspdp_pb2.DetermineAccessRequest(data_attributes=data_attrs, entity_attribute_sets=entity_attrs, attribute_definitions=attr_defs)
+        req = accesspdp_pb2.DetermineAccessRequest(
+            data_attributes=data_attrs,
+            entity_attribute_sets=entity_attrs,
+            attribute_definitions=attr_defs,
+        )
 
         logger.debug(f"Requesting decision - request is {MessageToJson(req)}")
         responses = stub.DetermineAccess(req)
         entity_responses = []
         for response in responses:
-            logger.debug("Received response for entity %s with access decision %s" %
-                (response.entity, response.access))
+            logger.debug(
+                "Received response for entity %s with access decision %s"
+                % (response.entity, response.access)
+            )
             # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
             access = access and response.access
             # Capture the per-data-attribute result details for each entity decision, for logging/etc
-            logger.debug(f"Detailed data attribute results for entity {response.entity}: \n")
+            logger.debug(
+                f"Detailed data attribute results for entity {response.entity}: \n"
+            )
             string_res = MessageToJson(response)
             logger.debug(f"{string_res}\n")
             entity_responses.append(string_res)

@@ -232,7 +232,8 @@ def createTestClientForClientCredentialsFlow(
             "publicClient": "false",
             "redirectUris": [keycloak_auth_url + "admin/" + client_id + "/console"],
             "attributes": {
-                "user.info.response.signature.alg": "RS256", "pkce.code.challenge.method": "S256"
+                "user.info.response.signature.alg": "RS256",
+                "pkce.code.challenge.method": "S256",
             },  # Needed to make UserInfo return signed JWT
         },
         skip_exists=True,
@@ -501,6 +502,7 @@ def createTestClientForDCRAuth(keycloak_admin):
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
+
 
 def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
     client_id = "exchange-target"
