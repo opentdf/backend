@@ -202,7 +202,9 @@ def test_add_metadata_values_without_metadata_in_raw_dict():
     wrapped_key = wrapped_secret.rewrap_key(public_key)
 
     kao = KeyAccess()
-    kao.metadata = decrypt_metadata_string({}, wrapped_key=wrapped_key, private_key=private_key)
+    kao.metadata = decrypt_metadata_string(
+        {}, wrapped_key=wrapped_key, private_key=private_key
+    )
     print(kao.metadata)
 
     # Metadata object should be empty

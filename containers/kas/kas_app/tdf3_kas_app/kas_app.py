@@ -8,7 +8,11 @@ from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
 
-from .plugins import opentdf_attr_authority_plugin, revocation_plugin, access_pdp_healthz_plugin
+from .plugins import (
+    opentdf_attr_authority_plugin,
+    revocation_plugin,
+    access_pdp_healthz_plugin,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +90,9 @@ def app(name):
         logger.error("OTDF attribute host is not configured correctly.")
 
     logger.info("ATTR_AUTHORITY_HOST = [%s]", attr_host)
-    otdf_attr_backend = opentdf_attr_authority_plugin.OpenTDFAttrAuthorityPlugin(attr_host)
+    otdf_attr_backend = opentdf_attr_authority_plugin.OpenTDFAttrAuthorityPlugin(
+        attr_host
+    )
     kas.use_healthz_plugin(otdf_attr_backend)
     kas.use_rewrap_plugin_v2(otdf_attr_backend)
 
@@ -131,7 +137,9 @@ def app(name):
     # Configure compatibility with EO mode
     aa_certificate = load_key_bytes("ATTR_AUTHORITY_CERTIFICATE", missing_variables)
     if not aa_certificate:
-        logger.warn("KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode")
+        logger.warn(
+            "KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode"
+        )
     else:
         kas.set_key_pem("AA-PUBLIC", "PUBLIC", aa_certificate)
 

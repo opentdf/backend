@@ -22,18 +22,20 @@ class ClaimsAttributes(AttributeSet):
 
         logger.debug("RAW CLAIMS IS IS: {}".format(raw_claims_attributes))
         for entitlement in raw_claims_attributes:
-            entityname = entitlement['entity_identifier']
-            entityattrs = entitlement['entity_attributes']
+            entityname = entitlement["entity_identifier"]
+            entityattrs = entitlement["entity_attributes"]
             logger.debug("ENTITYATTRS IS: {}".format(entityattrs))
             entity_attribute_set = cls()
             for attributeObj in entityattrs:
                 if "attribute" in attributeObj:
                     logger.debug("AttributeOBJ IS: {}".format(attributeObj))
-                    logger.debug("AttributeOBJ ATTRIB IS: {}".format(attributeObj['attribute']))
-                    entity_attribute_set.add(AttributeValue(attributeObj['attribute']))
+                    logger.debug(
+                        "AttributeOBJ ATTRIB IS: {}".format(attributeObj["attribute"])
+                    )
+                    entity_attribute_set.add(AttributeValue(attributeObj["attribute"]))
                 elif "url" in attributeObj:
                     logger.warning("DEPRECATED - attribute 'url' should be 'attribute'")
-                    entity_attribute_set.add(AttributeValue(attributeObj['url']))
+                    entity_attribute_set.add(AttributeValue(attributeObj["url"]))
                 else:
                     msg = f"'attribute' field missing = {attributeObj}"
                     logger.error(msg)

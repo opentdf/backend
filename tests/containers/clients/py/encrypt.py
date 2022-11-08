@@ -42,7 +42,7 @@ def encrypt_file(
     tdfStorage = TDFStorageType()
     tdfStorage.set_tdf_storage_file_type(pt_file)
     client.encrypt_file(tdfStorage, ct_file)
-    
+
     logger.info("Encrypting file ")
 
 

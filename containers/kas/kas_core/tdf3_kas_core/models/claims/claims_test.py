@@ -62,7 +62,8 @@ def test_claims_constructor_with_attributes():
         "https://aa.virtru.com/attr/primary-organization"
         "/value/7b738968-131a-4de9-b4a1-c922f60583e3"
     )
-    attributes = ClaimsAttributes.create_from_list(user_id,
+    attributes = ClaimsAttributes.create_from_list(
+        user_id,
         [
             {
                 "attribute": attribute1,
@@ -72,7 +73,7 @@ def test_claims_constructor_with_attributes():
                 "attribute": attribute2,
                 "displayName": "7b738968-131a-4de9-b4a1-c922f60583e3",
             },
-        ]
+        ],
     )
 
     actual = Claims(user_id, public_key, attributes)
@@ -90,42 +91,42 @@ def test_claims_constructor_with_attributes():
 def make_claims_object():
     public_key = get_public_key_from_disk("test")
     data = {
-        "sub":"user@virtru.com",
-        "tdf_claims":{
+        "sub": "user@virtru.com",
+        "tdf_claims": {
             "client_public_signing_key": public_key.public_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo,
             ).decode("ascii"),
-            "entitlements":[
-            {
-                "entity_identifier":"clientsubjectId1-14443434-1111343434-asdfdffff",
-                "entity_attributes":[
+            "entitlements": [
                 {
-                    "attribute":"https://example.com/attr/Classification/value/S",
-                    "displayName":"classification"
+                    "entity_identifier": "clientsubjectId1-14443434-1111343434-asdfdffff",
+                    "entity_attributes": [
+                        {
+                            "attribute": "https://example.com/attr/Classification/value/S",
+                            "displayName": "classification",
+                        },
+                        {
+                            "attribute": "https://example.com/attr/COI/value/PRX",
+                            "displayName": "category of intent",
+                        },
+                    ],
                 },
                 {
-                    "attribute":"https://example.com/attr/COI/value/PRX",
-                    "displayName":"category of intent"
-                }
-                ]
-            },
-            {
-                "entity_identifier":"user@virtru.com",
-                "entity_attributes":[
-                {
-                    "attribute":"https://example.com/attr/Classification/value/S",
-                    "displayName":"classification"
+                    "entity_identifier": "user@virtru.com",
+                    "entity_attributes": [
+                        {
+                            "attribute": "https://example.com/attr/Classification/value/S",
+                            "displayName": "classification",
+                        },
+                        {
+                            "attribute": "https://example.com/attr/COI/value/PRX",
+                            "displayName": "category of intent",
+                        },
+                    ],
                 },
-                {
-                    "attribute":"https://example.com/attr/COI/value/PRX",
-                    "displayName":"category of intent"
-                }
-                ]
-            }
-            ]
+            ],
         },
-        "tdf_spec_version":"4.0.0"
+        "tdf_spec_version": "4.0.0",
     }
     return data
 
