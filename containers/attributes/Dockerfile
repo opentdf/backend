@@ -63,8 +63,8 @@ ENV OIDC_CONFIGURATION_URL ""
 # Disable OpenAPI
 ENV OPENAPI_URL ""
 
-# #Disable Audit
-# ENV AUDIT_ENABLED "true"
+#Disable Audit
+ENV AUDIT_ENABLED "true"
 
 ENTRYPOINT python3 -m uvicorn \
     --host 0.0.0.0 \

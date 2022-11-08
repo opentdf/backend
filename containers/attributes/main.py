@@ -43,19 +43,19 @@ from sqlalchemy.orm import Session, sessionmaker, declarative_base
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
 )
-# AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
-# if AUDIT_ENABLED:
-#     AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
-#     logging.addLevelName(AUDIT_LEVELV_NUM, "AUDIT")
-#     def audit(self, message, *args, **kws):
-#         if self.isEnabledFor(AUDIT_LEVELV_NUM):
-#             # Yes, logger takes its '*args' as 'args'.
-#             self._log(AUDIT_LEVELV_NUM, message, args, **kws) 
-#     logging.Logger.audit = audit
+AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
+if AUDIT_ENABLED:
+    AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
+    logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
+    def audit(self, message, *args, **kws):
+        if self.isEnabledFor(AUDIT_LEVEL_NUM):
+            # Yes, logger takes its '*args' as 'args'.
+            self._log(AUDIT_LEVEL_NUM, message, args, **kws) 
+    logging.Logger.audit = audit
 logger = logging.getLogger(__package__)
 
-# if AUDIT_ENABLED:
-#     logger.audit("DUMMY LOG AUDIT")
+if AUDIT_ENABLED:
+    logger.audit("DUMMY LOG AUDIT")
 
 swagger_ui_init_oauth = {
     "usePkceWithAuthorizationCodeGrant": True,
