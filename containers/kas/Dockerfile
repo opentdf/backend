@@ -104,6 +104,9 @@ ENV WSGI_CORS_ORIGIN *
 ENV STATSD_HOST ""
 ENV STATSD_PORT "8125"
 
+#Disable Audit
+ENV AUDIT_ENABLED "true"
+
 EXPOSE 8000
 
 # Run program under Tini

@@ -35,20 +35,19 @@ from python_base import Pagination, get_query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-logging.basicConfig(stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL"))
 AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
-if AUDIT_ENABLED:
-    AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
-    logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
-    def audit(self, message, *args, **kws):
-        if self.isEnabledFor(AUDIT_LEVEL_NUM):
-            # Yes, logger takes its '*args' as 'args'.
-            self._log(AUDIT_LEVEL_NUM, message, args, **kws) 
-    logging.Logger.audit = audit
+AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
+logging.basicConfig(stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL"))
+logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
+
+def audit(self, message, *args, **kws):
+    if self.isEnabledFor(AUDIT_LEVEL_NUM) and AUDIT_ENABLED:
+        self._log(AUDIT_LEVEL_NUM, message, args, **kws)
+
+logging.Logger.audit = audit
 logger = logging.getLogger(__package__)
 
-if AUDIT_ENABLED:
-    logger.audit("DUMMY LOG AUDIT")
+logger.audit("DUMMY LOG AUDIT")
 
 
 swagger_ui_init_oauth = {
