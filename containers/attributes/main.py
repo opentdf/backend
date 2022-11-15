@@ -691,7 +691,7 @@ async def create_attributes_definitions(
             },
         },
     ), 
-    decoded_token: str = Depends(get_auth)
+    decoded_token: dict = Depends(get_auth)
 ):
     audit_log = {
                 "id": str(uuid.uuid4()), 
