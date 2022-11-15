@@ -115,39 +115,39 @@ def jwt_decode_no_expiration(*args, **kwargs):
 
 def test_claims_object():
     TDF_CLAIMS = {
-        "sub":"user@virtru.com",
-        "tdf_claims":{
+        "sub": "user@virtru.com",
+        "tdf_claims": {
             "client_public_signing_key": CLIENT_SIGNING_PUBLIC_KEY,
-            "entitlements":[
-            {
-                "entity_identifier":"clientsubjectId1-14443434-1111343434-asdfdffff",
-                "entity_attributes":[
+            "entitlements": [
                 {
-                    "attribute":"https://example.com/attr/Classification/value/S",
-                    "displayName":"classification"
+                    "entity_identifier": "clientsubjectId1-14443434-1111343434-asdfdffff",
+                    "entity_attributes": [
+                        {
+                            "attribute": "https://example.com/attr/Classification/value/S",
+                            "displayName": "classification",
+                        },
+                        {
+                            "attribute": "https://example.com/attr/COI/value/PRX",
+                            "displayName": "category of intent",
+                        },
+                    ],
                 },
                 {
-                    "attribute":"https://example.com/attr/COI/value/PRX",
-                    "displayName":"category of intent"
-                }
-                ]
-            },
-            {
-                "entity_identifier":"user@virtru.com",
-                "entity_attributes":[
-                {
-                    "attribute":"https://example.com/attr/Classification/value/S",
-                    "displayName":"classification"
+                    "entity_identifier": "user@virtru.com",
+                    "entity_attributes": [
+                        {
+                            "attribute": "https://example.com/attr/Classification/value/S",
+                            "displayName": "classification",
+                        },
+                        {
+                            "attribute": "https://example.com/attr/COI/value/PRX",
+                            "displayName": "category of intent",
+                        },
+                    ],
                 },
-                {
-                    "attribute":"https://example.com/attr/COI/value/PRX",
-                    "displayName":"category of intent"
-                }
-                ]
-            }
-            ]
+            ],
         },
-        "tdf_spec_version":"4.0.0"
+        "tdf_spec_version": "4.0.0",
     }
 
     return Claims.load_from_raw_data(TDF_CLAIMS)
