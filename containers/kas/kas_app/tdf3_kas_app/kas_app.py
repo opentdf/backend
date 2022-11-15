@@ -12,8 +12,6 @@ from .plugins import opentdf_attr_authority_plugin, revocation_plugin, access_pd
 
 logger = logging.getLogger(__name__)
 
-logger.audit("TESTING AUDIT")
-
 
 USE_KEYCLOAK = os.environ.get("USE_KEYCLOAK") == "1"
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST") is not None

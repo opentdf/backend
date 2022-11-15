@@ -47,8 +47,6 @@ def audit(self, message, *args, **kws):
 logging.Logger.audit = audit
 logger = logging.getLogger(__package__)
 
-logger.audit("DUMMY LOG AUDIT")
-
 
 swagger_ui_init_oauth = {
     "usePkceWithAuthorizationCodeGrant": True,
