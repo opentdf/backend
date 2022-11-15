@@ -34,7 +34,7 @@ ATTRIBUTES = [
         "authority": "https://acme.mil",
         "name": "AcmeRestrictions",
         "rule": "allOf",
-    }
+    },
 ]
 
 # ATTRIBUTES = {
@@ -48,7 +48,9 @@ ATTRIBUTES = [
 
 def test_otdf_plugin_constructor():
     actual = OpenTDFAttrAuthorityPlugin(HOST)
-    assert isinstance(actual, OpenTDFAttrAuthorityPlugin)  # my kingdom for static typing.
+    assert isinstance(
+        actual, OpenTDFAttrAuthorityPlugin
+    )  # my kingdom for static typing.
     assert actual._host == HOST
 
 

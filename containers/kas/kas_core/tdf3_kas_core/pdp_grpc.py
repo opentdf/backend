@@ -13,6 +13,7 @@ ALL_OF = "allOf"
 ANY_OF = "anyOf"
 HIERARCHY = "hierarchy"
 
+
 def convert_attribute_defs(attribute_defs):
     """Load attribute definitions from a dict."""
     if not attribute_defs:
@@ -35,7 +36,9 @@ def convert_attribute_defs(attribute_defs):
         #
         # We should, arguably, fail with an error if we cannot fetch an attribute definition with a rule
         # from an attribute authority for EVERY data attribute canonical name.
-        pb_attr_def = attributes_pb2.AttributeDefinition(authority=authority, name=name, rule=ALL_OF)
+        pb_attr_def = attributes_pb2.AttributeDefinition(
+            authority=authority, name=name, rule=ALL_OF
+        )
 
         if "rule" in attribute_def:
             pb_attr_def.rule = attribute_def["rule"]
@@ -49,7 +52,7 @@ def convert_attribute_defs(attribute_defs):
             pb_attr_def.group_by = attributes_pb2.AttributeInstance(
                 authority=attribute_def["group_by"].authority,
                 name=attribute_def["group_by"].name,
-                value=attribute_def["group_by"].value
+                value=attribute_def["group_by"].value,
             )
 
         pb_attr_defs.append(pb_attr_def)
@@ -71,15 +74,20 @@ def convert_entity_attrs(entity_attributes):
     for entity_id, entity_attributes in entity_attributes.items():
         pb_entity_attrs = accesspdp_pb2.ListOfAttributeInstances()
         for entity_attribute in entity_attributes.values:
-            pb_entity_attrs.attribute_instances.extend([attributes_pb2.AttributeInstance(
-                authority=entity_attribute.authority,
-                name=entity_attribute.name,
-                value=entity_attribute.value
-            )])
+            pb_entity_attrs.attribute_instances.extend(
+                [
+                    attributes_pb2.AttributeInstance(
+                        authority=entity_attribute.authority,
+                        name=entity_attribute.name,
+                        value=entity_attribute.value,
+                    )
+                ]
+            )
 
         pb_entity_attr_dict[entity_id] = pb_entity_attrs
 
     return pb_entity_attr_dict
+
 
 def convert_data_attrs(data_attributes):
     """Load attribute instances from a dict."""
@@ -93,10 +101,12 @@ def convert_data_attrs(data_attributes):
 
     pb_data_attrs = []
     for data_attribute in data_attributes.values:
-            pb_data_attrs.append(attributes_pb2.AttributeInstance(
+        pb_data_attrs.append(
+            attributes_pb2.AttributeInstance(
                 authority=data_attribute.authority,
                 name=data_attribute.name,
-                value=data_attribute.value
-            ))
+                value=data_attribute.value,
+            )
+        )
 
     return pb_data_attrs

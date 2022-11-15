@@ -21,7 +21,8 @@ from tdf3_kas_core.errors import (
 
 logger = logging.getLogger(__name__)
 
-uri = 'localhost:50052'
+uri = "localhost:50052"
+
 
 class AccessPDPHealthzPlugin(AbstractHealthzPlugin):
     def healthz(self, *, probe):
@@ -35,5 +36,7 @@ class AccessPDPHealthzPlugin(AbstractHealthzPlugin):
         if response.status == 1:
             logger.debug("--- Ping Access PDP gRPC service successful --- ")
         else:
-            logger.debug(f'--- Ping Access PDP gRPC service failed with code {response.status} --- ')
+            logger.debug(
+                f"--- Ping Access PDP gRPC service failed with code {response.status} --- "
+            )
             raise Error("Unable to be ping Access PDP gRPC service")

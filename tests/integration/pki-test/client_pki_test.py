@@ -12,11 +12,17 @@ try:
     oidc_creds = OIDCCredentials()
     oidc_creds.set_client_credentials_pki(
         client_id="client_x509",
-        client_key_file_name=os.path.abspath(os.path.join(curr_dir, "../../../certs/john.doe.key")),
-        client_cert_file_name=os.path.abspath(os.path.join(curr_dir, "../../../certs/john.doe.cer")),
-        certificate_authority=os.path.abspath(os.path.join(curr_dir, "../../../certs/rootca_kc.crt")),
+        client_key_file_name=os.path.abspath(
+            os.path.join(curr_dir, "../../../certs/john.doe.key")
+        ),
+        client_cert_file_name=os.path.abspath(
+            os.path.join(curr_dir, "../../../certs/john.doe.cer")
+        ),
+        certificate_authority=os.path.abspath(
+            os.path.join(curr_dir, "../../../certs/rootca_kc.crt")
+        ),
         organization_name="tdf-pki",
-        oidc_endpoint=OIDC_ENDPOINT
+        oidc_endpoint=OIDC_ENDPOINT,
     )
 
     client = TDFClient(oidc_credentials=oidc_creds, kas_url=KAS_URL)
@@ -41,4 +47,3 @@ try:
 except:
     print("Unexpected error: %s" % sys.exc_info()[0])
     raise
-
