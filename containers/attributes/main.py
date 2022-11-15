@@ -37,7 +37,7 @@ from keycloak import KeycloakOpenID
 from pydantic import AnyUrl, BaseSettings, Field, Json, ValidationError
 from pydantic.main import BaseModel
 from python_base import Pagination, get_query
-from sqlalchemy import and_
+from sqlalchemy import and_, inspect
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 logging.basicConfig(
@@ -187,8 +187,8 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
             key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
-        if not has_aud(unverified_decode, keycloak_openid.client_id):
-            raise Exception("Invalid audience")
+        #if not has_aud(unverified_decode, keycloak_openid.client_id):
+        #    raise Exception("Invalid audience")
         return keycloak_openid.decode_token(
             token,
             key=await get_idp_public_key(try_extract_realm(unverified_decode)),
@@ -245,6 +245,10 @@ table_attribute = sqlalchemy.Table(
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
 dbase = sessionmaker(bind=engine)
+inspector = inspect(engine)
+
+# Get names of tables in database
+
 
 
 def get_db() -> Session:
@@ -258,6 +262,8 @@ def get_db() -> Session:
 class AttributeSchema(declarative_base()):
     __table__ = table_attribute
 
+class AuthoritySchema(declarative_base()):
+    __table__ = table_authority
 
 # middleware
 @app.middleware("http")
@@ -420,6 +426,7 @@ oidc_scheme = OpenIdConnect(
     },
 )
 async def read_attributes(
+    request: Request,
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
     rule: Optional[str] = None,
@@ -447,13 +454,13 @@ async def read_attributes(
         filter_args["values_array"] = order
 
     sort_args = sort.split(",") if sort else []
-    results = await read_attributes_crud(AttributeSchema, db, filter_args, sort_args)
+    results = await read_attributes_crud(request, AttributeSchema, db, filter_args, sort_args)
 
     return pager.paginate(results)
 
 
-async def read_attributes_crud(schema, db, filter_args, sort_args):
-    results = get_query(schema, db, filter_args, sort_args)
+async def read_attributes_crud(request, schema, db, filter_args, sort_args):
+    results = get_query(request, schema, db, filter_args, sort_args)
     error = None
     authorities = await read_authorities_crud()
     attributes: List[AnyUrl] = []
@@ -545,6 +552,8 @@ async def read_attributes_definitions(
     db: Session = Depends(get_db),
     pager: Pagination = Depends(Pagination),
 ):
+    logger.info("INSPECT!!!")
+    logger.info(inspector.get_schema_names())
     filter_args = {}
     if authority:
         # lookup authority by value and get id (namespace_id)
@@ -566,7 +575,7 @@ async def read_attributes_definitions(
 
     sort_args = sort.split(",") if sort else []
 
-    results = get_query(AttributeSchema, db, filter_args, sort_args)
+    results = get_query(request, AttributeSchema, table_authority, db, filter_args, sort_args)
 
     authorities = await read_authorities_crud()
     attributes: List[AttributeDefinition] = []
