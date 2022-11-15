@@ -27,7 +27,7 @@ jobs:
       - run: |-
           echo "::set-output name=CORE::${RELEASE_TAG%%-*}"
           echo "::set-output name=FULL::${RELEASE_TAG}"
-          echo "::set-output name=SHA::sha-$(git rev-parse --short HEAD)"
+          echo "::set-output name=SHA::sha-$(git rev-list -n 1 --abbrev-commit ${RELEASE_TAG})"
         id: info
 
   docker:
