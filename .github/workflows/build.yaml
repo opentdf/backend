@@ -351,7 +351,7 @@ jobs:
         repo:
           - entitlement-pdp
           - entity-resolution
-    timeout-minutes: 40
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
