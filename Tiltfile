@@ -28,9 +28,8 @@ server_root = {
     ("%s.serverRootPath" % s): ("/api/%s" % s) for s in ["attributes", "entitlements"]
 }
 
-server_root = {
-    ("%s.serverRootPath" % s): ("/api/%s" % s)
-    for s in ["attributes", "entitlements", "entitlement-store", "kas"]
+cors_origins = {
+    ("%s.serverCorsOrigins" % s): host_arg for s in ["attributes", "entitlements"]
 }
 
 
