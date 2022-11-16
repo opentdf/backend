@@ -63,7 +63,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     static {
         OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, TdfClaimsMapper.class);
         OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
-        configProperties.get(configProperties.size() - 1).setDefaultValue("http://www.virtru.com/tdf_claims");
+        configProperties.get(configProperties.size() - 1).setDefaultValue("tdf_claims");
 
         configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Attribute Provider URL",
                 "Full URL of the remote attribute provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
@@ -95,7 +95,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
 
     @Override
     public String getDisplayType() {
-        return "Virtru OIDC to Entity Claim Mapper";
+        return "OIDC to Entity Attribute Claim Mapper";
     }
 
     @Override
@@ -115,7 +115,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
 
         // FIXME We have to override the `sub` property so that it's the user's
         // name/email and not just the Keycloak UID - and the reason we have to
-        // do this is because  of how legacy code expects `dissems` to work.
+        // do this is because of how legacy code expects `dissems` to work.
         //
         // We will have to fix `dissems` to properly get rid of this hack.
         token.setSubject(userSession.getUser().getId());
@@ -184,8 +184,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // when/if a reduced claimset is needed, we can default to minClaims
         String claimReqType = "full_claims";
 
-        logger.debug("USERNAME value is: " + userSession.getLoginUsername());
-        logger.debug("Current User UUID value is: " + userSession.getUser().getId());
+        logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
 
         logger.debug("userSession.getNotes CONTENT IS: ");
         for (Map.Entry<String, String> entry : userSession.getNotes().entrySet()) {
@@ -260,7 +259,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     private String getClientPublicKey(ProtocolMapperModel mappingModel, KeycloakSession keycloakSession) {
-
         String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
         String clientPK = null;
         if (clientPKHeaderName != null) {
@@ -273,7 +271,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 byte[] decodedBytes = Base64.getDecoder().decode(clientPK);
                 clientPK = new String(decodedBytes);
             }
-            logger.info("Client Cert: " + clientPK);
+            logger.debug("Client Cert: [{}]", clientPK);
         }
         if (clientPK == null) {
             logger.warn("No client cert presented in request, returning null");
