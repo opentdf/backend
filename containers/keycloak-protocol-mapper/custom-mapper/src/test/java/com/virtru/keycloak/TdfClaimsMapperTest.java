@@ -25,12 +25,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 
-import static com.virtru.keycloak.AttributeOIDCProtocolMapper.*;
+import static com.virtru.keycloak.TdfClaimsMapper.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({ MockitoExtension.class })
-public class AttributeOIDCProtocolMapperTest {
+public class TdfClaimsMapperTest {
     private UndertowJaxrsServer server;
 
     @Mock
@@ -54,7 +54,7 @@ public class AttributeOIDCProtocolMapperTest {
     @Mock
     UserModel userModel;
 
-    AttributeOIDCProtocolMapper attributeOIDCProtocolMapper;
+    TdfClaimsMapper attributeOIDCProtocolMapper;
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
     @Test
@@ -236,7 +236,7 @@ public class AttributeOIDCProtocolMapperTest {
     @BeforeEach
     public void setup() throws Exception {
         server = new UndertowJaxrsServer().start();
-        attributeOIDCProtocolMapper = new AttributeOIDCProtocolMapper();
+        attributeOIDCProtocolMapper = new TdfClaimsMapper();
     }
 
     @AfterEach

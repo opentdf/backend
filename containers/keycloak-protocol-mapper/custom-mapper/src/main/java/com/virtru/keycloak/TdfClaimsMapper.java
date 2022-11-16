@@ -35,7 +35,7 @@ import java.util.Map;
  * values to be passed to the attribute provider.
  *
  */
-public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper
+public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
     public static final String PROVIDER_ID = "virtru-oidc-protocolmapper";
@@ -61,7 +61,7 @@ public class AttributeOIDCProtocolMapper extends AbstractOIDCProtocolMapper
     private final static String REMOTE_AUTHORIZATION_ATTR = "remote-authorizations";
 
     static {
-        OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, AttributeOIDCProtocolMapper.class);
+        OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, TdfClaimsMapper.class);
         OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
         configProperties.get(configProperties.size() - 1).setDefaultValue("http://www.virtru.com/tdf_claims");
 
