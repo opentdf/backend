@@ -18,7 +18,7 @@ RUN mkdir -p /tool/migration/versions
 COPY containers/attributes/ attributes/
 COPY containers/entitlements/ entitlements/
 COPY containers/service_entity/ service_entity/
-COPY containers/entitlement_store/ entitlement_store/
+COPY containers/entitlement-store/ entitlement-store/
 # Postgres
 ENV POSTGRES_HOST ""
 ENV POSTGRES_PORT "5432"

@@ -43,7 +43,7 @@ appVersion-for() {
       git describe --abbrev=0
       ;;
     entitlement-store)
-      echo "$(<"${PROJECT_ROOT}"/containers/entitlement_store/VERSION)"
+      echo "$(<"${PROJECT_ROOT}"/containers/entitlement-store/VERSION)"
       ;;
     kas)
       echo "$(<"${PROJECT_ROOT}"/containers/kas/kas_app/VERSION)"

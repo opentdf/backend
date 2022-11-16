@@ -9,7 +9,7 @@ We store several services combined in a single git repository for ease of develo
 - [Key Access Service](containers/kas/kas_core/) - An ABAC _access_ policy enforcement point (PEP) and policy decision point (PDP).
 - [Attributes](containers/attributes/) - An ABAC attribute authority.
 - [Entitlements](containers/entitlements) - An ABAC _entitlements_ policy administration point (PAP)
-- [Entitlements Store](containers/entitlement_store) - An ABAC _entitlements_ policy information point (PIP)
+- [Entitlements Store](containers/entitlement-store) - An ABAC _entitlements_ policy information point (PIP)
 - [Entitlements PDP](containers/entitlement-pdp) - An ABAC _entitlements_ policy decision point (PDP)
 
 ### Support services
@@ -140,7 +140,7 @@ helm repo remove keycloak
 ## Swagger-UI
 
 The microservices support OpenAPI, and can provide documentation and easier interaction for the REST API.
-Add "/ui" to the base URL of the appropriate server. For example, `http://127.0.0.1:4010/ui/`.
+Add "/ui" to the base URL of the appropriate server. For example, `http://127.0.0.1:65432/api/kas/docs/`.
 KAS and EAS each have separate REST APIs that together with the SDK support the full TDF3 process for encryption,
 authorization, and decryption.
 

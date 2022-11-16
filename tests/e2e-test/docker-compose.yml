@@ -9,7 +9,7 @@ services:
     build:
       args:
         - PY_VERSION=${PY_VERSION:-3.10}
-      context: ../containers/entitlement_store
+      context: ../containers/entitlement-store
     depends_on:
       - migration
       - postgres

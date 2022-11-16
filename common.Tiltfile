@@ -136,7 +136,7 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
         ],
     )
 
-    for microservice in ["attributes", "entitlements", "entitlement_store"]:
+    for microservice in ["attributes", "entitlements", "entitlement-store"]:
         image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
         docker_build(
             image_name,
@@ -250,7 +250,7 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
                 CONTAINER_REGISTRY + "/opentdf/keycloak",
                 CONTAINER_REGISTRY + "/opentdf/attributes",
                 CONTAINER_REGISTRY + "/opentdf/entitlements",
-                CONTAINER_REGISTRY + "/opentdf/entitlement_store",
+                CONTAINER_REGISTRY + "/opentdf/entitlement-store",
                 CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
                 CONTAINER_REGISTRY + "/opentdf/entity-resolution",
                 CONTAINER_REGISTRY + "/opentdf/kas",
@@ -260,7 +260,7 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
                 ("keycloak.image.repository", "keycloak.image.tag"),
                 ("attributes.image.repo", "attributes.image.tag"),
                 ("entitlements.image.repo", "entitlements.image.tag"),
-                ("entitlement_store.image.repo", "entitlement_store.image.tag"),
+                ("entitlement-store.image.repo", "entitlement-store.image.tag"),
                 ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
                 ("entity-resolution.image.repo", "entity-resolution.image.tag"),
                 ("kas.image.repo", "kas.image.tag"),

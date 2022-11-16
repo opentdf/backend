@@ -47,6 +47,8 @@ swagger_ui_init_oauth = {
     "authorizationUrl": os.getenv("OIDC_AUTHORIZATION_URL"),
 }
 
+logger.debug(swagger_ui_init_oauth, "swagger_ui_init_oauth")
+
 
 class Settings(BaseSettings):
     openapi_url: str = os.getenv("SERVER_ROOT_PATH", "") + "/openapi.json"
@@ -203,14 +205,14 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
         verify=True,
     )
     try:
-        unverified_decode = keycloak_openid.decode_token(
+        unverified_decode = decode_token(
             token,
             key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
         if not has_aud(unverified_decode, "tdf-entitlement"):
             raise Exception("Invalid audience, should be tdf-entitlement")
-        return keycloak_openid.decode_token(
+        return decode_token(
             token,
             key=await get_idp_public_key(try_extract_realm(unverified_decode)),
             options={"verify_signature": True, "verify_aud": False, "exp": True},

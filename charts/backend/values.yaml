@@ -89,12 +89,12 @@ entitlement-store:
       nginx.ingress.kubernetes.io/rewrite-target: /$2
     className: nginx
     hosts:
-      localhost: &pathsEntitlementsStore
+      localhost: &pathsEntitlementStore
         "/api/entitlement-store(/|$)(.*)":
           pathType: Prefix
-      host.docker.internal: *pathsEntitlementsStore
-      opentdf.local: *pathsEntitlementsStore
-      '': *pathsEntitlementsStore
+      host.docker.internal: *pathsEntitlementStore
+      opentdf.local: *pathsEntitlementStore
+      '': *pathsEntitlementStore
 entitlements:
   fullnameOverride: entitlements
   secretRef: |-

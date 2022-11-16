@@ -3,6 +3,7 @@
 import sys
 import os
 import connexion
+from swagger_ui_bundle import swagger_ui_3_path
 
 import importlib_resources
 import logging
@@ -29,6 +30,7 @@ from .abstractions import (
 )
 
 from .util.utility import value_to_boolean
+from .util.reverse_proxy import ReverseProxied
 
 logger = logging.getLogger(__name__)
 
@@ -302,10 +304,30 @@ class Kas(object):
 
         self._session_kas_public_key = create_session_public_key(self._key_master)
 
-        app = connexion.FlaskApp(self._root_name)
+        flask_options = {
+            "swagger_url": "/docs",
+            "swagger_ui_config": {
+                "clientId": "tdf-attributes",
+                "clientSecret": "123-456",
+                "realm": "opentdf-realm",
+                "scopes": "profile email",
+                "useBasicAuthenticationWithAccessCodeGrant": "authorization_code",
+                "additionalQueryStringParams": {
+                    "authorizationUrl": "http://localhost:65432/auth/realms/opentdf-realm/protocol/openid-connect/auth",
+                    "tokenUrl": "http://localhost:65432/auth/realms/opentdf-realm/protocol/openid-connect/token",
+                },
+            },
+        }
+        app = connexion.FlaskApp(
+            self._root_name, specification_dir="api/", options=flask_options
+        )
+        flask_app = app.app
+
+        proxied = ReverseProxied(flask_app.wsgi_app, script_name="/api/kas/")
+        flask_app.wsgi_app = proxied
 
         # Allow swagger_ui to be disabled
-        options = {}
+        options = {"swagger_path": swagger_ui_3_path}
         if not swagger_enabled():
             # Turn off Swagger UI feature
             logger.debug("Disable Swagger UI")

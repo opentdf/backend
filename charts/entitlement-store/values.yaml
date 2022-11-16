@@ -25,7 +25,7 @@ replicaCount: 1
 
 # Name of application. Used during oauth flows, for example when connecting to
 # the OpenAPI endpoint with an OAuth authentication
-serverPublicName: "entitlement-store"
+serverPublicName: "Entitlement Store"
 
 # Base path for this service. Allows serving multiple REST services from the
 # same origin, e.g. using an ingress with prefix mapping as suggested below.
@@ -48,10 +48,6 @@ oidc:
 
 # Configure the container image to use in the deployment.
 image:
-  # Override for global.opentdf.common.oidcInternalBaseUrl & url path
-  internalHost:
-  # Override for global.opentdf.common.oidcExternalBaseUrl & url path
-  externalHost:
   # The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/entitlement_store
@@ -104,6 +100,14 @@ service:
   # Port to assign to the `http` port
   port: 5000
 
+# Ingress configuration.
+# To configure, set enabled to true and set `hosts` to a map in the form:
+#
+#     [hostname]:
+#       [path]:
+#         pathType:    your-pathtype [default: "ImplementationSpecific"]
+#         serviceName: your-service  [default: service.fullname]
+#         servicePort: service-port  [default: service.port above]
 ingress:
   enabled: false
   annotations: { }

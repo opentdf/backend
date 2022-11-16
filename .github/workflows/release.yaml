@@ -44,7 +44,7 @@ jobs:
       matrix:
         repo:
           - attributes
-          - entitlement_store
+          - entitlement-store
           - entitlement-pdp
           - entitlements
           - entity-resolution
