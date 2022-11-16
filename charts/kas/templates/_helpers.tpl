@@ -79,7 +79,7 @@ Create oidc endpoint from a common value
 {{- end }}
 
 {{- define "kas.secretFromString" -}}
-{{- if and (not .root.Values.externalEnvSecretName) .value }}
+{{- if and (not .root.Values.externalSecretName) .value }}
 {{- b64enc .value }}
 {{- else }}
 {{- "" }}

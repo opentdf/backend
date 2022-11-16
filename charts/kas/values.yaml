@@ -74,7 +74,7 @@ securityContext: {}
 certFileSecretName: null
 
 # The name of a secret containing required config values (see envConfig below); overrides envConfig
-externalEnvSecretName:
+externalSecretName:
 
 # Environment configuration values for keys and certs used by the key server.  If externalSecretName is defined these are ignored.
 envConfig:
