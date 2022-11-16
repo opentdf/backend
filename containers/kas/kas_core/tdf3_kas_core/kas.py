@@ -304,20 +304,7 @@ class Kas(object):
 
         self._session_kas_public_key = create_session_public_key(self._key_master)
 
-        flask_options = {
-            "swagger_url": "/docs",
-            "swagger_ui_config": {
-                "clientId": "tdf-attributes",
-                "clientSecret": "123-456",
-                "realm": "opentdf-realm",
-                "scopes": "profile email",
-                "useBasicAuthenticationWithAccessCodeGrant": "authorization_code",
-                "additionalQueryStringParams": {
-                    "authorizationUrl": "http://localhost:65432/auth/realms/opentdf-realm/protocol/openid-connect/auth",
-                    "tokenUrl": "http://localhost:65432/auth/realms/opentdf-realm/protocol/openid-connect/token",
-                },
-            },
-        }
+        flask_options = {"swagger_url": "/docs"}
         app = connexion.FlaskApp(
             self._root_name, specification_dir="api/", options=flask_options
         )

@@ -47,8 +47,6 @@ swagger_ui_init_oauth = {
     "authorizationUrl": os.getenv("OIDC_AUTHORIZATION_URL"),
 }
 
-logger.debug(swagger_ui_init_oauth, "swagger_ui_init_oauth")
-
 
 class Settings(BaseSettings):
     openapi_url: str = os.getenv("SERVER_ROOT_PATH", "") + "/openapi.json"
