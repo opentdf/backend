@@ -3,16 +3,12 @@ package com.virtru.keycloak;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.jboss.resteasy.test.TestPortProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
-import org.junit.jupiter.api.condition.EnabledIf;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.keycloak.models.*;
@@ -20,7 +16,6 @@ import org.keycloak.models.session.PersistentAuthenticatedClientSessionAdapter;
 import org.keycloak.models.session.PersistentClientSessionModel;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.representations.AccessToken;
-import org.keycloak.storage.openshift.OpenshiftSAClientAdapter;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -34,7 +29,7 @@ import static com.virtru.keycloak.AttributeOIDCProtocolMapper.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@ExtendWith({MockitoExtension.class})
+@ExtendWith({ MockitoExtension.class })
 public class AttributeOIDCProtocolMapperTest {
     private UndertowJaxrsServer server;
 
@@ -76,9 +71,9 @@ public class AttributeOIDCProtocolMapperTest {
     @Test
     public void testTransformAccessToken_WithPKHeader_EnvVar() throws Exception {
         commonSetup("12345", false, false, false);
-        Assertions.assertThrows(JsonRemoteClaimException.class, () ->
-                assertTransformAccessToken_WithPKHeader(), " Error when accessing remote claim - Configured URL: "
-                + System.getenv("CLAIMS_URL"));
+        Assertions.assertThrows(JsonRemoteClaimException.class, () -> assertTransformAccessToken_WithPKHeader(),
+                " Error when accessing remote claim - Configured URL: "
+                        + System.getenv("CLAIMS_URL"));
     }
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "env")
@@ -115,36 +110,41 @@ public class AttributeOIDCProtocolMapperTest {
                 keycloakSession, userSessionModel, clientSessionContext);
         Object customClaims = accessToken.getOtherClaims().get("customAttrs");
         assertNotNull(customClaims, "Custom claim present");
-        //claim is an object node. keycloak jackson serialization happens upstream so we have the object node
+        // claim is an object node. keycloak jackson serialization happens upstream so
+        // we have the object node
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         assertNotNull(responseClaimAsMap, "Echoed claim present");
         assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
         assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
-        ArrayList entitlements = (ArrayList)responseClaimAsMap.get("entitlements");
+        ArrayList entitlements = (ArrayList) responseClaimAsMap.get("entitlements");
         Map ent = (Map) entitlements.get(0);
         assertEquals("1234-4567-8901", ent.get("primary_entity_id"));
     }
 
-    //If user ID is a service account, that means we are doing direct-grant auth against a client (not a user+client),
-    //and we only want entitlements for the client, not the internal service account user Keycloak attaches
-    //to the client session. So we should make the client ID the primary entity ID, and remove the clientID from the
-    //secondary clientId list
+    // If user ID is a service account, that means we are doing direct-grant auth
+    // against a client (not a user+client),
+    // and we only want entitlements for the client, not the internal service
+    // account user Keycloak attaches
+    // to the client session. So we should make the client ID the primary entity ID,
+    // and remove the clientID from the
+    // secondary clientId list
     private void assertTransformAccessToken_WithPKHeader_DirectGrantSvcAccount() throws Exception {
         AccessToken accessToken = new AccessToken();
         attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
                 keycloakSession, userSessionModel, clientSessionContext);
         Object customClaims = accessToken.getOtherClaims().get("customAttrs");
         assertNotNull(customClaims, "Custom claim present");
-        //claim is an object node. keycloak jackson serialization happens upstream so we have the object node
+        // claim is an object node. keycloak jackson serialization happens upstream so
+        // we have the object node
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         assertNotNull(responseClaimAsMap, "Echoed claim present");
         assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
         assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
-        ArrayList entitlements = (ArrayList)responseClaimAsMap.get("entitlements");
+        ArrayList entitlements = (ArrayList) responseClaimAsMap.get("entitlements");
         Map ent = (Map) entitlements.get(0);
         assertEquals("1234599998888", ent.get("primary_entity_id"));
         assertEquals(0, ((ArrayList<String>) ent.get("secondary_entity_ids")).size(), "0 entries");
@@ -156,14 +156,15 @@ public class AttributeOIDCProtocolMapperTest {
                 keycloakSession, userSessionModel, clientSessionContext);
         Object customClaims = accessToken.getOtherClaims().get("customAttrs");
         assertNotNull(customClaims, "Custom claim present");
-        //claim is an object node. keycloak jackson serialization happens upstream so we have the object node
+        // claim is an object node. keycloak jackson serialization happens upstream so
+        // we have the object node
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
         Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         assertNotNull(responseClaimAsMap, "Echoed claim present");
         assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
         assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
-        ArrayList entitlements = (ArrayList)responseClaimAsMap.get("entitlements");
+        ArrayList entitlements = (ArrayList) responseClaimAsMap.get("entitlements");
         Map ent = (Map) entitlements.get(0);
         assertEquals("1234-4567-8901", ent.get("primary_entity_id"));
     }
@@ -173,9 +174,10 @@ public class AttributeOIDCProtocolMapperTest {
     public void testNoRemoteUrl() {
         commonSetup("12345", false, false, false);
         AccessToken accessToken = new AccessToken();
-        Assertions.assertThrows(JsonRemoteClaimException.class, () ->
-                attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
-                        keycloakSession, userSessionModel, clientSessionContext), "");
+        Assertions.assertThrows(JsonRemoteClaimException.class,
+                () -> attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
+                        keycloakSession, userSessionModel, clientSessionContext),
+                "");
 
     }
 
@@ -208,7 +210,8 @@ public class AttributeOIDCProtocolMapperTest {
 
         when(userModel.getId()).thenReturn("1234-4567-8901");
         if (userIsSvcAcct) {
-            // For ref, see: https://github.com/keycloak/keycloak/blob/99c06d11023689875b48ef56442c90bdb744c869/services/src/main/java/org/keycloak/exportimport/util/ExportUtils.java#L519
+            // For ref, see:
+            // https://github.com/keycloak/keycloak/blob/99c06d11023689875b48ef56442c90bdb744c869/services/src/main/java/org/keycloak/exportimport/util/ExportUtils.java#L519
             when(userModel.getServiceAccountClientLink()).thenReturn(clientId);
         }
         when(userSessionModel.getUser()).thenReturn(userModel);
@@ -218,9 +221,10 @@ public class AttributeOIDCProtocolMapperTest {
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class)).thenReturn(null);
-//            when(clientSessionContext.getScopeString()).thenReturn("email");
+            // when(clientSessionContext.getScopeString()).thenReturn("email");
             when(clientModel.getId()).thenReturn(clientId);
-            AuthenticatedClientSessionModel authenticatedClientSessionModel =  new PersistentAuthenticatedClientSessionAdapter(keycloakSession, persistentClientSessionModel, realmModel, clientModel, userSessionModel);
+            AuthenticatedClientSessionModel authenticatedClientSessionModel = new PersistentAuthenticatedClientSessionAdapter(
+                    keycloakSession, persistentClientSessionModel, realmModel, clientModel, userSessionModel);
             Map<String, AuthenticatedClientSessionModel> clients = new HashMap<String, AuthenticatedClientSessionModel>();
             clients.put("x", authenticatedClientSessionModel);
             clients.put("y", authenticatedClientSessionModel);
@@ -228,7 +232,6 @@ public class AttributeOIDCProtocolMapperTest {
             when(userSessionModel.getAuthenticatedClientSessions()).thenReturn(clients);
         }
     }
-
 
     @BeforeEach
     public void setup() throws Exception {
@@ -240,7 +243,6 @@ public class AttributeOIDCProtocolMapperTest {
     public void stop() {
         server.stop();
     }
-
 
     @Path("/endpoint")
     public static class MyResource {
@@ -254,7 +256,6 @@ public class AttributeOIDCProtocolMapperTest {
         }
 
     }
-
 
     @ApplicationPath("/base")
     public static class TestApp extends Application {
