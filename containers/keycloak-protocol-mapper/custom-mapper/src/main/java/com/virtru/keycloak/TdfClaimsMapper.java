@@ -1,6 +1,7 @@
 package com.virtru.keycloak;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -307,9 +308,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
         RegisterBuiltin.register(instance);
         instance.registerProvider(ResteasyJackson2Provider.class);
-        final String url = mappingModel.getConfig().get(REMOTE_URL) == null ? System.getenv("CLAIMS_URL")
+        final String url = Strings.isNullOrEmpty(mappingModel.getConfig().get(REMOTE_URL)) ? System.getenv("CLAIMS_URL")
                 : mappingModel.getConfig().get(REMOTE_URL);
-        logger.info("Request attributes for subject: [" + token.getSubject() + "] within [" + token + "]");
+        logger.info("Request attributes for subject: [{} within [{}] from [{}]", token.getSubject(), token, url);
         CloseableHttpResponse response = null;
         try {
             // Get parameters
