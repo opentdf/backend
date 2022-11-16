@@ -38,7 +38,7 @@ import java.util.Map;
 public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
-    public static final String PROVIDER_ID = "virtru-oidc-protocolmapper";
+    public static final String PROVIDER_ID = "tdf-claims-mapper";
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
 
@@ -73,7 +73,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 "List of additional parameters to send separated by '&'. Separate parameter name and value by an equals sign '=', the value can contain equals signs (ex: scope=all&full=true).",
                 ProviderConfigProperty.STRING_TYPE, null));
 
-        configProperties.add(new ProviderConfigProperty(REMOTE_PARAMETERS, "Headers",
+        configProperties.add(new ProviderConfigProperty(REMOTE_HEADERS, "Headers",
                 "List of headers to send separated by '&'. Separate header name and value by an equals sign '=', the value can contain equals signs (ex: Authorization=az89d).",
                 ProviderConfigProperty.STRING_TYPE, null));
 
