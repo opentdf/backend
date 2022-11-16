@@ -136,6 +136,7 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
         return "true" if b else "false"
 
     def addMapper(is_person, extra_params):
+        name = "UserInfo tdf_claims" if is_person else "Access tdf_claims"
         try:
             keycloak_admin.add_mapper_to_client(
                 keycloak_client_id,
@@ -148,7 +149,7 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                         "userinfo.token.claim": strBool(is_person),
                         "claim.name": "tdf_claims",
                     },
-                    "name": "tdf_claims",
+                    "name": name,
                     "protocolMapper": "tdf-claims-mapper",
                 },
             )
