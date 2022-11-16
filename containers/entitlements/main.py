@@ -80,7 +80,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="OpenTDF",
-        version="1.1.0",
+        version="1.1.1",
         license_info={
             "name": "BSD 3-Clause Clear",
             "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
@@ -203,14 +203,16 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
         verify=True,
     )
     try:
-        unverified_decode = decode_token(
+        unverified_decode = keycloak_openid.decode_token(
             token,
             key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
-        if not has_aud(unverified_decode, "tdf-entitlement"):
-            raise Exception("Invalid audience, should be tdf-entitlement")
-        return decode_token(
+        if not has_aud(unverified_decode, os.getenv("OIDC_CLIENT_ID")):
+            raise Exception(
+                "Invalid audience, should be %s", os.getenv("OIDC_CLIENT_ID")
+            )
+        return keycloak_openid.decode_token(
             token,
             key=await get_idp_public_key(try_extract_realm(unverified_decode)),
             options={"verify_signature": True, "verify_aud": False, "exp": True},

@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
+from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel, TDFStorageType
 
 logger = logging.getLogger("xtest")
 logging.basicConfig()
@@ -39,8 +39,10 @@ def encrypt_file(
     for attribute in attributes:
         client.add_data_attribute(attribute, kas_url=kas)
 
-    client.encrypt_file(pt_file, ct_file)
-    
+    tdfStorage = TDFStorageType()
+    tdfStorage.set_tdf_storage_file_type(pt_file)
+    client.encrypt_file(tdfStorage, ct_file)
+
     logger.info("Encrypting file ")
 
 

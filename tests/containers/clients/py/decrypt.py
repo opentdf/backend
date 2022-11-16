@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel
+from opentdf import TDFClient, NanoTDFClient, OIDCCredentials, LogLevel, TDFStorageType
 
 logger = logging.getLogger("xtest")
 logging.basicConfig()
@@ -33,7 +33,10 @@ def decrypt_file(
     )
     client.enable_console_logging(LogLevel.Info)
 
-    client.decrypt_file(ct_file, rt_file)
+    tdfStorage = TDFStorageType()
+    tdfStorage.set_tdf_storage_file_type(ct_file)
+    client.decrypt_file(tdfStorage, rt_file)
+
     logger.info("Decrypting file ")
 
 

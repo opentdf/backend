@@ -25,12 +25,12 @@ openapi_enable = {
 }
 
 server_root = {
-    ("%s.serverRootPath" % s): ("/api/%s" % s)
-    for s in ["attributes", "entitlements", "entitlement-store", "kas"]
+    ("%s.serverRootPath" % s): ("/api/%s" % s) for s in ["attributes", "entitlements"]
 }
 
-cors_origins = {
-    ("%s.serverCorsOrigins" % s): host_arg for s in ["attributes", "entitlements"]
+server_root = {
+    ("%s.serverRootPath" % s): ("/api/%s" % s)
+    for s in ["attributes", "entitlements", "entitlement-store", "kas"]
 }
 
 

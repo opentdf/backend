@@ -38,12 +38,14 @@ TflXyM4Jk7qPhVcP8gVmHfdq6RNKi2MvY_jOqU384dUojHBfrUP5FJVXGUKDHV
 D54ic3t2yZtcN8dqe26LA
 """
 
+
 @pytest.fixture
 def no_leeway():
     old_value = authorized.leeway
     authorized.leeway = 0
     yield
     authorized.leeway = old_value
+
 
 def test_authorized_pass():
     """Test authorized."""

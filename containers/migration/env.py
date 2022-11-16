@@ -7,26 +7,32 @@ from sqlalchemy import pool
 from alembic import context
 import os, sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import attributes.main as service_atribute_authority
 import entitlements.main as entitlements
 import entitlement_store.main as entitlement_store
 
 
 sys.path.append(os.getcwd())
-sys.path.append('../')
+sys.path.append("../")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRES_USER", str(entitlement_store.POSTGRES_USER))
 config.set_section_option(
-    section, "POSTGRES_PASSWORD", str(entitlement_store.POSTGRES_PASSWORD))
+    section, "POSTGRES_USER", str(entitlement_store.POSTGRES_USER)
+)
 config.set_section_option(
-    section, "POSTGRES_DATABASE", str(entitlement_store.POSTGRES_DATABASE))
-config.set_section_option(section, "POSTGRES_HOST", str(entitlement_store.POSTGRES_HOST))
+    section, "POSTGRES_PASSWORD", str(entitlement_store.POSTGRES_PASSWORD)
+)
+config.set_section_option(
+    section, "POSTGRES_DATABASE", str(entitlement_store.POSTGRES_DATABASE)
+)
+config.set_section_option(
+    section, "POSTGRES_HOST", str(entitlement_store.POSTGRES_HOST)
+)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)

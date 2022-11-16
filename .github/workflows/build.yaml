@@ -170,7 +170,7 @@ jobs:
       - name: Run pki-test.Tiltfile
         run: |-
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
-          pip3 install opentdf==1.0.0
+          pip3 install opentdf
           export TILTFILE_FILE=pki-test.Tiltfile
           echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           docker system prune -af
@@ -351,7 +351,7 @@ jobs:
         repo:
           - entitlement-pdp
           - entity-resolution
-    timeout-minutes: 40
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
