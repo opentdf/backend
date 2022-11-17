@@ -310,7 +310,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         instance.registerProvider(ResteasyJackson2Provider.class);
         final String url = Strings.isNullOrEmpty(mappingModel.getConfig().get(REMOTE_URL)) ? System.getenv("CLAIMS_URL")
                 : mappingModel.getConfig().get(REMOTE_URL);
-        logger.info("Request attributes for subject: [{} within [{}] from [{}]", token.getSubject(), token, url);
+        logger.info("Request attributes for subject: [{}] within [{}] from [{}]", token.getSubject(), token, url);
         CloseableHttpResponse response = null;
         try {
             // Get parameters
