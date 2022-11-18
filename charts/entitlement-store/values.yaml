@@ -110,9 +110,9 @@ service:
 #         servicePort: service-port  [default: service.port above]
 ingress:
   enabled: false
-  annotations: { }
+  annotations: {}
   className: null
-  hosts: { }
+  hosts: {}
   tls: null
 
 # Specify required limits for deploying this service to a pod.
