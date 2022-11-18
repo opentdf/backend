@@ -25,7 +25,8 @@ openapi_enable = {
 }
 
 server_root = {
-    ("%s.serverRootPath" % s): ("/api/%s" % s) for s in ["attributes", "entitlements"]
+    ("%s.serverRootPath" % s): ("/api/%s" % s)
+    for s in ["attributes", "entitlements", "entitlement-store"]
 }
 
 cors_origins = {
