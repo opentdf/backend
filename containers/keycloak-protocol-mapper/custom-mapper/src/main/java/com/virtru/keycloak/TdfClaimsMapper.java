@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
@@ -23,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.Map;
@@ -38,6 +41,7 @@ import java.util.Map;
  */
 public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
+    private static final Logger logger = LoggerFactory.getLogger(TdfClaimsMapper.class);
 
     public static final String PROVIDER_ID = "tdf-claims-mapper";
 
@@ -53,8 +57,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     final static String CLAIM_REQUEST_TYPE = "claim_request_type";
 
     private CloseableHttpClient client = HttpClientBuilder.create().build();
-
-    private Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
      * Inner configuration to cache retrieved authorization for multiple tokens
@@ -127,23 +129,18 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // If no PK in request, don't bother asking for claims - no authorization.
         if (clientPK == null) {
             logger.info("No public key in auth request, skipping remote auth call and returning empty claims");
-            claims = null;
-        } else {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Fetch remote claims = " + (claims == null));
-            }
+            return;
+        }
 
-            // If claims are not cached OR this is a userinfo request (which should always
-            // refresh claims from remote) then refresh claims.
-            if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
-                logger.debug("Getting remote authorizations");
-                JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
-                claims = buildClaimsObject(entitlements, clientPK);
-                clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
-            } else {
-                logger.debug("Looks like remote authorizations are already cached, not refreshing...");
-                logger.debug("Cached claims are: " + claims);
-            }
+        // If claims are not cached OR this is a userinfo request (which should always
+        // refresh claims from remote) then refresh claims.
+        if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
+            logger.debug("Getting remote authorizations");
+            JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
+            claims = buildClaimsObject(entitlements, clientPK);
+            clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
+        } else {
+            logger.debug("Using cached remote authorizations: [{}]", claims);
         }
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
     }
@@ -183,8 +180,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // String claimReqType = "min_claims";
         // Right now, for back compat, ALWAYS return full claims by default - later,
         // when/if a reduced claimset is needed, we can default to minClaims
-        String claimReqType = "full_claims";
-
         logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
 
         logger.debug("userSession.getNotes CONTENT IS: ");
@@ -243,7 +238,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // include full claimset
         if (OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
             logger.debug("USERINFO mapper!");
-            claimReqType = "full_claims";
         }
 
         return formattedParameters;
@@ -308,10 +302,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
         RegisterBuiltin.register(instance);
         instance.registerProvider(ResteasyJackson2Provider.class);
-        final String url = Strings.isNullOrEmpty(mappingModel.getConfig().get(REMOTE_URL)) ? System.getenv("CLAIMS_URL")
-                : mappingModel.getConfig().get(REMOTE_URL);
+        final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
+        final String url = Strings.isNullOrEmpty(remoteUrl) ? System.getenv("CLAIMS_URL") : remoteUrl;
+        if (Strings.isNullOrEmpty(url)) {
+            throw new JsonRemoteClaimException(
+                    REMOTE_URL + " property is not set via an env variable or configuration value", null);
+        }
         logger.info("Request attributes for subject: [{}] within [{}] from [{}]", token.getSubject(), token, url);
-        CloseableHttpResponse response = null;
         try {
             // Get parameters
             Map<String, Object> parameters = getRequestParameters(mappingModel, userSession, token);
@@ -319,13 +316,14 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             Map<String, Object> headers = getHeaders(mappingModel, userSession);
             headers.put("Content-Type", "application/json");
 
-            if (url == null) {
-                throw new Exception(REMOTE_URL + " property is not set via an env variable or configuration value");
+            HttpPost httpReq;
+            try {
+                httpReq = new HttpPost(url);
+                URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
+                httpReq.setURI(uriBuilder.build());
+            } catch (IllegalArgumentException | URISyntaxException e) {
+                throw new JsonRemoteClaimException("Invalid remote URL property for tdf_claims mapper", url);
             }
-
-            HttpPost httpReq = new HttpPost(url);
-            URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
-            httpReq.setURI(uriBuilder.build());
 
             // Build parameters
             Map<String, Object> requestEntity = new HashMap<>(parameters);
@@ -340,28 +338,23 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             httpReq.setEntity(new StringEntity(objectMapper.writeValueAsString(requestEntity)));
 
             logger.info("Request: " + requestEntity);
-            response = client.execute(httpReq);
-            String bodyAsString = EntityUtils.toString(response.getEntity());
-            if (response.getStatusLine().getStatusCode() != 200) {
-                logger.warn(response.getStatusLine() + "" + bodyAsString);
-                throw new Exception("Wrong status received for remote claim - Expected: 200, Received: "
-                        + response.getStatusLine().getStatusCode() + ":" + url);
+            try (CloseableHttpResponse response = client.execute(httpReq)) {
+                String bodyAsString = EntityUtils.toString(response.getEntity());
+                if (response.getStatusLine().getStatusCode() != 200) {
+                    logger.warn(response.getStatusLine() + "" + bodyAsString);
+                    throw new JsonRemoteClaimException(
+                            "Wrong status received for remote claim - Expected: 200, Received: "
+                                    + response.getStatusLine().getStatusCode(),
+                            url);
+                }
+                logger.debug(bodyAsString);
+                return objectMapper.readValue(bodyAsString, JsonNode.class);
             }
-            logger.debug(bodyAsString);
-            return objectMapper.readValue(bodyAsString, JsonNode.class);
-        } catch (Exception e) {
+        } catch (IOException | ParseException e) {
             logger.error("Error", e);
             // exceptions are thrown to prevent token from being delivered without all
             // information
             throw new JsonRemoteClaimException("Error when accessing remote claim", url, e);
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
     }
 

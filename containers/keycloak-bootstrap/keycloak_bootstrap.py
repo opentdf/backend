@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import yaml
-from keycloak import KeycloakAdmin
+from keycloak import KeycloakAdmin, KeycloakGetError
 
 URL_ADMIN_AUTHENTICATOR_EXECUTION_CONFIG = (
     "admin/realms/{realm-name}/authentication/executions/{flow-id}/config"
@@ -63,7 +63,7 @@ def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
 
             # Add Abacus-related roles to user
             assignViewRolesToUser(keycloak_admin, new_user)
-        except Exception:
+        except KeycloakGetError:
             logger.warning(
                 "Could not create passworded user %s!", item["username"], exc_info=True
             )
@@ -76,7 +76,7 @@ def createUsersInRealm(keycloak_admin):
                 {"username": username, "enabled": True}
             )
             logger.info("Created new user %s (%s)", username, new_user)
-        except Exception:
+        except KeycloakGetError:
             logger.warning("Could not create user for %s!", username, exc_info=True)
     passwordedUsers = os.getenv(
         "passwordUsers", "testuser@virtru.com,user1,user2"
@@ -99,7 +99,7 @@ def createUsersInRealm(keycloak_admin):
 
             # Add Abacus-related roles to user
             assignViewRolesToUser(keycloak_admin, new_user)
-        except Exception:
+        except KeycloakGetError:
             logger.warning(
                 "Could not create passworded user %s!", username, exc_info=True
             )
@@ -121,7 +121,9 @@ def addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, client_aud
                 "protocolMapper": "oidc-audience-mapper",
             },
         )
-    except Exception:
+    except KeycloakGetError as e:
+        if e.response_code != 409:
+            raise
         logger.warning(
             "Could not add client audience mapper to client %s - this likely means it is already there, so we can ignore this.",
             keycloak_client_id,
@@ -153,7 +155,9 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                     "protocolMapper": "tdf-claims-mapper",
                 },
             )
-        except Exception:
+        except KeycloakGetError as e:
+            if e.response_code != 409:
+                raise
             logger.warning(
                 "Could not add tdf_clams mapper to client [%s] - this likely means it is already there, so we can ignore this.",
                 keycloak_client_id,
@@ -202,7 +206,9 @@ def createTestClientForX509Flow(keycloak_admin):
         )
 
         keycloak_client_id = keycloak_admin.get_client_id(client_id)
-        logger.info("Created client %s", keycloak_client_id)
+        logger.info(
+            "Created x509 flow client [%s] as [%s]", client_id, keycloak_client_id
+        )
 
         addVirtruMappers(keycloak_admin, keycloak_client_id)
 
@@ -230,8 +236,9 @@ def createTestClientForClientCredentialsFlow(
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
-
+    logger.info(
+        "Created credentials flow client [%s] as [%s]", client_id, keycloak_client_id
+    )
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
 
@@ -255,8 +262,9 @@ def createTestClientForBrowserAuthFlow(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
-
+    logger.info(
+        "Created standard flow client [%s] as [%s]", client_id, keycloak_client_id
+    )
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
 
@@ -278,8 +286,7 @@ def createTestClientTDFClient(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
-
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
@@ -309,7 +316,11 @@ def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clien
         )
 
         keycloak_client_id = keycloak_admin.get_client_id(item["clientId"])
-        logger.info("Created client %s", keycloak_client_id)
+        logger.info(
+            "Created preloaded client [%s] as [%s]",
+            item["clientId"],
+            keycloak_client_id,
+        )
 
         addVirtruMappers(keycloak_admin, keycloak_client_id)
 
@@ -335,7 +346,7 @@ def createTestClientTDFAttributes(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created standard client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
@@ -363,7 +374,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created a standard client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
@@ -393,7 +404,7 @@ def createTestClientTDFEntityResolution(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client for ERS [%s] as [%s]", client_id, keycloak_client_id)
 
     realmManagerClient = keycloak_admin.get_client_id("realm-management")
     queryUsers = keycloak_admin.get_client_role(realmManagerClient, "query-users")
@@ -433,7 +444,7 @@ def createTestClientForAbacusWebAuth(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
@@ -457,7 +468,7 @@ def createTestClientForAbacusLocalAuth(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
@@ -486,7 +497,7 @@ def createTestClientForDCRAuth(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
@@ -515,7 +526,7 @@ def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
@@ -847,7 +858,9 @@ def addClientMappers(keycloak_admin, keycloak_client_id, mappers):
                 keycloak_client_id,
                 payload=mapper,
             )
-        except Exception:
+        except KeycloakGetError as e:
+            if e.response_code != 409:
+                raise
             logger.warning(
                 "Could not add client audience mapper to client %s - this likely means it is already there, so we can ignore this.",
                 keycloak_client_id,
@@ -884,12 +897,17 @@ def createClient(keycloak_admin, realm_name, client):
         )
 
         keycloak_client_id = keycloak_admin.get_client_id(client_id)
-        logger.info("Created client %s", keycloak_client_id)
+        logger.info(
+            "Created client [%s] in [%s] as [%s]",
+            client_id,
+            realm_name,
+            keycloak_client_id,
+        )
 
         if "mappers" in client:
             addClientMappers(keycloak_admin, keycloak_client_id, client["mappers"])
 
-    except Exception:
+    except KeycloakGetError:
         logger.error(
             f"Error creating client {client['payload']} in realm {realm_name}",
             exc_info=True,
@@ -906,7 +924,7 @@ def createUser(keycloak_admin, realm_name, user):
 
         if "roles" in user:
             addRolesToUser(keycloak_admin, new_user, user["roles"])
-    except Exception:
+    except KeycloakGetError:
         logger.error(f"Error creating user {user['payload']}", exc_info=True)
 
 
