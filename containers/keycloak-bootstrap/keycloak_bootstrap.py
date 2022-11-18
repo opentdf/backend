@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import yaml
-from keycloak import KeycloakAdmin, KeycloakGetError
+from keycloak import KeycloakAdmin, KeycloakPostError
 
 URL_ADMIN_AUTHENTICATOR_EXECUTION_CONFIG = (
     "admin/realms/{realm-name}/authentication/executions/{flow-id}/config"
@@ -63,7 +63,7 @@ def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
 
             # Add Abacus-related roles to user
             assignViewRolesToUser(keycloak_admin, new_user)
-        except KeycloakGetError:
+        except KeycloakPostError:
             logger.warning(
                 "Could not create passworded user %s!", item["username"], exc_info=True
             )
@@ -76,7 +76,7 @@ def createUsersInRealm(keycloak_admin):
                 {"username": username, "enabled": True}
             )
             logger.info("Created new user %s (%s)", username, new_user)
-        except KeycloakGetError:
+        except KeycloakPostError:
             logger.warning("Could not create user for %s!", username, exc_info=True)
     passwordedUsers = os.getenv(
         "passwordUsers", "testuser@virtru.com,user1,user2"
@@ -99,7 +99,7 @@ def createUsersInRealm(keycloak_admin):
 
             # Add Abacus-related roles to user
             assignViewRolesToUser(keycloak_admin, new_user)
-        except KeycloakGetError:
+        except KeycloakPostError:
             logger.warning(
                 "Could not create passworded user %s!", username, exc_info=True
             )
@@ -121,7 +121,7 @@ def addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, client_aud
                 "protocolMapper": "oidc-audience-mapper",
             },
         )
-    except KeycloakGetError as e:
+    except KeycloakPostError as e:
         if e.response_code != 409:
             raise
         logger.warning(
@@ -155,7 +155,7 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                     "protocolMapper": "tdf-claims-mapper",
                 },
             )
-        except KeycloakGetError as e:
+        except KeycloakPostError as e:
             if e.response_code != 409:
                 raise
             logger.warning(
@@ -858,7 +858,7 @@ def addClientMappers(keycloak_admin, keycloak_client_id, mappers):
                 keycloak_client_id,
                 payload=mapper,
             )
-        except KeycloakGetError as e:
+        except KeycloakPostError as e:
             if e.response_code != 409:
                 raise
             logger.warning(
@@ -907,7 +907,7 @@ def createClient(keycloak_admin, realm_name, client):
         if "mappers" in client:
             addClientMappers(keycloak_admin, keycloak_client_id, client["mappers"])
 
-    except KeycloakGetError:
+    except KeycloakPostError:
         logger.error(
             f"Error creating client {client['payload']} in realm {realm_name}",
             exc_info=True,
@@ -924,7 +924,7 @@ def createUser(keycloak_admin, realm_name, user):
 
         if "roles" in user:
             addRolesToUser(keycloak_admin, new_user, user["roles"])
-    except KeycloakGetError:
+    except KeycloakPostError:
         logger.error(f"Error creating user {user['payload']}", exc_info=True)
 
 

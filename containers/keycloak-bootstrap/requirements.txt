@@ -6,7 +6,7 @@
 #
 
 -i https://pypi.org/simple
-pyjwt==2.4.0
+pyjwt==2.6.0
 python-jose==3.3.0
-python-keycloak==0.27.0
+python-keycloak==2.6.0
 pyyaml==6.0
