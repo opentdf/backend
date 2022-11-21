@@ -2,6 +2,7 @@ package com.virtru.keycloak;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,6 +16,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
 import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.models.*;
@@ -28,6 +30,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.HttpHeaders;
+
 import java.util.Map;
 
 /**
@@ -38,6 +44,8 @@ import java.util.Map;
  * - Configurable properties allow for providing additional header and proprty
  * values to be passed to the attribute provider.
  *
+ * Configurable properties allow for providing additional header and proprty
+ * values to be passed to the attribute provider.
  */
 public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
@@ -122,22 +130,23 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         //
         // We will have to fix `dissems` to properly get rid of this hack.
         token.setSubject(userSession.getUser().getId());
-        logger.info("Custom claims mapper triggered");
+        logger.info("TDF claims mapper triggered");
 
         String clientPK = getClientPublicKey(mappingModel, keycloakSession);
-        JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
         // If no PK in request, don't bother asking for claims - no authorization.
         if (clientPK == null) {
-            logger.info("No public key in auth request, skipping remote auth call and returning empty claims");
+            logger.info(
+                    "No public key in auth request, skipping remote auth call and returning empty claims; simple access/id token");
             return;
         }
-
+        JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
         // If claims are not cached OR this is a userinfo request (which should always
         // refresh claims from remote) then refresh claims.
         if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
             logger.debug("Getting remote authorizations");
             JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
             claims = buildClaimsObject(entitlements, clientPK);
+            // Cache for next callback
             clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
         } else {
             logger.debug("Using cached remote authorizations: [{}]", claims);
@@ -254,24 +263,34 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     private String getClientPublicKey(ProtocolMapperModel mappingModel, KeycloakSession keycloakSession) {
-        String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
+        // First, let's try loading from DPoP header if present:
+        HttpHeaders headers = keycloakSession.getContext().getRequestHeaders();
+        Optional<DPoP.Proof> dpop = DPoPConfirmationMapper.getProofHeader(headers);
         String clientPK = null;
-        if (clientPKHeaderName != null) {
-            List<String> clientPKList = keycloakSession.getContext().getRequestHeaders()
-                    .getRequestHeader(clientPKHeaderName);
-            clientPK = clientPKList == null || clientPKList.isEmpty() ? null : clientPKList.get(0);
+        if (dpop.isPresent()) {
+            clientPK = DPoP.jwkToPem(dpop.get().getHeader().getJwk());
+        }
+        // Now, compare with legacy header
+        String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
+        List<String> clientPKValues = new ArrayList<>(new HashSet<>(headers.getRequestHeader(clientPKHeaderName)));
+        if (!clientPKValues.isEmpty()) {
+            if (clientPKValues.size() > 1) {
+                throw new BadRequestException("Conflicting public key headers; only one supported at the moment");
+            }
+            String legacyPK = clientPKValues.get(0);
+            if (legacyPK.startsWith("LS0")) {
+                byte[] decodedBytes = Base64.getDecoder().decode(legacyPK);
+                legacyPK = new String(decodedBytes);
+            }
+            if (clientPK != null && !clientPK.equals(legacyPK)) {
+                throw new BadRequestException("Conflicting public key and dpop headers");
+            }
+            clientPK = legacyPK;
         }
         if (clientPK != null) {
-            if (clientPK.startsWith("LS0")) {
-                byte[] decodedBytes = Base64.getDecoder().decode(clientPK);
-                clientPK = new String(decodedBytes);
-            }
             logger.debug("Client Cert: [{}]", clientPK);
-        }
-        if (clientPK == null) {
+        } else {
             logger.warn("No client cert presented in request, returning null");
-            // noop - return
-            return null;
         }
 
         return clientPK;

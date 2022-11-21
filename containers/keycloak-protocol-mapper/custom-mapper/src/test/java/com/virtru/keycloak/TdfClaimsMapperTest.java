@@ -218,6 +218,7 @@ public class TdfClaimsMapperTest {
 
         if (pkHeader != null) {
             List<String> pkHeaders = pkHeader == null ? Collections.emptyList() : Collections.singletonList(pkHeader);
+            when(httpHeaders.getRequestHeader("dpop")).thenReturn(Collections.emptyList());
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class)).thenReturn(null);

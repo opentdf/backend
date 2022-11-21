@@ -137,8 +137,10 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
     def strBool(b):
         return "true" if b else "false"
 
-    def addMapper(is_person, extra_params):
-        name = "UserInfo tdf_claims" if is_person else "Access tdf_claims"
+    def addMapper(claim, is_person, extra_params={}):
+        mapper = "virtru-oidc-protocolmapper" if claim == "tdf_claims" else "dpop-cnf-mapper"
+        token_type = "UserInfo" if is_person else "Access"
+        name = f"{token_type} {claim}"
         try:
             keycloak_admin.add_mapper_to_client(
                 keycloak_client_id,
@@ -149,28 +151,40 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                         "id.token.claim": strBool(not is_person),
                         "access.token.claim": strBool(not is_person),
                         "userinfo.token.claim": strBool(is_person),
-                        "claim.name": "tdf_claims",
+                        "claim.name": claim,
                     },
                     "name": name,
-                    "protocolMapper": "virtru-oidc-protocolmapper",
+                    "protocolMapper": mapper,
                 },
             )
         except KeycloakPostError as e:
             if e.response_code != 409:
                 raise
             logger.warning(
-                "Could not add tdf_clams mapper to client [%s] - this likely means it is already there, so we can ignore this.",
+                "Could not add [%s] mapper to client [%s] - this likely means it is already there, so we can ignore this.",
+                name,
                 keycloak_client_id,
                 exc_info=True,
             )
 
     addMapper(
+        "cnf",
+        True,
+    )
+    addMapper(
+        "cnf",
+        False,
+    )
+
+    addMapper(
+        "tdf_claims",
         True,
         {
             "client.publickey": "X-VirtruPubKey",
         },
     )
     addMapper(
+        "tdf_claims",
         False,
         {
             "client.publickey": "X-VirtruPubKey",
