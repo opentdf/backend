@@ -182,14 +182,14 @@ async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
         pprint(vars(keycloak_openid))
         pprint(vars(keycloak_openid.connection))
     try:
-        unverified_decode = decode_token(
+        unverified_decode = keycloak_openid.decode_token(
             token,
             key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
         if not has_aud(unverified_decode, keycloak_openid.client_id):
             raise Exception("Invalid audience")
-        return decode_token(
+        return keycloak_openid.decode_token(
             token,
             key=await get_idp_public_key(try_extract_realm(unverified_decode)),
             options={"verify_signature": True, "verify_aud": False, "exp": True},

@@ -63,9 +63,10 @@ def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
 
             # Add Abacus-related roles to user
             assignViewRolesToUser(keycloak_admin, new_user)
-        except Exception as e:
-            logger.warning("Could not create passworded user %s!", item["username"])
-            logger.warning(str(e))
+        except Exception:
+            logger.warning(
+                "Could not create passworded user %s!", item["username"], exc_info=True
+            )
 
 
 def createUsersInRealm(keycloak_admin):
@@ -75,7 +76,7 @@ def createUsersInRealm(keycloak_admin):
                 {"username": username, "enabled": True}
             )
             logger.info("Created new user %s (%s)", username, new_user)
-        except Exception as e:
+        except Exception:
             logger.warning("Could not create user for %s!", username, exc_info=True)
     passwordedUsers = os.getenv(
         "passwordUsers", "testuser@virtru.com,user1,user2"

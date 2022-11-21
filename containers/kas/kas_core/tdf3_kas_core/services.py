@@ -230,7 +230,7 @@ def _get_tdf_claims(context, key_master):
         decodedJwt = _decode_and_validate_oidc_jwt(context, key_master)
         claims = Claims.load_from_raw_data(decodedJwt)
         return claims
-    except ValueError as e:
+    except (KeyError, ValueError) as e:
         raise UnauthorizedError("Claims absent or invalid") from e
 
 
