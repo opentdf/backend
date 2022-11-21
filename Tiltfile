@@ -11,15 +11,22 @@ host_arg = cfg.get("allow-origin", "http://localhost:3000")
 
 ingress_enable = {
     ("%s.ingress.enabled" % s): "true"
-    for s in ["attributes", "entitlements", "kas", "keycloak"]
+    for s in ["attributes", "entitlements", "kas", "keycloak", "entitlement-store"]
 }
 
 openapi_enable = {
-    ("%s.openapiUrl" % s): "/openapi" for s in ["attributes", "entitlements"]
+    ("%s.openapiUrl" % s): "/openapi"
+    for s in [
+        "attributes",
+        "entitlements",
+        "entitlement-store",
+        "kas/kas_core/tdf3_kas_core/api/",
+    ]
 }
 
 server_root = {
-    ("%s.serverRootPath" % s): ("/api/%s" % s) for s in ["attributes", "entitlements"]
+    ("%s.serverRootPath" % s): ("/api/%s" % s)
+    for s in ["attributes", "entitlements", "entitlement-store"]
 }
 
 cors_origins = {

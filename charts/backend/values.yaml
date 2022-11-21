@@ -83,6 +83,18 @@ entitlement-store:
   fullnameOverride: entitlement-store
   secretRef: |-
     name: "{{ template "entitlement-store.fullname" . }}-otdf-secret"
+  ingress:
+    enabled: false
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    className: nginx
+    hosts:
+      localhost: &pathsEntitlementStore
+        "/api/entitlement-store(/|$)(.*)":
+          pathType: Prefix
+      host.docker.internal: *pathsEntitlementStore
+      opentdf.local: *pathsEntitlementStore
+      '': *pathsEntitlementStore
 entitlements:
   fullnameOverride: entitlements
   secretRef: |-

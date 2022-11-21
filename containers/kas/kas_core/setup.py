@@ -26,6 +26,7 @@ setup(
         "Flask",
         "PyJWT",
         "bitstruct",
+        "connexion[swagger-ui]",
         "connexion",
         "cryptography",
         "grpcio",
