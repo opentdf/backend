@@ -36,7 +36,7 @@ keycloak:
           client.publickey: X-VirtruPubKey
           claim.name: tdf_claims
         name: Virtru OIDC UserInfo Mapper
-        protocolMapper: tdf-claims-mapper
+        protocolMapper: virtru-oidc-protocolmapper
       - protocol: openid-connect
         config:
           id.token.claim: "true"
@@ -47,7 +47,7 @@ keycloak:
           client.publickey: X-VirtruPubKey
           claim.name: tdf_claims
         name: Virtru OIDC Auth Mapper
-        protocolMapper: tdf-claims-mapper
+        protocolMapper: virtru-oidc-protocolmapper
     - payload:
         clientId: test-client-2
         directAccessGrantsEnabled: "true"
@@ -70,7 +70,7 @@ keycloak:
           client.publickey: X-VirtruPubKey
           claim.name: tdf_claims
         name: Virtru OIDC UserInfo Mapper
-        protocolMapper: tdf-claims-mapper
+        protocolMapper: virtru-oidc-protocolmapper
       - protocol: openid-connect
         config:
           id.token.claim: "true"
@@ -81,7 +81,7 @@ keycloak:
           client.publickey: X-VirtruPubKey
           claim.name: tdf_claims
         name: Virtru OIDC Auth Mapper
-        protocolMapper: tdf-claims-mapper 
+        protocolMapper: virtru-oidc-protocolmapper
     users:
     - payload:
         username: user3
