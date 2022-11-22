@@ -150,7 +150,7 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                         "claim.name": "tdf_claims",
                     },
                     "name": name,
-                    "protocolMapper": "tdf-claims-mapper",
+                    "protocolMapper": "virtru-oidc-protocolmapper",
                 },
             )
         except Exception:
