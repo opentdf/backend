@@ -19,7 +19,7 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign sign --key ../../cosign.pub ghcr.io/opentdf/entitlement_store@sha256:574d370b83208d2c189e23d39513cbde22248051c68288446c73708dbf8165f1
+          cosign sign --key ${{ secrets.COSIGN_PRIVATE_KEY }} ghcr.io/opentdf/entitlement_store@sha256:574d370b83208d2c189e23d39513cbde22248051c68288446c73708dbf8165f1
 
   config:
     runs-on: ubuntu-latest
