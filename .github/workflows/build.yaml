@@ -9,6 +9,14 @@ on:
     branches:
       - main
 jobs:
+  cosign-signing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write signing key to disk
+        run: 'echo "$KEY" > cosign.key'
+        shell: bash
+        env:
+          KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
   config:
     runs-on: ubuntu-latest
     outputs:
