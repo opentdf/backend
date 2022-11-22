@@ -18,8 +18,6 @@ jobs:
           cosign-release: 'v1.4.0'
         run: echo ${{ env.REGISTRY }}
       - name: Sign the published Docker image
-          env:
-            COSIGN_EXPERIMENTAL: "true"
           # This step uses the identity token to provision an ephemeral certificate
           # against the sigstore community Fulcio instance.
           run: cosign sign ghcr.io/opentdf/entitlement_store@sha256:574d370b83208d2c189e23d39513cbde22248051c68288446c73708dbf8165f1
