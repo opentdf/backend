@@ -39,7 +39,7 @@ import java.util.Map;
 public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
 
-    public static final String PROVIDER_ID = "tdf-claims-mapper";
+    public static final String PROVIDER_ID = "virtru-oidc-protocolmapper";
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
 
