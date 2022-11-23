@@ -6,10 +6,7 @@ These keys are important, as they are the "keys to the kingdom", so to speak - p
 
 Also, if the keys change, TDF files created with the previous set will no longer be decryptable.
 
-
 Therefore, it is strongly recommended that these keys be generated and managed properly in a production environment.
-
-
 
 1. Install Chart (will generate throwaway non-production KAS keys if none provided at install time, not recommended or supported for production): 
 
