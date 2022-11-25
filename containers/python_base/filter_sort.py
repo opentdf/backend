@@ -4,9 +4,8 @@ import sys
 
 from sqlalchemy import ARRAY, func, Integer
 from sqlalchemy.orm import Session
-
-
 from .access_control import add_filter_by_access_control
+
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
 )
