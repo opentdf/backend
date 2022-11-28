@@ -452,6 +452,7 @@ def createTestClientForAbacusLocalAuth(keycloak_admin):
             "protocol": "openid-connect",
             "redirectUris": ["http://localhost:3000/*"],
             "webOrigins": ["+"],
+            "attributes": {"post.logout.redirect.uris": "+"},
         },
         skip_exists=True,
     )
