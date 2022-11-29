@@ -396,6 +396,7 @@ jobs:
     timeout-minutes: 10
     env:
       BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
+      POLICYTOOL_VERSION: v0.1.42
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
@@ -416,14 +417,14 @@ jobs:
       - name: Build policy bundle
         if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
-          go install github.com/opcr-io/policy/cmd/policy@latest
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policybuild
       - name: Publish policy bundle
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
         run: |
-          go install github.com/opcr-io/policy/cmd/policy@latest
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush

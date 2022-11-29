@@ -152,7 +152,7 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                         "claim.name": "tdf_claims",
                     },
                     "name": name,
-                    "protocolMapper": "tdf-claims-mapper",
+                    "protocolMapper": "virtru-oidc-protocolmapper",
                 },
             )
         except KeycloakPostError as e:
@@ -463,6 +463,7 @@ def createTestClientForAbacusLocalAuth(keycloak_admin):
             "protocol": "openid-connect",
             "redirectUris": ["http://localhost:3000/*"],
             "webOrigins": ["+"],
+            "attributes": {"post.logout.redirect.uris": "+"},
         },
         skip_exists=True,
     )

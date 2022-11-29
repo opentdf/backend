@@ -43,7 +43,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
     private static final Logger logger = LoggerFactory.getLogger(TdfClaimsMapper.class);
 
-    public static final String PROVIDER_ID = "tdf-claims-mapper";
+    public static final String PROVIDER_ID = "virtru-oidc-protocolmapper";
 
     private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
 
