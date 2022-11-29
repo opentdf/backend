@@ -147,7 +147,7 @@ public class TdfClaimsMapperTest {
         ArrayList entitlements = (ArrayList) responseClaimAsMap.get("entitlements");
         Map ent = (Map) entitlements.get(0);
         assertEquals("1234599998888", ent.get("primary_entity_id"));
-        assertEquals(0, ((ArrayList<String>) ent.get("secondary_entity_ids")).size(), "0 entries");
+        assertEquals(0, ((List) ent.get("secondary_entity_ids")).size(), "0 entries");
     }
 
     private void assertTransformUserInfo_WithPKHeader() throws Exception {
@@ -221,15 +221,15 @@ public class TdfClaimsMapperTest {
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class)).thenReturn(null);
-            // when(clientSessionContext.getScopeString()).thenReturn("email");
-            when(clientModel.getId()).thenReturn(clientId);
             AuthenticatedClientSessionModel authenticatedClientSessionModel = new PersistentAuthenticatedClientSessionAdapter(
                     keycloakSession, persistentClientSessionModel, realmModel, clientModel, userSessionModel);
-            Map<String, AuthenticatedClientSessionModel> clients = new HashMap<String, AuthenticatedClientSessionModel>();
-            clients.put("x", authenticatedClientSessionModel);
-            clients.put("y", authenticatedClientSessionModel);
-
-            when(userSessionModel.getAuthenticatedClientSessions()).thenReturn(clients);
+            if (userIsSvcAcct) {
+                when(clientModel.getId()).thenReturn(clientId);
+                Map<String, AuthenticatedClientSessionModel> clients = new HashMap<String, AuthenticatedClientSessionModel>();
+                clients.put("x", authenticatedClientSessionModel);
+                clients.put("y", authenticatedClientSessionModel);
+                when(userSessionModel.getAuthenticatedClientSessions()).thenReturn(clients);
+            }
         }
     }
 
