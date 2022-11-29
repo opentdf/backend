@@ -77,31 +77,3 @@ Create oidc endpoint from a common value
 {{- printf "%s-secrets" ( include "kas.name" . ) }}
 {{- end }}
 {{- end }}
-
-{{- define "kas.secretFromString" -}}
-{{- if and (not .root.Values.externalEnvSecretName) .value }}
-{{- b64enc .value }}
-{{- else }}
-{{- "" }}
-{{- end }}
-{{- end }}
-
-{{- define "kas.ATTR_AUTHORITY_CERTIFICATE" }}
-{{- dict "root" . "value" .Values.envConfig.attrAuthorityCert | include "kas.secretFromString" }}
-{{- end }}
-
-{{- define "kas.KAS_EC_SECP256R1_CERTIFICATE" }}
-{{- dict "root" . "value" .Values.envConfig.ecCert | include "kas.secretFromString" }}
-{{- end }}
-
-{{- define "kas.KAS_CERTIFICATE" }}
-{{- dict "root" . "value" .Values.envConfig.cert | include "kas.secretFromString" }}
-{{- end }}
-
-{{- define "kas.KAS_EC_SECP256R1_PRIVATE_KEY" }}
-{{- dict "root" . "value" .Values.envConfig.ecPrivKey | include "kas.secretFromString" }}
-{{- end }}
-
-{{- define "kas.KAS_PRIVATE_KEY" }}
-{{- dict "root" . "value" .Values.envConfig.privKey | include "kas.secretFromString" }}
-{{- end }}
