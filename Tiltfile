@@ -33,6 +33,10 @@ cors_origins = {
     ("%s.serverCorsOrigins" % s): host_arg for s in ["attributes", "entitlements"]
 }
 
+redirect_uris = {
+    ("%s.opentdf.redirectUris" % s): host_arg for s in ["keycloak-bootstrap"]
+}
+
 
 backend(
     set=dict(
@@ -40,5 +44,6 @@ backend(
         + openapi_enable.items()
         + server_root.items()
         + cors_origins.items()
-    )
+        + redirect_uris.items()
+    ),
 )

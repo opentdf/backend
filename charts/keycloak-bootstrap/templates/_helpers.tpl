@@ -86,6 +86,6 @@ The base URL for clients by default
 Valid redirect URIs
 */}}
 {{- define "bootstrap.opentdf.redirectUris" }}
-{{- $defHost := coalesce .Values.opentdf.externalUrl .Values.externalUrl .Values.global.opentdf.common.oidcExternalBaseUrl }}
+{{- $defHost := coalesce .Values.opentdf.redirectUris }}
 {{- join " " .Values.opentdf.redirectUris | default (printf "%s/*" $defHost) }}
 {{- end }}
