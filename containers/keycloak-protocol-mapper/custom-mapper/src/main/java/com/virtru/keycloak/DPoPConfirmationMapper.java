@@ -31,17 +31,10 @@ import org.keycloak.representations.IDToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.HttpHeaders;
-
-import java.util.Map;
 
 /**
  * Validates the DPoP on an auth request and sets the `cnf` value to the JWK
@@ -50,6 +43,9 @@ import java.util.Map;
 public class DPoPConfirmationMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
     private static final Logger logger = LoggerFactory.getLogger(DPoPConfirmationMapper.class);
+    static {
+        logger.info("Registered DPoPConfirmationMapper");
+    }
 
     public static final String PROVIDER_ID = "dpop-cnf-mapper";
 

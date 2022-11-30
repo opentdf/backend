@@ -2,7 +2,6 @@ package com.virtru.keycloak;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,6 +49,9 @@ import java.util.Map;
 public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
     private static final Logger logger = LoggerFactory.getLogger(TdfClaimsMapper.class);
+    static {
+        logger.info("Registered TdfClaimsMapper");
+    }
 
     public static final String PROVIDER_ID = "virtru-oidc-protocolmapper";
 
