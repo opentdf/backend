@@ -90,6 +90,8 @@ paths:
         data keys as needed to provide access for entities with a TDF that they
         would like to open.
       operationId: tdf3_kas_core.web.rewrap.rewrap
+      security:
+        - dpopHeader: []
       requestBody:
         $ref: "#/components/requestBodies/Rewrap"
       responses:
@@ -132,6 +134,8 @@ paths:
         data keys as needed to provide access for entities with a TDF that they
         would like to open.
       operationId: tdf3_kas_core.web.rewrap.rewrap_v2
+      security:
+        - dpopHeader: []
       requestBody:
         $ref: "#/components/requestBodies/RewrapV2"
       # security:
@@ -175,6 +179,8 @@ paths:
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
       operationId: tdf3_kas_core.web.upsert.upsert
+      security:
+        - dpopHeader: []
       requestBody:
         $ref: "#/components/requestBodies/Upsert"
       responses:
@@ -207,6 +213,8 @@ paths:
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
       operationId: tdf3_kas_core.web.upsert.upsert_v2
+      security:
+        - dpopHeader: []
       requestBody:
         $ref: "#/components/requestBodies/UpsertV2"
       # security:
