@@ -20,12 +20,12 @@ jobs:
       - name: Select keycloak base version
         run: | 
           KEYCLOAK_BASE_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
-          echo "::set-output name=KEYCLOAK_BASE_VERSION::$KEYCLOAK_BASE_VERSION"
+          echo "KEYCLOAK_BASE_VERSION=$KEYCLOAK_BASE_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-base-version
       - name: Set output modified image version
         run: |
           KEYCLOAK_OTDF_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
-          echo "::set-output name=KEYCLOAK_OTDF_VERSION::$KEYCLOAK_OTDF_VERSION"
+          echo "KEYCLOAK_OTDF_VERSION=$KEYCLOAK_OTDF_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-otdf-version
 
   lint:
@@ -112,7 +112,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
@@ -132,7 +132,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v3
-      - uses: yokawasa/action-setup-kube-tools@v0.8.0
+      - uses: yokawasa/action-setup-kube-tools@v0.9.2
         with:
           setup-tools: |
             kubectl
@@ -200,7 +200,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
-      - uses: yokawasa/action-setup-kube-tools@v0.8.0
+      - uses: yokawasa/action-setup-kube-tools@v0.9.2
         with:
           setup-tools: helm
           helm: "3.9.1"
@@ -249,7 +249,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/python-base
           tags: |
@@ -307,7 +307,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
@@ -351,12 +351,12 @@ jobs:
         repo:
           - entitlement-pdp
           - entity-resolution
-    timeout-minutes: 40
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
@@ -396,6 +396,7 @@ jobs:
     timeout-minutes: 10
     env:
       BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
+      POLICYTOOL_VERSION: v0.1.42
     steps:
       - uses: actions/checkout@v3
       - name: Login to GitHub Container Registry
@@ -406,7 +407,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           logout: false
       - name: Setup OPA for running policy tests
-        uses: open-policy-agent/setup-opa@v1
+        uses: open-policy-agent/setup-opa@v2
         with:
           version: latest
       - name: Setup policy OCI bundler tool
@@ -416,14 +417,14 @@ jobs:
       - name: Build policy bundle
         if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
-          go install github.com/opcr-io/policy/cmd/policy@latest
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policybuild
       - name: Publish policy bundle
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
         run: |
-          go install github.com/opcr-io/policy/cmd/policy@latest
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
@@ -447,7 +448,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
@@ -493,7 +494,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/keycloak
           tags: |

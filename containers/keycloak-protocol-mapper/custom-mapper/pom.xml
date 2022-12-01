@@ -10,9 +10,9 @@
     <packaging>jar</packaging>
 
     <properties>
-        <keycloak.version>18.0.2</keycloak.version>
-        <resteasy.version>3.13.2.Final</resteasy.version>
-        <jackson.version>2.12.5</jackson.version>
+        <keycloak.version>19.0.2</keycloak.version>
+        <resteasy.version>4.7.4.Final</resteasy.version>
+        <jackson.version>2.13.3</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>
@@ -46,6 +46,24 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-model-legacy-services</artifactId>
+            <version>${keycloak.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-model-legacy</artifactId>
+            <version>${keycloak.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-model-legacy-private</artifactId>
+            <version>${keycloak.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-jackson2-provider</artifactId>
             <version>${resteasy.version}</version>
@@ -74,19 +92,19 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.7.1</version>
+            <version>5.9.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
-            <version>3.7.7</version>
+            <version>4.9.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>3.7.7</version>
+            <version>4.9.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -97,7 +115,7 @@
         <dependency>
             <groupId>org.apache.maven.surefire</groupId>
             <artifactId>surefire-logger-api</artifactId>
-            <version>3.0.0-M5</version>
+            <version>3.0.0-M7</version>
         </dependency>
     </dependencies>
 
@@ -106,12 +124,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.10.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.4.0</version>
                 <executions>
                     <!-- Run shade goal on package phase -->
                     <execution>
@@ -124,7 +142,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
+                <version>3.0.0-M7</version>
                 <executions>
                     <execution>
                         <id>default-tests</id>
@@ -133,7 +151,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>**/AttributeOIDCProtocolMapperTest.java</include>
+                                <include>com/virtru/keycloak/**/*Test.java</include>
                             </includes>
                             <systemPropertyVariables>
                                 <attributemapperTestMode>config</attributemapperTestMode>
@@ -147,7 +165,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>**/AttributeOIDCProtocolMapperTest.java</include>
+                                <include>com/virtru/keycloak/**/*Test.java</include>
                             </includes>
                             <systemPropertyVariables>
                                 <attributemapperTestMode>env</attributemapperTestMode>

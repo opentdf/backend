@@ -1,7 +1,7 @@
 # OpenAPI Spec https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md
 openapi: 3.0.0
 info:
-  version: 1.1.0
+  version: 1.1.1
   title: Key Access Service
   termsOfService: https://github.com/opentdf/backend/blob/master/LICENSE
   license:
@@ -57,7 +57,6 @@ paths:
   "/kas_public_key":
     get:
       summary: "Get the public key for KAS"
-      deprecated: true
       description: |
         This endpoint provides a public key for the private key that the
         kas has internally. The public key is used to wrap object keys in

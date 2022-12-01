@@ -39,7 +39,10 @@ class UpsertPluginRunnerV2(AbstractPluginRunner):
         for plugin in self._plugins:
             logger.debug("Upserting with Plugin %s", plugin)
             message = plugin.upsert(
-                policy=policy, entity_attr_dict=entity_attr_dict, key_access=key_access, context=context
+                policy=policy,
+                entity_attr_dict=entity_attr_dict,
+                key_access=key_access,
+                context=context,
             )
             logger.debug("Plugin returned %s", message)
             messages.append(message)

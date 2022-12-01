@@ -1,6 +1,4 @@
 -i https://pypi.org/simple
--e git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=accesspdp&subdirectory=clients/python/accesspdp
--e git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=attributes&subdirectory=clients/python/attributes
 attrs==21.4.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 bitstruct==8.14.1
 certifi==2022.5.18.1; python_version >= '3.6'
@@ -21,7 +19,7 @@ jinja2==3.1.2; python_version >= '3.7'
 jsonschema==4.5.1; python_version >= '3.7'
 markupsafe==2.1.1; python_version >= '3.7'
 packaging==21.3; python_version >= '3.6'
-protobuf==4.21.4; python_version >= '3.7'
+protobuf==4.21.6; python_version >= '3.7'
 pycparser==2.21; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pyjwt==2.4.0; python_version >= '3.6'
 pyparsing==3.0.9; python_full_version >= '3.6.8'
@@ -31,7 +29,6 @@ pyyaml==6.0; python_version >= '3.6'
 setuptools==62.3.2; python_version >= '3.7'
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 statsd==3.3.0
-swagger-ui-bundle==0.0.9
 -e ./../kas_core
 urllib3==1.26.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
 werkzeug==2.1.2; python_version >= '3.7'

@@ -30,6 +30,15 @@ flaskDebug: "False"
 # Ignored if autoscaling.enabled == true
 replicaCount: 1
 
+# Base path for this service. Allows serving multiple REST services from the
+# same origin, e.g. using an ingress with prefix mapping as suggested below.
+serverRootPath: /
+
+# Set to enable openapi endpoint
+openapiUrl: ""
+
+SWAGGER_UI: "True"
+
 # Container image configuration.
 image:
   # The image selector, also called the 'image name' in k8s documentation

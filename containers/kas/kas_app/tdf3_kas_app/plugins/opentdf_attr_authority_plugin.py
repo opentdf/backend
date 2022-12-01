@@ -11,13 +11,14 @@ from tdf3_kas_core.errors import (
     Error,
     InvalidAttributeError,
     RequestTimeoutError,
-    BadRequestError
+    BadRequestError,
 )
+
 logger = logging.getLogger(__name__)
 
 
 def _translate_otdf_attrdefs(attrdefs):
-    '''
+    """
     KAS has an (undocumented) format for attribute definitions
     that differs from the one OpenTDF uses by two (2) property names
     so just append those duplicate properties to the dict and
@@ -30,7 +31,7 @@ def _translate_otdf_attrdefs(attrdefs):
 
     Well, that's because the new handler does non-optional pagination and JWT auth,
     and KAS isn't set up to do the former, and doesn't need to do the latter (E-W traffic)
-    '''
+    """
 
     for attr in attrdefs:
         if "authority" in attr:
@@ -41,21 +42,21 @@ def _translate_otdf_attrdefs(attrdefs):
 
 class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
     """Fetch attributes from OpenTDF Attribute authority instance.
-       Note that this plugin is expected to return a list of attributes
-       in the following format:
+    Note that this plugin is expected to return a list of attributes
+    in the following format:
 
 
-        class Attribute:
-            authorityNamespace: AnyUrl
-            name: str
-            order: list
-            rule: RuleEnum
-            state: str (optional)
-            group_by: {"name":xxx, "authority":xxx, "value":xxx} (optional)
+     class Attribute:
+         authorityNamespace: AnyUrl
+         name: str
+         order: list
+         rule: RuleEnum
+         state: str (optional)
+         group_by: {"name":xxx, "authority":xxx, "value":xxx} (optional)
 
-       Somehow this abstraction was missed, and in a statically-type language would be necessarily made
-       explicit by the plugin interface itself so it wouldn't need specifying, but this is Python
-       and DIY typing.
+    Somehow this abstraction was missed, and in a statically-type language would be necessarily made
+    explicit by the plugin interface itself so it wouldn't need specifying, but this is Python
+    and DIY typing.
     """
 
     def __init__(self, attribute_host):
@@ -70,7 +71,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
         client_key_path = os.environ.get("CLIENT_KEY_PATH")
 
         uri = "{0}/v1/attrName".format(self._host)
-        params = {'authority': namespace}
+        params = {"authority": namespace}
 
         try:
             if client_cert_path and client_key_path:
@@ -120,10 +121,15 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
 
     def fetch_attributes(self, namespaces):
         """Fetch attribute definitions from authority for KAS to make rewrap decision."""
-        logger.debug("--- Fetch attributes from OpenTDF Attribute authority [namespaces to fetch = %s] ---", namespaces)
+        logger.debug(
+            "--- Fetch attributes from OpenTDF Attribute authority [namespaces to fetch = %s] ---",
+            namespaces,
+        )
 
         attrs = []
-        namespaces = set([x if "/attr/" not in x else x.split("/attr/")[0] for x in namespaces])
+        namespaces = set(
+            [x if "/attr/" not in x else x.split("/attr/")[0] for x in namespaces]
+        )
         for namespace in namespaces:
             ns_attrdefs = self._fetch_definition_from_authority_by_ns(namespace)
             _translate_otdf_attrdefs(ns_attrdefs)

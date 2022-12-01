@@ -230,7 +230,7 @@ def _get_tdf_claims(context, key_master):
         decodedJwt = _decode_and_validate_oidc_jwt(context, key_master)
         claims = Claims.load_from_raw_data(decodedJwt)
         return claims
-    except ValueError as e:
+    except (KeyError, ValueError) as e:
         raise UnauthorizedError("Claims absent or invalid") from e
 
 
@@ -311,7 +311,7 @@ def rewrap_v2(data, context, plugin_runner, key_master):
         dataJson = json.loads(json_string)
     except ValueError as e:
         raise BadRequestError(f"Error in jwt or content [{e}]") from e
-    except Exception:
+    except Exception as e:
         raise UnauthorizedError("Not authorized") from e
 
     algorithm = dataJson.get("algorithm", None)
@@ -488,7 +488,9 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
 
     if allowed is True:
         logger.debug("========= Rewrap allowed = %s", allowed)
-        logger.debug(f"Claims: {claims.user_id=}, {claims.entity_attributes=} is allowed access to data with policy {policy}")
+        logger.debug(
+            f"Claims: {claims.user_id=}, {claims.entity_attributes=} is allowed access to data with policy {policy}"
+        )
 
         # Re-wrap the kas-wrapped key with the entity's public key.
         if key_access.wrapped_key is not None:

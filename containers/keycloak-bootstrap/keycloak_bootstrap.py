@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import yaml
-from keycloak import KeycloakAdmin
+from keycloak import KeycloakAdmin, KeycloakPostError
 
 URL_ADMIN_AUTHENTICATOR_EXECUTION_CONFIG = (
     "admin/realms/{realm-name}/authentication/executions/{flow-id}/config"
@@ -63,9 +63,10 @@ def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
 
             # Add Abacus-related roles to user
             assignViewRolesToUser(keycloak_admin, new_user)
-        except Exception as e:
-            logger.warning("Could not create passworded user %s!", item["username"])
-            logger.warning(str(e))
+        except KeycloakPostError:
+            logger.warning(
+                "Could not create passworded user %s!", item["username"], exc_info=True
+            )
 
 
 def createUsersInRealm(keycloak_admin):
@@ -75,7 +76,7 @@ def createUsersInRealm(keycloak_admin):
                 {"username": username, "enabled": True}
             )
             logger.info("Created new user %s (%s)", username, new_user)
-        except Exception as e:
+        except KeycloakPostError:
             logger.warning("Could not create user for %s!", username, exc_info=True)
     passwordedUsers = os.getenv(
         "passwordUsers", "testuser@virtru.com,user1,user2"
@@ -98,9 +99,10 @@ def createUsersInRealm(keycloak_admin):
 
             # Add Abacus-related roles to user
             assignViewRolesToUser(keycloak_admin, new_user)
-        except Exception as e:
-            logger.warning("Could not create passworded user %s!", username)
-            logger.warning(str(e))
+        except KeycloakPostError:
+            logger.warning(
+                "Could not create passworded user %s!", username, exc_info=True
+            )
 
 
 def addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, client_audience):
@@ -119,103 +121,65 @@ def addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, client_aud
                 "protocolMapper": "oidc-audience-mapper",
             },
         )
-    except Exception as e:
+    except KeycloakPostError as e:
+        if e.response_code != 409:
+            raise
         logger.warning(
             "Could not add client audience mapper to client %s - this likely means it is already there, so we can ignore this.",
             keycloak_client_id,
+            exc_info=True,
         )
-        logger.warning(
-            "Unfortunately python-keycloak doesn't seem to have a 'remove-mapper' function"
-        )
-        logger.warning(str(e))
 
 
 def addVirtruMappers(keycloak_admin, keycloak_client_id):
     logger.info("Assigning custom mappers to client %s", keycloak_client_id)
-    try:
-        keycloak_admin.add_mapper_to_client(
-            keycloak_client_id,
-            payload={
-                "protocol": "openid-connect",
-                "config": {
-                    "id.token.claim": "false",
-                    "access.token.claim": "false",
-                    "userinfo.token.claim": "true",
-                    "remote.parameters.username": "true",
-                    "remote.parameters.clientid": "true",
-                    "client.publickey": "X-VirtruPubKey",
-                    "claim.name": "tdf_claims",
-                },
-                "name": "Virtru OIDC UserInfo Mapper",
-                "protocolMapper": "virtru-oidc-protocolmapper",
-            },
-        )
-    except Exception as e:
-        logger.warning(
-            "Could not add custom userinfo mapper to client %s - this likely means it is already there, so we can ignore this.",
-            keycloak_client_id,
-        )
-        logger.warning(
-            "Unfortunately python-keycloak doesn't seem to have a 'remove-mapper' function"
-        )
-        logger.warning(str(e))
-    try:
-        keycloak_admin.add_mapper_to_client(
-            keycloak_client_id,
-            payload={
-                "protocol": "openid-connect",
-                "config": {
-                    "id.token.claim": "true",
-                    "access.token.claim": "true",
-                    "userinfo.token.claim": "false",
-                    "remote.parameters.username": "true",
-                    "remote.parameters.clientid": "true",
-                    "client.publickey": "X-VirtruPubKey",
-                    "claim.name": "tdf_claims",
-                },
-                "name": "Virtru OIDC Auth Mapper",
-                "protocolMapper": "virtru-oidc-protocolmapper",
-            },
-        )
-    except Exception as e:
-        logger.warning(
-            "Could not add custom auth mapper to client %s - this likely means it is already there, so we can ignore this.",
-            keycloak_client_id,
-        )
-        logger.warning(
-            "Unfortunately python-keycloak doesn't seem to have a 'remove-mapper' function"
-        )
-        logger.warning(str(e))
 
+    def strBool(b):
+        return "true" if b else "false"
 
-def addVirtruDCRSPIREMapper(keycloak_admin, keycloak_client_id):
-    logger.info("Assigning custom SPIRE mapper to client %s", keycloak_client_id)
-    try:
-        keycloak_admin.add_mapper_to_client(
-            keycloak_client_id,
-            payload={
-                "protocol": "openid-connect",
-                "config": {
-                    "id.token.claim": "true",
-                    "access.token.claim": "true",
-                    "userinfo.token.claim": "true",
-                    "user_workload.namespace": "default",
-                    "user_workload.parentid": "spiffe://example.org/ns/spire/sa/spire-agent",
-                    "user_workload.selectors": "k8s:pod-label:tdfdatacleanroom:enabled, k8s:ns:default",
+    def addMapper(is_person, extra_params):
+        name = "UserInfo tdf_claims" if is_person else "Access tdf_claims"
+        try:
+            keycloak_admin.add_mapper_to_client(
+                keycloak_client_id,
+                payload={
+                    "protocol": "openid-connect",
+                    "config": {
+                        **extra_params,
+                        "id.token.claim": strBool(not is_person),
+                        "access.token.claim": strBool(not is_person),
+                        "userinfo.token.claim": strBool(is_person),
+                        "claim.name": "tdf_claims",
+                    },
+                    "name": name,
+                    "protocolMapper": "virtru-oidc-protocolmapper",
                 },
-                "name": "DCR Spire Registration Mapper",
-                "protocolMapper": "virtru-spire-protocolmapper",
-            },
-        )
-    except Exception as e:
-        logger.warning(
-            "Could not add custom spire mapper to client %s - this likely means it is already there, so we can ignore this.",
-            keycloak_client_id,
-        )
-        logger.warning(
-            "Unfortunately python-keycloak doesn't seem to have a 'remove-mapper' function"
-        )
-        logger.warning(str(e))
+            )
+        except KeycloakPostError as e:
+            if e.response_code != 409:
+                raise
+            logger.warning(
+                "Could not add tdf_clams mapper to client [%s] - this likely means it is already there, so we can ignore this.",
+                keycloak_client_id,
+                exc_info=True,
+            )
+
+    addMapper(
+        True,
+        {
+            "remote.parameters.username": "true",
+            "remote.parameters.clientid": "true",
+            "client.publickey": "X-VirtruPubKey",
+        },
+    )
+    addMapper(
+        False,
+        {
+            "remote.parameters.username": "true",
+            "remote.parameters.clientid": "true",
+            "client.publickey": "X-VirtruPubKey",
+        },
+    )
 
 
 def createTestClientForX509Flow(keycloak_admin):
@@ -242,7 +206,9 @@ def createTestClientForX509Flow(keycloak_admin):
         )
 
         keycloak_client_id = keycloak_admin.get_client_id(client_id)
-        logger.info("Created client %s", keycloak_client_id)
+        logger.info(
+            "Created x509 flow client [%s] as [%s]", client_id, keycloak_client_id
+        )
 
         addVirtruMappers(keycloak_admin, keycloak_client_id)
 
@@ -262,15 +228,17 @@ def createTestClientForClientCredentialsFlow(
             "publicClient": "false",
             "redirectUris": [keycloak_auth_url + "admin/" + client_id + "/console"],
             "attributes": {
-                "user.info.response.signature.alg": "RS256", "pkce.code.challenge.method": "S256"
+                "user.info.response.signature.alg": "RS256",
+                "pkce.code.challenge.method": "S256",
             },  # Needed to make UserInfo return signed JWT
         },
         skip_exists=True,
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
-
+    logger.info(
+        "Created credentials flow client [%s] as [%s]", client_id, keycloak_client_id
+    )
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
 
@@ -294,8 +262,9 @@ def createTestClientForBrowserAuthFlow(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
-
+    logger.info(
+        "Created standard flow client [%s] as [%s]", client_id, keycloak_client_id
+    )
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
 
@@ -317,8 +286,7 @@ def createTestClientTDFClient(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
-
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
@@ -348,7 +316,11 @@ def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clien
         )
 
         keycloak_client_id = keycloak_admin.get_client_id(item["clientId"])
-        logger.info("Created client %s", keycloak_client_id)
+        logger.info(
+            "Created preloaded client [%s] as [%s]",
+            item["clientId"],
+            keycloak_client_id,
+        )
 
         addVirtruMappers(keycloak_admin, keycloak_client_id)
 
@@ -374,7 +346,7 @@ def createTestClientTDFAttributes(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created standard client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
@@ -402,7 +374,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created a standard client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
@@ -432,7 +404,7 @@ def createTestClientTDFEntityResolution(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client for ERS [%s] as [%s]", client_id, keycloak_client_id)
 
     realmManagerClient = keycloak_admin.get_client_id("realm-management")
     queryUsers = keycloak_admin.get_client_role(realmManagerClient, "query-users")
@@ -472,7 +444,7 @@ def createTestClientForAbacusWebAuth(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
@@ -491,12 +463,13 @@ def createTestClientForAbacusLocalAuth(keycloak_admin):
             "protocol": "openid-connect",
             "redirectUris": ["http://localhost:3000/*"],
             "webOrigins": ["+"],
+            "attributes": {"post.logout.redirect.uris": "+"},
         },
         skip_exists=True,
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
@@ -525,13 +498,12 @@ def createTestClientForDCRAuth(keycloak_admin):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
-    addVirtruDCRSPIREMapper(keycloak_admin, keycloak_client_id)
 
 
 def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
@@ -555,7 +527,7 @@ def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
     )
 
     keycloak_client_id = keycloak_admin.get_client_id(client_id)
-    logger.info("Created client %s", keycloak_client_id)
+    logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
 
     addVirtruMappers(keycloak_admin, keycloak_client_id)
 
@@ -887,15 +859,14 @@ def addClientMappers(keycloak_admin, keycloak_client_id, mappers):
                 keycloak_client_id,
                 payload=mapper,
             )
-        except Exception as e:
+        except KeycloakPostError as e:
+            if e.response_code != 409:
+                raise
             logger.warning(
                 "Could not add client audience mapper to client %s - this likely means it is already there, so we can ignore this.",
                 keycloak_client_id,
+                exc_info=True,
             )
-            logger.warning(
-                "Unfortunately python-keycloak doesn't seem to have a 'remove-mapper' function"
-            )
-            logger.warning(str(e))
 
 
 def addRolesToUser(keycloak_admin, user_id, roles):
@@ -927,14 +898,19 @@ def createClient(keycloak_admin, realm_name, client):
         )
 
         keycloak_client_id = keycloak_admin.get_client_id(client_id)
-        logger.info("Created client %s", keycloak_client_id)
+        logger.info(
+            "Created client [%s] in [%s] as [%s]",
+            client_id,
+            realm_name,
+            keycloak_client_id,
+        )
 
         if "mappers" in client:
             addClientMappers(keycloak_admin, keycloak_client_id, client["mappers"])
 
-    except Exception as e:
+    except KeycloakPostError:
         logger.error(
-            f"Error creating client {client['payload']} in realm {realm_name}: {e}",
+            f"Error creating client {client['payload']} in realm {realm_name}",
             exc_info=True,
         )
 
@@ -949,9 +925,8 @@ def createUser(keycloak_admin, realm_name, user):
 
         if "roles" in user:
             addRolesToUser(keycloak_admin, new_user, user["roles"])
-    except Exception as e:
-        logger.error(f"Error creating user {user['payload']}")
-        logger.error(str(e))
+    except KeycloakPostError:
+        logger.error(f"Error creating user {user['payload']}", exc_info=True)
 
 
 def createRealm(keycloak_admin, realm_name, payload):
@@ -1010,7 +985,6 @@ def kc_bootstrap():
     except FileNotFoundError:
         logger.error(
             "Not found: [/etc/virtru-config/config.yaml]; defaulting to sample configuration",
-            exc_info=1,
         )
         bootstrap_config = None
 
@@ -1025,7 +999,7 @@ def kc_bootstrap():
             with open("/etc/virtru-config/clients.yaml") as f:
                 preloaded_clients = yaml.safe_load(f)
         except FileNotFoundError:
-            logger.warning("Not found: /etc/virtru-config/clients.yaml", exc_info=1)
+            logger.warning("Not found: /etc/virtru-config/clients.yaml")
             preloaded_clients = None
 
         # Contains a list of usernames and passwords we want to preload
@@ -1033,7 +1007,7 @@ def kc_bootstrap():
             with open("/etc/virtru-config/users.yaml") as f:
                 preloaded_users = yaml.safe_load(f)
         except FileNotFoundError:
-            logger.warning("Not found: /etc/virtru-config/users.yaml", exc_info=1)
+            logger.warning("Not found: /etc/virtru-config/users.yaml")
             preloaded_users = None
 
         updateMasterRealm(username, password, keycloak_auth_url)
