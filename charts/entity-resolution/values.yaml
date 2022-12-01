@@ -9,6 +9,7 @@ global:
   opentdf:
     common:
       oidcInternalBaseUrl: "http://keycloak-http"
+      oidcUrlPath: "auth"
       # JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 

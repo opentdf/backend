@@ -30,11 +30,16 @@ Create chart name and version as used by the chart label.
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/*
-Create OIDC Internal Url from a common value   
+Create OIDC Internal Url from a common value
 */}}
 {{- define "entity-resolution.keycloakUrl" }}
-{{- coalesce .Values.config.keycloak.url .Values.global.opentdf.common.oidcInternalBaseUrl }}
+{{- if .Values.config.keycloak.url }}
+{{- .Values.config.keycloak.url }}
+{{- else if .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
+{{- else }}
+{{- .Values.global.opentdf.common.oidcInternalBaseUrl }}
+{{- end }}
 {{- end }}
 
 
