@@ -503,6 +503,10 @@ jobs:
             type-raw,value=${{ needs.config.outputs.KEYCLOAK_OTDF_VERSION }}
       - name: Set up QEMU (required for crossbuild)
         uses: docker/setup-qemu-action@v2
+      - name: Install cosign
+        uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
+        with:
+          cosign-release: 'v1.11.1'
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Login to GitHub Container Registry
