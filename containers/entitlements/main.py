@@ -439,14 +439,14 @@ async def read_entitlements(
     sort_args = sort.split(",") if sort else []
 
     results = await read_entitlements_crud(
-        request, EntityAttributeSchema, db, filter_args, sort_args
+        request, metadata, db, filter_args, sort_args
     )
 
     return pager.paginate(results)
 
 
-async def read_entitlements_crud(request, schema, db, filter_args, sort_args):
-    results = get_query(request, schema, db, filter_args, sort_args)
+async def read_entitlements_crud(request, metadata, db, filter_args, sort_args):
+    results = get_query(request, metadata, db, filter_args, sort_args)
     # logger.debug(query)
     # results = query.all()
     # query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)

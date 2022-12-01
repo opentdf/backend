@@ -37,7 +37,7 @@ from keycloak import KeycloakOpenID
 from pydantic import AnyUrl, BaseSettings, Field, Json, ValidationError
 from pydantic.main import BaseModel
 from python_base import Pagination, get_query
-from sqlalchemy import and_, inspect
+from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 logging.basicConfig(
@@ -245,9 +245,6 @@ table_attribute = sqlalchemy.Table(
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
 dbase = sessionmaker(bind=engine)
-inspector = inspect(engine)
-
-# Get names of tables in database
 
 
 
@@ -454,13 +451,13 @@ async def read_attributes(
         filter_args["values_array"] = order
 
     sort_args = sort.split(",") if sort else []
-    results = await read_attributes_crud(request, AttributeSchema, AuthoritySchema, db, filter_args, sort_args)
+    results = await read_attributes_crud(request, metadata, db, filter_args, sort_args)
 
     return pager.paginate(results)
 
 
-async def read_attributes_crud(request, schema, authority_schema, db, filter_args, sort_args):
-    results = get_query(request, schema, authority_schema, db, filter_args, sort_args)
+async def read_attributes_crud(request, metadata, db, filter_args, sort_args):
+    results = get_query(request, metadata, db, filter_args, sort_args)
     error = None
     authorities = await read_authorities_crud()
     attributes: List[AnyUrl] = []
@@ -552,8 +549,6 @@ async def read_attributes_definitions(
     db: Session = Depends(get_db),
     pager: Pagination = Depends(Pagination),
 ):
-    logger.info("INSPECT!!!")
-    logger.info(inspector.get_schema_names())
     filter_args = {}
     if authority:
         # lookup authority by value and get id (namespace_id)
@@ -575,7 +570,7 @@ async def read_attributes_definitions(
 
     sort_args = sort.split(",") if sort else []
 
-    results = get_query(request, AttributeSchema, AuthoritySchema, db, filter_args, sort_args)
+    results = get_query(request, metadata, db, filter_args, sort_args)
 
     authorities = await read_authorities_crud()
     attributes: List[AttributeDefinition] = []
