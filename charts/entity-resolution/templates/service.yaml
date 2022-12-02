@@ -12,3 +12,4 @@ spec:
     targetPort: {{ .Values.config.listenPort }}
   selector:
     app: {{ .Chart.Name | quote }}
+    {{- include "entity-resolution.selectorLabels" . | nindent 4 }}
