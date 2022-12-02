@@ -35,18 +35,11 @@ from python_base import Pagination, get_query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
-AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
+from .plugins import run_plugins
+
 logging.basicConfig(stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL"))
-logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
 
-def audit(self, message, *args, **kws):
-    if self.isEnabledFor(AUDIT_LEVEL_NUM) and AUDIT_ENABLED:
-        self._log(AUDIT_LEVEL_NUM, message, args, **kws)
-
-logging.Logger.audit = audit
 logger = logging.getLogger(__package__)
-
 
 swagger_ui_init_oauth = {
     "usePkceWithAuthorizationCodeGrant": True,
@@ -581,6 +574,7 @@ async def add_entitlements_to_entity(
     ),
     auth_token=Depends(get_auth),
 ):
+    run_plugins(sys._getframe().f_code.co_name, request, entityId, auth_token)
     return await add_entitlements_to_entity_crud(entityId, request)
 
 

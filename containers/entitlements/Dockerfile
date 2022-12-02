@@ -63,7 +63,6 @@ ENV OIDC_TOKEN_URL ""
 # Disable OpenAPI
 ENV OPENAPI_URL ""
 
-
 ENTRYPOINT python3 -m uvicorn \
     --host 0.0.0.0 \
     --port ${SERVER_PORT} \

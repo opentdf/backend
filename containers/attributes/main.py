@@ -3,9 +3,6 @@ import logging
 import os
 import sys
 import requests
-import uuid
-import json
-import datetime
 from enum import Enum
 from http.client import (
     NO_CONTENT,
@@ -43,18 +40,12 @@ from python_base import Pagination, get_query
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
-AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
+from .plugins import run_plugins
+
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
 )
-logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
 
-def audit(self, message, *args, **kws):
-    if self.isEnabledFor(AUDIT_LEVEL_NUM) and AUDIT_ENABLED:
-        self._log(AUDIT_LEVEL_NUM, message, args, **kws)
-
-logging.Logger.audit = audit
 logger = logging.getLogger(__package__)
 
 swagger_ui_init_oauth = {
@@ -693,18 +684,7 @@ async def create_attributes_definitions(
     ), 
     decoded_token: dict = Depends(get_auth)
 ):
-    audit_log = {
-                "id": str(uuid.uuid4()), 
-                "transaction_timestamp": str(datetime.datetime.now()), 
-                "tdf_id": None,
-                "tdf_name": None,
-                "owner_id": decoded_token["azp"], #this will be the clientid or user
-                "owner_org_id": decoded_token["iss"], # who created the token: http://localhost:65432/auth/realms/tdf
-                "transaction_type": "create", 
-                "action_type": "access_modified",
-                "tdf_attributes": request
-                }
-    logger.audit(json.dumps(audit_log))
+    run_plugins(sys._getframe().f_code.co_name, request, decoded_token)
     return await create_attributes_definitions_crud(request)
 
 
