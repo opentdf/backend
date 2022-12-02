@@ -72,6 +72,10 @@ class PolicyError(Error):
     """Raise if a policy is malformed."""
 
 
+class PreconditionError(Error):
+    """Raise if the private key for unwrapping the wrapped key is not ok."""
+
+
 class PrivateKeyInvalidError(Error):
     """Raise if the private key for unwrapping the wrapped key is not ok."""
 

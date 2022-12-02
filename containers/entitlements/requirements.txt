@@ -5,5 +5,5 @@ greenlet==1.1.2; python_version >= '3' and platform_machine == 'aarch64' or (pla
 httptools==0.4.0
 idna==3.3; python_version >= '3.5'
 sniffio==1.2.0; python_version >= '3.5'
-python-keycloak==0.27.0
+python-keycloak==2.6.0
 uritools==4.0.0

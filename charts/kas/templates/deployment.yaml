@@ -35,11 +35,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             - secretRef:
-                name: {{ include "kas.secretName" . }} 
-            {{- if .Values.extraEnvSecretName }}
-            - secretRef:
-                name: {{ .Values.extraEnvSecretName }} 
-            {{- end }}
+                name: {{ include "kas.secretName" . }}
             - configMapRef:
                 name: {{ include "kas.name" . }}-cm
           ports:

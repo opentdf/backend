@@ -81,7 +81,7 @@ keycloak:
           client.publickey: X-VirtruPubKey
           claim.name: tdf_claims
         name: Virtru OIDC Auth Mapper
-        protocolMapper: virtru-oidc-protocolmapper 
+        protocolMapper: virtru-oidc-protocolmapper
     users:
     - payload:
         username: user3
