@@ -67,6 +67,7 @@ attributes:
       host.docker.internal: *pathsAttributes
       opentdf.local: *pathsAttributes
       '': *pathsAttributes
+  logLevel: DEBUG
 entitlement-pdp:
   fullnameOverride: entitlement-pdp
   opaConfig:
