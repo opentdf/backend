@@ -27,10 +27,6 @@ jobs:
           KEYCLOAK_OTDF_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
           echo "KEYCLOAK_OTDF_VERSION=$KEYCLOAK_OTDF_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-otdf-version
-      - name: Install cosign
-        uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
-        with:
-          cosign-release: 'v1.11.1'
 
   lint:
     runs-on: ubuntu-latest
@@ -126,6 +122,19 @@ jobs:
       - name: Test
         run: |
           python -m pytest containers/${{ matrix.repo }}/tests
+      - name: Install cosign
+        uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
+        with:
+          cosign-release: 'v1.11.1'
+      - name: Download cosign key
+        run: echo "$COSIGN_KEY" > cosign.key && cat cosign.key | wc -c
+        shell: bash
+        env:
+          COSIGN_KEY: "${{secrets.COSIGN_KEY}}"
+      - name: Sign the published Docker image
+          env:
+            COSIGN_EXPERIMENTAL: "true"
+          run: cosign signghcr.io/opentdf/${{ matrix.repo }}@${{ steps.build-and-push.outputs.digest }}
 
   integration-test:
     runs-on: ubuntu-latest
