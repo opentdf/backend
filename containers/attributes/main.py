@@ -50,7 +50,6 @@ from .plugins import (
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
 )
-
 logger = logging.getLogger(__package__)
 
 swagger_ui_init_oauth = {
