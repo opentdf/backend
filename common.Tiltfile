@@ -63,10 +63,9 @@ def dict_to_helm_set_list(dict):
     return prefix_list("--set", combined)
 
 
-# values: list of values files
-# set: dictionary of value_name: value pairs
-# extra_helm_parameters: only valid when devmode=False; passed to underlying `helm update` command
-def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
+def build_images(build=True):
+    if not build:
+        return []
 
     #   o8o
     #   `"'
@@ -77,92 +76,158 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
     #  o888o o888o o888o o888o `Y888""8o `8oooooo.  `Y8bod8P' 8""888P'
     #                                    d"     YD
     #                                    "Y88888P'
-    #
 
-    docker_build(
-        CONTAINER_REGISTRY + "/opentdf/python-base",
-        context=BACKEND_DIR + "/containers/python_base",
-        build_args={
-            "ALPINE_VERSION": ALPINE_VERSION,
-            "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-            "PY_VERSION": PY_VERSION,
-        },
-    )
+    # All images that may be used directly by backend
+    IMAGES_TO_KEYS = {
+        "attributes": ("attributes.image.repo", "attributes.image.tag"),
+        "entitlements": ("entitlements.image.repo", "entitlements.image.tag"),
+        "entitlement_store": (
+            "entitlement_store.image.repo",
+            "entitlement_store.image.tag",
+        ),
+        "entitlement-pdp": ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
+        "entity-resolution": (
+            "entity-resolution.image.repo",
+            "entity-resolution.image.tag",
+        ),
+        "kas": ("kas.image.repo", "kas.image.tag"),
+        "keycloak": ("keycloak.image.repository", "keycloak.image.tag"),
+        "keycloak-bootstrap": (
+            "keycloak-bootstrap.image.repo",
+            "keycloak-bootstrap.image.tag",
+        ),
+    }
 
-    docker_build(
-        CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-        BACKEND_DIR + "/containers/keycloak-bootstrap",
-        build_args={
-            "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-        },
-    )
+    # List of images that require python_base
+    REQUIRE_PYTHON_BASE = [
+        "attributes",
+        "entitlements",
+        "entitlement-pdp",
+        "migration",
+        "storage",
+    ]
 
-    docker_build(
-        CONTAINER_REGISTRY + "/opentdf/keycloak",
-        context=BACKEND_DIR + "/containers/keycloak-protocol-mapper",
-        build_args={
-            "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-            "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
-            "MAVEN_VERSION": "3.8.4",
-            "JDK_VERSION": "11",
-        },
-    )
+    to_build = []
+    if build == True:
+        to_build += IMAGES_TO_KEYS.keys()
+    else:
+        extra = [x for x in build if x not in IMAGES_TO_KEYS]
+        if extra:
+            fail("Unknown images: " + extra)
+        to_build = build
+        missing = [k for k in IMAGES_TO_KEYS.keys() if k not in build]
+        for k in missing:
+            IMAGES_TO_KEYS.pop(k, None)
 
-    docker_build(
-        CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-        context=BACKEND_DIR + "/containers/entitlement-pdp",
-    )
-
-    docker_build(
-        CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-        context=BACKEND_DIR + "/containers/entity-resolution",
-    )
-
-    docker_build(
-        CONTAINER_REGISTRY + "/opentdf/kas",
-        build_args={
-            "ALPINE_VERSION": ALPINE_VERSION,
-            "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
-            "PY_VERSION": PY_VERSION,
-            "PYTHON_BASE_IMAGE_SELECTOR": "",
-        },
-        context=BACKEND_DIR + "/containers/kas",
-        live_update=[
-            sync(BACKEND_DIR + "/containers/kas", "/app"),
-            run(
-                "cd /app && pip install -r requirements.txt",
-                trigger=BACKEND_DIR + "/containers/kas/requirements.txt",
-            ),
-        ],
-    )
-
-    for microservice in ["attributes", "entitlements", "entitlement_store"]:
-        image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
+    if any([x for x in to_build if x in REQUIRE_PYTHON_BASE]):
         docker_build(
-            image_name,
+            CONTAINER_REGISTRY + "/opentdf/python-base",
+            context=BACKEND_DIR + "/containers/python_base",
+            build_args={
+                "ALPINE_VERSION": ALPINE_VERSION,
+                "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
+                "PY_VERSION": PY_VERSION,
+            },
+        )
+
+    if "keycloak-bootstrap" in to_build:
+        docker_build(
+            CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
+            BACKEND_DIR + "/containers/keycloak-bootstrap",
+            build_args={
+                "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
+            },
+        )
+
+    if "keycloak" in to_build:
+        docker_build(
+            CONTAINER_REGISTRY + "/opentdf/keycloak",
+            context=BACKEND_DIR + "/containers/keycloak-protocol-mapper",
+            build_args={
+                "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
+                "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
+                "MAVEN_VERSION": "3.8.4",
+                "JDK_VERSION": "11",
+            },
+        )
+
+    if "entitlement-pdp" in to_build:
+        docker_build(
+            CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
+            context=BACKEND_DIR + "/containers/entitlement-pdp",
+        )
+
+    if "entity-resolution" in to_build:
+        docker_build(
+            CONTAINER_REGISTRY + "/opentdf/entity-resolution",
+            context=BACKEND_DIR + "/containers/entity-resolution",
+        )
+
+    if "kas" in to_build:
+        docker_build(
+            CONTAINER_REGISTRY + "/opentdf/kas",
             build_args={
                 "ALPINE_VERSION": ALPINE_VERSION,
                 "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
                 "PY_VERSION": PY_VERSION,
                 "PYTHON_BASE_IMAGE_SELECTOR": "",
             },
-            container_args=["--reload"],
-            context=BACKEND_DIR + "/containers",
-            dockerfile=BACKEND_DIR + "/containers/" + microservice + "/Dockerfile",
+            context=BACKEND_DIR + "/containers/kas",
             live_update=[
-                sync(BACKEND_DIR + "/containers/python_base", "/app/python_base"),
-                sync(
-                    BACKEND_DIR + "/containers/" + microservice, "/app/" + microservice
-                ),
+                sync(BACKEND_DIR + "/containers/kas", "/app"),
                 run(
-                    "cd /app/ && pip install -r requirements.txt",
-                    trigger=BACKEND_DIR
-                    + "/containers/"
-                    + microservice
-                    + "/requirements.txt",
+                    "cd /app && pip install -r requirements.txt",
+                    trigger=BACKEND_DIR + "/containers/kas/requirements.txt",
                 ),
             ],
         )
+
+    for microservice in ["attributes", "entitlements", "entitlement_store"]:
+        if microservice in to_build:
+            image_name = CONTAINER_REGISTRY + "/opentdf/" + microservice
+            docker_build(
+                image_name,
+                build_args={
+                    "ALPINE_VERSION": ALPINE_VERSION,
+                    "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
+                    "PY_VERSION": PY_VERSION,
+                    "PYTHON_BASE_IMAGE_SELECTOR": "",
+                },
+                container_args=["--reload"],
+                context=BACKEND_DIR + "/containers",
+                dockerfile=BACKEND_DIR + "/containers/" + microservice + "/Dockerfile",
+                live_update=[
+                    sync(BACKEND_DIR + "/containers/python_base", "/app/python_base"),
+                    sync(
+                        BACKEND_DIR + "/containers/" + microservice,
+                        "/app/" + microservice,
+                    ),
+                    run(
+                        "cd /app/ && pip install -r requirements.txt",
+                        trigger=BACKEND_DIR
+                        + "/containers/"
+                        + microservice
+                        + "/requirements.txt",
+                    ),
+                ],
+            )
+    return IMAGES_TO_KEYS
+
+
+# Brings up a local version of the `backend` chart and its services
+# values: list of values files
+# set: dictionary of value_name: value pairs
+# extra_helm_parameters: only valid when devmode=False; passed to underlying `helm update` command
+# devmode: Select between Tilt builtin helm (true) or using the helm cli tool (False) to install the charts
+#          Using the helm builtin gets better tilt integration and improves performance when developing locally.
+#          However, it less reliably emulates helm. See the discussion here: https://docs.tilt.dev/helm.html
+#          NOTE: you must run `helm dep update` *before* starting tilt with devmode=True
+# build: Enable or disable building individual container images as part of the development process.
+#        Defaults to True, to enable all images.
+#        False: Disable building (use `main` or `latest` images)
+#        string[]: Services by name to build
+def backend(values=[], set={}, extra_helm_parameters=[], devmode=False, build=True):
+    IMAGES_TO_KEYS = build_images(build)
     #     o8o
     #     `"'
     #    oooo  ooo. .oo.    .oooooooo oooo d8b  .ooooo.   .oooo.o  .oooo.o
@@ -242,29 +307,15 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
         # Hopefully, either tilt or the helm_resource extension will be improved
         # to avoid this change (or maybe everything will just get faster)
         update_settings(k8s_upsert_timeout_secs=1200)
+        image_deps = [
+            CONTAINER_REGISTRY + "/opentdf/" + i for i in IMAGES_TO_KEYS.keys()
+        ]
+        image_keys = IMAGES_TO_KEYS.values()
         helm_resource(
             name="backend",
             chart=BACKEND_DIR + "/charts/backend",
-            image_deps=[
-                CONTAINER_REGISTRY + "/opentdf/keycloak-bootstrap",
-                CONTAINER_REGISTRY + "/opentdf/keycloak",
-                CONTAINER_REGISTRY + "/opentdf/attributes",
-                CONTAINER_REGISTRY + "/opentdf/entitlements",
-                CONTAINER_REGISTRY + "/opentdf/entitlement_store",
-                CONTAINER_REGISTRY + "/opentdf/entitlement-pdp",
-                CONTAINER_REGISTRY + "/opentdf/entity-resolution",
-                CONTAINER_REGISTRY + "/opentdf/kas",
-            ],
-            image_keys=[
-                ("keycloak-bootstrap.image.repo", "keycloak-bootstrap.image.tag"),
-                ("keycloak.image.repository", "keycloak.image.tag"),
-                ("attributes.image.repo", "attributes.image.tag"),
-                ("entitlements.image.repo", "entitlements.image.tag"),
-                ("entitlement_store.image.repo", "entitlement_store.image.tag"),
-                ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
-                ("entity-resolution.image.repo", "entity-resolution.image.tag"),
-                ("kas.image.repo", "kas.image.tag"),
-            ],
+            image_deps=image_deps,
+            image_keys=image_keys,
             flags=[
                 "--wait",
                 "--dependency-update",
