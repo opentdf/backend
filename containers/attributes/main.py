@@ -553,6 +553,7 @@ async def read_attributes_definitions(
     db: Session = Depends(get_db),
     pager: Pagination = Depends(Pagination),
 ):
+    logger.debug("read_attributes_definitions %s", request.url)
     filter_args = {}
     if authority:
         # lookup authority by value and get id (namespace_id)
@@ -626,7 +627,7 @@ async def read_attributes_definitions(
             attributes.append(attr_def)
         except ValidationError as e:
             logger.error(e)
-
+    logger.debug("attribute definitions %s", attributes)
     # As mentioned, `v1/attrName` and `/definitions/attributes` are the same, just
     # the latter has pagination and JWT auth, and the former does not.
     # JWT auth is something that can be included or excluded in the route decorator,
