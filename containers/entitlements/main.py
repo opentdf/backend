@@ -35,7 +35,12 @@ from python_base import Pagination, get_query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-from .plugins import run_plugins
+from .plugins import (
+    run_pre_command_hooks, 
+    run_post_command_hooks, 
+    run_err_hooks,
+    HttpMethod,
+)
 
 logging.basicConfig(stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL"))
 
@@ -574,26 +579,36 @@ async def add_entitlements_to_entity(
     ),
     auth_token=Depends(get_auth),
 ):
-    run_plugins(sys._getframe().f_code.co_name, request, entityId, auth_token)
-    return await add_entitlements_to_entity_crud(entityId, request)
+    run_pre_command_hooks(HttpMethod.POST,
+                sys._getframe().f_code.co_name, request, auth_token, entityId)
+    return await add_entitlements_to_entity_crud(entityId, request, auth_token)
 
 
-async def add_entitlements_to_entity_crud(entityId, request):
-    rows = []
-    for attribute_uri in request:
-        attribute = parse_attribute_uri(attribute_uri)
-        if attribute:
-            rows.append(
-                {
-                    "entity_id": entityId,
-                    "namespace": attribute["namespace"],
-                    "name": attribute["name"],
-                    "value": attribute["value"],
-                }
-            )
-    query = table_entity_attribute.insert(rows)
-    await database.execute(query)
-    return request
+async def add_entitlements_to_entity_crud(entityId, request, auth_token=None):
+    try:
+        rows = []
+        for attribute_uri in request:
+            attribute = parse_attribute_uri(attribute_uri)
+            if attribute:
+                rows.append(
+                    {
+                        "entity_id": entityId,
+                        "namespace": attribute["namespace"],
+                        "name": attribute["name"],
+                        "value": attribute["value"],
+                    }
+                )
+        query = table_entity_attribute.insert(rows)
+        await database.execute(query)
+        run_post_command_hooks(HttpMethod.POST,
+                sys._getframe().f_code.co_name, request, auth_token, entityId)
+        return request
+    
+    except Exception as e:
+        run_err_hooks(HttpMethod.POST,
+                sys._getframe().f_code.co_name, request, auth_token, entityId)
+        raise e
+
 
 
 @app.get(
@@ -632,20 +647,30 @@ async def get_attribute_entity_relationship(
 async def create_attribute_entity_relationship(
     attributeURI: HttpUrl, request: List[str], auth_token=Depends(get_auth)
 ):
-    attribute = parse_attribute_uri(attributeURI)
-    rows = []
-    for entity_id in request:
-        rows.append(
-            {
-                "entity_id": entity_id,
-                "namespace": attribute["namespace"],
-                "name": attribute["name"],
-                "value": attribute["value"],
-            }
-        )
-    query = table_entity_attribute.insert(rows)
-    await database.execute(query)
-    return request
+    run_pre_command_hooks(HttpMethod.PUT,
+                sys._getframe().f_code.co_name, request, auth_token)
+    try:
+        attribute = parse_attribute_uri(attributeURI)
+        rows = []
+        for entity_id in request:
+            rows.append(
+                {
+                    "entity_id": entity_id,
+                    "namespace": attribute["namespace"],
+                    "name": attribute["name"],
+                    "value": attribute["value"],
+                }
+            )
+        query = table_entity_attribute.insert(rows)
+        await database.execute(query)
+        run_post_command_hooks(HttpMethod.PUT,
+                sys._getframe().f_code.co_name, request, auth_token)
+        return request
+
+    except Exception as e:
+        run_err_hooks(HttpMethod.PUT,
+                sys._getframe().f_code.co_name, request, auth_token)
+        raise e
 
 
 @app.delete(
@@ -677,34 +702,43 @@ async def remove_entitlement_from_entity(
     auth_token=Depends(get_auth),
 ):
 
-    return await remove_entitlement_from_entity_crud(entityId, request)
+    run_pre_command_hooks(HttpMethod.DELETE,
+                sys._getframe().f_code.co_name, request, auth_token, entityId)
+    return await remove_entitlement_from_entity_crud(entityId, request, auth_token)
 
 
-async def remove_entitlement_from_entity_crud(entityId, request):
-    attribute_conjunctions = []
+async def remove_entitlement_from_entity_crud(entityId, request, auth_token=None):
     try:
-        for item in request:
-            attribute = parse_attribute_uri(item)
-            attribute_conjunctions.append(
+        attribute_conjunctions = []
+        try:
+            for item in request:
+                attribute = parse_attribute_uri(item)
+                attribute_conjunctions.append(
+                    and_(
+                        table_entity_attribute.c.namespace == attribute["namespace"],
+                        table_entity_attribute.c.name == attribute["name"],
+                        table_entity_attribute.c.value == attribute["value"],
+                    )
+                )
+
+        except IndexError as e:
+            raise HTTPException(status_code=BAD_REQUEST, detail=f"invalid: {str(e)}") from e
+
+        await database.execute(
+            table_entity_attribute.delete().where(
                 and_(
-                    table_entity_attribute.c.namespace == attribute["namespace"],
-                    table_entity_attribute.c.name == attribute["name"],
-                    table_entity_attribute.c.value == attribute["value"],
+                    table_entity_attribute.c.entity_id == entityId,
+                    or_(*attribute_conjunctions),
                 )
             )
-
-    except IndexError as e:
-        raise HTTPException(status_code=BAD_REQUEST, detail=f"invalid: {str(e)}") from e
-
-    await database.execute(
-        table_entity_attribute.delete().where(
-            and_(
-                table_entity_attribute.c.entity_id == entityId,
-                or_(*attribute_conjunctions),
-            )
         )
-    )
-    return {}
+        run_post_command_hooks(HttpMethod.DELETE,
+                sys._getframe().f_code.co_name, request, auth_token, entityId)
+        return {}
+    except Exception as e:
+        run_err_hooks(HttpMethod.DELETE,
+                sys._getframe().f_code.co_name, request, auth_token, entityId)
+        raise e
 
 
 if __name__ == "__main__":

@@ -40,7 +40,12 @@ from python_base import Pagination, get_query
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-from .plugins import run_plugins
+from .plugins import (
+    run_pre_command_hooks, 
+    run_post_command_hooks, 
+    run_err_hooks,
+    HttpMethod,
+)
 
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
@@ -682,75 +687,84 @@ async def create_attributes_definitions(
             },
         },
     ), 
-    decoded_token: dict = Depends(get_auth)
+    decoded_token=Depends(get_auth),
 ):
-    run_plugins(sys._getframe().f_code.co_name, request, decoded_token)
-    return await create_attributes_definitions_crud(request)
+    run_pre_command_hooks(HttpMethod.POST,
+             sys._getframe().f_code.co_name, request, decoded_token)
+    return await create_attributes_definitions_crud(request, decoded_token)
 
 
-async def create_attributes_definitions_crud(request):
+async def create_attributes_definitions_crud(request, decoded_token=None):
     # lookup
-    query = table_authority.select().where(table_authority.c.name == request.authority)
-    ns_result = await database.fetch_one(query)
-    if not ns_result:
-        raise HTTPException(status_code=BAD_REQUEST, detail=f"namespace not found")
-    namespace_id = ns_result.get(table_authority.c.id)
-
-    group_attr_id = None
-    if request.group_by:
-        # Groupby
-        group_authority_query = table_authority.select().where(
-            table_authority.c.name == request.group_by.authority
-        )
-        group_authority = await database.fetch_one(group_authority_query)
-        if not group_authority:
-            raise HTTPException(
-                status_code=BAD_REQUEST,
-                detail="Group-by attribute authority does not exist",
-            )
-
-        attr_def_q = table_attribute.select().where(
-            and_(
-                table_attribute.c.namespace_id == group_authority.id,
-                table_attribute.c.name == request.group_by.name,
-            )
-        )
-
-        group_attr = await database.fetch_one(attr_def_q)
-
-        if request.group_by.value not in group_attr.values_array:
-            raise HTTPException(
-                status_code=BAD_REQUEST,
-                detail="Specified an invalid value for group-by attribute",
-            )
-
-        group_attr_id = group_attr.id
-
-    if request.rule == RuleEnum.hierarchy:
-        is_duplicated = check_duplicates(request.order)
-        if is_duplicated:
-            raise HTTPException(
-                status_code=BAD_REQUEST,
-                detail="Duplicated items when Rule is Hierarchy",
-            )
-
-    # insert
-    query = table_attribute.insert().values(
-        name=request.name,
-        namespace_id=namespace_id,
-        values_array=request.order,
-        state=request.state,
-        rule=request.rule,
-        group_by_attr=group_attr_id,
-        group_by_attrval=(request.group_by.value if group_attr_id else None),
-    )
     try:
-        await database.execute(query)
-    except UniqueViolationError as e:
-        raise HTTPException(
-            status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
-        ) from e
-    return request
+        query = table_authority.select().where(table_authority.c.name == request.authority)
+        ns_result = await database.fetch_one(query)
+        if not ns_result:
+            raise HTTPException(status_code=BAD_REQUEST, detail=f"namespace not found")
+        namespace_id = ns_result.get(table_authority.c.id)
+
+        group_attr_id = None
+        if request.group_by:
+            # Groupby
+            group_authority_query = table_authority.select().where(
+                table_authority.c.name == request.group_by.authority
+            )
+            group_authority = await database.fetch_one(group_authority_query)
+            if not group_authority:
+                raise HTTPException(
+                    status_code=BAD_REQUEST,
+                    detail="Group-by attribute authority does not exist",
+                )
+
+            attr_def_q = table_attribute.select().where(
+                and_(
+                    table_attribute.c.namespace_id == group_authority.id,
+                    table_attribute.c.name == request.group_by.name,
+                )
+            )
+
+            group_attr = await database.fetch_one(attr_def_q)
+
+            if request.group_by.value not in group_attr.values_array:
+                raise HTTPException(
+                    status_code=BAD_REQUEST,
+                    detail="Specified an invalid value for group-by attribute",
+                )
+
+            group_attr_id = group_attr.id
+
+        if request.rule == RuleEnum.hierarchy:
+            is_duplicated = check_duplicates(request.order)
+            if is_duplicated:
+                raise HTTPException(
+                    status_code=BAD_REQUEST,
+                    detail="Duplicated items when Rule is Hierarchy",
+                )
+
+        # insert
+        query = table_attribute.insert().values(
+            name=request.name,
+            namespace_id=namespace_id,
+            values_array=request.order,
+            state=request.state,
+            rule=request.rule,
+            group_by_attr=group_attr_id,
+            group_by_attrval=(request.group_by.value if group_attr_id else None),
+        )
+        try:
+            await database.execute(query)
+        except UniqueViolationError as e:
+            raise HTTPException(
+                status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
+            ) from e
+        run_post_command_hooks(HttpMethod.POST,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        return request
+
+    except Exception as e:
+        run_err_hooks(HttpMethod.POST,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        raise e
 
 
 @app.put(
@@ -794,78 +808,90 @@ async def update_attribute_definition(
                 "value": "Proprietary",
             },
         },
-    )
+    ),
+    decoded_token=Depends(get_auth),
 ):
-    return await update_attribute_definition_crud(request)
+    run_pre_command_hooks(HttpMethod.PUT,
+             sys._getframe().f_code.co_name, request, decoded_token)
+    return await update_attribute_definition_crud(request, decoded_token)
 
 
-async def update_attribute_definition_crud(request):
+async def update_attribute_definition_crud(request, decoded_token=None):
     # update
-    query = table_authority.select().where(table_authority.c.name == request.authority)
-    result = await database.fetch_one(query)
+    try:
+        query = table_authority.select().where(table_authority.c.name == request.authority)
+        result = await database.fetch_one(query)
 
-    if not result:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
-        )
-
-    if request.rule == RuleEnum.hierarchy:
-        is_duplicated = check_duplicates(request.order)
-        if is_duplicated:
+        if not result:
             raise HTTPException(
-                status_code=BAD_REQUEST,
-                detail="Duplicated items when Rule is Hierarchy",
+                status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
             )
 
-    group_attr_id = None
-    if request.group_by:
-        # Groupby
-        group_authority_query = table_authority.select().where(
-            table_authority.c.name == request.group_by.authority
+        if request.rule == RuleEnum.hierarchy:
+            is_duplicated = check_duplicates(request.order)
+            if is_duplicated:
+                raise HTTPException(
+                    status_code=BAD_REQUEST,
+                    detail="Duplicated items when Rule is Hierarchy",
+                )
+
+        group_attr_id = None
+        if request.group_by:
+            # Groupby
+            group_authority_query = table_authority.select().where(
+                table_authority.c.name == request.group_by.authority
+            )
+            group_authority = await database.fetch_one(group_authority_query)
+            if not group_authority:
+                raise HTTPException(
+                    status_code=BAD_REQUEST,
+                    detail="Group-by attribute authority does not exist",
+                )
+
+            attr_def_q = table_attribute.select().where(
+                and_(
+                    table_attribute.c.namespace_id == group_authority.id,
+                    table_attribute.c.name == request.group_by.name,
+                )
+            )
+
+            group_attr = await database.fetch_one(attr_def_q)
+
+            if request.group_by.value not in group_attr.values_array:
+                raise HTTPException(
+                    status_code=BAD_REQUEST,
+                    detail="Specified an invalid value for group-by attribute",
+                )
+
+            group_attr_id = group_attr.id
+
+        query = (
+            table_attribute.update()
+            .where(
+                and_(
+                    table_authority.c.name == request.authority,
+                    table_attribute.c.name == request.name,
+                )
+            )
+            .values(
+                values_array=request.order,
+                rule=request.rule,
+                group_by_attr=group_attr_id,
+                group_by_attrval=(request.group_by.value if group_attr_id else None),
+            )
         )
-        group_authority = await database.fetch_one(group_authority_query)
-        if not group_authority:
-            raise HTTPException(
-                status_code=BAD_REQUEST,
-                detail="Group-by attribute authority does not exist",
-            )
 
-        attr_def_q = table_attribute.select().where(
-            and_(
-                table_attribute.c.namespace_id == group_authority.id,
-                table_attribute.c.name == request.group_by.name,
-            )
-        )
+        await database.execute(query)
 
-        group_attr = await database.fetch_one(attr_def_q)
-
-        if request.group_by.value not in group_attr.values_array:
-            raise HTTPException(
-                status_code=BAD_REQUEST,
-                detail="Specified an invalid value for group-by attribute",
-            )
-
-        group_attr_id = group_attr.id
-
-    query = (
-        table_attribute.update()
-        .where(
-            and_(
-                table_authority.c.name == request.authority,
-                table_attribute.c.name == request.name,
-            )
-        )
-        .values(
-            values_array=request.order,
-            rule=request.rule,
-            group_by_attr=group_attr_id,
-            group_by_attrval=(request.group_by.value if group_attr_id else None),
-        )
-    )
-
-    await database.execute(query)
-
-    return request
+        run_post_command_hooks(HttpMethod.PUT,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        
+        return request
+    
+    except Exception as e:
+        run_err_hooks(HttpMethod.PUT,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        raise e
 
 
 @app.delete(
@@ -890,22 +916,33 @@ async def delete_attributes_definitions(
             "state": "published",
             "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
         },
-    )
+    ),
+    decoded_token=Depends(get_auth),
 ):
-    return await delete_attributes_definitions_crud(request)
+    run_pre_command_hooks(HttpMethod.DELETE,
+             sys._getframe().f_code.co_name, request, decoded_token)
+    return await delete_attributes_definitions_crud(request, decoded_token)
 
 
-async def delete_attributes_definitions_crud(request):
-    statement = table_attribute.delete().where(
-        and_(
-            table_authority.c.name == request.authority,
-            table_attribute.c.name == request.name,
-            table_attribute.c.rule == str(request.rule.value),
-            table_attribute.c.values_array == request.order,
+async def delete_attributes_definitions_crud(request, decoded_token=None):
+    try:
+        statement = table_attribute.delete().where(
+            and_(
+                table_authority.c.name == request.authority,
+                table_attribute.c.name == request.name,
+                table_attribute.c.rule == str(request.rule.value),
+                table_attribute.c.values_array == request.order,
+            )
         )
-    )
-    await database.execute(statement)
-    return {}
+        await database.execute(statement)
+        run_post_command_hooks(HttpMethod.DELETE,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        return {}
+    
+    except Exception as e:
+        run_err_hooks(HttpMethod.DELETE,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        raise e
 
 
 #
@@ -948,27 +985,37 @@ async def read_authorities_crud():
 async def create_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}
-    )
+    ),
+    decoded_token=Depends(get_auth),
 ):
-    return await create_authorities_crud(request)
+    run_pre_command_hooks(HttpMethod.POST,
+             sys._getframe().f_code.co_name, request, decoded_token)
+    return await create_authorities_crud(request, decoded_token)
 
 
-async def create_authorities_crud(request):
+async def create_authorities_crud(request, decoded_token=None):
     # insert
-    query = table_authority.insert().values(name=request.authority)
     try:
-        await database.execute(query)
-    except UniqueViolationError as e:
-        raise HTTPException(
-            status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
-        ) from e
-    # select all
-    query = table_authority.select()
-    result = await database.fetch_all(query)
-    namespaces = []
-    for row in result:
-        namespaces.append(f"{row.get(table_authority.c.name)}")
-    return namespaces
+        query = table_authority.insert().values(name=request.authority)
+        try:
+            await database.execute(query)
+        except UniqueViolationError as e:
+            raise HTTPException(
+                status_code=BAD_REQUEST, detail=f"duplicate: {str(e)}"
+            ) from e
+        # select all
+        query = table_authority.select()
+        result = await database.fetch_all(query)
+        namespaces = []
+        for row in result:
+            namespaces.append(f"{row.get(table_authority.c.name)}")
+        run_post_command_hooks(HttpMethod.POST,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        return namespaces
+    except Exception as e:
+        run_err_hooks(HttpMethod.POST,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        raise e
 
 
 @app.delete(
@@ -986,31 +1033,41 @@ async def create_authorities_crud(request):
 async def delete_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}
-    )
+    ),
+    decoded_token=Depends(get_auth),
 ):
-    return await delete_authorities_crud(request)
+    run_pre_command_hooks(HttpMethod.DELETE,
+             sys._getframe().f_code.co_name, request, decoded_token)
+    return await delete_authorities_crud(request, decoded_token)
 
 
-async def delete_authorities_crud(request):
-    query = table_authority.select().where(table_authority.c.name == request.authority)
-    result = await database.fetch_one(query)
-
-    if not result:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
-        )
-
-    statement = table_authority.delete().where(
-        and_(table_authority.c.name == request.authority)
-    )
+async def delete_authorities_crud(request, decode_token=None):
     try:
-        await database.execute(statement)
-    except ForeignKeyViolationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-            detail=f"Unable to delete non-empty authority",
-        ) from e
-    return {}
+        query = table_authority.select().where(table_authority.c.name == request.authority)
+        result = await database.fetch_one(query)
+
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Record not found"
+            )
+
+        statement = table_authority.delete().where(
+            and_(table_authority.c.name == request.authority)
+        )
+        try:
+            await database.execute(statement)
+        except ForeignKeyViolationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                detail=f"Unable to delete non-empty authority",
+            ) from e
+        run_post_command_hooks(HttpMethod.DELETE,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        return {}
+    except Exception as e:
+        run_err_hooks(HttpMethod.DELETE,
+             sys._getframe().f_code.co_name, request, decoded_token)
+        raise e
 
 
 # Check for duplicated items when rule is Hierarchy
