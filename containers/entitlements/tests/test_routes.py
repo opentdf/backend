@@ -42,7 +42,7 @@ def test_add_entitlements_to_entity(test_app, monkeypatch):
         "https://opentdf.io/attr/IntellectualProperty/value/TradeSecret2",
     ]
 
-    async def mock_add_entitlements_to_entity_crud(entityId, request):
+    async def mock_add_entitlements_to_entity_crud(entityId, request, auth_token=None):
         return test_response
 
     monkeypatch.setattr(
@@ -60,7 +60,7 @@ def test_remove_entitlement_from_entity(test_app, monkeypatch):
         "https://opentdf.io/attr/IntellectualProperty/value/TradeSecret2",
     ]
 
-    async def mock_remove_entitlement_from_entity_crud(entityId, request):
+    async def mock_remove_entitlement_from_entity_crud(entityId, request, auth_token=None):
         return {}
 
     monkeypatch.setattr(
