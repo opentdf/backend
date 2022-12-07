@@ -243,7 +243,17 @@ table_attribute = sqlalchemy.Table(
     sqlalchemy.Column("group_by_attrval", sqlalchemy.TEXT),
 )
 
-engine = sqlalchemy.create_engine(DATABASE_URL)
+#https://docs.sqlalchemy.org/en/14/core/pooling.html#dealing-with-disconnects for pool_pre_ping
+#https://www.postgresql.org/docs/13/libpq-connect.html#LIBPQ-PARAMKEYWORDS for connect_args
+engine = sqlalchemy.create_engine(DATABASE_URL,
+                                  pool_pre_ping=True,
+                                  connect_args={
+                                      "keepalives": 1,
+                                      "keepalives_idle": 30,
+                                      "keepalives_interval": 10,
+                                      "keepalives_count": 5,
+                                  }
+                                  )
 dbase = sessionmaker(bind=engine)
 
 

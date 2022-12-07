@@ -23,9 +23,6 @@ def get_authority(request):
         key="",
         options={"verify_signature": False, "verify_aud": False, "exp": True},
     )
-    logger.info("DECODED")
-    logger.info(token)
-    logger.info(decoded)
 
     if "orgs_domain" in decoded:
         authority = "https://" + decoded["orgs_domain"]
