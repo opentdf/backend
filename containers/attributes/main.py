@@ -254,12 +254,12 @@ engine = sqlalchemy.create_engine(DATABASE_URL,
                                       "keepalives_count": 5,
                                   }
                                   )
-dbase = sessionmaker(bind=engine)
+dbase_session = sessionmaker(bind=engine)
 
 
 
 def get_db() -> Session:
-    session = dbase()
+    session = dbase_session()
     try:
         yield session
     finally:
