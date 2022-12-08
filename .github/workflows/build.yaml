@@ -385,6 +385,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   signing-artifacts:
+    needs:
+      - kas-unittest
     permissions:
       packages: write
       contents: read
