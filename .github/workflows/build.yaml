@@ -385,6 +385,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   signing-artifacts:
+    permissions:
+      packages: write
+      contents: read
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       package: ghcr.io/opentdf/entitlement_store
