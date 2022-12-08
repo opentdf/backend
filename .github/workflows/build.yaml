@@ -439,7 +439,7 @@ jobs:
         - name: Verifying published artifacts
           env:
             COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          run: cosign verify --key cosign.key ghcr.io/opentdf/entitlement-store:latest
+          run: cosign verify --key cosign.key ghcr.io/opentdf/entitlement-store:main
           
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
