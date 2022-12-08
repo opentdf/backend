@@ -387,6 +387,9 @@ jobs:
           
   sign-container:
       runs-on: ubuntu-latest
+      permissions:
+        packages: write
+        contents: read
       steps:
         - name: Install cosign
           uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
@@ -399,14 +402,18 @@ jobs:
             username: ${{ github.repository_owner }}
             password: ${{ secrets.GITHUB_TOKEN }}
         - name: Write signing key to disk
-          run: 'echo "$KEY" > cosign.key'
+          run: 'echo "$COSIGN_PUBLIC_KEY" > cosign.key'
           shell: bash
           env:
-            KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+            COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+            COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+            COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+        - name : Logs 
+          run: 'echo "$COSIGN_PUBLIC_KEY"'
         - name: Sign the published Docker image
           env:
             COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          run: cosign sign --key cosign.key ghcr.io/krokhmaliuk-virtru/sign/my-app@sha256-fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068
+          run: cosign sign --key cosign.key ghcr.io/krokhmaliuk-virtru/sign/my-app:latest
           
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
