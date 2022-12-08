@@ -397,10 +397,10 @@ jobs:
           shell: bash
           env:
             KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-        - name: Sign the published Docker image
-          env:
-            COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          run: cosign sign --key cosign.key ghcr.io/opentdf/entitlement_store:sha-7547a68
+#         - name: Sign the published Docker image
+#           env:
+#             COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+#           run: cosign sign --key cosign.key ghcr.io/opentdf/entitlement_store:sha-7547a68
 
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
