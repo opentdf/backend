@@ -384,13 +384,12 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          
-
   signing-artifacts:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       package: ghcr.io/opentdf/entitlement_store
       tag: main
+    secrets: inherit
 #      runs-on: ubuntu-latest
 #      permissions:
 #        packages: write
