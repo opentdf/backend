@@ -388,9 +388,9 @@ jobs:
 
   signing-artifacts:
     uses: ./.github/workflows/sign-artifacts.yaml
-      with:
-        package: ghcr.io/opentdf/entitlement_store
-        tag: main
+    with:
+      package: ghcr.io/opentdf/entitlement_store
+      tag: main
 #      runs-on: ubuntu-latest
 #      permissions:
 #        packages: write
