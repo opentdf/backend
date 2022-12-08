@@ -394,7 +394,6 @@ jobs:
       tag: main
     secrets:
       repo-token: ${{ secrets.GITHUB_TOKEN }}
-      token: ${{ secrets.GITHUB_TOKEN }}
       cosign_pass: ${{ secrets.COSIGN_PASSWORD }}
       cosign_pub_key: ${{ secrets.COSIGN_PUBLIC_KEY }}
 
