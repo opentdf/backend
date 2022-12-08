@@ -12,7 +12,6 @@ jobs:
   signing-artifacts:
     runs-on: ubuntu-latest
     permissions:
-      packages: write
       contents: read
     steps:
       - uses: actions/labeler@v4
