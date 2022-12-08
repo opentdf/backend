@@ -390,6 +390,7 @@ jobs:
       contents: read
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
+      repo-token: ${{ secrets.GITHUB_TOKEN }}
       package: ghcr.io/opentdf/entitlement_store
       tag: main
     secrets: inherit
