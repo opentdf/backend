@@ -1,8 +1,6 @@
 
 on:
   workflow_call:
-    inputs:
-    secrets:
 jobs:
   signing-artifacts:
     runs-on: ubuntu-latest
