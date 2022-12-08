@@ -392,8 +392,11 @@ jobs:
     with:
       package: ghcr.io/opentdf/entitlement_store
       tag: main
-    secrets: inherit
-          
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+      cosign_pass: ${{ secrets.COSIGN_PASSWORD }}
+      cosign_pub_key: ${{ secrets.COSIGN_PUBLIC_KEY }}
+
   verifying-signing:
       runs-on: ubuntu-latest
       permissions:

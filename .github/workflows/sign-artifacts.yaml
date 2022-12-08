@@ -8,7 +8,13 @@ on:
       tag:
         required: true
         type: string
-
+    secrets:
+      token:
+        required: true
+      cosign_pass:
+        required: true
+      cosign_pub_key:
+        required: true
 jobs:
   signing-artifacts:
     runs-on: ubuntu-latest
@@ -20,8 +26,6 @@ jobs:
         with:
           package: ${{ inputs.package }}
           tag: ${{ inputs.tag }}
-          secrets: inherit
-
       - name: Install cosign
         uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
         with:
@@ -31,14 +35,14 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.token }}
       - name: Write signing key to disk
         run: 'echo "$COSIGN_PUBLIC_KEY" > cosign.key'
         shell: bash
         env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.cosign_pass }}
+          COSIGN_PUBLIC_KEY: ${{ secrets.cosign_pub_key }}
       - name: Verifying published artifacts
         env:
-          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PASSWORD: ${{ secrets.cosign_pass }}
         run: cosign verify --key cosign.key ${{ inputs.package }}:${{ inputs.tag }}
