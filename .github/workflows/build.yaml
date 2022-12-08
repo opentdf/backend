@@ -429,7 +429,7 @@ jobs:
             registry: ghcr.io
 
         - name: Fetch OCI image 
-          run: podman pull ghcr.io/opentdf/entitlement_store:latest
+          run: podman pull oci://ghcr.io/opentdf/entitlement_store:latest
 
         - name: Get OCI image digest
           id: image-info
