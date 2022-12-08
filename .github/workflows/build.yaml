@@ -413,7 +413,7 @@ jobs:
         - name: Sign the published Docker image
           env:
             COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          run: cosign sign --key cosign.key ghcr.io/krokhmaliuk-virtru/sign/my-app:latest
+          run: cosign sign --key cosign.key ghcr.io/opentdf/entitlement_store:latest
           
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
