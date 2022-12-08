@@ -429,7 +429,7 @@ jobs:
             registry: ghcr.io
         - name: Sign image
           run: |
-            cosign sign "ghcr.io/opentdf/entitlement_store@$sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068"
+            COSIGN_EXPERIMENTAL=1 cosign sign "ghcr.io/opentdf/entitlement_store@$sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068"
             echo "::notice title=Verify signature::COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/opentdf/entitlement_store@sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068 | jq '.[0]'"
             echo "::notice title=Inspect signature bundle::COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/opentdf/entitlement_store@sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068 | jq '.[0].optional.Bundle.Payload.body |= @base64d | .[0].optional.Bundle.Payload.body | fromjson'"
             echo "::notice title=Inspect certificate::COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/opentdf/entitlement_store@sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068 | jq -r '.[0].optional.Bundle.Payload.body |= @base64d | .[0].optional.Bundle.Payload.body | fromjson | .spec.signature.publicKey.content |= @base64d | .spec.signature.publicKey.content' | openssl x509 -text"
