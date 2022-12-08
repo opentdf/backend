@@ -406,34 +406,8 @@ jobs:
         - name: Sign the published Docker image
           env:
             COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-          run: cosign sign --key cosign.key ghcr.io/krokhmaliuk-virtru/sign/my-app:latest
+          run: cosign sign --key cosign.key ghcr.io/krokhmaliuk-virtru/sign/my-app@sha256-fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068
           
-  sign:
-      name: Sign
-      runs-on: ubuntu-latest
-      permissions:
-        packages: write
-        id-token: write
-      outputs:
-        image-digest: ${{ steps.image-info.outputs.digest }}
-      steps:
-        - name: Install Cosign
-          uses: sigstore/cosign-installer@v2.5.1
-          with:
-            cosign-release: 'v1.11.1'
-
-        - uses: redhat-actions/podman-login@v1.4
-          with:
-            username: ${{ github.actor }}
-            password: ${{ secrets.GITHUB_TOKEN }}
-            registry: ghcr.io
-        - name: Sign image
-          run: |
-            COSIGN_EXPERIMENTAL=1 cosign sign "ghcr.io/opentdf/entitlement_store@$sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068"
-            echo "::notice title=Verify signature::COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/opentdf/entitlement_store@sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068 | jq '.[0]'"
-            echo "::notice title=Inspect signature bundle::COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/opentdf/entitlement_store@sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068 | jq '.[0].optional.Bundle.Payload.body |= @base64d | .[0].optional.Bundle.Payload.body | fromjson'"
-            echo "::notice title=Inspect certificate::COSIGN_EXPERIMENTAL=1 cosign verify ghcr.io/opentdf/entitlement_store@sha256:fe248d57ed188a49dd1da2d8d7bd7187a756d578f4e4b8d00420ba5a90d39068 | jq -r '.[0].optional.Bundle.Payload.body |= @base64d | .[0].optional.Bundle.Payload.body | fromjson | .spec.signature.publicKey.content |= @base64d | .spec.signature.publicKey.content' | openssl x509 -text"
-
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
