@@ -386,16 +386,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   signing-artifacts:
     permissions:
-      packages: write
       contents: read
+      pull-requests: write
+      packages: write
     uses: ./.github/workflows/sign-artifacts.yaml
-    with:
-      secrets:
-        token: ${{ secrets.GITHUB_TOKEN }}
-#    with:
-#      package: ghcr.io/opentdf/entitlement_store
-#      tag: main
-
+    
   verifying-signing:
       runs-on: ubuntu-latest
       permissions:
