@@ -392,11 +392,11 @@ jobs:
     secrets: inherit
 
   verifying-signing:
-      permissions:
-        packages: write
-        contents: read
-      uses: ./.github/workflows/verify-artifacts.yaml
-      secrets: inherit
+    permissions:
+      packages: write
+      contents: read
+    uses: ./.github/workflows/verify-artifacts.yaml
+    secrets: inherit
 
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
