@@ -392,6 +392,8 @@ jobs:
     secrets: inherit
 
   verifying-signing:
+    needs:
+      - signing-artifacts
     permissions:
       packages: write
       contents: read
