@@ -1,6 +1,10 @@
 
 on:
   workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
 
 jobs:
   cosign-signing-workflow:
@@ -28,4 +32,5 @@ jobs:
       - name: Sign the published Docker image
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        run: cosign sign --key cosign.key ghcr.io/opentdf/entitlement_store:main
+        run: echo ${{ inputs.target }}
+#        run: cosign sign --key cosign.key ghcr.io/opentdf/entitlement_store:main

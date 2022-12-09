@@ -388,7 +388,12 @@ jobs:
     permissions:
       packages: write
       contents: read
+    strategy:
+      matrix:
+        target: [ dev, stage, prod ]
     uses: ./.github/workflows/sign-artifacts.yaml
+    with:
+      target: ${{ matrix.target }}
     secrets: inherit
 
   verifying-signing:
