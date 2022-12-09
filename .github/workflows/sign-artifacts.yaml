@@ -28,7 +28,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.token }}
       - name: Write signing key to disk
         run: 'echo "$COSIGN_PUBLIC_KEY" > cosign.key'
         shell: bash

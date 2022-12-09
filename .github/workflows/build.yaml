@@ -385,8 +385,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   signing-artifacts:
-    needs:
-      - pytest
     permissions:
       packages: write
       contents: read
