@@ -390,6 +390,7 @@ jobs:
       pull-requests: write
       packages: write
     uses: ./.github/workflows/sign-artifacts.yaml
+    secrets: inherit
     
   verifying-signing:
       runs-on: ubuntu-latest

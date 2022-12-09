@@ -1,13 +1,7 @@
 
 on:
   workflow_call:
-    secrets:
-      token:
-        required: true
-      COSIGN_PASSWORD:
-        required: true
-      COSIGN_PUBLIC_KEY:
-        required: true
+
 jobs:
   signing-artifacts:
     runs-on: ubuntu-latest
@@ -17,7 +11,7 @@ jobs:
     steps:
       - uses: actions/labeler@v4
         with:
-          repo-token: ${{ secrets.token }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 #          configuration-path: ${{ inputs.config-path }}
       - name: Install cosign
         uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
@@ -28,7 +22,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.token }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Write signing key to disk
         run: 'echo "$COSIGN_PUBLIC_KEY" > cosign.key'
         shell: bash
