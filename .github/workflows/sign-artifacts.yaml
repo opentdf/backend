@@ -16,6 +16,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+#          configuration-path: ${{ inputs.config-path }}
       - name: Install cosign
         uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
         with:
