@@ -385,6 +385,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   signing-artifacts:
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/sign-artifacts.yaml
     secrets: inherit
     
