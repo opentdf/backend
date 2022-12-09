@@ -388,19 +388,15 @@ jobs:
     permissions:
       packages: write
       contents: read
+    uses: ./.github/workflows/sign-artifacts.yaml
     secrets: inherit
-    steps:
-      - name: Sign
-        uses: ./.github/workflows/sign-artifacts.yaml
-      - name: Verify
-        uses: ./.github/workflows/verify-artifacts.yaml
 
-#  verifying-signing:
-#      permissions:
-#        packages: write
-#        contents: read
-#      uses: ./.github/workflows/verify-artifacts.yaml
-#      secrets: inherit
+  verifying-signing:
+      permissions:
+        packages: write
+        contents: read
+      uses: ./.github/workflows/verify-artifacts.yaml
+      secrets: inherit
 
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
