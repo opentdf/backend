@@ -3,7 +3,7 @@ on:
   workflow_call:
 
 jobs:
-  signing-artifacts:
+  cosign-signing-workflow:
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -28,4 +28,4 @@ jobs:
       - name: Verifying published artifacts
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        run: cosign verify --key cosign.key ghcr.io/opentdf/entitlement_store:main
+        run: cosign sign --key cosign.key ghcr.io/opentdf/entitlement_store:main
