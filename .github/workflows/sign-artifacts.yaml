@@ -20,10 +20,11 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Write signing key to disk
-        run: 'echo "$COSIGN_PUBLIC_KEY" > cosign.key'
+        run: 'echo "COSIGN_PRIVATE_KEY" > cosign.key'
         shell: bash
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
       - name: Verifying published artifacts
         env:
