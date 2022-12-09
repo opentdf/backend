@@ -2,7 +2,7 @@
 on:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
+      token:
         required: true
       COSIGN_PASSWORD:
         required: true
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/labeler@v4
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          repo-token: ${{ secrets.token }}
 #          configuration-path: ${{ inputs.config-path }}
       - name: Install cosign
         uses: sigstore/cosign-installer@7e0881f8fe90b25e305bbf0309761e9314607e25
