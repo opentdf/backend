@@ -390,11 +390,11 @@ jobs:
       contents: read
     steps:
       - name: Sign
-      uses: ./.github/workflows/sign-artifacts.yaml
-      secrets: inherit
+        uses: ./.github/workflows/sign-artifacts.yaml
+        secrets: inherit
       - name: Verify
-      uses: ./.github/workflows/verify-artifacts.yaml
-      secrets: inherit
+        uses: ./.github/workflows/verify-artifacts.yaml
+        secrets: inherit
     
 #  verifying-signing:
 #      permissions:
