@@ -32,5 +32,5 @@ jobs:
       - name: Sign the published Docker image
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        run: echo ${{ inputs.target }}
+        run: echo "ghcr.io/opentdf/"${{ inputs.target }}:main
 #        run: cosign sign --key cosign.key ghcr.io/opentdf/entitlement_store:main

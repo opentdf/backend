@@ -390,7 +390,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        target: [ dev, stage, prod ]
+        target: [ attributes, entitlement_store, entitlement-pdp , entitlements, entity-resolution, kas, keycloak-bootstrap ]
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
