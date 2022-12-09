@@ -385,7 +385,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   signing-artifacts:
-    if: github.event_name == 'push' && steps.setup.outputs.has_token == 'true'
     needs:
       - pytest
     permissions:
