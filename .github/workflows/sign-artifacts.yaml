@@ -1,6 +1,13 @@
 
 on:
   workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+      COSIGN_PASSWORD:
+        required: true
+      COSIGN_PUBLIC_KEY:
+        required: true
 jobs:
   signing-artifacts:
     runs-on: ubuntu-latest
