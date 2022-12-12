@@ -398,10 +398,10 @@ jobs:
           - entity-resolution
           - kas
           - keycloak-bootstrap
-#        target: [ attributes, entitlement_store, entitlement-pdp , entitlements, entity-resolution, kas, keycloak-bootstrap ]
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
+      tags: ${{ steps.meta.outputs.tags }}
     secrets: inherit
 
   verifying-signing:
