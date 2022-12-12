@@ -403,7 +403,7 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: "${FULL_VERSION}"
+      version: ${{ env.FULL_VERSION }}
     secrets: inherit
 
   verifying-signing:
