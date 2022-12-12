@@ -388,6 +388,8 @@ jobs:
     permissions:
       packages: write
       contents: read
+    env:
+      FULL_VERSION: "1.0.0"
     strategy:
       matrix:
         target:
