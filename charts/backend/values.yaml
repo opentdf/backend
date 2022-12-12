@@ -1,12 +1,14 @@
-# Optionally override the fully qualified name
+# -- Optionally override the fully qualified name
 fullnameOverride: ""
 
-# Optionally override the name
+# -- Optionally override the name
 nameOverride: ""
 
 
 embedded:
+  # -- Whether to use an embedded keycloak
   keycloak: true
+  # -- Whether to use an embedded postgres
   postgresql: true
 
 bootstrapKeycloak: true
@@ -15,43 +17,53 @@ bootstrapKeycloak: true
 global:
   opentdf:
     common:
-      # The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+      # -- The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
       oidcInternalBaseUrl: http://keycloak-http
-      # The url path (no preceding / ) to keycloak
+      # -- The url path (no preceding / ) to keycloak
       oidcUrlPath: auth
-      # The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+      # -- The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
       oidcExternalBaseUrl: http://localhost:65432
-      # Any existing image pull secrets subcharts should use
+      # -- Any existing image pull secrets subcharts should use
       # e.g.
       # imagePullSecrets:
       #   - name: my-existing-ghcr-pullsecret
       #   - name: my-other-pullsecret
       imagePullSecrets: []
       keycloak:
+        # -- The Keycloak admin username
         user: keycloakadmin
+        # -- The Keycloak admin password
         password: mykeycloakpassword
       postgres:
-        # postgres server's k8s name or global DNS for external server
+        # -- postgres server's k8s name or global DNS for external server
         host: postgresql
-        # postgres server port
+        # -- postgres server port
         port: 5432
-        # The database name within the given server
+        # -- The database name within the given server
         database: tdf_database
 
 secrets:
+  # -- Token used to pull OPA policy from private store
   opaPolicyPullSecret:
+  # -- Client secret used to verify identity in attributes and entitlements
   oidcClientSecret:
   postgres:
+    # -- The postgres admin username
     dbUser: postgres
+    # -- The postgres admin password
     dbPassword: otdf-pgsql-admin
   keycloakBootstrap:
+    # -- Secret used for 'tdf-client' test client created by bootstrap by default
     clientSecret: 123-456
     attributes:
+      # -- Username of user used to create attributes during bootstrap
       username: user1
+      # -- Password of user used to create attributes during bootstap
       password: testuser123
 
 
 attributes:
+  # -- Optionally override the name
   fullnameOverride: attributes
   secretRef: |-
     name: "{{ template "attributes.fullname" . }}-otdf-secret"
@@ -67,20 +79,30 @@ attributes:
       host.docker.internal: *pathsAttributes
       opentdf.local: *pathsAttributes
       '': *pathsAttributes
+  # -- What log level to output
   logLevel: DEBUG
 entitlement-pdp:
+  # -- Optionally override the name
   fullnameOverride: entitlement-pdp
   opaConfig:
+
     policy:
+      # -- If `useStaticPolicy` is set to `true`, then an OPA config will be generated
+      # that forces the use of a policy bundle that was built and packed into the `entitlement-pdp`
+      # container at *build* time, and no policy bundle will be fetched dynamically from the registry
+      # on startup.
+      # This is not a desirable default, but it is useful in offline deployments.
       # `Tilt` tries make docker image caching automagic, but it isn't particularly
       # smart about non-Docker OCI caches, so tell the PDP chart to use the default on-disk policy bundle
       # we create and pack into the image to work around this
       useStaticPolicy: true
   config:
+    # -- Disable the open telemetry tracing
     disableTracing: true
   secretRef: |-
     name: "{{ template "entitlement-pdp.fullname" . }}-otdf-secret"
 entitlement-store:
+  # -- Optionally override the name
   fullnameOverride: entitlement-store
   secretRef: |-
     name: "{{ template "entitlement-store.fullname" . }}-otdf-secret"
@@ -97,6 +119,7 @@ entitlement-store:
       opentdf.local: *pathsEntitlementStore
       '': *pathsEntitlementStore
 entitlements:
+  # -- Optionally override the name
   fullnameOverride: entitlements
   secretRef: |-
     name: "{{ template "entitlements.fullname" . }}-otdf-secret"
@@ -113,11 +136,13 @@ entitlements:
       opentdf.local: *pathsEntitlements
       '': *pathsEntitlements
 entity-resolution:
+  # -- Optionally override the name
   fullnameOverride: entity-resolution
   config:
     keycloak:
       legacy: true
 kas:
+  # -- Optionally override the name
   fullnameOverride: kas
   endpoints:
     attrHost: http://attributes:4020
@@ -146,6 +171,7 @@ kas:
     disableTracing: "true"
 
 keycloak:
+  # -- Optionally override the name
   fullnameOverride: keycloak
   image:
     # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
@@ -203,6 +229,7 @@ keycloak:
     tls: []
 
 keycloak-bootstrap:
+  # -- Optionally override the name
   fullnameOverride: keycloak-bootstrap
   secretRef: |-
     name: "{{ template "keycloak-bootstrap.fullname" . }}-otdf-secret"
@@ -276,8 +303,9 @@ keycloak-bootstrap:
           - https://example.com/attr/COI/value/PRX
 
 postgresql:
-  #  configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
+  # -- Optionally override the name
   fullnameOverride: postgresql
+  # -- Configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
   image:
     debug: true
   existingSecret: >

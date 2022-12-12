@@ -1,15 +1,16 @@
-# Optionally override the fully qualified name
+# -- Optionally override the fully qualified name
 fullnameOverride: ""
 
-# Optionally override the name
+# -- Optionally override the name
 nameOverride: ""
 
-# Global values that may be overridden by a parent chart.
+# -- Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
+      # -- Base internal url of OIDC provider
       oidcInternalBaseUrl: "http://keycloak-http"
-      # JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
 replicaCount: 1
@@ -18,16 +19,17 @@ image:
   # tag: 0.0.5 # Chart AppVersion will be used if this is not explicitly set.
   pullPolicy: IfNotPresent
 
-# JSON passed to the deployment's template.spec.imagePullSecrets.
+# -- JSON passed to the deployment's template.spec.imagePullSecrets.
 # Overrides global.opentdf.common.imagePullSecrets
 imagePullSecrets:
 
+# -- A service account to create
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
@@ -43,9 +45,9 @@ config:
   disableTracing: "false"
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   keycloak:
-    # Override for global.opentdf.common.oidcInternalBaseUrl
+    # -- Override for global.opentdf.common.oidcInternalBaseUrl
     url:
     realm: "tdf"
     clientId: "tdf-entity-resolution-service"
-    # See https://github.com/Nerzal/gocloak/issues/346
+    # -- Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346
     legacy: false

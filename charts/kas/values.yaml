@@ -1,91 +1,93 @@
-# Global values that may be overridden by a parent chart.
+# -- Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
+      # -- Base internal url of OIDC provider
       oidcInternalBaseUrl: http://keycloak-http
-      # JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's template.spec.imagePullSecrets
       imagePullSecrets: []
 
-# Sets the default loglevel for the application. One of the valid python logging
+# -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
 
-# Determinies whether KAS uses the json formatter for logging, if false the
+# -- Determinies whether KAS uses the json formatter for logging, if false the
 # dev formatter is used. Default is true
 jsonLogger: "true"
 
 pdp:
-  # Enables verbose mode for the internal PDP (policy decision point) KAS uses.
+  # -- Enables verbose mode for the internal PDP (policy decision point) KAS uses.
   # If `yes`, decisions will be logged with much additional detail
   verbose: "false"
-  # KAS's internal Access PDP can send OpenTelemetry traces to collectors -
+  # -- KAS's internal Access PDP can send OpenTelemetry traces to collectors -
   # if no collectors configured, the traces will get redirected to STDOUT,
   # which is a bit spammy, so turn this off until we do proper OT trace collection everywhere.
   disableTracing: "true"
 
-# If the debug mode should  be enabled in flask
+# -- If the debug mode should  be enabled in flask
 flaskDebug: "False"
 
-# Sets the default number of pod replicas in the deployment.
+# -- Sets the default number of pod replicas in the deployment.
 # Ignored if autoscaling.enabled == true
 replicaCount: 1
 
-# Base path for this service. Allows serving multiple REST services from the
+# -- Base path for this service. Allows serving multiple REST services from the
 # same origin, e.g. using an ingress with prefix mapping as suggested below.
 serverRootPath: /
 
-# Set to enable openapi endpoint
+# -- Set to enable openapi endpoint
 openapiUrl: ""
 
+# -- To enable swagger ui
 SWAGGER_UI: "True"
 
-# Container image configuration.
+# -- Container image configuration.
 image:
-  # The image selector, also called the 'image name' in k8s documentation
+  # -- The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/kas
-  # Chart.AppVersion will be used for image tag, override here if needed
-  # tag: main
-  # The container's `imagePullPolicy`
+  # -- Chart.AppVersion will be used for image tag, override here if needed
+  tag:
+  # -- The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# JSON passed to the deployment's template.spec.imagePullSecrets.
+# -- JSON passed to the deployment's template.spec.imagePullSecrets.
 # Overrides global.opentdf.common.imagePullSecrets
 imagePullSecrets:
 
-# Select a specific name for the resource, instead of the default, kas
+# -- Select a specific name for the resource, instead of the default, kas
 nameOverride: ""
 
-# The fully qualified appname override
+# -- The fully qualified appname override
 fullnameOverride: ""
 
-# A service account to create
+# -- A service account to create
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: null
 
-# Values for the deployment spec.template.metadata.annotations field
+# -- Values for the deployment spec.template.metadata.annotations field
 podAnnotations: {}
 
-# Values for deployment's spec.template.spec.securityContext
+# -- Values for deployment's spec.template.spec.securityContext
 podSecurityContext: {}
 
-# Values for deployment's spec.template.spec.containers.securityContext
+# -- Values for deployment's spec.template.spec.containers.securityContext
 securityContext: {}
 
-# Secret containing an additional ca-cert.pem file for locally signed TLS certs.
+# -- Secret containing an additional ca-cert.pem file for locally signed TLS certs.
 # Used for a private PKI mode, for example.
 certFileSecretName: null
 
-# The name of a secret containing required config values (see envConfig below); overrides envConfig
+# -- The name of a secret containing required config values (see envConfig below); overrides envConfig
 externalEnvSecretName:
 
-# Environment configuration values for keys and certs used by the key server.  If externalSecretName is defined these are ignored.
+# -- Environment configuration values for keys and certs used by the key server.  If externalSecretName is defined these are ignored.
 envConfig:
   attrAuthorityCert:
   ecCert:
@@ -93,17 +95,17 @@ envConfig:
   ecPrivKey:
   privKey:
 
-# Secret containing additional env variables in addition to those provided by envConfig or externalSecretName
+# -- Secret containing additional env variables in addition to those provided by envConfig or externalSecretName
 extraEnvSecretName:
 
-# Service configuation information.
+# -- Service configuation information.
 service:
-  # Service `spec.type`
+  # -- Service `spec.type`
   type: ClusterIP
-  # Port to assign to the `http` port
+  # -- Port to assign to the `http` port
   port: 8000
 
-# Ingress configuration.
+# -- Ingress configuration.
 # To configure, set enabled to true and set `hosts` to a map in the form:
 #
 #     [hostname]:
@@ -121,7 +123,7 @@ ingress:
   hosts: {}
   tls: null
 
-# Specify required limits for deploying this service to a pod.
+# -- Specify required limits for deploying this service to a pod.
 # We usually recommend not to specify default resources and to leave this as a conscious
 # choice for the user. This also increases chances charts run on environments with little
 # resources, such as Minikube.
@@ -140,22 +142,24 @@ tolerations: []
 
 affinity: {}
 
-# Pod disruption budget
+# -- Pod disruption budget
 maxUnavailable: 1
 
 endpoints:
+  # -- Internal url of attributes service
   attrHost: http://attributes:4020
+  # -- Internal url of statsd
   statsdHost: statsd
-  # Local override for global.opentdf.common.oidcInternalBaseUrl + path
+  # -- Local override for global.opentdf.common.oidcInternalBaseUrl + path
   oidcPubkeyEndpoint:
 
-# Adds a container livenessProbe, if set.
+# -- Adds a container livenessProbe, if set.
 livenessProbe:
   httpGet:
     path: /healthz?probe=liveness
     port: http
 
-# Adds a container readinessProbe, if set.
+# -- Adds a container readinessProbe, if set.
 readinessProbe:
   httpGet:
     path: /healthz?probe=readiness

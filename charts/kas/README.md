@@ -1,4 +1,16 @@
-# KAS
+# kas
+
+![Version: 0.0.1](https://img.shields.io/badge/Version-0.0.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: main](https://img.shields.io/badge/AppVersion-main-informational?style=flat-square)
+
+TDF key access control service
+
+## Maintainers
+
+| Name | Email | Url |
+| ---- | ------ | --- |
+| Virtru |  |  |
+
+## Kas's Keys
 
 KAS needs at least 4 keys (2 pairs, one RSA and one EC pair) to run.
 
@@ -8,7 +20,7 @@ Also, if the keys change, TDF files created with the previous set will no longer
 
 Therefore, it is strongly recommended that these keys be generated and managed properly in a production environment.
 
-1. Install Chart (will generate throwaway non-production KAS keys if none provided at install time, not recommended or supported for production): 
+1. Install Chart (will generate throwaway non-production KAS keys if none provided at install time, not recommended or supported for production):
 
 ```sh
 helm upgrade --install kas .
@@ -31,3 +43,56 @@ helm upgrade --install kas \
   --set envConfig.ecPrivKey=$KAS_EC_SECP256R1_PRIVATE_KEY \
   --set envConfig.privKey=$KAS_PRIVATE_KEY .
 ```
+
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| SWAGGER_UI | string | `"True"` | To enable swagger ui |
+| affinity | object | `{}` |  |
+| autoscaling.enabled | bool | `false` |  |
+| autoscaling.maxReplicas | int | `100` |  |
+| autoscaling.minReplicas | int | `1` |  |
+| autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
+| certFileSecretName | string | `nil` | Secret containing an additional ca-cert.pem file for locally signed TLS certs. Used for a private PKI mode, for example. |
+| endpoints.attrHost | string | `"http://attributes:4020"` | Internal url of attributes service |
+| endpoints.oidcPubkeyEndpoint | string | `nil` | Local override for global.opentdf.common.oidcInternalBaseUrl + path |
+| endpoints.statsdHost | string | `"statsd"` | Internal url of statsd |
+| envConfig | object | `{"attrAuthorityCert":null,"cert":null,"ecCert":null,"ecPrivKey":null,"privKey":null}` | Environment configuration values for keys and certs used by the key server.  If externalSecretName is defined these are ignored. |
+| externalEnvSecretName | string | `nil` | The name of a secret containing required config values (see envConfig below); overrides envConfig |
+| extraEnvSecretName | string | `nil` | Secret containing additional env variables in addition to those provided by envConfig or externalSecretName |
+| flaskDebug | string | `"False"` | If the debug mode should  be enabled in flask |
+| fullnameOverride | string | `""` | The fully qualified appname override |
+| global | object | `{"opentdf":{"common":{"imagePullSecrets":[],"oidcInternalBaseUrl":"http://keycloak-http"}}}` | Global values that may be overridden by a parent chart. |
+| global.opentdf.common.imagePullSecrets | list | `[]` | JSON passed to the deployment's template.spec.imagePullSecrets |
+| global.opentdf.common.oidcInternalBaseUrl | string | `"http://keycloak-http"` | Base internal url of OIDC provider |
+| image | object | `{"pullPolicy":"IfNotPresent","repo":"ghcr.io/opentdf/kas","tag":null}` | Container image configuration. |
+| image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
+| image.repo | string | `"ghcr.io/opentdf/kas"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
+| image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
+| imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
+| ingress | object | `{"annotations":{},"className":null,"enabled":false,"hosts":{},"tls":null}` | Ingress configuration. To configure, set enabled to true and set `hosts` to a map in the form:      [hostname]:       [path]:         pathType:    your-pathtype [default: "ImplementationSpecific"]         serviceName: your-service  [default: service.fullname]         servicePort: service-port  [default: service.port above]  To configure HTTPS mode for mutual TLS,    tls:      certFileSecretName: your-k8s-secret |
+| jsonLogger | string | `"true"` | Determinies whether KAS uses the json formatter for logging, if false the dev formatter is used. Default is true |
+| livenessProbe | object | `{"httpGet":{"path":"/healthz?probe=liveness","port":"http"}}` | Adds a container livenessProbe, if set. |
+| logLevel | string | `"INFO"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
+| maxUnavailable | int | `1` | Pod disruption budget |
+| nameOverride | string | `""` | Select a specific name for the resource, instead of the default, kas |
+| nodeSelector | object | `{}` |  |
+| openapiUrl | string | `""` | Set to enable openapi endpoint |
+| pdp.disableTracing | string | `"true"` | KAS's internal Access PDP can send OpenTelemetry traces to collectors - if no collectors configured, the traces will get redirected to STDOUT, which is a bit spammy, so turn this off until we do proper OT trace collection everywhere. |
+| pdp.verbose | string | `"false"` | Enables verbose mode for the internal PDP (policy decision point) KAS uses. If `yes`, decisions will be logged with much additional detail |
+| podAnnotations | object | `{}` | Values for the deployment spec.template.metadata.annotations field |
+| podSecurityContext | object | `{}` | Values for deployment's spec.template.spec.securityContext |
+| readinessProbe | object | `{"httpGet":{"path":"/healthz?probe=readiness","port":"http"}}` | Adds a container readinessProbe, if set. |
+| replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| resources | object | `{}` | Specify required limits for deploying this service to a pod. We usually recommend not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. |
+| securityContext | object | `{}` | Values for deployment's spec.template.spec.containers.securityContext |
+| serverRootPath | string | `"/"` | Base path for this service. Allows serving multiple REST services from the same origin, e.g. using an ingress with prefix mapping as suggested below. |
+| service | object | `{"port":8000,"type":"ClusterIP"}` | Service configuation information. |
+| service.port | int | `8000` | Port to assign to the `http` port |
+| service.type | string | `"ClusterIP"` | Service `spec.type` |
+| serviceAccount | object | `{"annotations":{},"create":true,"name":null}` | A service account to create |
+| serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
+| serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
+| serviceAccount.name | string | `nil` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |
+| tolerations | list | `[]` |  |
