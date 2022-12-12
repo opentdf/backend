@@ -1,6 +1,13 @@
 
 on:
   workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
 
 jobs:
   cosign-verifying-workflow:
@@ -23,10 +30,9 @@ jobs:
         run: 'echo "$COSIGN_PUBLIC_KEY" > cosign.key'
         shell: bash
         env:
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
           COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
       - name: Verifying published artifacts
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        run: cosign verify --key cosign.key ghcr.io/opentdf/entitlement_store:main
+        run: cosign verify --key cosign.key ghcr.io/opentdf/"${{ inputs.target }}:${{ inputs.version }}

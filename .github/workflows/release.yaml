@@ -68,6 +68,55 @@ jobs:
           "ghcr.io/opentdf/${{ matrix.repo }}:${SHA_TAG}"
           --tag "ghcr.io/opentdf/${{ matrix.repo }}:${FULL_VERSION}"
 
+
+  signing-artifacts:
+    needs:
+      - docker
+    permissions:
+      packages: write
+      contents: read
+    env:
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+    strategy:
+      matrix:
+        target:
+          - attributes
+          - entitlement_store
+          - entitlement-pdp
+          - entitlements
+          - entity-resolution
+          - kas
+          - keycloak-bootstrap
+    uses: ./.github/workflows/sign-artifacts.yaml
+    with:
+      target: ${{ matrix.target }}
+      version: ${{ env.FULL_VERSION }}
+    secrets: inherit
+
+  verifying-signing:
+    needs:
+      - signing-artifacts
+    permissions:
+      packages: write
+      contents: read
+    env:
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+    strategy:
+      matrix:
+        target:
+          - attributes
+          - entitlement_store
+          - entitlement-pdp
+          - entitlements
+          - entity-resolution
+          - kas
+          - keycloak-bootstrap
+    uses: ./.github/workflows/verify-artifacts.yaml
+    with:
+      target: ${{ matrix.target }}
+      version: ${{ env.FULL_VERSION }}
+    secrets: inherit
+
   policybundle:
     needs:
       - version

@@ -384,36 +384,52 @@ jobs:
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  signing-artifacts:
-    permissions:
-      packages: write
-      contents: read
-    env:
-      FULL_VERSION: "1.0.1"
-    strategy:
-      matrix:
-        target:
-          - attributes
-          - entitlement_store
-          - entitlement-pdp
-          - entitlements
-          - entity-resolution
-          - kas
-          - keycloak-bootstrap
-    uses: ./.github/workflows/sign-artifacts.yaml
-    with:
-      target: ${{ matrix.target }}
-      version: ${{ env.FULL_VERSION }}
-    secrets: inherit
 
-  verifying-signing:
-    needs:
-      - signing-artifacts
-    permissions:
-      packages: write
-      contents: read
-    uses: ./.github/workflows/verify-artifacts.yaml
-    secrets: inherit
+#  signing-artifacts:
+#    permissions:
+#      packages: write
+#      contents: read
+#    env:
+#      FULL_VERSION: "1.0.1"
+#    strategy:
+#      matrix:
+#        target:
+#          - attributes
+#          - entitlement_store
+#          - entitlement-pdp
+#          - entitlements
+#          - entity-resolution
+#          - kas
+#          - keycloak-bootstrap
+#    uses: ./.github/workflows/sign-artifacts.yaml
+#    with:
+#      target: ${{ matrix.target }}
+#      version: ${{ env.FULL_VERSION }}
+#    secrets: inherit
+
+#  verifying-signing:
+#    needs:
+#      - signing-artifacts
+#    permissions:
+#      packages: write
+#      contents: read
+#    env:
+#      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+#    strategy:
+#      matrix:
+#        target:
+#          - attributes
+#          - entitlement_store
+#          - entitlement-pdp
+#          - entitlements
+#          - entity-resolution
+#          - kas
+#          - keycloak-bootstrap
+#    uses: ./.github/workflows/verify-artifacts.yaml
+#    with:
+#      target: ${{ matrix.target }}
+#      version: ${{ env.FULL_VERSION }}
+#    secrets: inherit
 
   build-and-publish-policybundle:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
