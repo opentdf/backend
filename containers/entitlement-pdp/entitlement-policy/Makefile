@@ -1,4 +1,4 @@
-POLICYVERSION?=1.1.1
+POLICYVERSION?=1.1.2
 BUNDLETAG?=ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
 
 .PHONY: localprep
