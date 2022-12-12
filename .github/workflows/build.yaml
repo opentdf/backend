@@ -401,7 +401,7 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      tags: ${{ steps.meta.outputs.tags }}
+      version: "1.0.0"
     secrets: inherit
 
   verifying-signing:
