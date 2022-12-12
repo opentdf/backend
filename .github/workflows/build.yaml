@@ -388,6 +388,8 @@ jobs:
     permissions:
       packages: write
       contents: read
+    env:
+      FULL_VERSION: ${{ steps.meta.outputs.tags }}
     strategy:
       matrix:
         target:
@@ -401,7 +403,7 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: "1.0.0"
+      version: ${{ steps.meta.outputs.tags }}
     secrets: inherit
 
   verifying-signing:
