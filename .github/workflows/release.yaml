@@ -92,29 +92,27 @@ jobs:
       version: "${{ needs.version.outputs.KEYCLOAK_BASE_VERSION }}"
     secrets: inherit
 
-  verifying-signing:
-    needs:
-      - signing-artifacts
-    permissions:
-      packages: write
-      contents: read
-    env:
-      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
-    strategy:
-      matrix:
-        target:
-          - attributes
-          - entitlement_store
-          - entitlement-pdp
-          - entitlements
-          - entity-resolution
-          - kas
-          - keycloak-bootstrap
-    uses: ./.github/workflows/verify-artifacts.yaml
-    with:
-      target: ${{ matrix.target }}
-      version: ${{ env.FULL_VERSION }}
-    secrets: inherit
+#  verifying-signing:
+#    needs:
+#      - signing-artifacts
+#    permissions:
+#      packages: write
+#      contents: read
+#    strategy:
+#      matrix:
+#        target:
+#          - attributes
+#          - entitlement_store
+#          - entitlement-pdp
+#          - entitlements
+#          - entity-resolution
+#          - kas
+#          - keycloak-bootstrap
+#    uses: ./.github/workflows/verify-artifacts.yaml
+#    with:
+#      target: ${{ matrix.target }}
+#      version: "${{ needs.config.outputs.FULL_VERSION }}"
+#    secrets: inherit
 
   policybundle:
     needs:
