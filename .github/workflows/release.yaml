@@ -72,12 +72,12 @@ jobs:
   signing-artifacts:
     needs:
       - docker
+      - version
     permissions:
       packages: write
       contents: read
     strategy:
       matrix:
-        version: "${{ needs.version.outputs.FULL_VERSION }}"
         target:
           - attributes
           - entitlement_store
@@ -89,7 +89,7 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: ${{ matrix.version }}
+      version: "${{ needs.version.outputs.KEYCLOAK_BASE_VERSION }}"
     secrets: inherit
 
   verifying-signing:
