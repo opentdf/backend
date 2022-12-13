@@ -92,8 +92,8 @@ attributes:
   preloadedAuthorities: null
     # - http://example.fun
     # - http://testing123.fun
-  # -- List of attributes to create in the form 
-  # [{authority:"", name:"", rule:"", state:"", order:[]}]
+  # -- List of attributes to create in the form:
+  #  [{authority:"", name:"", rule:"", state:"", order:[]}]
   preloadedAttributes: null
   # - authority: http://example.fun
   #   name: number

@@ -336,8 +336,8 @@ keycloak-bootstrap:
     # -- List of authorities to create
     preloadedAuthorities:
     - https://example.com
-    # -- List of attributes to create in the form 
-    # [{authority:"", name:"", rule:"", state:"", order:[]}]
+    # -- List of attributes to create in the form:
+    #  [{authority:"", name:"", rule:"", state:"", order:[]}]
     preloadedAttributes:
     - authority: https://example.com
       name: Classification
