@@ -1,32 +1,12 @@
 package com.virtru.keycloak;
 
-import com.fasterxml.jackson.databind.node.JsonNodeCreator;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
-import com.google.common.base.Strings;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
-import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.keycloak.common.util.Base64Url;
-import org.keycloak.jose.JOSEParser;
-import org.keycloak.jose.jwk.JWK;
-import org.keycloak.jose.jwk.JWKUtil;
-import org.keycloak.jose.jws.JWSInput;
 import org.keycloak.models.*;
 import org.keycloak.protocol.oidc.mappers.*;
 import org.keycloak.provider.ProviderConfigProperty;
+import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.IDToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +37,6 @@ public class DPoPConfirmationMapper extends AbstractOIDCProtocolMapper
         OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, DPoPConfirmationMapper.class);
         OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
         configProperties.get(configProperties.size() - 1).setDefaultValue("cnf");
-
         configProperties.add(new ProviderConfigProperty(DPOP_HEADER, "DPoP Header Name",
                 "Header containing `DPoP`",
                 ProviderConfigProperty.STRING_TYPE, "DPoP"));
@@ -66,12 +45,18 @@ public class DPoPConfirmationMapper extends AbstractOIDCProtocolMapper
     static Optional<DPoP.Proof> getProofHeader(HttpHeaders headers) {
         List<String> dpopValues = new ArrayList<>(new HashSet<>(headers.getRequestHeader("dpop")));
         if (dpopValues.isEmpty()) {
+            logger.info("No DPoP Header");
             return Optional.empty();
         }
         if (dpopValues.size() > 1) {
             throw new BadRequestException("Conflicting dpop headers");
         }
-        return Optional.of(DPoP.validate(dpopValues.get(0)));
+        try {
+            return Optional.of(DPoP.validate(dpopValues.get(0)));
+        } catch (RuntimeException ex) {
+            logger.error("failure", ex);
+            throw ex;
+        }
     }
 
     @Override
@@ -103,7 +88,7 @@ public class DPoPConfirmationMapper extends AbstractOIDCProtocolMapper
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession,
             KeycloakSession keycloakSession,
             ClientSessionContext clientSessionCtx) {
-        logger.info("DPoP confirmation mapper triggered");
+        logger.info("DPoP confirmation IDToken mapper triggered");
         Optional<DPoP.Proof> dpop = DPoPConfirmationMapper.getProofHeader(keycloakSession.getContext().getRequestHeaders());
 
         // If no PK in request, don't bother asking for claims - no authorization.
@@ -116,4 +101,54 @@ public class DPoPConfirmationMapper extends AbstractOIDCProtocolMapper
         logger.debug("Registering dpop cnf jkt [{}] for dpop with jti [{}]", cnf.get("jkt"), dpop.get().getPayload().getIdentifier());
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, cnf);
     }
+
+    @Override
+    protected void setClaim(AccessTokenResponse accessTokenResponse, ProtocolMapperModel mappingModel, UserSessionModel userSession, KeycloakSession keycloakSession,
+                            ClientSessionContext clientSessionCtx) {
+        logger.info("DPoP confirmation AccessToken mapper triggered");
+        Optional<DPoP.Proof> dpop = DPoPConfirmationMapper.getProofHeader(keycloakSession.getContext().getRequestHeaders());
+
+        // If no PK in request, don't bother asking for claims - no authorization.
+        if (dpop.isEmpty()) {
+            logger.info("No public key in auth request, skipping remote auth call and returning empty claims");
+            return;
+        }
+
+        JsonNode cnf = DPoP.confirmation(dpop.get().getHeader().getJwk());
+        logger.debug("Registering dpop cnf jkt [{}] for dpop with jti [{}]", cnf.get("jkt"), dpop.get().getPayload().getIdentifier());
+        OIDCAttributeMapperHelper.mapClaim(accessTokenResponse, mappingModel, cnf);
+    }
+
+
+
+
+    @Override
+    public AccessToken transformUserInfoToken(AccessToken token, ProtocolMapperModel mappingModel, KeycloakSession session,
+                                              UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
+        logger.info("transformUserInfoToken [{}]", token);
+        return super.transformUserInfoToken(token, mappingModel, session, userSession, clientSessionCtx);
+    }
+
+    @Override
+    public AccessToken transformAccessToken(AccessToken token, ProtocolMapperModel mappingModel, KeycloakSession session,
+                                            UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
+        logger.info("transformAccessToken [{}] [{}]", token, mappingModel.getConfig());
+        return super.transformAccessToken(token, mappingModel, session, userSession, clientSessionCtx);
+    }
+
+    @Override
+    public IDToken transformIDToken(IDToken token, ProtocolMapperModel mappingModel, KeycloakSession session,
+                                    UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
+        logger.info("transformIDToken [{}]", token);
+        return super.transformIDToken(token, mappingModel, session, userSession, clientSessionCtx);
+    }
+
+    @Override
+    public AccessTokenResponse transformAccessTokenResponse(AccessTokenResponse accessTokenResponse, ProtocolMapperModel mappingModel,
+                                                            KeycloakSession session, UserSessionModel userSession,
+                                                            ClientSessionContext clientSessionCtx) {
+        logger.info("transformAccessTokenResponse [{}]", accessTokenResponse);
+        return super.transformAccessTokenResponse(accessTokenResponse, mappingModel, session, userSession, clientSessionCtx);
+    }
+
 }

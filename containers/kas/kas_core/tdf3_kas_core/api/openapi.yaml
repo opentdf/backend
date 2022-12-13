@@ -92,7 +92,7 @@ paths:
       operationId: tdf3_kas_core.web.rewrap.rewrap
       parameters: &dpop-header
         - in: header
-          name: DPoP
+          name: dpop
           schema:
             type: string
       requestBody:

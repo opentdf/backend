@@ -138,7 +138,9 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
         return "true" if b else "false"
 
     def addMapper(claim, is_person, extra_params={}):
-        mapper = "virtru-oidc-protocolmapper" if claim == "tdf_claims" else "dpop-cnf-mapper"
+        mapper = (
+            "virtru-oidc-protocolmapper" if claim == "tdf_claims" else "dpop-cnf-mapper"
+        )
         token_type = "UserInfo" if is_person else "Access"
         name = f"{token_type} {claim}"
         try:
@@ -167,22 +169,31 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                 exc_info=True,
             )
 
-    addMapper(
-        "cnf",
-        True,
-    )
+    # addMapper(
+    #     "cnf",
+    #     True,
+    #     {
+    #         "client.dpop": "DPoP",
+    #     },
+    # )
     addMapper(
         "cnf",
         False,
-    )
-
-    addMapper(
-        "tdf_claims",
-        True,
         {
             "client.publickey": "X-VirtruPubKey",
+            "client.dpop": "DPoP",
         },
     )
+
+    # addMapper(
+    #     "tdf_claims",
+    #     True,
+    #     {
+    #         "remote.parameters.username": "true",
+    #         "remote.parameters.clientid": "true",
+    #         "client.publickey": "X-VirtruPubKey",
+    #     },
+    # )
     addMapper(
         "tdf_claims",
         False,

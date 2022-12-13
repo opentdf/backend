@@ -13,13 +13,20 @@ public class DPoPHeader {
   private static final ObjectMapper mapper = new ObjectMapper();
 
   @JsonProperty("alg")
-  private String algorithm;
+  protected String algorithm;
 
   @JsonProperty("typ")
-  private String type;
+  protected String type;
 
   @JsonProperty("jwk")
-  private JWK jwk;
+  protected JWK jwk;
+
+
+  public DPoPHeader() {
+    this.algorithm = algorithm;
+    this.type = "dpop+jwt";
+    this.jwk = jwk;
+  }
 
   public DPoPHeader(String algorithm, JWK jwk) {
     this.algorithm = algorithm;
@@ -31,12 +38,24 @@ public class DPoPHeader {
     return algorithm;
   }
 
+  public void setAlgorithm(String algorithm) {
+    this.algorithm = algorithm;
+  }
+
   public String getType() {
     return type;
   }
 
+  public void setType(String type) {
+    this.type = type;
+  }
+
   public JWK getJwk() {
     return this.jwk;
+  }
+
+  public void setJwk(JWK jwk) {
+    this.jwk = jwk;
   }
 
   static {

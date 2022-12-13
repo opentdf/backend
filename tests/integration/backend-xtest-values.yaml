@@ -44,6 +44,22 @@ keycloak-bootstrap:
                   claim.name: tdf_claims
                 name: Virtru OIDC Auth Mapper
                 protocolMapper: virtru-oidc-protocolmapper
+              - protocol: openid-connect
+                config:
+                  id.token.claim: "false"
+                  access.token.claim: "false"
+                  userinfo.token.claim: "true"
+                  claim.name: cnf
+                name: Virtru OIDC UserInfo Mapper
+                protocolMapper: dpop-cnf-mapper
+              - protocol: openid-connect
+                config:
+                  id.token.claim: "true"
+                  access.token.claim: "true"
+                  userinfo.token.claim: "false"
+                  claim.name: cnf
+                name: Virtru OIDC Auth Mapper
+                protocolMapper: dpop-cnf-mapper
           - payload:
               clientId: test-client-2
               directAccessGrantsEnabled: "true"

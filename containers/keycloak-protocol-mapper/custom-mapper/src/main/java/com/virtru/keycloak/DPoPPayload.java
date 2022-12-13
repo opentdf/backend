@@ -13,21 +13,21 @@ public class DPoPPayload {
   private static final ObjectMapper mapper = new ObjectMapper();
 
   @JsonProperty("jti")
-  private String identifier;
+  protected String identifier;
 
   @JsonProperty("htm")
-  private String httpMethod;
+  protected String httpMethod;
 
   @JsonProperty("htu")
-  private String httpUri;
+  protected String httpUri;
 
   @JsonProperty("iat")
-  private Long issuedAt;
+  protected Long issuedAt;
 
   @JsonProperty("ath")
-  private String accessTokenHash;
+  protected String accessTokenHash;
 
-  private String nonce;
+  protected String nonce;
 
   static {
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);

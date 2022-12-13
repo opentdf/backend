@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.ClientErrorException;
 
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.keycloak.jose.jwk.ECPublicJWK;
@@ -36,6 +36,7 @@ class DPoP {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final Base64.Decoder B64_DECODER = Base64.getUrlDecoder();
   private static final Base64.Encoder B64_ENCODER = Base64.getUrlEncoder().withoutPadding();
+  static long MOCK_TIME = 0;
 
   private static Map<String, String> SIG_JWT_TO_JAVA = Map.of(
       "RS256", "SHA256withRSA",
@@ -83,7 +84,7 @@ class DPoP {
     try {
       return mapper.writeValueAsString(canonicalMap(jwk));
     } catch (JsonProcessingException e) {
-      throw new NotAuthorizedException(e, "Unsupported JWK");
+      throw new ClientErrorException("Unsupported JWK", 401, e);
     }
   }
 
@@ -112,14 +113,13 @@ class DPoP {
     return B64_ENCODER.encodeToString(hash);
   }
 
-  static boolean righttAboutNow(long nowishIGuess) {
-    long timeOff = System.currentTimeMillis() - nowishIGuess;
-    if (-5 * 60 * 1000 < timeOff) {
-      // We don't let things in from more than five minutes ago.
-      return false;
-    }
-    // But also not more than 30 seconds from now
-    return timeOff < 30 * 1000;
+  static boolean rightAboutNow(long issuedAtTime) {
+    long now = MOCK_TIME != 0 ? MOCK_TIME : (System.currentTimeMillis() / 1000);
+    // Issued not too far in the future, or too long in the past. 
+    // NOTE: Should this be customizeable?
+    long fiveMinutesAgo = now - 5 * 60;
+    long thirtySecondsFromNow = now + 30;
+    return fiveMinutesAgo <= issuedAtTime && issuedAtTime <= thirtySecondsFromNow;
   }
 
   static String jwkToPem(JWK jwk) {
@@ -139,7 +139,7 @@ class DPoP {
     // to get extensions to header (JWK, new typ value)
     String[] parts = dpopWireFormat.split("\\.");
     if (parts.length != 3) {
-      throw new NotAuthorizedException("Parse failure of dpop [" + dpopWireFormat + "]");
+      throw new ClientErrorException("Parse failure of dpop [" + dpopWireFormat + "]", 401);
     }
     // Decode things we want to decode to make sure they are valid
     byte[] headerBytes, payloadBytes, signatureBytes;
@@ -148,22 +148,22 @@ class DPoP {
       payloadBytes = B64_DECODER.decode(parts[1]);
       signatureBytes = B64_DECODER.decode(parts[2]);
     } catch (IllegalArgumentException e) {
-      throw new NotAuthorizedException(e, "Error in DPoP JWT encoding");
+      throw new ClientErrorException("Error in DPoP JWT encoding", 401, e);
     }
     DPoPHeader header;
     try {
       header = JsonSerialization.readValue(headerBytes, DPoPHeader.class);
     } catch (IOException e) {
-      throw new NotAuthorizedException(e);
+      throw new ClientErrorException(401, e);
     }
 
     // Validate syntax as described in
     // https://datatracker.ietf.org/doc/html/draft-ietf-oauth-dpop#section-4.2
     if (!"dpop+jwt".equals(header.getType())) {
-      throw new NotAuthorizedException("DPoP typ invalid");
+      throw new ClientErrorException("DPoP typ invalid", 401);
     }
     if (!ALLOWED_DPOP_ALGORITHMS.contains(header.getAlgorithm())) {
-      throw new NotAuthorizedException("DPoP alg invalid");
+      throw new ClientErrorException("DPoP alg invalid", 401);
     }
 
     PublicKey pk = JWKParser.create(header.getJwk()).toPublicKey();
@@ -182,28 +182,28 @@ class DPoP {
       sig.update(encodedSignatureInput);
       sig.verify(signatureBytes);
     } catch (SignatureException e) {
-      throw new NotAuthorizedException(e, "Error in DPoP signature verification");
+      throw new ClientErrorException("Error in DPoP signature verification", 401, e);
     } catch (InvalidKeyException e) {
-      throw new NotAuthorizedException(e, "Error in DPoP JWK / Algorithm initialization");
+      throw new ClientErrorException("Error in DPoP JWK / Algorithm initialization", 401, e);
     }
 
     DPoPPayload payload;
     try {
       payload = JsonSerialization.readValue(payloadBytes, DPoPPayload.class);
     } catch (IOException e) {
-      throw new NotAuthorizedException(e);
+      throw new ClientErrorException(401, e);
     }
 
     // TODO: JTI reuse check
     if (Strings.isNullOrEmpty(payload.getIdentifier())) {
-      throw new NotAuthorizedException("Invalid `jti` claim");
+      throw new ClientErrorException("Invalid `jti` claim", 401);
     }
     // TODO what should these be? Can we look them up?
     if (Strings.isNullOrEmpty(payload.getHttpMethod()) || Strings.isNullOrEmpty(payload.getHttpUri())) {
-      throw new NotAuthorizedException("Invalid dpop");
+      throw new ClientErrorException("Invalid dpop", 401);
     }
-    if (payload.getIssuedAt() == null || !righttAboutNow(payload.getIssuedAt())) {
-      throw new NotAuthorizedException("Invalid dpop");
+    if (payload.getIssuedAt() == null || !rightAboutNow(payload.getIssuedAt())) {
+      throw new ClientErrorException("Invalid dpop issuedAt [" + payload.getIssuedAt() + "] !~ [" + System.currentTimeMillis() + "]", 401);
     }
     // TODO support DPoP-Nonce flow
     // TODO Fail on `ath` claims, right?

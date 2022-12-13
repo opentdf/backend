@@ -31,12 +31,9 @@ keycloak:
           id.token.claim: "false"
           access.token.claim: "false"
           userinfo.token.claim: "true"
-          remote.parameters.username: "true"
-          remote.parameters.clientid: "true"
-          client.publickey: X-VirtruPubKey
           claim.name: cnf
-        name: Virtru OIDC UserInfo Mapper
-        protocolMapper: virtru-oidc-protocolmapper
+        name: DPoP UserInfo Mapper
+        protocolMapper: dpop-cnf-mapper
       - protocol: openid-connect
         config:
           id.token.claim: "false"
@@ -53,12 +50,9 @@ keycloak:
           id.token.claim: "true"
           access.token.claim: "true"
           userinfo.token.claim: "false"
-          remote.parameters.username: "true"
-          remote.parameters.clientid: "true"
-          client.publickey: X-VirtruPubKey
-          claim.name: pop_key
-        name: Virtru OIDC Auth Mapper
-        protocolMapper: virtru-oidc-protocolmapper
+          claim.name: cnf
+        name: DPoP Access and ID Mapper
+        protocolMapper: dpop-cnf-mapper
       - protocol: openid-connect
         config:
           id.token.claim: "true"
@@ -87,12 +81,28 @@ keycloak:
           id.token.claim: "false"
           access.token.claim: "false"
           userinfo.token.claim: "true"
+          claim.name: cnf
+        name: DPoP UserInfo Mapper
+        protocolMapper: dpop-cnf-mapper
+      - protocol: openid-connect
+        config:
+          id.token.claim: "false"
+          access.token.claim: "false"
+          userinfo.token.claim: "true"
           remote.parameters.username: "true"
           remote.parameters.clientid: "true"
           client.publickey: X-VirtruPubKey
           claim.name: tdf_claims
         name: Virtru OIDC UserInfo Mapper
         protocolMapper: virtru-oidc-protocolmapper
+      - protocol: openid-connect
+        config:
+          id.token.claim: "true"
+          access.token.claim: "true"
+          userinfo.token.claim: "false"
+          claim.name: cnf
+        name: DPoP Access and ID Mapper
+        protocolMapper: dpop-cnf-mapper
       - protocol: openid-connect
         config:
           id.token.claim: "true"
