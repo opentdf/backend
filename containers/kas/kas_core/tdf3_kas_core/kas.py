@@ -3,7 +3,6 @@
 import sys
 import os
 import connexion
-from swagger_ui_bundle import swagger_ui_3_path
 
 import importlib_resources
 import logging
@@ -314,12 +313,15 @@ class Kas(object):
         flask_app.wsgi_app = proxied
 
         # Allow swagger_ui to be disabled
-        options = {"swagger_path": swagger_ui_3_path}
+        options = {}
         if not swagger_enabled():
             # Turn off Swagger UI feature
             logger.debug("Disable Swagger UI")
             options.update({"swagger_ui": False})
         else:
+            from swagger_ui_bundle import swagger_ui_3_path
+
+            options = {"swagger_path": swagger_ui_3_path}
             logger.warning("Enable Swagger UI")
 
         # Connexion will link REST endpoints to handlers using the openapi.yaml file
