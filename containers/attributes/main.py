@@ -36,7 +36,7 @@ from fastapi.security import OAuth2AuthorizationCodeBearer, OpenIdConnect
 from keycloak import KeycloakOpenID
 from pydantic import AnyUrl, BaseSettings, Field, Json, ValidationError
 from pydantic.main import BaseModel
-from python_base import Pagination, get_query
+from python_base import Pagination, get_query, add_filter_by_access_control
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
@@ -251,11 +251,12 @@ table_attribute = sqlalchemy.Table(
 )
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
-dbase = sessionmaker(bind=engine)
+dbase_session = sessionmaker(bind=engine)
 
 
-def get_db() -> Session:
-    session = dbase()
+
+def get_db_session() -> Session:
+    session = dbase_session()
     try:
         yield session
     finally:
@@ -265,6 +266,8 @@ def get_db() -> Session:
 class AttributeSchema(declarative_base()):
     __table__ = table_attribute
 
+class AuthoritySchema(declarative_base()):
+    __table__ = table_authority
 
 # middleware
 @app.middleware("http")
@@ -427,6 +430,7 @@ oidc_scheme = OpenIdConnect(
     },
 )
 async def read_attributes(
+    request: Request,
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
     rule: Optional[str] = None,
@@ -435,7 +439,7 @@ async def read_attributes(
         "",
         regex="^(-*((state)|(rule)|(name)|(values_array)),)*-*((state)|(rule)|(name)|(values_array))$",
     ),
-    db: Session = Depends(get_db),
+    session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
@@ -454,13 +458,21 @@ async def read_attributes(
         filter_args["values_array"] = order
 
     sort_args = sort.split(",") if sort else []
-    results = await read_attributes_crud(AttributeSchema, db, filter_args, sort_args)
+    results = await read_attributes_crud(request, session, filter_args, sort_args)
 
     return pager.paginate(results)
 
 
-async def read_attributes_crud(schema, db, filter_args, sort_args):
-    results = get_query(schema, db, filter_args, sort_args)
+async def read_attributes_crud(request, session, filter_args, sort_args):
+    table_to_query = metadata.tables['tdf_attribute.attribute']
+    org_name = add_filter_by_access_control(request)
+    table_ns = metadata.tables['tdf_attribute.attribute_namespace']
+    query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
+    if org_name is not None:
+        for row in query:
+            filter_args["namespace_id"] = row.id
+    filters, sorters = get_query(table_to_query, filter_args, sort_args)
+    results = session.query(table_to_query).filter(*filters).order_by(*sorters)
     error = None
     authorities = await read_authorities_crud()
     attributes: List[AnyUrl] = []
@@ -549,7 +561,7 @@ async def read_attributes_definitions(
         "",
         regex="^(-*((id)|(state)|(rule)|(name)|(values_array)),)*-*((id)|(state)|(rule)|(name)|(values_array))$",
     ),
-    db: Session = Depends(get_db),
+    session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
 ):
     logger.debug("read_attributes_definitions %s", request.url)
@@ -573,8 +585,15 @@ async def read_attributes_definitions(
         filter_args["rule"] = rule
 
     sort_args = sort.split(",") if sort else []
-
-    results = get_query(AttributeSchema, db, filter_args, sort_args)
+    table_to_query = metadata.tables['tdf_attribute.attribute']
+    org_name = add_filter_by_access_control(request)
+    table_ns = metadata.tables['tdf_attribute.attribute_namespace']
+    query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
+    if org_name is not None:
+        for row in query:
+            filter_args["namespace_id"] = row.id
+    filters, sorters = get_query(table_to_query, filter_args, sort_args)
+    results = session.query(table_to_query).filter(*filters).order_by(*sorters)
 
     authorities = await read_authorities_crud()
     attributes: List[AttributeDefinition] = []

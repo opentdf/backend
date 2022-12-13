@@ -20,7 +20,7 @@ def test_read_entitlements(test_app, monkeypatch):
         },
     ]
 
-    async def mock_read_entitlements_crud(schema, db, filter, sort):
+    async def mock_read_entitlements_crud(session, filter, sort):
         return test_data
 
     monkeypatch.setattr(main, "read_entitlements_crud", mock_read_entitlements_crud)
