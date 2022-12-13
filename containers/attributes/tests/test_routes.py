@@ -21,7 +21,7 @@ def test_create_authorities(test_app, monkeypatch):
     test_payload = {"authority": "https://opentdf.io"}
     test_response = ["https://opentdf.io"]
 
-    async def mock_create_authorities_crud(request):
+    async def mock_create_authorities_crud(request, decoded_token=None):
         return test_response
 
     monkeypatch.setattr(main, "create_authorities_crud", mock_create_authorities_crud)
@@ -70,7 +70,7 @@ def test_create_attributes_definitions(test_app, monkeypatch):
         "group_by": None,
     }
 
-    async def mock_create_attributes_definitions_crud(request):
+    async def mock_create_attributes_definitions_crud(request, decoded_token=None):
         return test_response
 
     monkeypatch.setattr(
@@ -111,7 +111,7 @@ def test_create_attributes_definitions_groupby(test_app, monkeypatch):
         },
     }
 
-    async def mock_create_attributes_definitions_crud(request):
+    async def mock_create_attributes_definitions_crud(request, decoded_token=None):
         return test_response
 
     monkeypatch.setattr(
@@ -143,7 +143,7 @@ def test_update_attribute_definition(test_app, monkeypatch):
         "group_by": None,
     }
 
-    async def mock_update_attribute_definition_crud(request):
+    async def mock_update_attribute_definition_crud(request, decoded_token=None):
         return test_response
 
     monkeypatch.setattr(
@@ -182,7 +182,7 @@ def test_update_attribute_definition_groupby(test_app, monkeypatch):
         },
     }
 
-    async def mock_update_attribute_definition_crud(request):
+    async def mock_update_attribute_definition_crud(request, decoded_token=None):
         return test_response
 
     monkeypatch.setattr(
@@ -203,7 +203,7 @@ def test_delete_attributes_definitions(test_app, monkeypatch):
         "order": ["TradeSecret", "Proprietary", "BusinessSensitive", "Open"],
     }
 
-    async def mock_delete_attributes_definitions_crud(request):
+    async def mock_delete_attributes_definitions_crud(request, decoded_token=None):
         return {}
 
     monkeypatch.setattr(
