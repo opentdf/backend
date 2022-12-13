@@ -393,7 +393,6 @@ jobs:
       contents: read
     strategy:
       matrix:
-        version: 1.0.1
         target:
           - attributes
           - entitlement_store
@@ -405,7 +404,7 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: ${{ matrix.version }}
+      version: "1.0.1"
     secrets: inherit
 
 #  verifying-signing:
