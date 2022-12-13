@@ -314,15 +314,11 @@ class Kas(object):
 
         # Allow swagger_ui to be disabled
         options = {}
-        if not swagger_enabled():
-            # Turn off Swagger UI feature
-            logger.debug("Disable Swagger UI")
-            options.update({"swagger_ui": False})
-        else:
-            from swagger_ui_bundle import swagger_ui_3_path
+        # Turn off Swagger UI feature
+        logger.debug("Disable Swagger UI")
+        options.update({"swagger_ui": False})
 
-            options = {"swagger_path": swagger_ui_3_path}
-            logger.warning("Enable Swagger UI")
+        logger.warning("Enable Swagger UI")
 
         # Connexion will link REST endpoints to handlers using the openapi.yaml file
         openapi_file = importlib_resources.files(__package__) / "api" / "openapi.yaml"
