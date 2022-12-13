@@ -250,11 +250,11 @@ table_entity_attribute = sqlalchemy.Table(
 )
 
 engine = sqlalchemy.create_engine(DATABASE_URL)
-dbase = sessionmaker(bind=engine)
+dbase_session = sessionmaker(bind=engine)
 
 
-def get_db() -> Session:
-    session = dbase()
+def get_db_session() -> Session:
+    session = dbase_session()
     try:
         yield session
     finally:
@@ -423,7 +423,7 @@ async def read_entitlements(
         "",
         regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
     ),
-    db: Session = Depends(get_db),
+    session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
@@ -438,20 +438,16 @@ async def read_entitlements(
 
     sort_args = sort.split(",") if sort else []
 
-    results = await read_entitlements_crud(
-        request, metadata, db, filter_args, sort_args
-    )
+    results = await read_entitlements_crud(session, filter_args, sort_args)
 
     return pager.paginate(results)
 
 
-async def read_entitlements_crud(request, metadata, db, filter_args, sort_args):
-    results = get_query(request, metadata, db, filter_args, sort_args)
-    # logger.debug(query)
-    # results = query.all()
-    # query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)
-    # result = await database.fetch_all(query)
-    # must be ordered by entity_id
+async def read_entitlements_crud(session, filter_args, sort_args):
+    table_to_query = metadata.tables['tdf_entitlement.entity_attribute']
+    filters, sorters = get_query(table_to_query, filter_args, sort_args)
+    results = session.query(table_to_query).filter(*filters).order_by(*sorters)
+
     entitlements: List[Entitlements] = []
     previous_entity_id: str = ""
     previous_attributes: List[str] = []

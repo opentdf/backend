@@ -60,23 +60,10 @@ def get_sorter_by_args(model, args: list):
     return sorters
 
 
-def get_query(request, metadata, db: Session, filter_args: dict = {}, sort_args: list = []):
+def get_query(table_to_query, filter_args: dict = {}, sort_args: list = []):
     logger.info("Filtering by [%s]", filter_args)
     logger.info("Sorting by [%s]", sort_args)
-    host = request.headers.get("host", "").split(":")[0].lower()
-
-    if host == "attributes":
-        org_name = add_filter_by_access_control(request)
-        attribute_ns = metadata.tables['tdf_attribute.attribute_namespace']
-        query = db.query(attribute_ns).filter(attribute_ns.c.name == org_name).all()
-        table_to_query = metadata.tables['tdf_attribute.attribute']
-    else:
-        table_to_query = metadata.tables['tdf_entitlement.entity_attribute']
-
-    if org_name is not None:
-        for row in query:
-            filter_args["namespace_id"] = row.id
 
     filters = get_filter_by_args(table_to_query, filter_args)
     sorters = get_sorter_by_args(table_to_query, sort_args)
-    return db.query(table_to_query).filter(*filters).order_by(*sorters)
+    return filters, sorters

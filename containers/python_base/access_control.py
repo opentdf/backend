@@ -10,7 +10,6 @@ def add_filter_by_access_control(request):
 def get_authority(request):
     token = request.headers.get('Authorization').replace('Bearer ', '')
     keycloak_openid = KeycloakOpenID(
-        # trailing / is required
         server_url=os.getenv("OIDC_SERVER_URL"),
         client_id=os.getenv("OIDC_CLIENT_ID"),
         realm_name=os.getenv("OIDC_REALM"),
