@@ -466,8 +466,6 @@ async def read_attributes(
 async def read_attributes_crud(request, session, filter_args, sort_args):
     table_to_query = metadata.tables['tdf_attribute.attribute']
     org_name = add_filter_by_access_control(request)
-    logger.info("orgname2")
-    logger.info(org_name)
     table_ns = metadata.tables['tdf_attribute.attribute_namespace']
     query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
     if org_name is not None:
@@ -589,8 +587,6 @@ async def read_attributes_definitions(
     sort_args = sort.split(",") if sort else []
     table_to_query = metadata.tables['tdf_attribute.attribute']
     org_name = add_filter_by_access_control(request)
-    logger.info("orgname1")
-    logger.info(org_name)
     table_ns = metadata.tables['tdf_attribute.attribute_namespace']
     query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
     if org_name is not None:
