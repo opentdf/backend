@@ -57,7 +57,6 @@ paths:
   "/kas_public_key":
     get:
       summary: "Get the public key for KAS"
-      deprecated: true
       description: |
         This endpoint provides a public key for the private key that the
         kas has internally. The public key is used to wrap object keys in

@@ -140,7 +140,7 @@ helm repo remove keycloak
 ## Swagger-UI
 
 The microservices support OpenAPI, and can provide documentation and easier interaction for the REST API.
-Add "/ui" to the base URL of the appropriate server. For example, `http://127.0.0.1:4010/ui/`.
+Add "/api/[service name]/docs/" to the base URL of the appropriate server. For example, `http://127.0.0.1:65432/api/kas/docs/`.
 KAS and EAS each have separate REST APIs that together with the SDK support the full TDF3 process for encryption,
 authorization, and decryption.
 

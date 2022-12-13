@@ -33,6 +33,8 @@ RUN diff <(python3 -m entitlements.main) entitlements/openapi.json
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 ARG PY_VERSION
 
+RUN apk add --no-cache --upgrade sqlite
+
 WORKDIR /app
 COPY --from=build --chown=root:root /build/ .
 # NOTE - the python version needs to be specified in the following COPY command:

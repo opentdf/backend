@@ -17,8 +17,9 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 tmp_dir = "tmp/"
 
-SDK_PATHS = {
-    "py_service": "py/service.py",
+FILE_PATHS = {
+    "service": "integration-tests/service.py",
+    "other": "integration-tests/other.py",
     "py_encrypt": "py/encrypt.py",
     "py_decrypt": "py/decrypt.py",
 }
@@ -30,12 +31,14 @@ ORGANIZATION_NAME = "tdf"
 CLIENT_ID = "tdf-client"
 TEST_CLIENT_1 = "test-client-1"
 TEST_CLIENT_2 = "test-client-2"
+TEST_CLIENT_3 = "test-client-3" # no mappers
 ATTRIBUTES_CLIENT_ID = "tdf-client"
 ATTRIBUTES_CLIENT_SECRET = "123-456"
 CLIENTS = {
     CLIENT_ID: "123-456",
     TEST_CLIENT_1: "123-456-789",
     TEST_CLIENT_2: "123-456-789",
+    TEST_CLIENT_3: "123-456-789",
 }
 ALL_OF_SUCCESS = ["http://testing123.fun/attr/Language/value/spanish"]
 ALL_OF_FAILURE = [
@@ -110,10 +113,10 @@ def decrypt_py_nano(ct_file, rt_file, client_id=CLIENT_ID):
     decrypt_py(ct_file, rt_file, nano=True, client_id=client_id)
 
 
-def service_py():
+def service():
     c = [
         "python3",
-        SDK_PATHS["py_service"],
+        FILE_PATHS["service"],
         "--attributesEndpoint",
         ATTRIBUTES_ENDPOINT,
         "--oidcEndpoint",
@@ -124,11 +127,24 @@ def service_py():
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
+def other_integration_tests():
+    c = [
+        "python3",
+        FILE_PATHS["other"],
+        "--kasEndpoint",
+        KAS_ENDPOINT,
+        "--oidcEndpoint",
+        OIDC_ENDPOINT,
+        "--auth",
+        f"{ORGANIZATION_NAME}:{TEST_CLIENT_3}:{CLIENTS[TEST_CLIENT_3]}",
+    ]
+    logger.info("Invoking subprocess: %s", " ".join(c))
+    subprocess.check_call(c)
 
 def encrypt_py(pt_file, ct_file, nano=False, attributes=None, client_id=CLIENT_ID):
     c = [
         "python3",
-        SDK_PATHS["py_encrypt"],
+        FILE_PATHS["py_encrypt"],
         "--kasEndpoint",
         KAS_ENDPOINT,
         "--oidcEndpoint",
@@ -151,7 +167,7 @@ def encrypt_py(pt_file, ct_file, nano=False, attributes=None, client_id=CLIENT_I
 def decrypt_py(ct_file, rt_file, nano=False, client_id=CLIENT_ID):
     c = [
         "python3",
-        SDK_PATHS["py_decrypt"],
+        FILE_PATHS["py_decrypt"],
         "--kasEndpoint",
         KAS_ENDPOINT,
         "--oidcEndpoint",
@@ -198,7 +214,9 @@ def main():
     )
     args = parser.parse_args()
 
-    service_test = set([service_py])
+    service_test = set([service])
+
+    other_integration = set([other_integration_tests])
 
     tdf3_sdks_to_encrypt = set([encrypt_py])
     tdf3_sdks_to_decrypt = set([decrypt_py])
@@ -215,6 +233,8 @@ def main():
     try:
         logger.info("SERVICES TESTS:")
         failed += run_service_tests(service_test)
+        logger.info("OTHER INTEGRATION TESTS:")
+        failed += run_other_tests(other_integration)
         logger.info("TDF3 TESTS:")
         failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
         logger.info("NANO TESTS:")
@@ -248,6 +268,16 @@ def run_service_tests(service_test):
             failed += [f"{x}"]
     return failed
 
+def run_other_tests(other_tests):
+    logger.info("--- run_other_tests %s", other_tests)
+    failed = []
+    for x in other_tests:
+        try:
+            x()
+        except Exception as e:
+            logger.error("Exception with pass %s", x, exc_info=True)
+            failed += [f"{x}"]
+    return failed
 
 def run_attribute_tests(sdks_encrypt, sdks_decrypt, pt_file):
     logger.info("--- run_attribute_tests %s => %s", sdks_encrypt, sdks_decrypt)
