@@ -393,7 +393,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        version: "${{ config.version.outputs.KEYCLOAK_BASE_VERSION }}"
+        version: "1.0.1"
         target:
           - attributes
           - entitlement_store
