@@ -88,7 +88,7 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: "${{ needs.version.outputs.KEYCLOAK_BASE_VERSION }}"
+      version: "${{ needs.version.outputs.FULL_VERSION }}"
     secrets: inherit
 
   policybundle:
@@ -175,3 +175,27 @@ jobs:
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz
+
+
+  verifying-signing:
+    needs:
+      - signing-artifacts
+      - version
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        target:
+          - attributes
+          - entitlement_store
+          - entitlement-pdp
+          - entitlements
+          - entity-resolution
+          - kas
+          - keycloak-bootstrap
+    uses: ./.github/workflows/verify-artifacts.yaml
+    with:
+      target: ${{ matrix.target }}
+      version: "${{ needs.version.outputs.FULL_VERSION }}"
+    secrets: inherit
