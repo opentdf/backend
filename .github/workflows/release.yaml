@@ -75,10 +75,11 @@ jobs:
     permissions:
       packages: write
       contents: read
-    env:
-      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+#    env:
+#      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
     strategy:
       matrix:
+        version: "${{ needs.version.outputs.FULL_VERSION }}"
         target:
           - attributes
           - entitlement_store
@@ -90,7 +91,7 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: ${{ env.FULL_VERSION }}
+      version: ${{ matrix.version }}
     secrets: inherit
 
   verifying-signing:
