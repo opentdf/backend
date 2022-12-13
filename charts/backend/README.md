@@ -86,8 +86,8 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | global.opentdf.common.imagePullSecrets | list | `[]` | Any existing image pull secrets subcharts should use e.g. imagePullSecrets:   - name: my-existing-ghcr-pullsecret   - name: my-other-pullsecret |
 | global.opentdf.common.keycloak.password | string | `"mykeycloakpassword"` | The Keycloak admin password |
 | global.opentdf.common.keycloak.user | string | `"keycloakadmin"` | The Keycloak admin username |
-| global.opentdf.common.oidcExternalBaseUrl | string | `"http://localhost:65432"` | The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls. |
-| global.opentdf.common.oidcInternalBaseUrl | string | `"http://keycloak-http"` | The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls. |
+| global.opentdf.common.oidcExternalBaseUrl | string | `"http://localhost:65432"` | The external scheme + hostname to keycloak endpoint, `oidcUrlPrefix` used in constructing end urls. |
+| global.opentdf.common.oidcInternalBaseUrl | string | `"http://keycloak-http"` | The cluster internal scheme + hostname for keycloak endpoint, `oidcUrlPrefix` used in constructing end urls. |
 | global.opentdf.common.oidcUrlPath | string | `"auth"` | The url path (no preceding / ) to keycloak |
 | global.opentdf.common.postgres.database | string | `"tdf_database"` | The database name within the given server |
 | global.opentdf.common.postgres.host | string | `"postgresql"` | postgres server's k8s name or global DNS for external server |
@@ -96,9 +96,9 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | attributes.ingress.annotations | object | `{"nginx.ingress.kubernetes.io/rewrite-target":"/$2"}` | Ingress annotations |
 | attributes.ingress.className | string | `"nginx"` | The name of the Ingress Class associated with this ingress |
 | attributes.ingress.enabled | bool | `false` | Enables the Ingress |
-| attributes.ingress.hosts | object | `{"":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
+| attributes.ingress.hosts | object | `{"":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/attributes(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
 | attributes.logLevel | string | `"DEBUG"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
-| attributes.secretRef | string | `"name: \"{{ template \"attributes.fullname\" . }}-otdf-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to attributes.postgres.user below |
+| attributes.secretRef | string | `"name: \"{{ template \"attributes.fullname\" . }}-otdf-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to `attributes.postgres.user` below |
 | bootstrapKeycloak | bool | `true` | Create keycloak bootstrap secrets or not |
 | embedded.keycloak | bool | `true` | Use an embedded keycloak or not |
 | embedded.postgresql | bool | `true` | Use an embedded postgres or not |
@@ -110,14 +110,14 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | entitlement-store.ingress.annotations | object | `{"nginx.ingress.kubernetes.io/rewrite-target":"/$2"}` | Ingress annotations |
 | entitlement-store.ingress.className | string | `"nginx"` | The name of the Ingress Class associated with this ingress |
 | entitlement-store.ingress.enabled | bool | `false` | Enables the Ingress |
-| entitlement-store.ingress.hosts | object | `{"":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
-| entitlement-store.secretRef | string | `"name: \"{{ template \"entitlement-store.fullname\" . }}-otdf-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to entitlement-stor.postgres.user below |
+| entitlement-store.ingress.hosts | object | `{"":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/entitlement-store(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
+| entitlement-store.secretRef | string | `"name: \"{{ template \"entitlement-store.fullname\" . }}-otdf-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to `entitlement-store.postgres.user` below |
 | entitlements.fullnameOverride | string | `"entitlements"` | Optionally override the name |
 | entitlements.ingress.annotations | object | `{"nginx.ingress.kubernetes.io/rewrite-target":"/$2"}` | Ingress annotations |
 | entitlements.ingress.className | string | `"nginx"` | The name of the Ingress Class associated with this ingress |
 | entitlements.ingress.enabled | bool | `false` | Enables the Ingress |
-| entitlements.ingress.hosts | object | `{"":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
-| entitlements.secretRef | string | `"name: \"{{ template \"entitlements.fullname\" . }}-otdf-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to entitlements.postgres.user below |
+| entitlements.ingress.hosts | object | `{"":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/entitlements(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
+| entitlements.secretRef | string | `"name: \"{{ template \"entitlements.fullname\" . }}-otdf-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to `entitlements.postgres.user` below |
 | entity-resolution.config.keycloak.legacy | bool | `true` | Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346 |
 | entity-resolution.fullnameOverride | string | `"entity-resolution"` | Optionally override the name |
 | fullnameOverride | string | `""` | Optionally override the fully qualified name |
@@ -132,7 +132,7 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | kas.ingress.annotations | object | `{"nginx.ingress.kubernetes.io/rewrite-target":"/$2"}` | Ingress annotations |
 | kas.ingress.className | string | `"nginx"` | The name of the Ingress Class associated with this ingress |
 | kas.ingress.enabled | bool | `false` | Enables the Ingress |
-| kas.ingress.hosts | object | `{"":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
+| kas.ingress.hosts | object | `{"":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}},"host.docker.internal":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}},"localhost":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}},"opentdf.local":{"/api/kas(/|$)(.*)":{"pathType":"Prefix"}}}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
 | kas.logLevel | string | `"DEBUG"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
 | kas.pdp.disableTracing | string | `"true"` | KAS's internal Access PDP can send OpenTelemetry traces to collectors - if no collectors configured, the traces will get redirected to STDOUT, which is a bit spammy, so turn this off until we do proper OT trace collection everywhere. |
 | kas.pdp.verbose | string | `"true"` | Enables verbose mode for the internal PDP (policy decision point) KAS uses. If `true`, decisions will be logged with much additional detail |
@@ -185,33 +185,33 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | attributes.fullnameOverride | string | `""` | The fully qualified appname override |
 | attributes.image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | attributes.image.repo | string | `"ghcr.io/opentdf/attributes"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| attributes.image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
-| attributes.imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
+| attributes.image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
+| attributes.imagePullSecrets | string | `nil` | JSON passed to the deployment's `template.spec.imagePullSecrets`. Overrides `global.opentdf.common.imagePullSecrets` |
 | attributes.ingress.annotations | object | `{}` | Ingress annotations |
 | attributes.ingress.className | string | `nil` | Ingress class to use. |
 | attributes.ingress.enabled | bool | `false` | Enables the Ingress |
-| attributes.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
+| attributes.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
 | attributes.ingress.tls | string | `nil` | Ingress TLS configuration |
 | attributes.logLevel | string | `"INFO"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
 | attributes.nameOverride | string | `""` | Select a specific name for the resource, instead of the default, attributes |
 | attributes.nodeSelector | object | `{}` | Node labels for pod assignment |
 | attributes.oidc.clientId | string | `"tdf-attributes"` | Client id used for swagger-ui oauth |
-| attributes.oidc.externalHost | string | `nil` | Override for global.opentdf.common.oidcExternalBaseUrl & url path |
-| attributes.oidc.internalHost | string | `nil` | Override for global.opentdf.common.oidcInternalBaseUrl & url path |
+| attributes.oidc.externalHost | string | `nil` | Override for `global.opentdf.common.oidcExternalBaseUrl` & url path |
+| attributes.oidc.internalHost | string | `nil` | Override for `global.opentdf.common.oidcInternalBaseUrl` & url path |
 | attributes.oidc.realm | string | `"tdf"` | Realm used for swagger-ui oauth |
 | attributes.oidc.scopes | string | `"email"` | OIDC scopes used for swagger-ui pauth |
 | attributes.openapiUrl | string | `""` | Set to enable openapi endpoint |
-| attributes.podAnnotations | object | `{}` | Values for the deployment spec.template.metadata.annotations field |
-| attributes.podSecurityContext | object | `{}` | Values for deployment's spec.template.spec.securityContext |
-| attributes.postgres.database | string | `nil` | Override for global.opentdf.common.postgres.database |
-| attributes.postgres.host | string | `nil` | Override for global.opentdf.common.postgres.host |
-| attributes.postgres.port | string | `nil` | Override for global.opentdf.common.postgres.post |
+| attributes.podAnnotations | object | `{}` | Values for the deployment `spec.template.metadata.annotations` field |
+| attributes.podSecurityContext | object | `{}` | Values for deployment's `spec.template.spec.securityContext` |
+| attributes.postgres.database | string | `nil` | Override for `global.opentdf.common.postgres.database` |
+| attributes.postgres.host | string | `nil` | Override for `global.opentdf.common.postgres.host` |
+| attributes.postgres.port | string | `nil` | Override for `global.opentdf.common.postgres.post` |
 | attributes.postgres.schema | string | `"tdf_attribute"` | The entitlement schema |
-| attributes.postgres.user | string | `"tdf_attribute_manager"` | Must be a postgres user with tdf_attribute_manager role |
-| attributes.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| attributes.postgres.user | string | `"tdf_attribute_manager"` | Must be a postgres user with `tdf_attribute_manager` role |
+| attributes.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | attributes.resources | object | `{}` | Specify required limits for deploying this service to a pod. We usually recommend not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. |
-| attributes.secretRef | string | `"name: \"{{ template \"attributes.fullname\" . }}-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to postgres.user below |
-| attributes.securityContext | object | `{}` | Values for deployment's spec.template.spec.containers.securityContext |
+| attributes.secretRef | string | `"name: \"{{ template \"attributes.fullname\" . }}-secret\""` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to `postgres.user` below |
+| attributes.securityContext | object | `{}` | Values for deployment's `spec.template.spec.containers.securityContext` |
 | attributes.serverCorsOrigins | string | `""` | Allowed origins for CORS |
 | attributes.serverPublicName | string | `"Attribute Authority"` | Name of application. Used during oauth flows, for example when connecting to the OpenAPI endpoint with an OAuth authentication |
 | attributes.serverRootPath | string | `"/"` | Base path for this service. Allows serving multiple REST services from the same origin, e.g. using an ingress with prefix mapping as suggested below. |
@@ -229,8 +229,8 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | entitlement-pdp.config.verbose | string | `"false"` | Enable verbose logging |
 | entitlement-pdp.image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | entitlement-pdp.image.repo | string | `"ghcr.io/opentdf/entitlement-pdp"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| entitlement-pdp.image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
-| entitlement-pdp.imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets when set |
+| entitlement-pdp.image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
+| entitlement-pdp.imagePullSecrets | string | `nil` | JSON passed to the deployment's `template.spec.imagePullSecrets`. Overrides `global.opentdf.common.imagePullSecrets` when set |
 | entitlement-pdp.opaConfig.extraConfigYaml | object | `{"decision_logs":{"console":true}}` | Any extra/additional OPA config defined here will be appended as-is, as raw YAML to the OPA config file generated by the chart. |
 | entitlement-pdp.opaConfig.policy.OCIRegistryUrl | string | `"https://ghcr.io"` | Base URL to contact the policy bundle with |
 | entitlement-pdp.opaConfig.policy.allowInsecureTLS | bool | `false` | This will tell OPA to ignore TLS errors (bad cert, self-signed cert, etc) when downloading an OCI policy bundle from an OCI registry.  Unsuitable for production, used for testing with `localhost` registries |
@@ -240,7 +240,7 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | entitlement-pdp.opaConfig.policy.updatePolling.minDelay | int | `60` | Minimum amount of time to wait between bundle downloads |
 | entitlement-pdp.opaConfig.policy.useStaticPolicy | bool | `false` | If `useStaticPolicy` is set to `true`, then an OPA config will be generated that forces the use of a policy bundle that was built and packed into the `entitlement-pdp` container at *build* time, and no policy bundle will be fetched dynamically from the registry on startup. This is not a desirable default, but it is useful in offline deployments. |
 | entitlement-pdp.opaConfigMountPath | string | `"/etc/opa/config"` | Where the opa config yaml is mounted |
-| entitlement-pdp.replicaCount | int | `3` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| entitlement-pdp.replicaCount | int | `3` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | entitlement-pdp.secret.opaPolicyPullSecret | string | `"YOUR_GHCR_PAT_HERE"` | Creds or token needed to pull OPA policy bundle |
 | entitlement-pdp.secretRef | string | `nil` | Additional secrets. You can also add opa |
 | entitlement-pdp.serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
@@ -254,33 +254,33 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | entitlement-store.fullnameOverride | string | `""` | The fully qualified appname override |
 | entitlement-store.image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | entitlement-store.image.repo | string | `"ghcr.io/opentdf/entitlement_store"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| entitlement-store.image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
-| entitlement-store.imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
+| entitlement-store.image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
+| entitlement-store.imagePullSecrets | string | `nil` | JSON passed to the deployment's `template.spec.imagePullSecrets`. Overrides `global.opentdf.common.imagePullSecrets` |
 | entitlement-store.ingress.annotations | object | `{}` | Ingress annotations |
 | entitlement-store.ingress.className | string | `nil` | Ingress class to use. |
 | entitlement-store.ingress.enabled | bool | `false` | Enables the Ingress |
-| entitlement-store.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
+| entitlement-store.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
 | entitlement-store.ingress.tls | string | `nil` | Ingress TLS configuration |
 | entitlement-store.logLevel | string | `"INFO"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
 | entitlement-store.nameOverride | string | `""` | Select a specific name for the resource, instead of the default, entitlement-store |
 | entitlement-store.nodeSelector | object | `{}` | Node labels for pod assignment |
 | entitlement-store.oidc.clientId | string | `"tdf-attributes"` | Client id used for swagger-ui oauth |
-| entitlement-store.oidc.externalHost | string | `nil` | Override for global.opentdf.common.oidcExternalBaseUrl & url path |
-| entitlement-store.oidc.internalHost | string | `nil` | Override for global.opentdf.common.oidcInternalBaseUrl & url path |
+| entitlement-store.oidc.externalHost | string | `nil` | Override for `global.opentdf.common.oidcExternalBaseUrl` & url path |
+| entitlement-store.oidc.internalHost | string | `nil` | Override for `global.opentdf.common.oidcInternalBaseUrl` & url path |
 | entitlement-store.oidc.realm | string | `"tdf"` | Realm used for swagger-ui oauth |
 | entitlement-store.oidc.scopes | string | `"email"` | OIDC scopes used for swagger-ui pauth |
 | entitlement-store.openapiUrl | string | `""` | Set to enable openapi endpoint |
-| entitlement-store.podAnnotations | object | `{}` | Values for the deployment spec.template.metadata.annotations field |
-| entitlement-store.podSecurityContext | object | `{}` | Values for deployment's spec.template.spec.securityContext |
-| entitlement-store.postgres.database | string | `nil` | Override for global.opentdf.common.postgres.database |
-| entitlement-store.postgres.host | string | `nil` | Override for global.opentdf.common.postgres.host |
-| entitlement-store.postgres.port | string | `nil` | Override for global.opentdf.common.postgres.post |
+| entitlement-store.podAnnotations | object | `{}` | Values for the deployment `spec.template.metadata.annotations` field |
+| entitlement-store.podSecurityContext | object | `{}` | Values for deployment's `spec.template.spec.securityContext` |
+| entitlement-store.postgres.database | string | `nil` | Override for `global.opentdf.common.postgres.database` |
+| entitlement-store.postgres.host | string | `nil` | Override for `global.opentdf.common.postgres.host` |
+| entitlement-store.postgres.port | string | `nil` | Override for `global.opentdf.common.postgres.post` |
 | entitlement-store.postgres.schema | string | `"tdf_entitlement"` | The entitlement schema |
-| entitlement-store.postgres.user | string | `"tdf_entitlement_reader"` | Must be a postgres user with tdf_entitlement_reader role |
-| entitlement-store.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| entitlement-store.postgres.user | string | `"tdf_entitlement_reader"` | Must be a postgres user with `tdf_entitlement_reader` role |
+| entitlement-store.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | entitlement-store.resources | object | `{}` | Specify required limits for deploying this service to a pod. We usually recommend not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. |
-| entitlement-store.secretRef | string | `"name: {{ template \"entitlement-store.fullname\" . }}-secret"` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to postgres.user below     KAS_CERTIFICATE: Public key for Key Access service     KAS_EC_SECP256R1_CERTIFICATE: Public key (EC Mode) for Key Access service |
-| entitlement-store.securityContext | object | `{}` | Values for deployment's spec.template.spec.containers.securityContext |
+| entitlement-store.secretRef | string | `"name: {{ template \"entitlement-store.fullname\" . }}-secret"` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to `postgres.user` below     KAS_CERTIFICATE: Public key for Key Access service     KAS_EC_SECP256R1_CERTIFICATE: Public key (EC Mode) for Key Access service |
+| entitlement-store.securityContext | object | `{}` | Values for deployment's `spec.template.spec.containers.securityContext` |
 | entitlement-store.serverCorsOrigins | string | `""` | Allowed origins for CORS |
 | entitlement-store.serverPublicName | string | `"entitlement-store"` | Name of application. Used during oauth flows, for example when connecting to the OpenAPI endpoint with an OAuth authentication |
 | entitlement-store.serverRootPath | string | `"/"` | Base path for this service. Allows serving multiple REST services from the same origin, e.g. using an ingress with prefix mapping as suggested below. |
@@ -298,33 +298,33 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | entitlements.fullnameOverride | string | `""` | The fully qualified appname override |
 | entitlements.image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | entitlements.image.repo | string | `"ghcr.io/opentdf/entitlements"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| entitlements.image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
-| entitlements.imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
+| entitlements.image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
+| entitlements.imagePullSecrets | string | `nil` | JSON passed to the deployment's `template.spec.imagePullSecrets`. Overrides `global.opentdf.common.imagePullSecrets` |
 | entitlements.ingress.annotations | object | `{}` | Ingress annotations |
 | entitlements.ingress.className | string | `nil` | Ingress class to use. |
 | entitlements.ingress.enabled | bool | `false` | Enables the Ingress |
-| entitlements.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
+| entitlements.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
 | entitlements.ingress.tls | string | `nil` | Ingress TLS configuration |
 | entitlements.logLevel | string | `"INFO"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
 | entitlements.nameOverride | string | `""` | Select a specific name for the resource, instead of the default, entitlements |
 | entitlements.nodeSelector | object | `{}` | Node labels for pod assignment |
 | entitlements.oidc.clientId | string | `"tdf-entitlement"` | Client id used for swagger-ui oauth |
-| entitlements.oidc.externalHost | string | `nil` | Override for global.opentdf.common.oidcExternalBaseUrl & url path |
-| entitlements.oidc.internalHost | string | `nil` | Override for global.opentdf.common.oidcInternalBaseUrl & url path |
+| entitlements.oidc.externalHost | string | `nil` | Override for `global.opentdf.common.oidcExternalBaseUrl` & url path |
+| entitlements.oidc.internalHost | string | `nil` | Override for `global.opentdf.common.oidcInternalBaseUrl` & url path |
 | entitlements.oidc.realm | string | `"tdf"` | Realm used for swagger-ui oauth |
 | entitlements.oidc.scopes | string | `"email"` | OIDC scopes used for swagger-ui pauth |
 | entitlements.openapiUrl | string | `""` | Set to enable openapi endpoint |
-| entitlements.podAnnotations | object | `{}` | Values for the deployment spec.template.metadata.annotations field |
-| entitlements.podSecurityContext | object | `{}` | Values for deployment's spec.template.spec.securityContext |
-| entitlements.postgres.database | string | `nil` | Override for global.opentdf.common.postgres.database |
-| entitlements.postgres.host | string | `nil` | Override for global.opentdf.common.postgres.host |
-| entitlements.postgres.port | string | `nil` | Override for global.opentdf.common.postgres.post |
+| entitlements.podAnnotations | object | `{}` | Values for the deployment `spec.template.metadata.annotations` field |
+| entitlements.podSecurityContext | object | `{}` | Values for deployment's `spec.template.spec.securityContext` |
+| entitlements.postgres.database | string | `nil` | Override for `global.opentdf.common.postgres.database` |
+| entitlements.postgres.host | string | `nil` | Override for `global.opentdf.common.postgres.host` |
+| entitlements.postgres.port | string | `nil` | Override for `global.opentdf.common.postgres.post` |
 | entitlements.postgres.schema | string | `"tdf_entitlement"` | The entitlement schema |
-| entitlements.postgres.user | string | `"tdf_entitlement_manager"` | Must be a postgresql user with the tdf_entitlement_manager role |
-| entitlements.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| entitlements.postgres.user | string | `"tdf_entitlement_manager"` | Must be a postgresql user with the `tdf_entitlement_manager` role |
+| entitlements.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | entitlements.resources | object | `{}` | Specify required limits for deploying this service to a pod. We usually recommend not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. |
-| entitlements.secretRef | string | `"name: {{ template \"entitlements.fullname\" . }}-secret"` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to postgres.user below |
-| entitlements.securityContext | object | `{}` | Values for deployment's spec.template.spec.containers.securityContext |
+| entitlements.secretRef | string | `"name: {{ template \"entitlements.fullname\" . }}-secret"` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to `postgres.user` below |
+| entitlements.securityContext | object | `{}` | Values for deployment's `spec.template.spec.containers.securityContext` |
 | entitlements.serverCorsOrigins | string | `""` | Allowed origins for CORS |
 | entitlements.serverPublicName | string | `"Entitlement"` | Name of application. Used during oauth flows, for example when connecting to the OpenAPI endpoint with an OAuth authentication |
 | entitlements.serverRootPath | string | `"/"` | Base path for this service. Allows serving multiple REST services from the same origin, e.g. using an ingress with prefix mapping as suggested below. |
@@ -339,7 +339,7 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | entity-resolution.config.keycloak.clientId | string | `"tdf-entity-resolution-service"` | OIDC Client ID used by Entity Resolution Service |
 | entity-resolution.config.keycloak.legacy | bool | `false` | Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346 |
 | entity-resolution.config.keycloak.realm | string | `"tdf"` | Keycloak Realm used for integration |
-| entity-resolution.config.keycloak.url | string | `nil` | Override for global.opentdf.common.oidcInternalBaseUrl |
+| entity-resolution.config.keycloak.url | string | `nil` | Override for `global.opentdf.common.oidcInternalBaseUrl` |
 | entity-resolution.config.listenPort | int | `7070` | Port the server will listen on |
 | entity-resolution.config.otlpCollectorEndpoint | string | `"opentelemetry-collector.otel.svc:4317"` | Open telemetry collector endpoint |
 | entity-resolution.config.verbose | string | `"false"` | Enable verbose logging |
@@ -347,10 +347,10 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | entity-resolution.fullnameOverride | string | `""` | Optionally override the fully qualified name |
 | entity-resolution.image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | entity-resolution.image.repo | string | `"ghcr.io/opentdf/entity-resolution"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| entity-resolution.image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
-| entity-resolution.imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
+| entity-resolution.image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
+| entity-resolution.imagePullSecrets | string | `nil` | JSON passed to the deployment's `template.spec.imagePullSecrets`. Overrides `global.opentdf.common.imagePullSecrets` |
 | entity-resolution.nameOverride | string | `""` | Optionally override the name |
-| entity-resolution.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| entity-resolution.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | entity-resolution.secret.keycloak.clientSecret | string | `"REPLACE_AT_INSTALL_TIME"` | OIDC Client Secret used by Entity Resolution Service |
 | entity-resolution.serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | entity-resolution.serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
@@ -363,28 +363,28 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | kas.autoscaling.targetCPUUtilizationPercentage | int | `80` | Target average CPU usage across all the pods |
 | kas.certFileSecretName | string | `nil` | Secret containing an additional ca-cert.pem file for locally signed TLS certs. Used for a private PKI mode, for example. |
 | kas.endpoints.attrHost | string | `"http://attributes:4020"` | Internal url of attributes service |
-| kas.endpoints.oidcPubkeyEndpoint | string | `nil` | Local override for global.opentdf.common.oidcInternalBaseUrl + path |
+| kas.endpoints.oidcPubkeyEndpoint | string | `nil` | Local override for `global.opentdf.common.oidcInternalBaseUrl` + path |
 | kas.endpoints.statsdHost | string | `"statsd"` | Internal url of statsd |
-| kas.envConfig.attrAuthorityCert | string | `nil` | The public key used to validate responses from attrHost |
+| kas.envConfig.attrAuthorityCert | string | `nil` | The public key used to validate responses from `attrHost` |
 | kas.envConfig.cert | string | `nil` | Public key KAS clients can use to validate responses |
 | kas.envConfig.ecCert | string | `nil` | The public key of curve secp256r1, KAS clients can use to validate responses |
 | kas.envConfig.ecPrivKey | string | `nil` | Private key of curve secp256r1, KAS uses to certify responses |
 | kas.envConfig.privKey | string | `nil` | Private key KAS uses to certify responses |
-| kas.externalEnvSecretName | string | `nil` | The name of a secret containing required config values (see envConfig below); overrides envConfig |
-| kas.extraEnvSecretName | string | `nil` | Secret containing additional env variables in addition to those provided by envConfig or externalSecretName |
+| kas.externalEnvSecretName | string | `nil` | The name of a secret containing required config values (see `envConfig` below); overrides `envConfig` |
+| kas.extraEnvSecretName | string | `nil` | Secret containing additional env variables in addition to those provided by `envConfig` or `externalSecretName` |
 | kas.flaskDebug | string | `"False"` | If the debug mode should  be enabled in flask |
 | kas.fullnameOverride | string | `""` | The fully qualified appname override |
 | kas.image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | kas.image.repo | string | `"ghcr.io/opentdf/kas"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| kas.image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
-| kas.imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
+| kas.image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
+| kas.imagePullSecrets | string | `nil` | JSON passed to the deployment's `template.spec.imagePullSecrets`. Overrides `global.opentdf.common.imagePullSecrets` |
 | kas.ingress.annotations | object | `{}` | Ingress annotations |
 | kas.ingress.className | string | `nil` | Ingress class to use. |
 | kas.ingress.enabled | bool | `false` | Enables the Ingress |
-| kas.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
+| kas.ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
 | kas.ingress.tls | string | `nil` | Ingress TLS configuration |
-| kas.jsonLogger | string | `"true"` | Determinies whether KAS uses the json formatter for logging, if false the dev formatter is used. Default is true |
-| kas.livenessProbe | object | `{"httpGet":{"path":"/healthz?probe=liveness","port":"http"}}` | Adds a container livenessProbe, if set. |
+| kas.jsonLogger | string | `"true"` | Determinies whether KAS uses the json formatter for logging, if `false` the dev formatter is used. Default is `true` |
+| kas.livenessProbe | object | `{"httpGet":{"path":"/healthz?probe=liveness","port":"http"}}` | Adds a container `livenessProbe`, if set. |
 | kas.logLevel | string | `"INFO"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
 | kas.maxUnavailable | int | `1` | Pod disruption budget |
 | kas.nameOverride | string | `""` | Select a specific name for the resource, instead of the default, kas |
@@ -392,12 +392,12 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | kas.openapiUrl | string | `""` | Set to enable openapi endpoint |
 | kas.pdp.disableTracing | string | `"true"` | KAS's internal Access PDP can send OpenTelemetry traces to collectors - if no collectors configured, the traces will get redirected to STDOUT, which is a bit spammy, so turn this off until we do proper OT trace collection everywhere. |
 | kas.pdp.verbose | string | `"false"` | Enables verbose mode for the internal PDP (policy decision point) KAS uses. If `true`, decisions will be logged with much additional detail |
-| kas.podAnnotations | object | `{}` | Values for the deployment spec.template.metadata.annotations field |
-| kas.podSecurityContext | object | `{}` | Values for deployment's spec.template.spec.securityContext |
-| kas.readinessProbe | object | `{"httpGet":{"path":"/healthz?probe=readiness","port":"http"}}` | Adds a container readinessProbe, if set. |
-| kas.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| kas.podAnnotations | object | `{}` | Values for the deployment `spec.template.metadata.annotations` field |
+| kas.podSecurityContext | object | `{}` | Values for deployment's `spec.template.spec.securityContext` |
+| kas.readinessProbe | object | `{"httpGet":{"path":"/healthz?probe=readiness","port":"http"}}` | Adds a container `readinessProbe`, if set. |
+| kas.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | kas.resources | object | `{}` | Specify required limits for deploying this service to a pod. We usually recommend not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. |
-| kas.securityContext | object | `{}` | Values for deployment's spec.template.spec.containers.securityContext |
+| kas.securityContext | object | `{}` | Values for deployment's `spec.template.spec.containers.securityContext` |
 | kas.serverRootPath | string | `"/"` | Base path for this service. Allows serving multiple REST services from the same origin, e.g. using an ingress with prefix mapping as suggested below. |
 | kas.service.port | int | `8000` | Port to assign to the `http` port |
 | kas.service.type | string | `"ClusterIP"` | Service `spec.type` |
@@ -416,24 +416,24 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | keycloak-bootstrap.entitlements.realms[0].password | string | `"testuser123"` | Password for given username used to create entitlements |
 | keycloak-bootstrap.entitlements.realms[0].preloadedClaims | object | `{}` | Entitlements to create, in the form {client: ["attribute"]} |
 | keycloak-bootstrap.entitlements.realms[0].username | string | `"user1"` | OIDC username used to create entitlements |
-| keycloak-bootstrap.externalUrl | string | `nil` | Deprecated. Use opentdf.externalUrl |
-| keycloak-bootstrap.image.pullPolicy | string | `"IfNotPresent"` | Defaults to IfNotPresent to skip lookup of newer versions. |
+| keycloak-bootstrap.externalUrl | string | `nil` | Deprecated. Use `opentdf.externalUrl` |
+| keycloak-bootstrap.image.pullPolicy | string | `"IfNotPresent"` | Defaults to `IfNotPresent` to skip lookup of newer versions. |
 | keycloak-bootstrap.image.repo | string | `"ghcr.io/opentdf/keycloak-bootstrap"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
 | keycloak-bootstrap.image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
 | keycloak-bootstrap.istioTerminationHack | bool | `false` | Is istio in place and requires a wait on the sidecar. |
 | keycloak-bootstrap.job.backoffLimit | int | `25` | number of retries before considering a Job as failed |
 | keycloak-bootstrap.keycloak.customConfig | string | `nil` | if provided, will use custom configuration instead |
-| keycloak-bootstrap.keycloak.hostname | string | `nil` | override for global.opentdf.common.oidcExternalBaseUrl |
+| keycloak-bootstrap.keycloak.hostname | string | `nil` | override for `global.opentdf.common.oidcExternalBaseUrl` |
 | keycloak-bootstrap.keycloak.npeClients | string | `nil` | Create test clients configured for clientcreds auth flow (list) |
 | keycloak-bootstrap.keycloak.passwordUsers | string | `"testuser@virtru.com,user1,user2"` | Comma seperated list of users to be created with default password "testuser123" |
 | keycloak-bootstrap.keycloak.preloadedClients | string | `nil` | Create clients in list with given client id and secret. In the form [{clientId:"id", clientSecret:"secret"}] |
 | keycloak-bootstrap.keycloak.preloadedUsers | string | `nil` | Create user in list with given username and password. In the form [{username:"user", password:"pass"}] |
 | keycloak-bootstrap.nameOverride | string | `""` | Select a specific name for the resource, instead of the default, keycloak-bootstrap |
-| keycloak-bootstrap.opentdf.externalUrl | string | `nil` | Base URL for clients. Defaults to oidcExternalBaseUrl. A client app's homepage Defaults to OIDC url without path attached. |
-| keycloak-bootstrap.opentdf.redirectUris | string | `nil` | A list of valid redirect paths. Defaults to externalUrl |
+| keycloak-bootstrap.opentdf.externalUrl | string | `nil` | Base URL for clients. Defaults to `oidcExternalBaseUrl`. A client app's homepage Defaults to OIDC url without path attached. |
+| keycloak-bootstrap.opentdf.redirectUris | string | `nil` | A list of valid redirect paths. Defaults to `externalUrl` |
 | keycloak-bootstrap.pki.browserEnable | string | `"true"` | # X.509 Client Certificate Authentication to a Browser Flow enabled |
 | keycloak-bootstrap.pki.directGrantEnable | string | `"true"` | X.509 Client Certificate Authentication to a Direct Grant Flow enabled |
-| keycloak-bootstrap.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| keycloak-bootstrap.replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | keycloak-bootstrap.secretRef | string | `"name: {{ template \"keycloak-bootstrap.fullname\" . }}-secret"` | Expect a secret with following keys: - keycloak_admin_username: - keycloak_admin_password: - CLIENT_SECRET: - ATTRIBUTES_USERNAME: - ATTRIBUTES_PASSWORD: |
 
 ## Generating the helm docs

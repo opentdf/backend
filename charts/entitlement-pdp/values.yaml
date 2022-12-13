@@ -1,12 +1,12 @@
 # -- Sets the default number of pod replicas in the deployment.
-# Ignored if autoscaling.enabled == true
+# Ignored if `autoscaling.enabled` == true
 replicaCount: 3
 
 # Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
-      # -- JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
 
 # Configure the container image to use in the deployment.
@@ -14,13 +14,13 @@ image:
   # -- The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/entitlement-pdp
-  # -- Chart.AppVersion will be used for image tag, override here if needed
+  # -- `Chart.AppVersion` will be used for image tag, override here if needed
   tag:
   # -- The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# -- JSON passed to the deployment's template.spec.imagePullSecrets.
-# Overrides global.opentdf.common.imagePullSecrets when set
+# -- JSON passed to the deployment's `template.spec.imagePullSecrets`.
+# Overrides `global.opentdf.common.imagePullSecrets` when set
 imagePullSecrets:
 
 serviceAccount:

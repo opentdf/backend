@@ -19,20 +19,20 @@ Resolves external entity identifiers to OpenTDF entity identifiers
 | config.keycloak.clientId | string | `"tdf-entity-resolution-service"` | OIDC Client ID used by Entity Resolution Service |
 | config.keycloak.legacy | bool | `false` | Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346 |
 | config.keycloak.realm | string | `"tdf"` | Keycloak Realm used for integration |
-| config.keycloak.url | string | `nil` | Override for global.opentdf.common.oidcInternalBaseUrl |
+| config.keycloak.url | string | `nil` | Override for `global.opentdf.common.oidcInternalBaseUrl` |
 | config.listenPort | int | `7070` | Port the server will listen on |
 | config.otlpCollectorEndpoint | string | `"opentelemetry-collector.otel.svc:4317"` | Open telemetry collector endpoint |
 | config.verbose | string | `"false"` | Enable verbose logging |
 | createKeycloakClientSecret | bool | `true` | Create a secret for the ERS clientSecret |
 | fullnameOverride | string | `""` | Optionally override the fully qualified name |
-| global.opentdf.common.imagePullSecrets | list | `[]` | JSON passed to the deployment's template.spec.imagePullSecrets |
+| global.opentdf.common.imagePullSecrets | list | `[]` | JSON passed to the deployment's `template.spec.imagePullSecrets` |
 | global.opentdf.common.oidcInternalBaseUrl | string | `"http://keycloak-http"` | Base internal url of OIDC provider |
 | image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | image.repo | string | `"ghcr.io/opentdf/entity-resolution"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
-| imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
+| image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
+| imagePullSecrets | string | `nil` | JSON passed to the deployment's `template.spec.imagePullSecrets`. Overrides `global.opentdf.common.imagePullSecrets` |
 | nameOverride | string | `""` | Optionally override the name |
-| replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | secret.keycloak.clientSecret | string | `"REPLACE_AT_INSTALL_TIME"` | OIDC Client Secret used by Entity Resolution Service |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | serviceAccount.create | bool | `true` | Specifies whether a service account should be created |

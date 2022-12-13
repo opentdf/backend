@@ -2,7 +2,7 @@
 global:
   opentdf:
     common:
-      # -- JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
 
 # -- Sets the default loglevel for the application. One of the valid python logging
@@ -10,7 +10,7 @@ global:
 logLevel: INFO
 
 # -- Sets the default number of pod replicas in the deployment.
-# Ignored if autoscaling.enabled == true
+# Ignored if `autoscaling.enabled` == true
 replicaCount: 1
 
 # Container image configuration.
@@ -18,7 +18,7 @@ image:
   # -- The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/storage
-  # -- Chart.AppVersion will be used for image tag, override here if needed
+  # -- `Chart.AppVersion` will be used for image tag, override here if needed
   tag:
   # -- The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
@@ -43,13 +43,13 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: null
 
-# -- Values for the deployment spec.template.metadata.annotations field
+# -- Values for the deployment `spec.template.metadata.annotations` field
 podAnnotations: {}
 
-# -- Values for deployment's spec.template.spec.securityContext
+# -- Values for deployment's `spec.template.spec.securityContext`
 podSecurityContext: {}
 
-# -- Values for deployment's spec.template.spec.containers.securityContext
+# -- Values for deployment's `spec.template.spec.containers.securityContext`
 securityContext: {}
 
 # -- JSON to locate a k8s secret containing environment variables.
@@ -77,8 +77,8 @@ ingress:
   # [hostname]:
   #   [path]:
   #     pathType:    your-pathtype [default: "ImplementationSpecific"]
-  #     serviceName: your-service  [default: service.fullname]
-  #     servicePort: service-port  [default: service.port above]
+  #     serviceName: your-service  [default: `service.fullname`]
+  #     servicePort: service-port  [default: `service.port` above]
   hosts: {}
   # -- Ingress TLS configuration
   tls: null

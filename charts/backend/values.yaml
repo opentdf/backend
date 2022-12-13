@@ -18,11 +18,11 @@ bootstrapKeycloak: true
 global:
   opentdf:
     common:
-      # -- The cluster internal scheme + hostname for keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+      # -- The cluster internal scheme + hostname for keycloak endpoint, `oidcUrlPrefix` used in constructing end urls.
       oidcInternalBaseUrl: http://keycloak-http
       # -- The url path (no preceding / ) to keycloak
       oidcUrlPath: auth
-      # -- The external scheme + hostname to keycloak endpoint, oidcUrlPrefix used in constructing end urls.
+      # -- The external scheme + hostname to keycloak endpoint, `oidcUrlPrefix` used in constructing end urls.
       oidcExternalBaseUrl: http://localhost:65432
       # -- Any existing image pull secrets subcharts should use
       # e.g.
@@ -68,7 +68,7 @@ attributes:
   fullnameOverride: attributes
   # -- JSON to locate a k8s secret containing environment variables.
   # Notably, this file should include the following environemnt variable definitions:
-  #     POSTGRES_PASSWORD: Password corresponding to attributes.postgres.user below
+  #     POSTGRES_PASSWORD: Password corresponding to `attributes.postgres.user` below
   secretRef: |-
     name: "{{ template "attributes.fullname" . }}-otdf-secret"
   ingress:
@@ -83,8 +83,8 @@ attributes:
     # [hostname]:
     #   [path]:
     #     pathType:    your-pathtype [default: "ImplementationSpecific"]
-    #     serviceName: your-service  [default: service.fullname]
-    #     servicePort: service-port  [default: service.port above]
+    #     serviceName: your-service  [default: `service.fullname`]
+    #     servicePort: service-port  [default: `service.port` above]
     hosts:
       localhost: &pathsAttributes
         "/api/attributes(/|$)(.*)":
@@ -124,7 +124,7 @@ entitlement-store:
   fullnameOverride: entitlement-store
   # -- JSON to locate a k8s secret containing environment variables.
   # Notably, this file should include the following environemnt variable definitions:
-  #     POSTGRES_PASSWORD: Password corresponding to entitlement-stor.postgres.user below
+  #     POSTGRES_PASSWORD: Password corresponding to `entitlement-store.postgres.user` below
   secretRef: |-
     name: "{{ template "entitlement-store.fullname" . }}-otdf-secret"
   ingress:
@@ -139,8 +139,8 @@ entitlement-store:
     # [hostname]:
     #   [path]:
     #     pathType:    your-pathtype [default: "ImplementationSpecific"]
-    #     serviceName: your-service  [default: service.fullname]
-    #     servicePort: service-port  [default: service.port above]
+    #     serviceName: your-service  [default: `service.fullname`]
+    #     servicePort: service-port  [default: `service.port` above]
     hosts:
       localhost: &pathsEntitlementStore
         "/api/entitlement-store(/|$)(.*)":
@@ -154,7 +154,7 @@ entitlements:
   fullnameOverride: entitlements
   # -- JSON to locate a k8s secret containing environment variables.
   # Notably, this file should include the following environemnt variable definitions:
-  #     POSTGRES_PASSWORD: Password corresponding to entitlements.postgres.user below
+  #     POSTGRES_PASSWORD: Password corresponding to `entitlements.postgres.user` below
   secretRef: |-
     name: "{{ template "entitlements.fullname" . }}-otdf-secret"
   ingress:
@@ -169,8 +169,8 @@ entitlements:
     # [hostname]:
     #   [path]:
     #     pathType:    your-pathtype [default: "ImplementationSpecific"]
-    #     serviceName: your-service  [default: service.fullname]
-    #     servicePort: service-port  [default: service.port above]
+    #     serviceName: your-service  [default: `service.fullname`]
+    #     servicePort: service-port  [default: `service.port` above]
     hosts:
       localhost: &pathsEntitlements
         "/api/entitlements(/|$)(.*)":
@@ -195,7 +195,7 @@ kas:
     attrHost: http://attributes:4020
     # -- Internal url of statsd
     statsdHost: statsd
-  # Environment configuration values for keys and certs used by the key server.  If externalSecretName is defined these are ignored.
+  # Environment configuration values for keys and certs used by the key server.  If `externalSecretName` is defined these are ignored.
   envConfig:
     # -- The public key used to validate responses from attrHost
     attrAuthorityCert:
@@ -219,8 +219,8 @@ kas:
     # [hostname]:
     #   [path]:
     #     pathType:    your-pathtype [default: "ImplementationSpecific"]
-    #     serviceName: your-service  [default: service.fullname]
-    #     servicePort: service-port  [default: service.port above]
+    #     serviceName: your-service  [default: `service.fullname`]
+    #     servicePort: service-port  [default: `service.port` above]
     hosts:
       localhost: &pathsKas
         "/api/kas(/|$)(.*)":

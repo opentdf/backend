@@ -8,7 +8,7 @@ global:
       oidcExternalBaseUrl: http://localhost:65432
       # -- Optional path added to base OIDC url
       oidcUrlPath: auth
-      # -- JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
       postgres:
         # -- postgres server's k8s name or global DNS for external server
@@ -23,7 +23,7 @@ global:
 logLevel: INFO
 
 # -- Sets the default number of pod replicas in the deployment.
-# Ignored if autoscaling.enabled == true
+# Ignored if `autoscaling.enabled` == true
 replicaCount: 1
 
 # -- Name of application. Used during oauth flows, for example when connecting to
@@ -45,9 +45,9 @@ openapiUrl: ""
 # in the form of an environment variable such as:
 # OIDC_CLIENT_SECRET: myclientsecret
 oidc:
-  # -- Override for global.opentdf.common.oidcInternalBaseUrl & url path
+  # -- Override for `global.opentdf.common.oidcInternalBaseUrl` & url path
   internalHost:
-  # -- Override for global.opentdf.common.oidcExternalBaseUrl & url path
+  # -- Override for `global.opentdf.common.oidcExternalBaseUrl` & url path
   externalHost:
   # -- Realm used for swagger-ui oauth
   realm: tdf
@@ -61,13 +61,13 @@ image:
   # -- The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/entitlements
-  # -- Chart.AppVersion will be used for image tag, override here if needed
+  # -- `Chart.AppVersion` will be used for image tag, override here if needed
   tag:
   # -- The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# -- JSON passed to the deployment's template.spec.imagePullSecrets.
-# Overrides global.opentdf.common.imagePullSecrets
+# -- JSON passed to the deployment's `template.spec.imagePullSecrets`.
+# Overrides `global.opentdf.common.imagePullSecrets`
 imagePullSecrets:
 
 # -- Select a specific name for the resource, instead of the default, entitlements
@@ -86,18 +86,18 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: null
 
-# -- Values for the deployment spec.template.metadata.annotations field
+# -- Values for the deployment `spec.template.metadata.annotations` field
 podAnnotations: {}
 
-# -- Values for deployment's spec.template.spec.securityContext
+# -- Values for deployment's `spec.template.spec.securityContext`
 podSecurityContext: {}
 
-# -- Values for deployment's spec.template.spec.containers.securityContext
+# -- Values for deployment's `spec.template.spec.containers.securityContext`
 securityContext: {}
 
 # -- JSON to locate a k8s secret containing environment variables.
 # Notably, this file should include the following environemnt variable definitions:
-#     POSTGRES_PASSWORD: Password corresponding to postgres.user below
+#     POSTGRES_PASSWORD: Password corresponding to `postgres.user` below
 secretRef: |-
   name: {{ template "entitlements.fullname" . }}-secret
 
@@ -120,8 +120,8 @@ ingress:
   # [hostname]:
   #   [path]:
   #     pathType:    your-pathtype [default: "ImplementationSpecific"]
-  #     serviceName: your-service  [default: service.fullname]
-  #     servicePort: service-port  [default: service.port above]
+  #     serviceName: your-service  [default: `service.fullname`]
+  #     servicePort: service-port  [default: `service.port` above]
   hosts: {}
   # -- Ingress TLS configuration
   tls: null
@@ -155,13 +155,13 @@ affinity: {}
 
 # Configuration for the database backend
 postgres:
-  # -- Must be a postgresql user with the tdf_entitlement_manager role
+  # -- Must be a postgresql user with the `tdf_entitlement_manager` role
   user: tdf_entitlement_manager
   # -- The entitlement schema
   schema: tdf_entitlement
-  # -- Override for global.opentdf.common.postgres.host
+  # -- Override for `global.opentdf.common.postgres.host`
   host:
-  # -- Override for global.opentdf.common.postgres.post
+  # -- Override for `global.opentdf.common.postgres.post`
   port:
-  # -- Override for global.opentdf.common.postgres.database
+  # -- Override for `global.opentdf.common.postgres.database`
   database:

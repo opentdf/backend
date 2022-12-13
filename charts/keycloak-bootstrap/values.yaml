@@ -2,7 +2,7 @@
 nameOverride: ""
 
 # -- Sets the default number of pod replicas in the deployment.
-# Ignored if autoscaling.enabled == true
+# Ignored if `autoscaling.enabled` == true
 replicaCount: 1
 job:
   # -- number of retries before considering a Job as failed
@@ -14,7 +14,7 @@ image:
   repo: ghcr.io/opentdf/keycloak-bootstrap
   # -- Chart.AppVersion will be used for image tag, override here if needed
   tag:
-  # -- Defaults to IfNotPresent to skip lookup of newer versions.
+  # -- Defaults to `IfNotPresent` to skip lookup of newer versions.
   pullPolicy: IfNotPresent
 
 pki:
@@ -33,20 +33,20 @@ global:
       oidcExternalBaseUrl: http://localhost:65432
       # -- Optional path added to base OIDC url
       oidcUrlPath: auth
-      # -- JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
 
 # -- Is istio in place and requires a wait on the sidecar.
 istioTerminationHack: false
 
-# -- Deprecated. Use opentdf.externalUrl
+# -- Deprecated. Use `opentdf.externalUrl`
 externalUrl:
 
 opentdf:
-  # -- Base URL for clients. Defaults to oidcExternalBaseUrl. A client app's homepage
+  # -- Base URL for clients. Defaults to `oidcExternalBaseUrl`. A client app's homepage
   # Defaults to OIDC url without path attached.
   externalUrl:
-  # -- A list of valid redirect paths. Defaults to externalUrl
+  # -- A list of valid redirect paths. Defaults to `externalUrl`
   redirectUris:
 
 # -- Expect a secret with following keys:
@@ -59,7 +59,7 @@ secretRef: |-
   name: {{ template "keycloak-bootstrap.fullname" . }}-secret
 
 keycloak:
-  # -- override for global.opentdf.common.oidcExternalBaseUrl
+  # -- override for `global.opentdf.common.oidcExternalBaseUrl`
   hostname:
   # -- if provided, will use custom configuration instead
   customConfig: null

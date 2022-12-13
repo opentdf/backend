@@ -21,27 +21,27 @@ Storage backend for remote content support in OpenTDF
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | Target average CPU usage across all the pods |
 | corsOrigins | string | `"localhost"` | Allowed origins for requests from browser clients. |
 | fullnameOverride | string | `""` | The fully qualified appname override |
-| global.opentdf.common.imagePullSecrets | list | `[]` | JSON passed to the deployment's template.spec.imagePullSecrets |
+| global.opentdf.common.imagePullSecrets | list | `[]` | JSON passed to the deployment's `template.spec.imagePullSecrets` |
 | image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
 | image.repo | string | `"ghcr.io/opentdf/storage"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
-| image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
+| image.tag | string | `nil` | `Chart.AppVersion` will be used for image tag, override here if needed |
 | imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
 | ingress.annotations | object | `{}` | Ingress annotations |
 | ingress.className | string | `nil` | Ingress class to use. |
 | ingress.enabled | bool | `false` | Enables the Ingress |
-| ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: service.fullname]     servicePort: service-port  [default: service.port above] |
+| ingress.hosts | object | `{}` | Map in the form: [hostname]:   [path]:     pathType:    your-pathtype [default: "ImplementationSpecific"]     serviceName: your-service  [default: `service.fullname`]     servicePort: service-port  [default: `service.port` above] |
 | ingress.tls | string | `nil` | Ingress TLS configuration |
 | logLevel | string | `"INFO"` | Sets the default loglevel for the application. One of the valid python logging levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL` |
 | nameOverride | string | `""` | Select a specific name for the resource, instead of the default, storage |
 | nodeSelector | object | `{}` | Node labels for pod assignment |
-| podAnnotations | object | `{}` | Values for the deployment spec.template.metadata.annotations field |
-| podSecurityContext | object | `{}` | Values for deployment's spec.template.spec.securityContext |
-| replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| podAnnotations | object | `{}` | Values for the deployment `spec.template.metadata.annotations` field |
+| podSecurityContext | object | `{}` | Values for deployment's `spec.template.spec.securityContext` |
+| replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if `autoscaling.enabled` == true |
 | resources | object | `{}` | Specify required limits for deploying this service to a pod. We usually recommend not to specify default resources and to leave this as a conscious choice for the user. This also increases chances charts run on environments with little resources, such as Minikube. |
 | s3Bucket | string | `"datalake"` | Name of S3 bucket |
 | s3BucketRegion | string | `"us-east-1"` | Region of S3 bucket |
 | secretRef | string | `"name: {{ template \"storage.fullname\" . }}-secret"` | JSON to locate a k8s secret containing environment variables. Notably, this file should include the following environemnt variable definitions:     POSTGRES_PASSWORD: Password corresponding to postgres.user below |
-| securityContext | object | `{}` | Values for deployment's spec.template.spec.containers.securityContext |
+| securityContext | object | `{}` | Values for deployment's `spec.template.spec.containers.securityContext` |
 | service.port | int | `4050` | Port to assign to the `http` port |
 | service.type | string | `"ClusterIP"` | Service `spec.type` |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
