@@ -393,7 +393,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        version: "1.0.1"
+        version: 1.0.1
         target:
           - attributes
           - entitlement_store
