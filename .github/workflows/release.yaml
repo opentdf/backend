@@ -75,8 +75,6 @@ jobs:
     permissions:
       packages: write
       contents: read
-#    env:
-#      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
     strategy:
       matrix:
         version: "${{ needs.version.outputs.FULL_VERSION }}"
