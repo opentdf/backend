@@ -14,27 +14,26 @@ Resolves external entity identifiers to OpenTDF entity identifiers
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| config.disableTracing | string | `"false"` |  |
-| config.externalHost | string | `""` |  |
-| config.keycloak.clientId | string | `"tdf-entity-resolution-service"` |  |
+| config.disableTracing | string | `"false"` | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector) |
+| config.externalHost | string | `""` | External endpoint the server will be accessed from (used for OpenAPI endpoint serving) |
+| config.keycloak.clientId | string | `"tdf-entity-resolution-service"` | OIDC Client ID used by Entity Resolution Service |
 | config.keycloak.legacy | bool | `false` | Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346 |
-| config.keycloak.realm | string | `"tdf"` |  |
+| config.keycloak.realm | string | `"tdf"` | Keycloak Realm used for integration |
 | config.keycloak.url | string | `nil` | Override for global.opentdf.common.oidcInternalBaseUrl |
-| config.listenPort | int | `7070` |  |
-| config.otlpCollectorEndpoint | string | `"opentelemetry-collector.otel.svc:4317"` |  |
-| config.verbose | string | `"false"` |  |
-| createKeycloakClientSecret | bool | `true` |  |
+| config.listenPort | int | `7070` | Port the server will listen on |
+| config.otlpCollectorEndpoint | string | `"opentelemetry-collector.otel.svc:4317"` | Open telemetry collector endpoint |
+| config.verbose | string | `"false"` | Enable verbose logging |
+| createKeycloakClientSecret | bool | `true` | Create a secret for the ERS clientSecret |
 | fullnameOverride | string | `""` | Optionally override the fully qualified name |
-| global | object | `{"opentdf":{"common":{"imagePullSecrets":[],"oidcInternalBaseUrl":"http://keycloak-http"}}}` | Global values that may be overridden by a parent chart. |
 | global.opentdf.common.imagePullSecrets | list | `[]` | JSON passed to the deployment's template.spec.imagePullSecrets |
 | global.opentdf.common.oidcInternalBaseUrl | string | `"http://keycloak-http"` | Base internal url of OIDC provider |
-| image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.repo | string | `"ghcr.io/opentdf/entity-resolution"` |  |
+| image.pullPolicy | string | `"IfNotPresent"` | The container's `imagePullPolicy` |
+| image.repo | string | `"ghcr.io/opentdf/entity-resolution"` | The image selector, also called the 'image name' in k8s documentation and 'image repository' in docker's guides. |
+| image.tag | string | `nil` | Chart.AppVersion will be used for image tag, override here if needed |
 | imagePullSecrets | string | `nil` | JSON passed to the deployment's template.spec.imagePullSecrets. Overrides global.opentdf.common.imagePullSecrets |
 | nameOverride | string | `""` | Optionally override the name |
-| replicaCount | int | `1` |  |
-| secret.keycloak.clientSecret | string | `"REPLACE_AT_INSTALL_TIME"` |  |
-| serviceAccount | object | `{"annotations":{},"create":true,"name":""}` | A service account to create |
+| replicaCount | int | `1` | Sets the default number of pod replicas in the deployment. Ignored if autoscaling.enabled == true |
+| secret.keycloak.clientSecret | string | `"REPLACE_AT_INSTALL_TIME"` | OIDC Client Secret used by Entity Resolution Service |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
 | serviceAccount.name | string | `""` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |

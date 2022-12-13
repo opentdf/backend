@@ -29,7 +29,7 @@ helm upgrade --install backend -f testing/deployment.yaml \
   --set kas.externalEnvSecretName=<Secret-with-rsa-and-ec-keypairs> .
 ```
 
-1. Supplying each private/public key as a values override, e.g:
+2. Supplying each private/public key as a values override, e.g:
 
 ``` sh
 helm upgrade --install backend -f testing/deployment.yaml \
@@ -70,3 +70,12 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 {{ template "chart.requirementsSection" . }}
 
 {{ template "chart.valuesSection" . }}
+
+## Generating the helm docs
+
+To generate the helm docs for the backend chart and its dependencies, install the helm-docs tool, navigate to the backend helm chart directory, and run the helm-docs command below.
+```
+brew install norwoodj/tap/helm-docs
+cd backend/charts/backend
+helm-docs --document-dependency-values --chart-search-root=..
+```

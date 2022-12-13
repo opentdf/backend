@@ -1,4 +1,4 @@
-# -- Global values that may be overridden by a parent chart.
+# Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
@@ -13,7 +13,7 @@ logLevel: INFO
 # Ignored if autoscaling.enabled == true
 replicaCount: 1
 
-# -- Container image configuration.
+# Container image configuration.
 image:
   # -- The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
@@ -33,7 +33,7 @@ nameOverride: ""
 # -- The fully qualified appname override
 fullnameOverride: ""
 
-# -- A service account to create
+# A service account to create
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true
@@ -58,26 +58,29 @@ securityContext: {}
 secretRef: |-
   name: {{ template "storage.fullname" . }}-secret
 
-# -- Service configuation information.
+# Service configuation information.
 service:
   # -- Service `spec.type`
   type: ClusterIP
   # -- Port to assign to the `http` port
   port: 4050
 
-# -- Ingress configuration.
-# To configure, set enabled to true and set `hosts` to a map in the form:
-#
-#     [hostname]:
-#       [path]:
-#         pathType:    your-pathtype [default: "ImplementationSpecific"]
-#         serviceName: your-service  [default: service.fullname]
-#         servicePort: service-port  [default: service.port above]
+# Ingress configuration.
 ingress:
+  # -- Enables the Ingress
   enabled: false
+  # -- Ingress annotations
   annotations: {}
+  # -- Ingress class to use.
   className: null
+  # -- Map in the form:
+  # [hostname]:
+  #   [path]:
+  #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+  #     serviceName: your-service  [default: service.fullname]
+  #     servicePort: service-port  [default: service.port above]
   hosts: {}
+  # -- Ingress TLS configuration
   tls: null
 
 # -- Specify required limits for deploying this service to a pod.
@@ -86,17 +89,25 @@ ingress:
 # resources, such as Minikube.
 resources: {}
 
+# Autoscaling settings
 autoscaling:
+  # -- Enables autoscaling. When set to `true`, `replicas` is no longer applied.
   enabled: false
+  # -- Sets minimum replicas for autoscaling.
   minReplicas: 1
+  # -- Sets maximum replicas for autoscaling.
   maxReplicas: 100
+  # -- Target average CPU usage across all the pods
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+# -- Node labels for pod assignment
 nodeSelector: {}
 
+# -- Tolerations for nodes that have taints on them
 tolerations: []
 
+# -- Pod scheduling preferences
 affinity: {}
 
 # -- Name of S3 bucket

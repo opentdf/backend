@@ -1,10 +1,16 @@
 # -- Select a specific name for the resource, instead of the default, keycloak-bootstrap
 nameOverride: ""
 
+# -- Sets the default number of pod replicas in the deployment.
+# Ignored if autoscaling.enabled == true
 replicaCount: 1
 job:
+  # -- number of retries before considering a Job as failed
   backoffLimit: 25
+# Configure the container image to use in the deployment.
 image:
+  # -- The image selector, also called the 'image name' in k8s documentation
+  # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/keycloak-bootstrap
   # -- Chart.AppVersion will be used for image tag, override here if needed
   tag:
@@ -12,10 +18,12 @@ image:
   pullPolicy: IfNotPresent
 
 pki:
+  # -- X.509 Client Certificate Authentication to a Direct Grant Flow enabled
   directGrantEnable: "true"
+  # -- # X.509 Client Certificate Authentication to a Browser Flow enabled
   browserEnable: "true"
 
-# -- Global values that may be overridden by a parent chart.
+# Global values that may be overridden by a parent chart.
 global:
   opentdf:
     common:
@@ -51,31 +59,41 @@ secretRef: |-
   name: {{ template "keycloak-bootstrap.fullname" . }}-secret
 
 keycloak:
-  clientId: tdf-client
-
   # -- override for global.opentdf.common.oidcExternalBaseUrl
   hostname:
   # -- if provided, will use custom configuration instead
   customConfig: null
+  # -- Comma seperated list of users to be created with default password "testuser123"
   passwordUsers: testuser@virtru.com,user1,user2
+  # -- Create test clients configured for clientcreds auth flow (list)
   npeClients: null
+  # -- Create clients in list with given client id and secret.
+  # In the form [{clientId:"id", clientSecret:"secret"}]
   preloadedClients: null
     # - clientId: test-client-1
     #   clientSecret: test-client-secret
     # - clientId: test-client-2
     #   clientSecret: 123-456-789
+  # -- Create user in list with given username and password.
+  # In the form [{username:"user", password:"pass"}]
   preloadedUsers: null
     # - username: user3
     #   password: testuser1234
     # - username: user4
     #   password: testuser12345
 attributes:
+  # -- Internal attributes service url
   hostname: http://attributes
+  # -- Realm of keycloak client used to create attributes
   realm: tdf
+  # -- Keycloak client id used to create attributes
   clientId: dcr-test
+  # -- List of authorities to create
   preloadedAuthorities: null
     # - http://example.fun
     # - http://testing123.fun
+  # -- List of attributes to create in the form 
+  # [{authority:"", name:"", rule:"", state:"", order:[]}]
   preloadedAttributes: null
   # - authority: http://example.fun
   #   name: number
@@ -98,12 +116,19 @@ attributes:
   #   - C
   #   - D
 entitlements:
+  # -- Internal entitlements service url
   hostname: http://entitlements
   realms:
+    # entitlements.realms[0].name -- Name of realm for which creating entitlements
   - name: tdf
+    # -- OIDC client ID used to create entitlements
     clientId: dcr-test
+    # -- OIDC username used to create entitlements
     username: user1
+    # -- Password for given username used to create entitlements
     password: testuser123
+    # -- Entitlements to create, in the form
+    # {client: ["attribute"]}
     preloadedClaims: {}
       # tdf-user:
       #   - https://example.com/attr/Classification/value/C

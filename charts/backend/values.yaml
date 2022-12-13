@@ -6,11 +6,12 @@ nameOverride: ""
 
 
 embedded:
-  # -- Whether to use an embedded keycloak
+  # -- Use an embedded keycloak or not
   keycloak: true
-  # -- Whether to use an embedded postgres
+  # -- Use an embedded postgres or not
   postgresql: true
 
+# -- Create keycloak bootstrap secrets or not
 bootstrapKeycloak: true
 
 # Global values that may be overridden by a parent chart.
@@ -65,13 +66,25 @@ secrets:
 attributes:
   # -- Optionally override the name
   fullnameOverride: attributes
+  # -- JSON to locate a k8s secret containing environment variables.
+  # Notably, this file should include the following environemnt variable definitions:
+  #     POSTGRES_PASSWORD: Password corresponding to attributes.postgres.user below
   secretRef: |-
     name: "{{ template "attributes.fullname" . }}-otdf-secret"
   ingress:
+    # -- Enables the Ingress
     enabled: false
+    # -- Ingress annotations
     annotations:
       nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # -- The name of the Ingress Class associated with this ingress
     className: nginx
+    # -- Map in the form:
+    # [hostname]:
+    #   [path]:
+    #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+    #     serviceName: your-service  [default: service.fullname]
+    #     servicePort: service-port  [default: service.port above]
     hosts:
       localhost: &pathsAttributes
         "/api/attributes(/|$)(.*)":
@@ -79,13 +92,14 @@ attributes:
       host.docker.internal: *pathsAttributes
       opentdf.local: *pathsAttributes
       '': *pathsAttributes
-  # -- What log level to output
+  # -- Sets the default loglevel for the application. One of the valid python logging
+  # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
   logLevel: DEBUG
+
 entitlement-pdp:
   # -- Optionally override the name
   fullnameOverride: entitlement-pdp
   opaConfig:
-
     policy:
       # -- If `useStaticPolicy` is set to `true`, then an OPA config will be generated
       # that forces the use of a policy bundle that was built and packed into the `entitlement-pdp`
@@ -97,20 +111,36 @@ entitlement-pdp:
       # we create and pack into the image to work around this
       useStaticPolicy: true
   config:
-    # -- Disable the open telemetry tracing
+    # -- Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)
     disableTracing: true
+  # -- JSON to locate a k8s secret containing environment variables.
+  # Notably, this file should include the following environemnt variable definitions:
+  #     opaPolicyPullSecret: Creds or token needed to pull OPA policy bundle
   secretRef: |-
     name: "{{ template "entitlement-pdp.fullname" . }}-otdf-secret"
+
 entitlement-store:
   # -- Optionally override the name
   fullnameOverride: entitlement-store
+  # -- JSON to locate a k8s secret containing environment variables.
+  # Notably, this file should include the following environemnt variable definitions:
+  #     POSTGRES_PASSWORD: Password corresponding to entitlement-stor.postgres.user below
   secretRef: |-
     name: "{{ template "entitlement-store.fullname" . }}-otdf-secret"
   ingress:
+    # -- Enables the Ingress
     enabled: false
+    # -- Ingress annotations
     annotations:
       nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # -- The name of the Ingress Class associated with this ingress
     className: nginx
+    # -- Map in the form:
+    # [hostname]:
+    #   [path]:
+    #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+    #     serviceName: your-service  [default: service.fullname]
+    #     servicePort: service-port  [default: service.port above]
     hosts:
       localhost: &pathsEntitlementStore
         "/api/entitlement-store(/|$)(.*)":
@@ -118,16 +148,29 @@ entitlement-store:
       host.docker.internal: *pathsEntitlementStore
       opentdf.local: *pathsEntitlementStore
       '': *pathsEntitlementStore
+
 entitlements:
   # -- Optionally override the name
   fullnameOverride: entitlements
+  # -- JSON to locate a k8s secret containing environment variables.
+  # Notably, this file should include the following environemnt variable definitions:
+  #     POSTGRES_PASSWORD: Password corresponding to entitlements.postgres.user below
   secretRef: |-
     name: "{{ template "entitlements.fullname" . }}-otdf-secret"
   ingress:
+    # -- Enables the Ingress
     enabled: false
+    # -- Ingress annotations
     annotations:
       nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # -- The name of the Ingress Class associated with this ingress
     className: nginx
+    # -- Map in the form:
+    # [hostname]:
+    #   [path]:
+    #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+    #     serviceName: your-service  [default: service.fullname]
+    #     servicePort: service-port  [default: service.port above]
     hosts:
       localhost: &pathsEntitlements
         "/api/entitlements(/|$)(.*)":
@@ -135,29 +178,49 @@ entitlements:
       host.docker.internal: *pathsEntitlements
       opentdf.local: *pathsEntitlements
       '': *pathsEntitlements
+
 entity-resolution:
   # -- Optionally override the name
   fullnameOverride: entity-resolution
   config:
     keycloak:
+      # -- Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346
       legacy: true
+
 kas:
   # -- Optionally override the name
   fullnameOverride: kas
   endpoints:
+    # -- Internal url of attributes service
     attrHost: http://attributes:4020
+    # -- Internal url of statsd
     statsdHost: statsd
+  # Environment configuration values for keys and certs used by the key server.  If externalSecretName is defined these are ignored.
   envConfig:
+    # -- The public key used to validate responses from attrHost
     attrAuthorityCert:
+    # -- The public key of curve secp256r1, KAS clients can use to validate responses
     ecCert:
+    # -- Public key KAS clients can use to validate responses
     cert:
+    # -- Private key of curve secp256r1, KAS uses to certify responses
     ecPrivKey:
+    # -- Private key KAS uses to certify responses
     privKey:
   ingress:
+    # -- Enables the Ingress
     enabled: false
+    # -- Ingress annotations
     annotations:
       nginx.ingress.kubernetes.io/rewrite-target: /$2
+    # -- The name of the Ingress Class associated with this ingress
     className: nginx
+    # -- Map in the form:
+    # [hostname]:
+    #   [path]:
+    #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+    #     serviceName: your-service  [default: service.fullname]
+    #     servicePort: service-port  [default: service.port above]
     hosts:
       localhost: &pathsKas
         "/api/kas(/|$)(.*)":
@@ -165,27 +228,41 @@ kas:
       host.docker.internal: *pathsKas
       opentdf.local: *pathsKas
       '': *pathsKas
+  # -- Sets the default loglevel for the application. One of the valid python logging
+  # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
   logLevel: DEBUG
   pdp:
+    # -- Enables verbose mode for the internal PDP (policy decision point) KAS uses.
+    # If `true`, decisions will be logged with much additional detail
     verbose: "true"
+    # -- KAS's internal Access PDP can send OpenTelemetry traces to collectors -
+    # if no collectors configured, the traces will get redirected to STDOUT,
+    # which is a bit spammy, so turn this off until we do proper OT trace collection everywhere.
     disableTracing: "true"
 
 keycloak:
   # -- Optionally override the name
   fullnameOverride: keycloak
   image:
-    # Keycloak is a non-OpenTDF chart, but with an OpenTDF image
+    # -- The image selector, also called the 'image name' in k8s documentation
+    # and 'image repository' in docker's guides.
     repository: ghcr.io/opentdf/keycloak
+    # -- The image tag
     tag: main
+    # -- The container's `imagePullPolicy`
     pullPolicy: IfNotPresent
+  # -- Overrides the default entrypoint of the Keycloak container
   command:
     - "/opt/keycloak/bin/kc.sh"
     - "--verbose"
     - "start-dev"
   postgresql:
+    # -- If `true`, the Postgresql dependency is enabled
     enabled: false
   externalDatabase:
+    # -- External database name
     database: keycloak_database
+  # -- Additional environment variables for Keycloak
   extraEnv: |-
     - name: KC_LOG_LEVEL
       value: INFO
@@ -207,14 +284,19 @@ keycloak:
       value: "edge"
     - name: JAVA_OPTS_APPEND
       value: -Djgroups.dns.query={{ include "keycloak.fullname" . }}-headless
+  # -- Additional environment variables for Keycloak mapped from Secret or ConfigMap
   extraEnvFrom: |-
     - secretRef:
         name: "{{ include "keycloak.fullname" . }}-otdf-secret"
   ingress:
+    # -- If `true`, an Ingress is created
     enabled: false
+    # -- The name of the Ingress Class associated with this ingress
     ingressClassName: nginx
+    # -- Ingress annotations
     annotations:
       nginx.ingress.kubernetes.io/rewrite-target: /auth/$2
+    # -- List of rules for the Ingress
     rules:
       - host: localhost
         paths: &paths
@@ -226,23 +308,36 @@ keycloak:
         paths: *paths
       - paths: *paths
         host: ''
+    # -- TLS configuration
     tls: []
 
 keycloak-bootstrap:
   # -- Optionally override the name
   fullnameOverride: keycloak-bootstrap
+  # -- JSON to locate a k8s secret containing environment variables.
+  # Notably, this file should include the following environemnt variable definitions:
+  #     CLIENT_SECRET: default secret for "tdf-client"
+  #     keycloak_admin_username: The keycloak admin username
+  #     keycloak_admin_password: the keycloak admin password
+  #     ATTRIBUTES_USERNAME: username used to access attributes service
+  #     ATTRIBUTES_PASSWORD: password of user used to access attributes service
   secretRef: |-
     name: "{{ template "keycloak-bootstrap.fullname" . }}-otdf-secret"
   keycloak:
-    clientId: tdf-client
-    realm: tdf
-
+    # -- if provided, will use custom configuration instead
+    customConfig: null
   attributes:
+    # -- Internal attributes service url
     hostname: http://attributes:4020
+    # -- Realm of keycloak client used to create attributes
     realm: tdf
+    # -- Keycloak client id used to create attributes
     clientId: dcr-test
+    # -- List of authorities to create
     preloadedAuthorities:
     - https://example.com
+    # -- List of attributes to create in the form 
+    # [{authority:"", name:"", rule:"", state:"", order:[]}]
     preloadedAttributes:
     - authority: https://example.com
       name: Classification
@@ -266,12 +361,19 @@ keycloak-bootstrap:
       - PRF
 
   entitlements:
+    # -- Internal entitlements service url
     hostname: http://entitlements:4030
     realms:
+      # keycloak-bootstrap.entitlements.realms[0].name -- Name of realm for which creating entitlements
     - name: tdf
+      # -- OIDC client ID used to create entitlements
       clientId: dcr-test
+      # -- OIDC username used to create entitlements
       username: user1
+      # -- Password for given username used to create entitlements
       password: testuser123
+      # -- Entitlements to create, in the form
+      # {client: ["attribute"]}
       preloadedClaims:
         alice_1234:
           - https://example.com/attr/Classification/value/C
@@ -307,9 +409,13 @@ postgresql:
   fullnameOverride: postgresql
   # -- Configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
   image:
+    # Specify if debug values should be set
     debug: true
+  # -- Name of existing secret to use for PostgreSQL credentials
   existingSecret: >
     {{ include "postgresql.primary.fullname" . }}-otdf-secret
+  # -- Specify the PostgreSQL username to execute the initdb scripts
   initdbUser: postgres
+  # -- Secret with scripts to be run at first boot (in case it contains sensitive information)
   initdbScriptsSecret: >
     {{ include "postgresql.primary.fullname" . }}-initdb-secret
