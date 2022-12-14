@@ -46,14 +46,18 @@ def jwk_thumbprint(jwk):
     return jws_sha(cs)
 
 
-def validate_dpop(dpop, request=connexion.request):
+def validate_dpop(dpop, request=connexion.request, do_oidc=False):
     """Validate a dpop header, when present."""
     # First, grab Auth JWT
     auth_header = request.headers.get("authorization", None)
     if not auth_header:
-        raise UnauthorizedError("Missing auth header")
+        if do_oidc:
+            raise UnauthorizedError("Missing auth header")
+        # https://pyjwt.readthedocs.io/en/latest/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
+        logger.info("Missing auth header")
+        return
     bearer, _, id_jwt = auth_header.partition(" ")
-    logger.info("id_jwt: [%s], dpop: [%s]", id_jwt, dpop)
+    logger.debug("id_jwt: [%s], dpop: [%s]", id_jwt, dpop)
     if bearer != "Bearer" or not looks_like_jwt(id_jwt):
         raise UnauthorizedError("Invalid auth header")
     try:
@@ -61,7 +65,7 @@ def validate_dpop(dpop, request=connexion.request):
         jwt_decoded = json.loads(b)
     except Exception as e:
         raise UnauthorizedError("Invalid JWT") from e
-    logger.info("jwt_decoded: [%s]", jwt_decoded)
+    logger.debug("jwt_decoded: [%s]", jwt_decoded)
     cnf = jwt_decoded.get("cnf", None)
     # NOTE: Somehow the dpop field isn't populated yet? What am I doing wrong
     # with connexion?
@@ -75,8 +79,9 @@ def validate_dpop(dpop, request=connexion.request):
         return
     if not dpop and cnf:
         raise UnauthorizedError("DPoP Required")
-    jkt = cnf.get("jkt", None)
-    if not jkt:
+    try:
+        jkt = cnf["jkt"]
+    except:
         raise UnauthorizedError(f"Unsupported JWT confirmation type [{cnf}]")
 
     # First, validate header and check
@@ -107,11 +112,14 @@ def validate_dpop(dpop, request=connexion.request):
         raise UnauthorizedError("Invalid JWT") from e
 
     if m != htm or u != htu:
-        logger.warning(f"Invalid DPoP htm:[{htm}] htu:[{htu}] != m:[{m}] u[{u}]")
+        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu, m, u)
         raise UnauthorizedError("Invalid DPoP")
     access_token_hash = jws_sha(id_jwt)
     if ath != access_token_hash:
         logger.warning(
-            f"Invalid DPoP ath:[{ath}] not hash of [{id_jwt}], should be [{access_token_hash}]"
+            "Invalid DPoP ath:[%s] not hash of [%s], should be [%s]",
+            ath,
+            id_jwt,
+            access_token_hash,
         )
         raise UnauthorizedError("Invalid DPoP")
