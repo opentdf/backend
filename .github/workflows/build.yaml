@@ -290,8 +290,7 @@ jobs:
 
   signing-artifacts:
     needs:
-      - version
-      - docker
+      - lint
     permissions:
       packages: write
       contents: read
@@ -308,12 +307,11 @@ jobs:
     uses: ./.github/workflows/sign-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: "${{ needs.version.outputs.FULL_VERSION }}"
+      version: 1.1.1
     secrets: inherit
 
   verifying-signing:
     needs:
-      - version
       - signing-artifacts
     permissions:
       packages: write
@@ -331,7 +329,7 @@ jobs:
     uses: ./.github/workflows/verify-artifacts.yaml
     with:
       target: ${{ matrix.target }}
-      version: "${{ needs.version.outputs.FULL_VERSION }}"
+      version: 1.1.1
     secrets: inherit
 
   # "isolated" - meaning these do not depend or build on `python_base`
