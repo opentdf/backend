@@ -36,8 +36,8 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .plugins import (
-    run_pre_command_hooks, 
-    run_post_command_hooks, 
+    run_pre_command_hooks,
+    run_post_command_hooks,
     run_err_hooks,
     HttpMethod,
 )
@@ -257,7 +257,7 @@ table_entity_attribute = sqlalchemy.Table(
     sqlalchemy.Column("value", sqlalchemy.VARCHAR),
 )
 
-engine = sqlalchemy.create_engine(DATABASE_URL)
+engine = sqlalchemy.create_engine(DATABASE_URL, pool_pre_ping=True)
 dbase_session = sessionmaker(bind=engine)
 
 
@@ -452,7 +452,7 @@ async def read_entitlements(
 
 
 async def read_entitlements_crud(session, filter_args, sort_args):
-    table_to_query = metadata.tables['tdf_entitlement.entity_attribute']
+    table_to_query = metadata.tables["tdf_entitlement.entity_attribute"]
     filters, sorters = get_query(table_to_query, filter_args, sort_args)
     results = session.query(table_to_query).filter(*filters).order_by(*sorters)
 
@@ -580,8 +580,9 @@ async def add_entitlements_to_entity(
     ),
     auth_token=Depends(get_auth),
 ):
-    run_pre_command_hooks(HttpMethod.POST,
-                sys._getframe().f_code.co_name, request, auth_token, entityId)
+    run_pre_command_hooks(
+        HttpMethod.POST, sys._getframe().f_code.co_name, request, auth_token, entityId
+    )
     return await add_entitlements_to_entity_crud(entityId, request, auth_token)
 
 
@@ -601,15 +602,24 @@ async def add_entitlements_to_entity_crud(entityId, request, auth_token=None):
                 )
         query = table_entity_attribute.insert(rows)
         await database.execute(query)
-        run_post_command_hooks(HttpMethod.POST,
-                sys._getframe().f_code.co_name, request, auth_token, entityId)
+        run_post_command_hooks(
+            HttpMethod.POST,
+            sys._getframe().f_code.co_name,
+            request,
+            auth_token,
+            entityId,
+        )
         return request
-    
-    except Exception as e:
-        run_err_hooks(HttpMethod.POST,
-                sys._getframe().f_code.co_name, request, auth_token, entityId)
-        raise e
 
+    except Exception as e:
+        run_err_hooks(
+            HttpMethod.POST,
+            sys._getframe().f_code.co_name,
+            request,
+            auth_token,
+            entityId,
+        )
+        raise e
 
 
 @app.get(
@@ -648,8 +658,9 @@ async def get_attribute_entity_relationship(
 async def create_attribute_entity_relationship(
     attributeURI: HttpUrl, request: List[str], auth_token=Depends(get_auth)
 ):
-    run_pre_command_hooks(HttpMethod.PUT,
-                sys._getframe().f_code.co_name, request, auth_token)
+    run_pre_command_hooks(
+        HttpMethod.PUT, sys._getframe().f_code.co_name, request, auth_token
+    )
     try:
         attribute = parse_attribute_uri(attributeURI)
         rows = []
@@ -664,13 +675,15 @@ async def create_attribute_entity_relationship(
             )
         query = table_entity_attribute.insert(rows)
         await database.execute(query)
-        run_post_command_hooks(HttpMethod.PUT,
-                sys._getframe().f_code.co_name, request, auth_token)
+        run_post_command_hooks(
+            HttpMethod.PUT, sys._getframe().f_code.co_name, request, auth_token
+        )
         return request
 
     except Exception as e:
-        run_err_hooks(HttpMethod.PUT,
-                sys._getframe().f_code.co_name, request, auth_token)
+        run_err_hooks(
+            HttpMethod.PUT, sys._getframe().f_code.co_name, request, auth_token
+        )
         raise e
 
 
@@ -703,8 +716,9 @@ async def remove_entitlement_from_entity(
     auth_token=Depends(get_auth),
 ):
 
-    run_pre_command_hooks(HttpMethod.DELETE,
-                sys._getframe().f_code.co_name, request, auth_token, entityId)
+    run_pre_command_hooks(
+        HttpMethod.DELETE, sys._getframe().f_code.co_name, request, auth_token, entityId
+    )
     return await remove_entitlement_from_entity_crud(entityId, request, auth_token)
 
 
@@ -723,7 +737,9 @@ async def remove_entitlement_from_entity_crud(entityId, request, auth_token=None
                 )
 
         except IndexError as e:
-            raise HTTPException(status_code=BAD_REQUEST, detail=f"invalid: {str(e)}") from e
+            raise HTTPException(
+                status_code=BAD_REQUEST, detail=f"invalid: {str(e)}"
+            ) from e
 
         await database.execute(
             table_entity_attribute.delete().where(
@@ -733,12 +749,22 @@ async def remove_entitlement_from_entity_crud(entityId, request, auth_token=None
                 )
             )
         )
-        run_post_command_hooks(HttpMethod.DELETE,
-                sys._getframe().f_code.co_name, request, auth_token, entityId)
+        run_post_command_hooks(
+            HttpMethod.DELETE,
+            sys._getframe().f_code.co_name,
+            request,
+            auth_token,
+            entityId,
+        )
         return {}
     except Exception as e:
-        run_err_hooks(HttpMethod.DELETE,
-                sys._getframe().f_code.co_name, request, auth_token, entityId)
+        run_err_hooks(
+            HttpMethod.DELETE,
+            sys._getframe().f_code.co_name,
+            request,
+            auth_token,
+            entityId,
+        )
         raise e
 
 

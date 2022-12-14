@@ -41,8 +41,8 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .plugins import (
-    run_pre_command_hooks, 
-    run_post_command_hooks, 
+    run_pre_command_hooks,
+    run_post_command_hooks,
     run_err_hooks,
     HttpMethod,
 )
@@ -250,7 +250,7 @@ table_attribute = sqlalchemy.Table(
     sqlalchemy.Column("group_by_attrval", sqlalchemy.TEXT),
 )
 
-engine = sqlalchemy.create_engine(DATABASE_URL)
+engine = sqlalchemy.create_engine(DATABASE_URL, pool_pre_ping=True)
 dbase_session = sessionmaker(bind=engine)
 
 
@@ -705,7 +705,7 @@ async def create_attributes_definitions(
                 "value": "Proprietary",
             },
         },
-    ), 
+    ),
     decoded_token=Depends(get_auth),
 ):
     run_pre_command_hooks(HttpMethod.POST,
@@ -904,9 +904,9 @@ async def update_attribute_definition_crud(request, decoded_token=None):
 
         run_post_command_hooks(HttpMethod.PUT,
              sys._getframe().f_code.co_name, request, decoded_token)
-        
+
         return request
-    
+
     except Exception as e:
         run_err_hooks(HttpMethod.PUT,
              sys._getframe().f_code.co_name, request, decoded_token)
@@ -957,7 +957,7 @@ async def delete_attributes_definitions_crud(request, decoded_token=None):
         run_post_command_hooks(HttpMethod.DELETE,
              sys._getframe().f_code.co_name, request, decoded_token)
         return {}
-    
+
     except Exception as e:
         run_err_hooks(HttpMethod.DELETE,
              sys._getframe().f_code.co_name, request, decoded_token)
@@ -1060,7 +1060,7 @@ async def delete_authorities(
     return await delete_authorities_crud(request, decoded_token)
 
 
-async def delete_authorities_crud(request, decode_token=None):
+async def delete_authorities_crud(request, decoded_token=None):
     try:
         query = table_authority.select().where(table_authority.c.name == request.authority)
         result = await database.fetch_one(query)
