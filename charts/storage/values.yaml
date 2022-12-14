@@ -2,57 +2,57 @@
 global:
   opentdf:
     common:
-      # JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
 
-# Sets the default loglevel for the application. One of the valid python logging
+# -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
 
-# Sets the default number of pod replicas in the deployment.
-# Ignored if autoscaling.enabled == true
+# -- Sets the default number of pod replicas in the deployment.
+# Ignored if `autoscaling.enabled` == true
 replicaCount: 1
 
 # Container image configuration.
 image:
-  # The image selector, also called the 'image name' in k8s documentation
+  # -- The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/storage
-  # Chart.AppVersion will be used for image tag, override here if needed
-  # tag: main
-  # The container's `imagePullPolicy`
+  # -- `Chart.AppVersion` will be used for image tag, override here if needed
+  tag:
+  # -- The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# JSON passed to the deployment's template.spec.imagePullSecrets.
+# -- JSON passed to the deployment's template.spec.imagePullSecrets.
 # Overrides global.opentdf.common.imagePullSecrets
 imagePullSecrets:
 
-# Select a specific name for the resource, instead of the default, storage
+# -- Select a specific name for the resource, instead of the default, storage
 nameOverride: ""
 
-# The fully qualified appname override
+# -- The fully qualified appname override
 fullnameOverride: ""
 
 # A service account to create
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: null
 
-# Values for the deployment spec.template.metadata.annotations field
+# -- Values for the deployment `spec.template.metadata.annotations` field
 podAnnotations: {}
 
-# Values for deployment's spec.template.spec.securityContext
+# -- Values for deployment's `spec.template.spec.securityContext`
 podSecurityContext: {}
 
-# Values for deployment's spec.template.spec.containers.securityContext
+# -- Values for deployment's `spec.template.spec.containers.securityContext`
 securityContext: {}
 
-# JSON to locate a k8s secret containing environment variables.
+# -- JSON to locate a k8s secret containing environment variables.
 # Notably, this file should include the following environemnt variable definitions:
 #     POSTGRES_PASSWORD: Password corresponding to postgres.user below
 secretRef: |-
@@ -60,47 +60,60 @@ secretRef: |-
 
 # Service configuation information.
 service:
-  # Service `spec.type`
+  # -- Service `spec.type`
   type: ClusterIP
-  # Port to assign to the `http` port
+  # -- Port to assign to the `http` port
   port: 4050
 
 # Ingress configuration.
-# To configure, set enabled to true and set `hosts` to a map in the form:
-#
-#     [hostname]:
-#       [path]:
-#         pathType:    your-pathtype [default: "ImplementationSpecific"]
-#         serviceName: your-service  [default: service.fullname]
-#         servicePort: service-port  [default: service.port above]
 ingress:
+  # -- Enables the Ingress
   enabled: false
+  # -- Ingress annotations
   annotations: {}
+  # -- Ingress class to use.
   className: null
+  # -- Map in the form:
+  # [hostname]:
+  #   [path]:
+  #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+  #     serviceName: your-service  [default: `service.fullname`]
+  #     servicePort: service-port  [default: `service.port` above]
   hosts: {}
+  # -- Ingress TLS configuration
   tls: null
 
-# Specify required limits for deploying this service to a pod.
+# -- Specify required limits for deploying this service to a pod.
 # We usually recommend not to specify default resources and to leave this as a conscious
 # choice for the user. This also increases chances charts run on environments with little
 # resources, such as Minikube.
 resources: {}
 
+# Autoscaling settings
 autoscaling:
+  # -- Enables autoscaling. When set to `true`, `replicas` is no longer applied.
   enabled: false
+  # -- Sets minimum replicas for autoscaling.
   minReplicas: 1
+  # -- Sets maximum replicas for autoscaling.
   maxReplicas: 100
+  # -- Target average CPU usage across all the pods
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+# -- Node labels for pod assignment
 nodeSelector: {}
 
+# -- Tolerations for nodes that have taints on them
 tolerations: []
 
+# -- Pod scheduling preferences
 affinity: {}
 
+# -- Name of S3 bucket
 s3Bucket: "datalake"
+# -- Region of S3 bucket
 s3BucketRegion: "us-east-1"
 
-# Allowed origins for requests from browser clients.
+# -- Allowed origins for requests from browser clients.
 corsOrigins: "localhost"

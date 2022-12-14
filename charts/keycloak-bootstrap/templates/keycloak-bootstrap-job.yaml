@@ -50,10 +50,6 @@ spec:
               value: {{ ( include "bootstrap.oidc.internalUrl" . ) | quote }}
             - name: passwordUsers
               value: {{ .Values.keycloak.passwordUsers }}
-            {{- with .Values.keycloak.clientId }}
-            - name: CLIENT_ID
-              value: {{ tpl . $ | quote }}
-            {{- end }}
             {{- with .Values.attributes.hostname }}
             - name: ATTRIBUTE_AUTHORITY_HOST
               value: {{ tpl . $ | quote }}
