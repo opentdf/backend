@@ -276,12 +276,29 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         return rootNode;
     }
 
+    static Optional<DPoP.Proof> getProofHeader(HttpHeaders headers) {
+        List<String> dpopValues = new ArrayList<>(new HashSet<>(headers.getRequestHeader("dpop")));
+        if (dpopValues.isEmpty()) {
+            logger.info("No DPoP Header");
+            return Optional.empty();
+        }
+        if (dpopValues.size() > 1) {
+            throw new BadRequestException("Conflicting dpop headers");
+        }
+        try {
+            return Optional.of(DPoP.validate(dpopValues.get(0)));
+        } catch (RuntimeException ex) {
+            logger.error("failure", ex);
+            throw ex;
+        }
+    }
+
     private String getClientPublicKey(JsonWebToken accessToken, ProtocolMapperModel mappingModel,
             KeycloakSession keycloakSession) {
         // First, let's try loading from DPoP header if present:
         HttpHeaders headers = keycloakSession.getContext().getRequestHeaders();
         boolean dpopEnabled = "true".equals(mappingModel.getConfig().get(DPOP_ENABLED));
-        Optional<DPoP.Proof> dpop = dpopEnabled ? DPoPConfirmationMapper.getProofHeader(headers) : Optional.empty();
+        Optional<DPoP.Proof> dpop = dpopEnabled ? getProofHeader(headers) : Optional.empty();
         String clientPK = null;
         if (dpop.isPresent()) {
             var jwk = dpop.get().getHeader().getJwk();

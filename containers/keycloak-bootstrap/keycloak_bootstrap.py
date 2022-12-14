@@ -137,12 +137,8 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
     def strBool(b):
         return "true" if b else "false"
 
-    def addMapper(claim, is_person, extra_params={}):
-        mapper = (
-            "virtru-oidc-protocolmapper" if claim == "tdf_claims" else "dpop-cnf-mapper"
-        )
-        token_type = "UserInfo" if is_person else "Access"
-        name = f"{token_type} {claim}"
+    def addMapper(is_person, extra_params):
+        name = "UserInfo tdf_claims" if is_person else "Access tdf_claims"
         try:
             keycloak_admin.add_mapper_to_client(
                 keycloak_client_id,
@@ -153,49 +149,30 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
                         "id.token.claim": strBool(not is_person),
                         "access.token.claim": strBool(not is_person),
                         "userinfo.token.claim": strBool(is_person),
-                        "claim.name": claim,
+                        "claim.name": "tdf_claims",
                     },
                     "name": name,
-                    "protocolMapper": mapper,
+                    "protocolMapper": "virtru-oidc-protocolmapper",
                 },
             )
         except KeycloakPostError as e:
             if e.response_code != 409:
                 raise
             logger.warning(
-                "Could not add [%s] mapper to client [%s] - this likely means it is already there, so we can ignore this.",
-                name,
+                "Could not add tdf_clams mapper to client [%s] - this likely means it is already there, so we can ignore this.",
                 keycloak_client_id,
                 exc_info=True,
             )
 
-    # addMapper(
-    #     "cnf",
-    #     True,
-    #     {
-    #         "client.dpop": "DPoP",
-    #     },
-    # )
     addMapper(
-        "cnf",
-        False,
+        True,
         {
+            "remote.parameters.username": "true",
+            "remote.parameters.clientid": "true",
             "client.publickey": "X-VirtruPubKey",
-            "client.dpop": "DPoP",
         },
     )
-
-    # addMapper(
-    #     "tdf_claims",
-    #     True,
-    #     {
-    #         "remote.parameters.username": "true",
-    #         "remote.parameters.clientid": "true",
-    #         "client.publickey": "X-VirtruPubKey",
-    #     },
-    # )
     addMapper(
-        "tdf_claims",
         False,
         {
             "client.publickey": "X-VirtruPubKey",
