@@ -77,5 +77,5 @@ To generate the helm docs for the backend chart and its dependencies, install th
 ```
 brew install norwoodj/tap/helm-docs
 cd backend/charts/backend
-helm-docs --document-dependency-values --chart-search-root=..
+helm-docs --document-dependency-values --chart-search-root=.. --template-files=./backend/_templates.gotmpl --template-files=README.md.gotmpl
 ```
