@@ -40,7 +40,7 @@ def test_read_attributes(test_app, monkeypatch):
         "http://opentdf.io/attr/Top/value/V2",
     ]
 
-    async def mock_read_attributes_crud(schema, db, filter, sort):
+    async def mock_read_attributes_crud(request, session, filter, sort):
         return test_data
 
     monkeypatch.setattr(main, "read_attributes_crud", mock_read_attributes_crud)
