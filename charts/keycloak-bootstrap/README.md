@@ -16,7 +16,7 @@ Keycloak Bootstrap Configurator Job
 |-----|------|---------|-------------|
 | attributes.clientId | string | `"dcr-test"` | Keycloak client id used to create attributes |
 | attributes.hostname | string | `"http://attributes"` | Internal attributes service url |
-| attributes.preloadedAttributes | string | `nil` | List of attributes to create in the form  [{authority:"", name:"", rule:"", state:"", order:[]}] |
+| attributes.preloadedAttributes | string | `nil` | List of attributes to create in the form:  [{authority:"", name:"", rule:"", state:"", order:[]}] |
 | attributes.preloadedAuthorities | string | `nil` | List of authorities to create |
 | attributes.realm | string | `"tdf"` | Realm of keycloak client used to create attributes |
 | entitlements.hostname | string | `"http://entitlements"` | Internal entitlements service url |
