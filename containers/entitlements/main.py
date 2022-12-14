@@ -494,6 +494,10 @@ def parse_attribute_uri(attribute_uri):
             "name": path_split_name[1],
             "value": path_split_value[1],
         }
+    else:
+        logger.error(f"Invalid attribute format: '{attribute_uri}'")
+        raise HTTPException(status_code=BAD_REQUEST,
+                             detail=f"Invalid attribute format: '{attribute_uri}'")
 
 
 @app.get(
