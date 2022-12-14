@@ -36,3 +36,4 @@ jobs:
         env:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         run: cosign sign --key cosign.key ghcr.io/opentdf/${{ inputs.target }}:${{ inputs.version }}
+#        run: cosign sign --key cosign.key ghcr.io/opentdf/${{ inputs.target }}:${{ inputs.version }}
