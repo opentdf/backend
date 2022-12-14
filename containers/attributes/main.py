@@ -1060,7 +1060,7 @@ async def delete_authorities(
     return await delete_authorities_crud(request, decoded_token)
 
 
-async def delete_authorities_crud(request, decode_token=None):
+async def delete_authorities_crud(request, decoded_token=None):
     try:
         query = table_authority.select().where(table_authority.c.name == request.authority)
         result = await database.fetch_one(query)
