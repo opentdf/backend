@@ -19,21 +19,24 @@ ALLOWED_DPOP_ALGORITHMS = ["ES256", "ES384", "ES512", "RS256", "RS384", "RS512"]
 
 def canonical(jwk):
     """Sort and filter the jwk according to the JWK thumbprint rules"""
-    match jwk:
-        case {"kty": "RSA", "e": e, "n": n}:
+    try:
+        kty = jwk["kty"]
+        if "RSA" == kty:
             return {
-                "e": e,
+                "e": jwk["e"],
                 "kty": "RSA",
-                "n": n,
+                "n": jwk["n"],
             }
-        case {"kty": "EC", "crv": crv, "x": x, "y": y}:
+        if "EC" == kty:
             return {
-                "crv": crv,
+                "crv": jwk["crv"],
                 "kty": "EC",
-                "x": x,
-                "y": y,
+                "x": jwk["x"],
+                "y": jwk["y"],
             }
-    raise UnauthorizedError("Missing auth header")
+    except Exception as e:
+        raise UnauthorizedError(f"Invalid JWK {jwk}") from e
+    raise UnauthorizedError(f"Unsupported JWK {jwk}")
 
 
 def jws_sha(s):
