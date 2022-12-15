@@ -130,7 +130,7 @@ def test_validate_dpop_mismatch_cnf():
 
 
 def test_validate_dpop_happy_path():
-    pop_private_rsa, pop_private_rsa_bytes, pop_public_rsa_bytes = gen_sample_keypair()
+    pop_private_rsa, _, _ = gen_sample_keypair()
     pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
 
     id_jwt = PyJWT().encode(
@@ -146,6 +146,46 @@ def test_validate_dpop_happy_path():
     validate_dpop(
         None, keys, MockRequest({"authorization": f"Bearer {id_jwt}", "dpop": dpop})
     )
+
+
+def test_validate_dpop_htu_wrong():
+    pop_private_rsa, _, _ = gen_sample_keypair()
+    pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
+
+    id_jwt = PyJWT().encode(
+        {"cnf": {"jkt": jwk_thumbprint(pop_jwk)}, "iss": "https://localhost/realm"},
+        private_rsa,
+        algorithm="RS256",
+    )
+    dpop = PyJWT().encode(
+        payload={"htm": "options", "htu": "http://localhost/", "ath": jws_sha(id_jwt)},
+        key=pop_private_rsa,
+        headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
+    )
+    with pytest.raises(UnauthorizedError, match=r".*Invalid.*"):
+        validate_dpop(
+            None, keys, MockRequest({"authorization": f"Bearer {id_jwt}", "dpop": dpop})
+        )
+
+
+def test_validate_dpop_htm_wrong():
+    pop_private_rsa, _, _ = gen_sample_keypair()
+    pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
+
+    id_jwt = PyJWT().encode(
+        {"cnf": {"jkt": jwk_thumbprint(pop_jwk)}, "iss": "https://localhost/realm"},
+        private_rsa,
+        algorithm="RS256",
+    )
+    dpop = PyJWT().encode(
+        payload={"htm": "get", "htu": "http://example.com/", "ath": jws_sha(id_jwt)},
+        key=pop_private_rsa,
+        headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
+    )
+    with pytest.raises(UnauthorizedError, match=r".*Invalid.*"):
+        validate_dpop(
+            None, keys, MockRequest({"authorization": f"Bearer {id_jwt}", "dpop": dpop})
+        )
 
 
 def test_validate_dpop_incorrect_ath():

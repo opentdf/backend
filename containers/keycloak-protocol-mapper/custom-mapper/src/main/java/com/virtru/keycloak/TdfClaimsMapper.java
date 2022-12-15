@@ -140,32 +140,27 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // We will have to fix `dissems` to properly get rid of this hack.
         token.setSubject(userSession.getUser().getId());
         logger.info("TDF claims mapper triggered");
-        try {
 
-            String clientPK = getClientPublicKey(token, mappingModel, keycloakSession);
-            // If no PK in request, don't bother asking for claims - no authorization.
-            if (clientPK == null) {
-                logger.info(
-                        "No public key in auth request, skipping remote auth call and returning empty claims; simple access/id token");
-                return;
-            }
-            JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
-            // If claims are not cached OR this is a userinfo request (which should always
-            // refresh claims from remote) then refresh claims.
-            if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
-                logger.info("Getting remote authorizations");
-                JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
-                claims = buildClaimsObject(entitlements, clientPK);
-                // Cache for next callback
-                clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
-            } else {
-                logger.info("Using cached remote authorizations: [{}]", claims);
-            }
-            OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
-        } catch (RuntimeException ex) {
-            logger.error("failure", ex);
-            throw ex;
+        String clientPK = getClientPublicKey(token, mappingModel, keycloakSession);
+        // If no PK in request, don't bother asking for claims - no authorization.
+        if (clientPK == null) {
+            logger.info(
+                    "No public key in auth request, skipping remote auth call and returning empty claims; simple access/id token");
+            return;
         }
+        JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
+        // If claims are not cached OR this is a userinfo request (which should always
+        // refresh claims from remote) then refresh claims.
+        if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
+            logger.debug("Getting remote authorizations");
+            JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
+            claims = buildClaimsObject(entitlements, clientPK);
+            // Cache for next callback
+            clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
+        } else {
+            logger.debug("Using cached remote authorizations: [{}]", claims);
+        }
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
     }
 
     private Map<String, Object> getHeaders(ProtocolMapperModel mappingModel, UserSessionModel userSession) {
@@ -285,12 +280,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         if (dpopValues.size() > 1) {
             throw new BadRequestException("Conflicting dpop headers");
         }
-        try {
-            return Optional.of(DPoP.validate(dpopValues.get(0)));
-        } catch (RuntimeException ex) {
-            logger.error("failure", ex);
-            throw ex;
-        }
+        return Optional.of(DPoP.validate(dpopValues.get(0)));
     }
 
     private String getClientPublicKey(JsonWebToken accessToken, ProtocolMapperModel mappingModel,
@@ -305,7 +295,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             var jwk = dpop.get().getHeader().getJwk();
             clientPK = DPoP.jwkToPem(jwk);
             JsonNode cnf = DPoP.confirmation(jwk);
-            logger.info("Registering dpop cnf jkt [{}] for dpop with jti [{}]", cnf.get("jkt"),
+            logger.debug("Registering dpop cnf jkt [{}] for dpop with jti [{}]", cnf.get("jkt"),
                     dpop.get().getPayload().getIdentifier());
             accessToken.setOtherClaims("cnf", cnf);
         } else if (dpopEnabled) {
@@ -324,14 +314,14 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 legacyPK = new String(decodedBytes);
             }
             if (clientPK != null && !clientPK.equals(legacyPK)) {
-                logger.info("Conflicting public key and dpop headers: [" + clientPK + "] != ["+ legacyPK + "]");
+                logger.info("Conflicting public key and dpop headers: [" + clientPK + "] != [" + legacyPK + "]");
             }
             clientPK = legacyPK;
         }
-        if (clientPK != null) {
-            logger.info("Client Cert: [{}]", clientPK);
-        } else {
+        if (clientPK == null) {
             logger.warn("No client cert presented in request, returning null");
+        } else {
+            logger.debug("Client Cert: [{}]", clientPK);
         }
 
         return clientPK;
@@ -416,38 +406,5 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             // information
             throw new JsonRemoteClaimException("Error when accessing remote claim", url, e);
         }
-    }
-
-    @Override
-    public AccessToken transformUserInfoToken(AccessToken token, ProtocolMapperModel mappingModel,
-            KeycloakSession session,
-            UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
-        logger.info("transformUserInfoToken [{}]", token);
-        return super.transformUserInfoToken(token, mappingModel, session, userSession, clientSessionCtx);
-    }
-
-    @Override
-    public AccessToken transformAccessToken(AccessToken token, ProtocolMapperModel mappingModel,
-            KeycloakSession session,
-            UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
-        logger.info("transformAccessToken [{}] [{}]", token, mappingModel.getConfig());
-        return super.transformAccessToken(token, mappingModel, session, userSession, clientSessionCtx);
-    }
-
-    @Override
-    public IDToken transformIDToken(IDToken token, ProtocolMapperModel mappingModel, KeycloakSession session,
-            UserSessionModel userSession, ClientSessionContext clientSessionCtx) {
-        logger.info("transformIDToken [{}]", token);
-        return super.transformIDToken(token, mappingModel, session, userSession, clientSessionCtx);
-    }
-
-    @Override
-    public AccessTokenResponse transformAccessTokenResponse(AccessTokenResponse accessTokenResponse,
-            ProtocolMapperModel mappingModel,
-            KeycloakSession session, UserSessionModel userSession,
-            ClientSessionContext clientSessionCtx) {
-        logger.info("transformAccessTokenResponse [{}]", accessTokenResponse);
-        return super.transformAccessTokenResponse(accessTokenResponse, mappingModel, session, userSession,
-                clientSessionCtx);
     }
 }

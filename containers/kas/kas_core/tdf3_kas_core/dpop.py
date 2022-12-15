@@ -127,4 +127,4 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
             access_token_hash,
         )
         raise UnauthorizedError("Invalid DPoP")
-    logger.info("DPoP Validated!")
+    logger.debug("DPoP Validated!")
