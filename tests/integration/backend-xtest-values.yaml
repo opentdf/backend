@@ -29,6 +29,7 @@ keycloak-bootstrap:
                   userinfo.token.claim: "true"
                   remote.parameters.username: "true"
                   remote.parameters.clientid: "true"
+                  client.dpop: "true"
                   client.publickey: X-VirtruPubKey
                   claim.name: tdf_claims
                 name: Virtru OIDC UserInfo Mapper
@@ -40,6 +41,7 @@ keycloak-bootstrap:
                   userinfo.token.claim: "false"
                   remote.parameters.username: "true"
                   remote.parameters.clientid: "true"
+                  client.dpop: "true"
                   client.publickey: X-VirtruPubKey
                   claim.name: tdf_claims
                 name: Virtru OIDC Auth Mapper

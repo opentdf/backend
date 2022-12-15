@@ -38,6 +38,11 @@ class DPoP {
   private static final Base64.Encoder B64_ENCODER = Base64.getUrlEncoder().withoutPadding();
   static long MOCK_TIME = 0;
 
+  private static Map<String, Integer> EC_BYTE_COUNTS = Map.of(
+      "ES256", 32,
+      "ES384", 48,
+      "ES512", 64);
+
   private static Map<String, String> SIG_JWT_TO_JAVA = Map.of(
       "RS256", "SHA256withRSA",
       "RS384", "SHA384withRSA",
@@ -115,7 +120,7 @@ class DPoP {
 
   static boolean rightAboutNow(long issuedAtTime) {
     long now = MOCK_TIME != 0 ? MOCK_TIME : (System.currentTimeMillis() / 1000);
-    // Issued not too far in the future, or too long in the past. 
+    // Issued not too far in the future, or too long in the past.
     // NOTE: Should this be customizeable?
     long fiveMinutesAgo = now - 5 * 60;
     long thirtySecondsFromNow = now + 30;
@@ -132,6 +137,79 @@ class DPoP {
       throw new RuntimeException(e);
     }
     return sw.toString();
+  }
+
+  /**
+   * Convert from JWT ECDSA signature to 'DER' format.
+   * Code from https://github.com/auth0/java-jwt
+   * Released under MIT License by auth0
+   * As of keycloak 20, its packed-in jose subset does not support ECDSA
+   * signatures, so this is required for now.
+   */
+  static byte[] JOSEToDER(byte[] joseSignature, int ecNumberSize) throws SignatureException {
+    // Retrieve R and S number's length and padding.
+    int rPadding = countPadding(joseSignature, 0, ecNumberSize);
+    int sPadding = countPadding(joseSignature, ecNumberSize, joseSignature.length);
+    int rLength = ecNumberSize - rPadding;
+    int sLength = ecNumberSize - sPadding;
+
+    int length = 2 + rLength + 2 + sLength;
+
+    final byte[] derSignature;
+    int offset;
+    if (length > 0x7f) {
+      derSignature = new byte[3 + length];
+      derSignature[1] = (byte) 0x81;
+      offset = 2;
+    } else {
+      derSignature = new byte[2 + length];
+      offset = 1;
+    }
+
+    // DER Structure: http://crypto.stackexchange.com/a/1797
+    // Header with signature length info
+    derSignature[0] = (byte) 0x30;
+    derSignature[offset++] = (byte) (length & 0xff);
+
+    // Header with "min R" number length
+    derSignature[offset++] = (byte) 0x02;
+    derSignature[offset++] = (byte) rLength;
+
+    // R number
+    if (rPadding < 0) {
+      // Sign
+      derSignature[offset++] = (byte) 0x00;
+      System.arraycopy(joseSignature, 0, derSignature, offset, ecNumberSize);
+      offset += ecNumberSize;
+    } else {
+      int copyLength = Math.min(ecNumberSize, rLength);
+      System.arraycopy(joseSignature, rPadding, derSignature, offset, copyLength);
+      offset += copyLength;
+    }
+
+    // Header with "min S" number length
+    derSignature[offset++] = (byte) 0x02;
+    derSignature[offset++] = (byte) sLength;
+
+    // S number
+    if (sPadding < 0) {
+      // Sign
+      derSignature[offset++] = (byte) 0x00;
+      System.arraycopy(joseSignature, ecNumberSize, derSignature, offset, ecNumberSize);
+    } else {
+      System.arraycopy(joseSignature, ecNumberSize + sPadding, derSignature, offset,
+          Math.min(ecNumberSize, sLength));
+    }
+
+    return derSignature;
+  }
+
+  private static int countPadding(byte[] bytes, int fromIndex, int toIndex) {
+    int padding = 0;
+    while (fromIndex + padding < toIndex && bytes[fromIndex + padding] == 0) {
+      padding++;
+    }
+    return (bytes[fromIndex + padding] & 0xff) > 0x7f ? padding - 1 : padding;
   }
 
   static Proof validate(String dpopWireFormat) {
@@ -173,16 +251,22 @@ class DPoP {
     Signature sig;
     try {
       sig = Signature.getInstance(SIG_JWT_TO_JAVA.get(header.getAlgorithm()));
+      if (header.getAlgorithm().startsWith("ES")) {
+        signatureBytes = JOSEToDER(signatureBytes, EC_BYTE_COUNTS.get(header.getAlgorithm()));
+      }
     } catch (NoSuchAlgorithmException e1) {
       throw new RuntimeException("Java Security Library missing verifier of type " + header.getAlgorithm());
+    } catch (SignatureException e) {
+      throw new ClientErrorException(401, e);
     }
     try {
       sig.initVerify(pk);
-      byte[] encodedSignatureInput = (parts[0] + '.' + parts[1]).getBytes(StandardCharsets.UTF_8);
-      sig.update(encodedSignatureInput);
+      sig.update(parts[0].getBytes(StandardCharsets.UTF_8));
+      sig.update((byte) '.');
+      sig.update(parts[1].getBytes(StandardCharsets.UTF_8));
       sig.verify(signatureBytes);
     } catch (SignatureException e) {
-      throw new ClientErrorException("Error in DPoP signature verification", 401, e);
+      throw new ClientErrorException("Error in DPoP signature verification [" + dpopWireFormat + "]", 401, e);
     } catch (InvalidKeyException e) {
       throw new ClientErrorException("Error in DPoP JWK / Algorithm initialization", 401, e);
     }
@@ -203,7 +287,8 @@ class DPoP {
       throw new ClientErrorException("Invalid dpop", 401);
     }
     if (payload.getIssuedAt() == null || !rightAboutNow(payload.getIssuedAt())) {
-      throw new ClientErrorException("Invalid dpop issuedAt [" + payload.getIssuedAt() + "] !~ [" + System.currentTimeMillis() + "]", 401);
+      throw new ClientErrorException(
+          "Invalid dpop issuedAt [" + payload.getIssuedAt() + "] !~ [" + System.currentTimeMillis() + "]", 401);
     }
     // TODO support DPoP-Nonce flow
     // TODO Fail on `ath` claims, right?

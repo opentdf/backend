@@ -40,11 +40,11 @@ def rewrap_helper(body, session_rewrap):
 
 @run_service_with_exceptions
 def rewrap(body, *, dpop=None):
-    validate_dpop(dpop)
+    validate_dpop(dpop, Kas.get_instance()._key_master)
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap())
 
 
 @run_service_with_exceptions
 def rewrap_v2(body, *, dpop=None):
-    validate_dpop(dpop)
+    validate_dpop(dpop, Kas.get_instance()._key_master)
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap_v2())

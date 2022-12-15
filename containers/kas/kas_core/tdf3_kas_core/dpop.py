@@ -2,13 +2,15 @@ import connexion
 import json
 import logging
 
+
 from base64 import urlsafe_b64encode
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from jwt import PyJWK, PyJWS, PyJWT
 
+from .authorized import authorized_v2, looks_like_jwt
 from .errors import UnauthorizedError
-from .authorized import looks_like_jwt
+from .keycloak import fetch_realm_key_by_jwt
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +18,7 @@ ALLOWED_DPOP_ALGORITHMS = ["ES256", "ES384", "ES512", "RS256", "RS384", "RS512"]
 
 
 def canonical(jwk):
+    """Sort and filter the jwk according to the JWK thumbprint rules"""
     match jwk:
         case {"kty": "RSA", "e": e, "n": n}:
             return {
@@ -46,25 +49,21 @@ def jwk_thumbprint(jwk):
     return jws_sha(cs)
 
 
-def validate_dpop(dpop, request=connexion.request, do_oidc=False):
+def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     """Validate a dpop header, when present."""
     # First, grab Auth JWT
     auth_header = request.headers.get("authorization", None)
     if not auth_header:
         if do_oidc:
             raise UnauthorizedError("Missing auth header")
-        # https://pyjwt.readthedocs.io/en/latest/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
-        logger.info("Missing auth header")
+        logger.debug("Missing auth header")
         return
     bearer, _, id_jwt = auth_header.partition(" ")
     logger.debug("id_jwt: [%s], dpop: [%s]", id_jwt, dpop)
     if bearer != "Bearer" or not looks_like_jwt(id_jwt):
         raise UnauthorizedError("Invalid auth header")
-    try:
-        b = PyJWS(options={"verify_signature": False}).decode(id_jwt)
-        jwt_decoded = json.loads(b)
-    except Exception as e:
-        raise UnauthorizedError("Invalid JWT") from e
+    verifier_key = fetch_realm_key_by_jwt(id_jwt, key_master)
+    jwt_decoded = authorized_v2(verifier_key, id_jwt)
     logger.debug("jwt_decoded: [%s]", jwt_decoded)
     cnf = jwt_decoded.get("cnf", None)
     # NOTE: Somehow the dpop field isn't populated yet? What am I doing wrong
@@ -75,7 +74,9 @@ def validate_dpop(dpop, request=connexion.request, do_oidc=False):
         logger.debug("DPoP not required, not found")
         return
     if dpop and not cnf:
-        logger.warn("DPoP found but unconfirmed")
+        logger.warn(
+            "DPoP found but unconfirmed [%s] not referenced from [%s]", dpop, id_jwt
+        )
         return
     if not dpop and cnf:
         raise UnauthorizedError("DPoP Required")
@@ -123,3 +124,4 @@ def validate_dpop(dpop, request=connexion.request, do_oidc=False):
             access_token_hash,
         )
         raise UnauthorizedError("Invalid DPoP")
+    logger.info("DPoP Validated!")

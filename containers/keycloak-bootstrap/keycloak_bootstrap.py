@@ -167,14 +167,14 @@ def addVirtruMappers(keycloak_admin, keycloak_client_id):
     addMapper(
         True,
         {
-            "remote.parameters.username": "true",
-            "remote.parameters.clientid": "true",
+            "client.dpop": "true",
             "client.publickey": "X-VirtruPubKey",
         },
     )
     addMapper(
         False,
         {
+            "client.dpop": "true",
             "client.publickey": "X-VirtruPubKey",
         },
     )

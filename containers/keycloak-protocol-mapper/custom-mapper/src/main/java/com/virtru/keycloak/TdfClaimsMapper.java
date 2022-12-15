@@ -297,7 +297,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             KeycloakSession keycloakSession) {
         // First, let's try loading from DPoP header if present:
         HttpHeaders headers = keycloakSession.getContext().getRequestHeaders();
-        boolean dpopEnabled = "true".equals(mappingModel.getConfig().get(DPOP_ENABLED));
+        Object dpopEnabledValue = mappingModel.getConfig().get(DPOP_ENABLED);
+        boolean dpopEnabled = "true".equals(dpopEnabledValue);
         Optional<DPoP.Proof> dpop = dpopEnabled ? getProofHeader(headers) : Optional.empty();
         String clientPK = null;
         if (dpop.isPresent()) {
