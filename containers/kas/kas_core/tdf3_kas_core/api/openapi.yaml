@@ -236,18 +236,18 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
 
 components:
-# TODO we should declare this in the openapi spec, but
-# if this is present connexion craps the bed unless
-# you define an x-bearerInfoFunc property
-# that points back to a function in your code to parse the token
-#
-# We should do that but not doing it now
-# Example: https://github.com/zalando/connexion/tree/master/examples/openapi3/jwt
-#  securitySchemes:
-#     virtruOIDCBearerToken:
-#       type: http
-#       scheme: bearer
-#       bearerFormat: JWT  # optional, for documentation purposes only
+  # TODO we should declare this in the openapi spec, but
+  # if this is present connexion craps the bed unless
+  # you define an x-bearerInfoFunc property
+  # that points back to a function in your code to parse the token
+  #
+  # We should do that but not doing it now
+  # Example: https://github.com/zalando/connexion/tree/master/examples/openapi3/jwt
+  #  securitySchemes:
+  #     virtruOIDCBearerToken:
+  #       type: http
+  #       scheme: bearer
+  #       bearerFormat: JWT  # optional, for documentation purposes only
   responses:
     ### Errors
     BadRequest:
@@ -339,7 +339,7 @@ components:
                 maxProperties: 1
                 properties:
                   signedRequestToken:
-                    $ref: "#/components/schemas/JWT"      
+                    $ref: "#/components/schemas/JWT"
     Upsert:
       description: Upsert request body
       required: true
@@ -379,7 +379,7 @@ components:
                 maxProperties: 1
                 properties:
                   signedRequestToken:
-                    $ref: "#/components/schemas/JWT"      
+                    $ref: "#/components/schemas/JWT"
 
   schemas:
     Algorithm:
