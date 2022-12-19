@@ -100,8 +100,8 @@ class EntitleRequest(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "primaryEntityId": "31c871f2-6d2a-4d27-b727-e619cfaf4e7a",
-                "secondaryEntityIds": ["46a871f2-6d2a-4d27-b727-e619cfaf4e7b"],
+                "primary_entity_id": "31c871f2-6d2a-4d27-b727-e619cfaf4e7a",
+                "secondary_entity_ids": ["46a871f2-6d2a-4d27-b727-e619cfaf4e7b"],
             }
         }
 

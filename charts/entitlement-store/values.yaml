@@ -2,92 +2,98 @@
 global:
   opentdf:
     common:
+      # -- Base internal k8s url of OIDC provider
       oidcInternalBaseUrl: http://keycloak-http
+      # -- Base external k8s url of OIDC provider
       oidcExternalBaseUrl: http://localhost:65432
+      # -- Optional path added to base OIDC url
       oidcUrlPath: auth
-      # JSON passed to the deployment's template.spec.imagePullSecrets
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
       postgres:
-        # postgres server's k8s name or global DNS for external server
+        # -- postgres server's k8s name or global DNS for external server
         host: postgresql
-        # postgres server port
+        # -- postgres server port
         port: 5432
-        # The database name within the given server
+        # -- The database name within the given server
         database: tdf_database
 
-# Sets the default loglevel for the application. One of the valid python logging
+# -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO
 
-# Sets the default number of pod replicas in the deployment.
-# Ignored if autoscaling.enabled == true
+# -- Sets the default number of pod replicas in the deployment.
+# Ignored if `autoscaling.enabled` == true
 replicaCount: 1
 
-# Name of application. Used during oauth flows, for example when connecting to
+# -- Name of application. Used during oauth flows, for example when connecting to
 # the OpenAPI endpoint with an OAuth authentication
 serverPublicName: "entitlement-store"
 
-# Base path for this service. Allows serving multiple REST services from the
+# -- Base path for this service. Allows serving multiple REST services from the
 # same origin, e.g. using an ingress with prefix mapping as suggested below.
 serverRootPath: /
 
-# Allowed origins for CORS
+# -- Allowed origins for CORS
 serverCorsOrigins: ""
 
-# Set to enable openapi endpoint
+# -- Set to enable openapi endpoint
 openapiUrl: ""
 
 oidc:
-  # Override for global.opentdf.common.oidcInternalBaseUrl & url path
+  # -- Override for `global.opentdf.common.oidcInternalBaseUrl` & url path
   internalHost:
-  # Override for global.opentdf.common.oidcExternalBaseUrl & url path
+  # -- Override for `global.opentdf.common.oidcExternalBaseUrl` & url path
   externalHost:
+  # -- Realm used for swagger-ui oauth
   realm: tdf
+  # -- Client id used for swagger-ui oauth
   clientId: tdf-attributes
+  # -- OIDC scopes used for swagger-ui pauth
   scopes: email
 
 # Configure the container image to use in the deployment.
 image:
-  # The image selector, also called the 'image name' in k8s documentation
+  # -- The image selector, also called the 'image name' in k8s documentation
   # and 'image repository' in docker's guides.
   repo: ghcr.io/opentdf/entitlement_store
-  # Chart.AppVersion will be used for image tag, override here if needed
-  # tag: main
-  # The container's `imagePullPolicy`
+  # -- `Chart.AppVersion` will be used for image tag, override here if needed
+  tag:
+  # -- The container's `imagePullPolicy`
   pullPolicy: IfNotPresent
 
-# JSON passed to the deployment's template.spec.imagePullSecrets.
-# Overrides global.opentdf.common.imagePullSecrets
+# -- JSON passed to the deployment's `template.spec.imagePullSecrets`.
+# Overrides `global.opentdf.common.imagePullSecrets`
 imagePullSecrets:
 
-# Select a specific name for the resource, instead of the default, entitlement-store
+# -- Select a specific name for the resource, instead of the default, entitlement-store
 nameOverride: ""
 
-# The fully qualified appname override
+# -- The fully qualified appname override
 fullnameOverride: ""
 
 # A service account to create
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: null
 
-# Values for the deployment spec.template.metadata.annotations field
+# -- Values for the deployment `spec.template.metadata.annotations` field
 podAnnotations: {}
 
-# Values for deployment's spec.template.spec.securityContext
+# -- Values for deployment's `spec.template.spec.securityContext`
 podSecurityContext: {}
 
-# Values for deployment's spec.template.spec.containers.securityContext
+# -- Values for deployment's `spec.template.spec.containers.securityContext`
 securityContext: {}
 
-# JSON to locate a k8s secret containing environment variables.
+# -- JSON to locate a k8s secret containing environment variables.
 # Notably, this file should include the following environemnt variable definitions:
-#     POSTGRES_PASSWORD: Password corresponding to postgres.user below
+#     POSTGRES_PASSWORD: Password corresponding to `postgres.user` below
 #     KAS_CERTIFICATE: Public key for Key Access service
 #     KAS_EC_SECP256R1_CERTIFICATE: Public key (EC Mode) for Key Access service
 secretRef: |-
@@ -95,54 +101,65 @@ secretRef: |-
 
 # Service configuation information.
 service:
-  # Service `spec.type`
+  # -- Service `spec.type`
   type: ClusterIP
-  # Port to assign to the `http` port
+  # -- Port to assign to the `http` port
   port: 5000
 
 # Ingress configuration.
-# To configure, set enabled to true and set `hosts` to a map in the form:
-#
-#     [hostname]:
-#       [path]:
-#         pathType:    your-pathtype [default: "ImplementationSpecific"]
-#         serviceName: your-service  [default: service.fullname]
-#         servicePort: service-port  [default: service.port above]
 ingress:
+  # -- Enables the Ingress
   enabled: false
+  # -- Ingress annotations
   annotations: {}
+  # -- Ingress class to use.
   className: null
+  # -- Map in the form:
+  # [hostname]:
+  #   [path]:
+  #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+  #     serviceName: your-service  [default: `service.fullname`]
+  #     servicePort: service-port  [default: `service.port` above]
   hosts: {}
+  # -- Ingress TLS configuration
   tls: null
 
-# Specify required limits for deploying this service to a pod.
+# -- Specify required limits for deploying this service to a pod.
 # We usually recommend not to specify default resources and to leave this as a conscious
 # choice for the user. This also increases chances charts run on environments with little
 # resources, such as Minikube.
 resources: {}
 
+# Autoscaling settings
 autoscaling:
+  # -- Enables autoscaling. When set to `true`, `replicas` is no longer applied.
   enabled: false
+  # -- Sets minimum replicas for autoscaling.
   minReplicas: 1
+  # -- Sets maximum replicas for autoscaling.
   maxReplicas: 100
+  # -- Target average CPU usage across all the pods
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+# -- Node labels for pod assignment
 nodeSelector: {}
 
+# -- Tolerations for nodes that have taints on them
 tolerations: []
 
+# -- Pod scheduling preferences
 affinity: {}
 
 # Configuration for the database backend
 postgres:
-  # Must be a postgres user with tdf_entitlement_reader role
+  # -- Must be a postgres user with `tdf_entitlement_reader` role
   user: tdf_entitlement_reader
-  # The entitlement schema
+  # -- The entitlement schema
   schema: tdf_entitlement
-  # Override for global.opentdf.common.postgres.host
+  # -- Override for `global.opentdf.common.postgres.host`
   host:
-  # Override for global.opentdf.common.postgres.post
+  # -- Override for `global.opentdf.common.postgres.post`
   port:
-  # Override for global.opentdf.common.postgres.database
+  # -- Override for `global.opentdf.common.postgres.database`
   database:
