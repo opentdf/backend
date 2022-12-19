@@ -21,7 +21,7 @@ keycloak-bootstrap:
                 - "{{ hostname }}/admin/tdf-client/console"
               attributes:
                 user.info.response.signature.alg: RS256
-            mappers:
+            mappers: &virtruMappers
               - protocol: openid-connect
                 config:
                   id.token.claim: "false"
