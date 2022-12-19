@@ -53,16 +53,20 @@ def jwk_thumbprint(jwk):
 
 
 def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
-    """Validate a dpop header, when present."""
-    # First, grab Auth JWT
+    """Validate a dpop header, when present.
+
+    Returns True if the dpop was present and validated. Throws UnauthorizedError
+    if DPoP or OIDC are required and fail, or if DPoP is present but invalid.
+    Returns False if either DPoP is ignored or no auth is requested.
+    """
     auth_header = request.headers.get("authorization", None)
     if not auth_header:
         if do_oidc:
             raise UnauthorizedError("Missing auth header")
         logger.debug("Missing auth header")
-        return
+        return False
     bearer, _, id_jwt = auth_header.partition(" ")
-    logger.debug("id_jwt: [%s], dpop: [%s]", id_jwt, dpop)
+    logger.info("id_jwt: [%s], dpop: [%s]", id_jwt, dpop)
     if bearer != "Bearer" or not looks_like_jwt(id_jwt):
         raise UnauthorizedError("Invalid auth header")
     verifier_key = fetch_realm_key_by_jwt(id_jwt, key_master)
@@ -75,12 +79,12 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         dpop = request.headers.get("dpop", None)
     if not dpop and not cnf:
         logger.debug("DPoP not required, not found")
-        return
+        return False
     if dpop and not cnf:
         logger.warn(
             "DPoP found but unconfirmed [%s] not referenced from [%s]", dpop, id_jwt
         )
-        return
+        return False
     if not dpop and cnf:
         raise UnauthorizedError("DPoP Required")
     try:
@@ -128,3 +132,4 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         )
         raise UnauthorizedError("Invalid DPoP")
     logger.debug("DPoP Validated!")
+    return True

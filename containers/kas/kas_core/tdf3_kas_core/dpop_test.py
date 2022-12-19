@@ -88,7 +88,9 @@ def test_validate_dpop_standard_auth():
         private_rsa,
         algorithm="RS256",
     )
-    validate_dpop("", keys, MockRequest({"authorization": f"Bearer {id_jwt}"}))
+    assert not validate_dpop(
+        "", keys, MockRequest({"authorization": f"Bearer {id_jwt}"})
+    )
 
 
 def test_validate_dpop_no_cnf_ignored():
@@ -98,7 +100,7 @@ def test_validate_dpop_no_cnf_ignored():
         algorithm="RS256",
     )
     dpop = "eyJhbGciOiJSUzI1NiIsInR5cCI6ImRwb3Arand0IiwiandrIjp7Imt0eSI6IlJTQSIsImUiOiJBUUFCIiwibiI6ImpZWUdvcGxoT3ViWnBiQ1ZVa0RDMTJhVUU3MmJKYk9Oa3VoS1g1ZVBMcXhiYV9BYWN5NXpzei04Ykxab2ttY2lKOUtQc2dwMkl3Q050UDBDMTJrX25kRlBGYzhwQ3pjSWp5MUxRZ3JnMEtUdXhac1JLN0k1bnRBOTRVM3IxR0tMcTBjM1J3RGZ2dWZDLUtjb2g5aWNVM0xFOTZGZUlmTFozYzlnMmROai1MWXJ4eFBPSzFuY2dobmZMbHI5QXNiM3UweUt2eFZ6M1FUTVRoVUFmTVY0NmFVdXdKSi1RNXRYLUZKbXdqajZRNVQ0bzgyT2xLcjhzZDZoZGp6NkY2YUlrMDIzcmxXeFRfRmdPLU1MdS0tVkFBblpuXzBaSFhKSGRCUjA2NUpKVi1obE5YdmdtZnJqOTFmckY2djNabDY2QUtJQUZQd29GdHV3ZzR2S0pFaFUzdyJ9fQ.eyJpYXQiOjE2NzA4NjY4MzEsImp0aSI6InBkc2tsX0lKdHJtY2h3NlZ1UjQycEZFZDFoTWxzVmlMNnV4MUcxT0FzRHMiLCJodG0iOiJQT1NUIiwiaHR1IjoiaHR0cDovL2xvY2FsaG9zdDo2NTQzMi9hdXRoL3JlYWxtcy90ZGYvcHJvdG9jb2wvb3BlbmlkLWNvbm5lY3QvdG9rZW4ifQ.WB_43xmaKdr--j7rm4Z1O1OVUXroxA-Pyp2j1qHHz0pwRq4ejHG3ev83edjOQT-sXp5kyySw2o-d5cW33OkGy1ZP2kX_B4TILwvVCIEGtXoz_JfKWchCVdQ49AmaTekWTq66uE8SA-H8NIyTaKIouMmGF4_wRFFH8nv203NVd_V2tSxm7AlrwlD2WdvB6a81tfw2wFBnxivoup0SKdy1UbEZ0usn-IcoVlqI-cy7dw_rdnJ7Gm6AwbJiNgLbcdN_-nzOXmJro7Mn41PMQCT13IZiP17fs1j58dpE11xYyQWWEjgFZG19iflzloKkNeoXy8uPT-iRgnunr-8FUay0sA"
-    validate_dpop(
+    assert not validate_dpop(
         None, keys, MockRequest({"authorization": f"Bearer {id_jwt}", "dpop": dpop})
     )
 
@@ -143,7 +145,7 @@ def test_validate_dpop_happy_path():
         key=pop_private_rsa,
         headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
     )
-    validate_dpop(
+    assert validate_dpop(
         None, keys, MockRequest({"authorization": f"Bearer {id_jwt}", "dpop": dpop})
     )
 
