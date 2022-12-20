@@ -19,5 +19,6 @@ data:
   {{- end }}
   DISABLE_TRACING: {{ .Values.pdp.disableTracing | quote }}
   JSON_LOGGER: {{ .Values.jsonLogger | default "true" | quote }}
+  AUDIT_ENABLED: {{ .Values.global.opentdf.common.auditLogEnabled | quote  }}
 
   USE_KEYCLOAK: "1"

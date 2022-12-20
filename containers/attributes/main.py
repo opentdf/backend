@@ -40,7 +40,7 @@ from python_base import Pagination, get_query, add_filter_by_access_control
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-from .plugins import (
+from .hooks import (
     run_pre_command_hooks,
     run_post_command_hooks,
     run_err_hooks,

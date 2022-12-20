@@ -35,7 +35,7 @@ from python_base import Pagination, get_query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-from .plugins import (
+from .hooks import (
     run_pre_command_hooks,
     run_post_command_hooks,
     run_err_hooks,
