@@ -219,8 +219,6 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
         "kas.envConfig.cert": all_secrets["KAS_CERTIFICATE"],
         "kas.envConfig.ecPrivKey": all_secrets["KAS_EC_SECP256R1_PRIVATE_KEY"],
         "kas.envConfig.privKey": all_secrets["KAS_PRIVATE_KEY"],
-        "keycloak.args[0]": "--hostname-url=http://localhost:65432",
-        "keycloak.args[1]": "--hostname-strict-backchannel=true",
     }
     set_values.update(set)
 
