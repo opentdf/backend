@@ -27,7 +27,7 @@ dependencies:
     repository: file://../kas
     version: 0.0.1
   - name: postgresql
-    repository: https://charts.bitnami.com/bitnami
+    repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
     version: 10.16.2
     condition: embedded.postgresql
     tags: ["third-party"]

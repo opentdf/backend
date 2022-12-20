@@ -76,7 +76,7 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | file://../entity-resolution | entity-resolution | 0.0.1 |
 | file://../kas | kas | 0.0.1 |
 | file://../keycloak-bootstrap | keycloak-bootstrap | 0.4.4 |
-| https://charts.bitnami.com/bitnami | postgresql | 10.16.2 |
+| https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami | postgresql | 10.16.2 |
 | https://codecentric.github.io/helm-charts | keycloak(keycloakx) | 1.6.1 |
 
 ## Values
