@@ -7,7 +7,7 @@ version = "0.8.7"
 setup(
     name="tdf3-kas-core",
     version=version,
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     description="TDF3 KAS Core - Generic KAS for building TDF3 systems",
     author="Virtru",
     author_email="support@virtru.com",

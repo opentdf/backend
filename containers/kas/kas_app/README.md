@@ -178,8 +178,8 @@ because of [PLAT-983](https://virtru.atlassian.net/browse/PLAT-983)
 
 ```
 brew install pyenv
-pyenv install 3.9.1
-pyenv global 3.9.1
+pyenv install 3.10.9
+pyenv global 3.10.9
 ```
 
 
