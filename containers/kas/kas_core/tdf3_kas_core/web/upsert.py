@@ -1,8 +1,10 @@
 """REST Web handler for upsert."""
 import connexion
 import logging
-from tdf3_kas_core.kas import Kas
-from tdf3_kas_core.schema import get_schema
+
+from ..kas import Kas
+from ..schema import get_schema
+from ..dpop import validate_dpop
 
 from .create_context import create_context
 from .run_service_with_exceptions import run_service_with_exceptions
@@ -41,10 +43,12 @@ def upsert_helper(body, mode="upsert"):
 
 
 @run_service_with_exceptions
-def upsert(body):
+def upsert(body, *, dpop):
+    validate_dpop(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert")
 
 
 @run_service_with_exceptions
-def upsert_v2(body):
+def upsert_v2(body, *, dpop):
+    validate_dpop(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert_v2")
