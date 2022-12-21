@@ -1,6 +1,6 @@
 # docker build -t ct1 -f xtest/Dockerfile . && docker run --net=host ct1
 # We need `node` for the test harness and node tests, and python pysdk testing
-ARG NODE_VERSION=16
+ARG NODE_VERSION=18
 ARG PY_OSS_VERSION=1.1.1
 ARG PY_TEST_VERSION=3.8
 
@@ -21,8 +21,7 @@ WORKDIR /wrk
 COPY ./tests/containers/clients/package.json \
  ./tests/containers/clients/package-lock.json \
  ./tests/containers/clients/requirements.txt \
- ./tests/containers/clients/opentdf-client-0.0.2.tgz \
- ./tests/containers/clients/opentdf-cli-0.0.2.tgz \
+ ./tests/containers/clients/.npmrc \
  /wrk/
 RUN npm install
 RUN pip3 install --requirement /wrk/requirements.txt || true
