@@ -78,7 +78,7 @@ set-version() {
 
 # Updates local deps from backend chart on others
 update-umbrella-deps() {
-  repo="${1:-oci://ghcr.io/${GITHUB_REPOSITORY_OWNER:-opentdf}/charts}"
+  repo="$1"
   sub_charts=("attributes" "entitlement-pdp" "entitlement-store" "entitlements" "entity-resolution" "kas" "keycloak-bootstrap")
   for sub_chart in "${sub_charts[@]}"; do
     cv="$(chartVersion-for "${sub_chart}")"
@@ -91,13 +91,14 @@ update-umbrella-deps() {
     fi
     depname="${sub_chart}" repo="${subrepo}" yq '(.dependencies[] | select(.name == env(depname)) | .repository ) = strenv(repo)' -i "$(chart-for backend)"
   done
+  tag="$2" yq '.keycloak.image.tag = strenv(tag)' -i "${PROJECT_ROOT}/charts/backend/values.yaml"
 }
 
 yq --version || e "Missing binary: yq"
 cd "${PROJECT_ROOT}/charts" || e "Unable to find charts folder in [${PROJECT_ROOT}]"
 short_ver=sha-$(git rev-parse --short HEAD)
 repo_uri=oci://ghcr.io/${GITHUB_REPOSITORY_OWNER:-opentdf}/charts
-keycloak_version=${appVersion-for keycloak-protocol-mapper}
+keycloak_version=$(appVersion-for keycloak-protocol-mapper)
 
 case "$1" in
   help | --help | -h)
