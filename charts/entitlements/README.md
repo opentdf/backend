@@ -20,6 +20,7 @@ A deployed service to configure entity/attribute mappings in an OpenTDF ABAC sys
 | autoscaling.minReplicas | int | `1` | Sets minimum replicas for autoscaling. |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | Target average CPU usage across all the pods |
 | fullnameOverride | string | `""` | The fully qualified appname override |
+| global.opentdf.common.auditLogEnabled | bool | `false` | Enable audit logging |
 | global.opentdf.common.imagePullSecrets | list | `[]` | JSON passed to the deployment's `template.spec.imagePullSecrets` |
 | global.opentdf.common.oidcExternalBaseUrl | string | `"http://localhost:65432"` | Base external url of OIDC provider |
 | global.opentdf.common.oidcInternalBaseUrl | string | `"http://keycloak-http"` | Base internal url of OIDC provider |

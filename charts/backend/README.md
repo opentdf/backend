@@ -76,13 +76,14 @@ kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 6
 | file://../entity-resolution | entity-resolution | 0.0.1 |
 | file://../kas | kas | 0.0.1 |
 | file://../keycloak-bootstrap | keycloak-bootstrap | 0.4.4 |
-| https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami | postgresql | 10.16.2 |
 | https://codecentric.github.io/helm-charts | keycloak(keycloakx) | 1.6.1 |
+| https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami | postgresql | 10.16.2 |
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| global.opentdf.common.auditLogEnabled | bool | `false` | Enable audit logging |
 | global.opentdf.common.imagePullSecrets | list | `[]` | Any existing image pull secrets subcharts should use e.g. imagePullSecrets:   - name: my-existing-ghcr-pullsecret   - name: my-other-pullsecret |
 | global.opentdf.common.keycloak.password | string | `"mykeycloakpassword"` | The Keycloak admin password |
 | global.opentdf.common.keycloak.user | string | `"keycloakadmin"` | The Keycloak admin username |
