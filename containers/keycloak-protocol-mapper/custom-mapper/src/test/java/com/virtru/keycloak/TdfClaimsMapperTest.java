@@ -191,6 +191,7 @@ public class TdfClaimsMapperTest {
             config.put(REMOTE_URL, url);
         }
         config.put(CLAIM_NAME, "customAttrs");
+        config.put(DPOP_ENABLED, "true");
         config.put(PUBLIC_KEY_HEADER, "testPK");
         config.put(REMOTE_PARAMETERS_USERNAME, "true");
         config.put(REMOTE_PARAMETERS_CLIENTID, "true");
@@ -218,6 +219,7 @@ public class TdfClaimsMapperTest {
 
         if (pkHeader != null) {
             List<String> pkHeaders = pkHeader == null ? Collections.emptyList() : Collections.singletonList(pkHeader);
+            when(httpHeaders.getRequestHeader("dpop")).thenReturn(Collections.emptyList());
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class)).thenReturn(null);
