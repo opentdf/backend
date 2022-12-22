@@ -171,6 +171,7 @@ jobs:
         run: |-
           cd tests/containers/clients
           rm .npmrc
+          touch .npmrc
           npm uninstall @opentdf/cli
           npm install @opentdf/cli
       - name: Run xtest.Tiltfile
