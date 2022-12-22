@@ -78,7 +78,7 @@ set-version() {
 
 # Updates local deps from backend chart on others
 update-umbrella-deps() {
-  repo="${1:-oci://ghcr.io/${GITHUB_REPOSITORY_OWNER:-opentdf}/charts}"
+  repo="$1"
   sub_charts=("attributes" "entitlement-pdp" "entitlement-store" "entitlements" "entity-resolution" "kas" "keycloak-bootstrap")
   for sub_chart in "${sub_charts[@]}"; do
     cv="$(chartVersion-for "${sub_chart}")"
@@ -91,11 +91,14 @@ update-umbrella-deps() {
     fi
     depname="${sub_chart}" repo="${subrepo}" yq '(.dependencies[] | select(.name == env(depname)) | .repository ) = strenv(repo)' -i "$(chart-for backend)"
   done
+  tag="$2" yq '.keycloak.image.tag = strenv(tag)' -i "${PROJECT_ROOT}/charts/backend/values.yaml"
 }
 
 yq --version || e "Missing binary: yq"
 cd "${PROJECT_ROOT}/charts" || e "Unable to find charts folder in [${PROJECT_ROOT}]"
 short_ver=sha-$(git rev-parse --short HEAD)
+repo_uri=oci://ghcr.io/${GITHUB_REPOSITORY_OWNER:-opentdf}/charts
+keycloak_version=$(appVersion-for keycloak-protocol-mapper)
 
 case "$1" in
   help | --help | -h)
@@ -116,7 +119,11 @@ case "$1" in
         set-version "$x"
       fi
     done
-    update-umbrella-deps
+    if [[ $2 ]]; then
+      update-umbrella-deps "${repo_uri}" "${keycloak_version}-$2"
+    else
+      update-umbrella-deps "${repo_uri}" "${keycloak_version}"
+    fi
     ;;
   local)
     monolog DEBUG "Reset to local development"
@@ -126,7 +133,7 @@ case "$1" in
         set-version "$x"
       fi
     done
-    update-umbrella-deps "file://.."
+    update-umbrella-deps "file://.." main
     helm dependency update backend
     ;;
   *)
@@ -137,6 +144,6 @@ case "$1" in
         set-version "$x" "0.0.0-$short_ver"
       fi
     done
-    update-umbrella-deps
+    update-umbrella-deps "${repo_uri}" "$short_ver"
     ;;
 esac
