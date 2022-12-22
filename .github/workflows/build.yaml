@@ -16,6 +16,19 @@ jobs:
       KEYCLOAK_OTDF_VERSION: ${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}
     timeout-minutes: 5
     steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "18.x"
+          registry-url: https://npm.pkg.github.com
+      - name: config ghpr with github token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          cd tests/containers/clients
+          echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
+          echo //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN} >>.npmrc
+          npm i
+          ls -l node_modules
       - uses: actions/checkout@v3
       - name: Select keycloak base version
         run: | 
