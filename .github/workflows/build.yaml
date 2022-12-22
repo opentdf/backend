@@ -164,6 +164,14 @@ jobs:
           cd tests/containers/clients
           echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
           echo //npm.pkg.github.com/:_authToken=${READ_PACKAGES_PAT} >>.npmrc
+      - name: install from npmjs if no secrets available
+        env:
+          READ_PACKAGES_PAT: ${{ secrets.READ_PACKAGES_PAT }}
+        if: "${{ env.READ_PACKAGES_PAT == '' }}"
+        run: |-
+          cd tests/containers/clients
+          npm uninstall @opentdf/cli
+          npm install @opentdf/cli
       - name: Run xtest.Tiltfile
         run: |-
           export TILTFILE_FILE=xtest.Tiltfile
