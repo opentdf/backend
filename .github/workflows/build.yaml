@@ -14,6 +14,8 @@ jobs:
     outputs:
       KEYCLOAK_BASE_VERSION: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
       KEYCLOAK_OTDF_VERSION: ${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}
+    permissions:
+      packages: read
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
