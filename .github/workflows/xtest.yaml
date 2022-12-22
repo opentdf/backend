@@ -6,6 +6,8 @@ on:
 jobs:
   integration-test:
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
@@ -13,14 +15,13 @@ jobs:
         with:
           node-version: "18.x"
           registry-url: https://npm.pkg.github.com
-      - name: config ghpr with pat
+      - name: config ghpr
         env:
-          READ_PACKAGES_PAT: ${{ secrets.READ_PACKAGES_PAT }}
-        if: "${{ env.READ_PACKAGES_PAT != '' }}"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
           cd tests/containers/clients
           echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
-          echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
+          echo //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN} >>.npmrc
       - name: update packages
         run: |-
           cd tests/containers/clients
