@@ -170,6 +170,7 @@ jobs:
         if: "${{ env.READ_PACKAGES_PAT == '' }}"
         run: |-
           cd tests/containers/clients
+          rm .npmrc
           npm uninstall @opentdf/cli
           npm install @opentdf/cli
       - name: Run xtest.Tiltfile
