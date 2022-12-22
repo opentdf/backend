@@ -8,16 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - if: "${{ env.READ_PACKAGES_PAT != '' }}"
-        run: echo PAT is available
-        env:
-            READ_PACKAGES_PAT: ${{ secrets.READ_PACKAGES_PAT }}
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
           node-version: "18.x"
           registry-url: https://npm.pkg.github.com
       - name: config ghpr with pat
+        env:
+          READ_PACKAGES_PAT: ${{ secrets.READ_PACKAGES_PAT }}
+        if: "${{ env.READ_PACKAGES_PAT != '' }}"
         run: |-
           cd tests/containers/clients
           echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
