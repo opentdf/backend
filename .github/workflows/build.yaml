@@ -130,8 +130,24 @@ jobs:
       - kas-unittest
       - config
     timeout-minutes: 45
+    permissions:
+      packages: read
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "18.x"
+          registry-url: https://npm.pkg.github.com
+      - name: config ghpr with github token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          cd tests/containers/clients
+          echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
+          echo //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN} >>.npmrc
+          ls -l node_modules
+          npm i
+          ls -l node_modules
       - uses: yokawasa/action-setup-kube-tools@v0.9.2
         with:
           setup-tools: |
@@ -156,24 +172,6 @@ jobs:
         run: |-
           kubectl version
           kubectl get pods -A
-      - name: config ghpr with pat
-        env:
-          READ_PACKAGES_PAT: ${{ secrets.READ_PACKAGES_PAT }}
-        if: "${{ env.READ_PACKAGES_PAT != '' }}"
-        run: |-
-          cd tests/containers/clients
-          echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
-          echo //npm.pkg.github.com/:_authToken=${READ_PACKAGES_PAT} >>.npmrc
-      - name: install from npmjs if no secrets available
-        env:
-          READ_PACKAGES_PAT: ${{ secrets.READ_PACKAGES_PAT }}
-        if: "${{ env.READ_PACKAGES_PAT == '' }}"
-        run: |-
-          cd tests/containers/clients
-          rm .npmrc
-          touch .npmrc
-          npm uninstall @opentdf/cli
-          npm install @opentdf/cli
       - name: Run xtest.Tiltfile
         run: |-
           export TILTFILE_FILE=xtest.Tiltfile
