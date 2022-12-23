@@ -68,6 +68,8 @@ def encrypt_web(
     c = [
         "npx",
         "@opentdf/cli",
+        "--containerType",
+        container,
         "--log-level",
         "DEBUG",
         "--kasEndpoint",
@@ -90,7 +92,7 @@ def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID, container="tdf3"):
     c = [
         "npx",
         "@opentdf/cli",
-        "--container",
+        "--containerType",
         container,
         "--log-level",
         "DEBUG",
@@ -109,12 +111,14 @@ def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID, container="tdf3"):
     subprocess.check_call(c)
 
 
-def encrypt_web_nano(ct_file, rt_file, client_id=CLIENT_ID):
-    encrypt_web_nano(ct_file, rt_file, client_id=client_id, container="nano")
+def encrypt_web_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
+    encrypt_web(
+        ct_file, rt_file, attributes=attributes, client_id=client_id, container="nano"
+    )
 
 
 def decrypt_web_nano(ct_file, rt_file, client_id=CLIENT_ID):
-    decrypt_web_nano(ct_file, rt_file, client_id=client_id, container="nano")
+    decrypt_web(ct_file, rt_file, client_id=client_id, container="nano")
 
 
 def encrypt_py_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
@@ -238,12 +242,6 @@ def main():
     nano_sdks_to_encrypt = set([encrypt_web_nano, encrypt_py_nano])
     nano_sdks_to_decrypt = set([decrypt_web_nano, decrypt_py_nano])
 
-    tdf3_sdks_to_encrypt = set([encrypt_web])
-    tdf3_sdks_to_decrypt = set([decrypt_web])
-
-    nano_sdks_to_encrypt = set([])
-    nano_sdks_to_decrypt = set([])
-
     logger.info("--- main")
     setup()
 
@@ -251,25 +249,25 @@ def main():
     nano_pt_file = pt_file if not args.large else gen_pt(large=False)
     failed = []
     try:
-        # logger.info("SERVICES TESTS:")
-        # failed += run_service_tests(service_test)
-        # logger.info("OTHER INTEGRATION TESTS:")
-        # failed += run_other_tests(other_integration)
+        logger.info("SERVICES TESTS:")
+        failed += run_service_tests(service_test)
+        logger.info("OTHER INTEGRATION TESTS:")
+        failed += run_other_tests(other_integration)
         logger.info("TDF3 TESTS:")
         failed += run_cli_tests(tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file)
         logger.info("NANO TESTS:")
         failed += run_cli_tests(
             nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
         )
-        # if args.attrtest:
-        #     logger.info("TDF3 ATTRIBUTE TESTS:")
-        #     failed += run_attribute_tests(
-        #         tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file
-        #     )
-        #     logger.info("NANO ATTRIBUTE TESTS:")
-        #     failed += run_attribute_tests(
-        #         nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
-        #     )
+        if args.attrtest:
+            logger.info("TDF3 ATTRIBUTE TESTS:")
+            failed += run_attribute_tests(
+                tdf3_sdks_to_encrypt, tdf3_sdks_to_decrypt, pt_file
+            )
+            logger.info("NANO ATTRIBUTE TESTS:")
+            failed += run_attribute_tests(
+                nano_sdks_to_encrypt, nano_sdks_to_decrypt, nano_pt_file
+            )
     finally:
         if not args.no_teardown:
             teardown()
