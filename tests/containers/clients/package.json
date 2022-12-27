@@ -4,6 +4,6 @@
   "description": "Simple example to encrypt and decrypt files in the TDF3 spec.",
   "scripts": {},
   "dependencies": {
-    "@opentdf/cli": "^0.4.0-beta.477"
+    "@opentdf/cli": "^0.4.0-beta.483"
   }
 }
