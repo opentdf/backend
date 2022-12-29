@@ -500,7 +500,6 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha
-            type-raw,value=${{ needs.config.outputs.KEYCLOAK_OTDF_VERSION }}
       - name: Set up QEMU (required for crossbuild)
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
