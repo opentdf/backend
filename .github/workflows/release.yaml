@@ -114,6 +114,7 @@ jobs:
     env:
       BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
       FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      POLICYTOOL_VERSION: v0.1.42
       SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
     steps:
       - uses: actions/checkout@v3
@@ -134,7 +135,7 @@ jobs:
           go-version: ">=1.18.0"
       - name: Build policy bundle
         run: |
-          go install github.com/opcr-io/policy/cmd/policy@latest
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           policy pull "${BUNDLETAG}:${SHA_TAG}"
