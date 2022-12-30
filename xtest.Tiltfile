@@ -4,7 +4,11 @@
 
 load("./common.Tiltfile", "backend", "CONTAINER_REGISTRY", "OIDC_CLIENT_SECRET")
 
-backend()
+backend(
+    set={
+        "kas.ingress.enabled": "true",
+    }
+)
 
 k8s_yaml(
     helm(
