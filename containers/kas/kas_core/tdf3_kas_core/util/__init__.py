@@ -21,3 +21,7 @@ from .hmac import generate_hmac_digest  # noqa: F401
 
 from .utility import value_to_boolean
 from .reverse_proxy import ReverseProxied
+
+from .swagger_ui_bundle import swagger_ui_4_14_0_path
+from .swagger_ui_bundle import swagger_ui_4_path
+from .swagger_ui_bundle import swagger_ui_path

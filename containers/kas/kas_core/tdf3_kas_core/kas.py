@@ -30,6 +30,7 @@ from .abstractions import (
 
 from .util.utility import value_to_boolean
 from .util.reverse_proxy import ReverseProxied
+from .util.swagger_ui_bundle import swagger_ui_4_path
 
 logger = logging.getLogger(__name__)
 
@@ -313,12 +314,13 @@ class Kas(object):
         flask_app.wsgi_app = proxied
 
         # Allow swagger_ui to be disabled
-        options = {}
-        # Turn off Swagger UI feature
-        logger.debug("Disable Swagger UI")
-        options.update({"swagger_ui": False})
-
-        logger.warning("Enable Swagger UI")
+        options = {"swagger_path": swagger_ui_4_path}
+        if not swagger_enabled():
+            # Turn off Swagger UI feature
+            logger.debug("Disable Swagger UI")
+            options.update({"swagger_ui": False})
+        else:
+            logger.warning("Enable Swagger UI")
 
         # Connexion will link REST endpoints to handlers using the openapi.yaml file
         openapi_file = importlib_resources.files(__package__) / "api" / "openapi.yaml"
