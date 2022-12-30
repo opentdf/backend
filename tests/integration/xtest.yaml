@@ -18,7 +18,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: KAS_ENDPOINT
-              value: http://kas:8000
+              value: http://ingress-nginx-controller/api/kas
             - name: OIDC_ENDPOINT
               value: http://keycloak-http
       restartPolicy: Never

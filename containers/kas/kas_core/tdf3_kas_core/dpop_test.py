@@ -42,7 +42,7 @@ def test_jwk_thumbprint():
 @dataclass
 class MockRequest:
     headers: dict[str, str] = field(default_factory=lambda: {})
-    method: str = "get"
+    method: str = "GET"
     url: str = "http://localhost/"
 
 
@@ -141,7 +141,7 @@ def test_validate_dpop_happy_path():
         algorithm="RS256",
     )
     dpop = PyJWT().encode(
-        payload={"htm": "get", "htu": "http://localhost/", "ath": jws_sha(id_jwt)},
+        payload={"htm": "GET", "htu": "http://localhost/", "ath": jws_sha(id_jwt)},
         key=pop_private_rsa,
         headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
     )
@@ -160,7 +160,7 @@ def test_validate_dpop_htu_wrong():
         algorithm="RS256",
     )
     dpop = PyJWT().encode(
-        payload={"htm": "options", "htu": "http://localhost/", "ath": jws_sha(id_jwt)},
+        payload={"htm": "OPTIONS", "htu": "http://localhost/", "ath": jws_sha(id_jwt)},
         key=pop_private_rsa,
         headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
     )
@@ -180,7 +180,7 @@ def test_validate_dpop_htm_wrong():
         algorithm="RS256",
     )
     dpop = PyJWT().encode(
-        payload={"htm": "get", "htu": "http://example.com/", "ath": jws_sha(id_jwt)},
+        payload={"htm": "GET", "htu": "http://example.com/", "ath": jws_sha(id_jwt)},
         key=pop_private_rsa,
         headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
     )
@@ -200,7 +200,7 @@ def test_validate_dpop_incorrect_ath():
         algorithm="RS256",
     )
     dpop = PyJWT().encode(
-        payload={"htm": "get", "htu": "http://localhost/", "ath": "nope"},
+        payload={"htm": "GET", "htu": "http://localhost/", "ath": "nope"},
         key=pop_private_rsa,
         headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
     )
