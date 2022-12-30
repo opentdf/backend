@@ -31,7 +31,7 @@ ORGANIZATION_NAME = "tdf"
 CLIENT_ID = "tdf-client"
 TEST_CLIENT_1 = "test-client-1"
 TEST_CLIENT_2 = "test-client-2"
-TEST_CLIENT_3 = "test-client-3" # no mappers
+TEST_CLIENT_3 = "test-client-3"  # no mappers
 ATTRIBUTES_CLIENT_ID = "tdf-client"
 ATTRIBUTES_CLIENT_SECRET = "123-456"
 CLIENTS = {
@@ -62,18 +62,22 @@ ATTR_TESTS = {
 }
 
 
-def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
+def encrypt_web(
+    ct_file, rt_file, attributes=None, client_id=CLIENT_ID, container="tdf3"
+):
     c = [
         "npx",
         "@opentdf/cli",
+        "--containerType",
+        container,
         "--log-level",
         "DEBUG",
         "--kasEndpoint",
         KAS_ENDPOINT,
         "--oidcEndpoint",
-        OIDC_ENDPOINT,
+        f"{OIDC_ENDPOINT}/auth/realms/{ORGANIZATION_NAME}",
         "--auth",
-        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
+        f"{client_id}:{CLIENTS[client_id]}",
         "--output",
         rt_file,
     ]
@@ -84,18 +88,20 @@ def encrypt_web(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
     subprocess.check_call(c)
 
 
-def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID):
+def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID, container="tdf3"):
     c = [
         "npx",
         "@opentdf/cli",
+        "--containerType",
+        container,
         "--log-level",
         "DEBUG",
         "--kasEndpoint",
         KAS_ENDPOINT,
         "--oidcEndpoint",
-        OIDC_ENDPOINT,
+        f"{OIDC_ENDPOINT}/auth/realms/{ORGANIZATION_NAME}",
         "--auth",
-        f"{ORGANIZATION_NAME}:{client_id}:{CLIENTS[client_id]}",
+        f"{client_id}:{CLIENTS[client_id]}",
         "--output",
         rt_file,
         "decrypt",
@@ -103,6 +109,16 @@ def decrypt_web(ct_file, rt_file, client_id=CLIENT_ID):
     ]
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
+
+
+def encrypt_web_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
+    encrypt_web(
+        ct_file, rt_file, attributes=attributes, client_id=client_id, container="nano"
+    )
+
+
+def decrypt_web_nano(ct_file, rt_file, client_id=CLIENT_ID):
+    decrypt_web(ct_file, rt_file, client_id=client_id, container="nano")
 
 
 def encrypt_py_nano(ct_file, rt_file, attributes=None, client_id=CLIENT_ID):
@@ -127,6 +143,7 @@ def service():
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
 
+
 def other_integration_tests():
     c = [
         "python3",
@@ -140,6 +157,7 @@ def other_integration_tests():
     ]
     logger.info("Invoking subprocess: %s", " ".join(c))
     subprocess.check_call(c)
+
 
 def encrypt_py(pt_file, ct_file, nano=False, attributes=None, client_id=CLIENT_ID):
     c = [
@@ -218,11 +236,11 @@ def main():
 
     other_integration = set([other_integration_tests])
 
-    tdf3_sdks_to_encrypt = set([encrypt_py])
-    tdf3_sdks_to_decrypt = set([decrypt_py])
+    tdf3_sdks_to_encrypt = set([encrypt_web, encrypt_py])
+    tdf3_sdks_to_decrypt = set([decrypt_web, decrypt_py])
 
-    nano_sdks_to_encrypt = set([encrypt_web, encrypt_py_nano])
-    nano_sdks_to_decrypt = set([decrypt_web, decrypt_py_nano])
+    nano_sdks_to_encrypt = set([encrypt_web_nano, encrypt_py_nano])
+    nano_sdks_to_decrypt = set([decrypt_web_nano, decrypt_py_nano])
 
     logger.info("--- main")
     setup()
@@ -268,6 +286,7 @@ def run_service_tests(service_test):
             failed += [f"{x}"]
     return failed
 
+
 def run_other_tests(other_tests):
     logger.info("--- run_other_tests %s", other_tests)
     failed = []
@@ -278,6 +297,7 @@ def run_other_tests(other_tests):
             logger.error("Exception with pass %s", x, exc_info=True)
             failed += [f"{x}"]
     return failed
+
 
 def run_attribute_tests(sdks_encrypt, sdks_decrypt, pt_file):
     logger.info("--- run_attribute_tests %s => %s", sdks_encrypt, sdks_decrypt)

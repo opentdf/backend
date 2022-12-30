@@ -6,22 +6,25 @@ on:
 jobs:
   integration-test:
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v2
         with:
-          node-version: "16.x"
+          node-version: "18.x"
           registry-url: https://npm.pkg.github.com
-      - name: config ghpr with pat
+      - name: config ghpr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |-
           cd tests/containers/clients
           echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
-          echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
+          echo //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN} >>.npmrc
       - name: update packages
         run: |-
           cd tests/containers/clients
-          npm uninstall @opentdf/cli @opentdf/client
           npm uninstall @opentdf/cli
           npm install @opentdf/cli@${{ github.event.client_payload.version }}
           ls -l node_modules
@@ -34,9 +37,9 @@ jobs:
             helm
             tilt
           # This should be in sync with the minikube-deployed kube version below
-          kubectl: "1.24.1"
-          helm: "3.9.1"
-          tilt: "0.30.4"
+          kubectl: "1.25.5"
+          helm: "3.10.3"
+          tilt: "0.30.13"
       - run: |
           kubectl version --client
           kustomize version
@@ -45,9 +48,9 @@ jobs:
         id: minikube
         uses: medyagh/setup-minikube@latest
         with:
-          minikube-version: 1.26.0
+          minikube-version: 1.28.0
           # This should be in sync with the setup-tools version above
-          kubernetes-version: 1.24.1
+          kubernetes-version: 1.25.5
       - name: tilt-ci xtest
         run: |-
           tilt ci -f xtest.Tiltfile
