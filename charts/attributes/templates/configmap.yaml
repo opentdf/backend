@@ -5,7 +5,9 @@ metadata:
   labels:
     {{- include "attributes.labels" . | nindent 4 }}
 data:
-  AUDIT_ENABLED: {{ .Values.global.opentdf.common.auditLogEnabled | bool  }}
+  {{- if .Values.global.opentdf.common.auditLogEnabled }}
+  AUDIT_ENABLED: true
+  {{- end  }}
   # TODO /auth and /token are well-known and can be hardcoded
   # we do not need two config properties for this - just one.
   OIDC_AUTHORIZATION_URL: {{ ( include "attributes.oidc.externalUrl" . ) }}/realms/{{ .Values.oidc.realm}}/protocol/openid-connect/auth
