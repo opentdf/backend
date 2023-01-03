@@ -41,7 +41,7 @@ class HttpMethod(Enum):
 
 ##### Hook decorator #########
 
-def run_with_hooks(http_method):
+def hook_into(http_method):
     def hooks_decorator(func):
         @functools.wraps(func)
         async def hooks_wrapper(*args, **kwargs):
@@ -57,7 +57,7 @@ def run_with_hooks(http_method):
             # in case of errors
             except Exception as e:
                 # run the error hooks
-                run_err_hooks(http_method, func.__name__, *args, **kwargs)
+                run_err_hooks(http_method, func.__name__, e, *args, **kwargs)
                 raise e
         return hooks_wrapper
     return hooks_decorator
@@ -69,12 +69,12 @@ def run_pre_command_hooks(http_method, function_name, *args, **kwargs):
     pass
 
 def run_post_command_hooks(http_method, function_name, *args, **kwargs):
-    if http_method == HttpMethod.POST or http_method == HttpMethod.PUT or http_method is HttpMethod.DELETE:
+    if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
         _audit_log(CallType.POST, http_method, function_name, *args, **kwargs)
     pass
 
-def run_err_hooks(http_method, function_name, *args, **kwargs):
-    if http_method == HttpMethod.POST or http_method == HttpMethod.PUT or http_method is HttpMethod.DELETE:
+def run_err_hooks(http_method, function_name, err, *args, **kwargs):
+    if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
         _audit_log(CallType.ERR, http_method, function_name, *args, **kwargs)
     pass
 

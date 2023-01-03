@@ -36,7 +36,7 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .hooks import (
-    run_with_hooks,
+    hook_into,
     HttpMethod,
 )
 
@@ -561,7 +561,7 @@ async def read_entity_attribute_relationship(
         }
     },
 )
-@run_with_hooks(HttpMethod.POST)
+@hook_into(HttpMethod.POST)
 async def add_entitlements_to_entity(
     entityId: str = Path(
         ...,
@@ -633,7 +633,7 @@ async def get_attribute_entity_relationship(
     "/v1/attribute/{attributeURI:path}/entity/",
     include_in_schema=False,
 )
-@run_with_hooks(HttpMethod.PUT)
+@hook_into(HttpMethod.PUT)
 async def create_attribute_entity_relationship(
     attributeURI: HttpUrl, request: List[str], auth_token=Depends(get_auth)
 ):
@@ -664,7 +664,7 @@ async def create_attribute_entity_relationship(
         }
     },
 )
-@run_with_hooks(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE)
 async def remove_entitlement_from_entity(
     entityId: str = Path(
         ...,

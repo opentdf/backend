@@ -41,7 +41,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .hooks import (
-    run_with_hooks,
+    hook_into,
     HttpMethod,
 )
 
@@ -688,7 +688,7 @@ async def read_attributes_definitions(
         }
     },
 )
-@run_with_hooks(HttpMethod.POST)
+@hook_into(HttpMethod.POST)
 async def create_attributes_definitions(
     request: AttributeDefinition = Body(
         ...,
@@ -801,7 +801,7 @@ async def create_attributes_definitions_crud(request, decoded_token=None):
         }
     },
 )
-@run_with_hooks(HttpMethod.PUT)
+@hook_into(HttpMethod.PUT)
 async def update_attribute_definition(
     request: AttributeDefinition = Body(
         ...,
@@ -904,7 +904,7 @@ async def update_attribute_definition_crud(request, decoded_token=None):
         }
     },
 )
-@run_with_hooks(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE)
 async def delete_attributes_definitions(
     request: AttributeDefinition = Body(
         ...,
@@ -971,7 +971,7 @@ async def read_authorities_crud():
         200: {"content": {"application/json": {"example": ["https://opentdf.io"]}}}
     },
 )
-@run_with_hooks(HttpMethod.POST)
+@hook_into(HttpMethod.POST)
 async def create_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}
@@ -1011,7 +1011,7 @@ async def create_authorities_crud(request, decoded_token=None):
         }
     },
 )
-@run_with_hooks(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE)
 async def delete_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}
