@@ -8,8 +8,6 @@ from tdf3_kas_core.models import WrappedKey
 from tdf3_kas_core.errors import BadRequestError
 from tdf3_kas_core.errors import KeyAccessError
 
-from tdf3_kas_core.util import aes_gcm_decrypt
-
 logger = logging.getLogger(__name__)
 
 
@@ -123,19 +121,19 @@ def decrypt_metadata_string(raw_dict, wrapped_key=None, private_key=None):
     # Policies currently work with a single KAS environment.
     # Future implementations may support a multi-KAS environment.
     object_key = WrappedKey.from_raw(wrapped_key, private_key)
-    metadata = decrypt_encrypted_metadata(metadata_dict, object_key.plain_key)
+    metadata = decrypt_encrypted_metadata(metadata_dict, object_key)
 
     logger.debug("decrypted metadata = %s", metadata)
 
     return metadata
 
 
-def decrypt_encrypted_metadata(raw_metadata, secret):
+def decrypt_encrypted_metadata(raw_metadata, key):
     """Decrypt `encryptedMetadata` and return the result as a metadata string.
 
     Or raise an error if something goes wrong.
     """
-    logger.debug("Unpacking raw metadata = %s", raw_metadata)
+    logger.debug("Unpacking raw metadata = [%s]", raw_metadata)
 
     iv = base64.b64decode(raw_metadata["iv"])
     logger.debug("IV = %s", iv)
@@ -146,9 +144,7 @@ def decrypt_encrypted_metadata(raw_metadata, secret):
     # Remove 12 bytes of the prepended IV that comes with the metadata
     pure_ciphertext = ciphertext[12:]
 
-    logger.debug("pure_ciphertext = %s", pure_ciphertext)
-
-    data = aes_gcm_decrypt(pure_ciphertext, secret, iv)
+    data = key.decrypt(pure_ciphertext, iv)
 
     logger.debug("metaData = %s", data)
 
