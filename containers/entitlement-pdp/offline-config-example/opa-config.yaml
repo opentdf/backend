@@ -20,7 +20,6 @@ bundles:
       min_delay_seconds: 60
       max_delay_seconds: 120
 
-
 # Sets the persistence directory. Policy deployment for airgapped installs
 # can be achieved by putting a valid `bundle.tar.gz` under a `/bundles`
 # subfolder in this dir - OPA will load the local cache, and carry on.
