@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Reformat shell scripts via black with a git hook.
+# Reformat shell scripts via `npx prettier` with a git hook.
 #
-# To install hook: black --install
-# To run on all files: black --all
+# To install hook: prettier --install
+# To run on all files: prettier --all
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 TOOL_NAME="$(basename "$0")"

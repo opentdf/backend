@@ -161,6 +161,7 @@ running in git as a pre-commit, use the following:
 
 ```sh
 scripts/black --install
+scripts/prettier --install
 scripts/shfmt --install
 ```
 
