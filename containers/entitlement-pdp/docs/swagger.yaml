@@ -1,6 +1,7 @@
 definitions:
   handlers.EntitlementsRequest:
-    description: Request containing entity identifiers seeking entitlement. At least
+    description:
+      Request containing entity identifiers seeking entitlement. At least
       one entity (primary requestor) is required The Entitlements PDP is expected
       to be invoked directly by an identity provider and with contextual entity information
       attested to and possessed by that identity provider
@@ -27,7 +28,7 @@ definitions:
           this may be either empty (client-on-behalf-of-itself) or populated with one
           or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
         example:
-        - 4f6636ca-c60c-40d1-9f3f-015086303f74
+          - 4f6636ca-c60c-40d1-9f3f-015086303f74
         items:
           type: string
         type: array
@@ -48,7 +49,7 @@ definitions:
     properties:
       entity_attributes:
         items:
-          $ref: '#/definitions/handlers.EntityAttribute'
+          $ref: "#/definitions/handlers.EntityAttribute"
         type: array
       entity_identifier:
         example: bc03f40c-a7af-4507-8198-d5334e2823e6
@@ -68,25 +69,25 @@ paths:
   /entitlements:
     post:
       consumes:
-      - application/json
+        - application/json
       description: |-
         Provide entity identifiers to the entitlement PDP
         and receive an array of attribute sets for each entity involved in the entitlement decisions
       parameters:
-      - description: List of primary and secondary entity identifiers to entitle
-        in: body
-        name: Request"
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.EntitlementsRequest'
+        - description: List of primary and secondary entity identifiers to entitle
+          in: body
+          name: Request"
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.EntitlementsRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/handlers.EntityEntitlement'
+              $ref: "#/definitions/handlers.EntityEntitlement"
             type: array
         "400":
           description: Bad Request
@@ -102,7 +103,7 @@ paths:
             type: string
       summary: Request an entitlements set from the PDP
       tags:
-      - Entitlements
+        - Entitlements
   /healthz:
     get:
       responses:
@@ -114,5 +115,5 @@ paths:
             type: string
       summary: Check service status
       tags:
-      - Service Health
+        - Service Health
 swagger: "2.0"

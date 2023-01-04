@@ -8,7 +8,7 @@ Currently, the only remote entity store supported is Keycloak.
 
 The Keycloak implementation uses the Keycloak [Admin REST API](https://www.keycloak.org/docs-api/18.0/rest-api/index.html) to retrieve this information.
 
-The service must authenticate with Keycloak using an OIDC Client Credentials flow, using a client that has explicitly been granted permissions to query the Keycloak user store.  
+The service must authenticate with Keycloak using an OIDC Client Credentials flow, using a client that has explicitly been granted permissions to query the Keycloak user store.
 
 To grant an existing Keycloak client the permissions to query the Keycloak user store, provision it with the following:
 
@@ -19,20 +19,20 @@ To grant an existing Keycloak client the permissions to query the Keycloak user 
   - realm-management -> view-users
   - realm-management -> query-clients
   - realm-management -> view-clients
-  
+
 ## Environment variables
 
-| Name | Default | Description |
-| ---- | ------- | ----------- |
-| LISTEN_PORT | "7070" | Port the server will listen on |
-| EXTERNAL_HOST | "" | External endpoint the server will be accessed from (used for OpenAPI endpoint serving) |
-| VERBOSE | "false" | Enable verbose/debug logging |
-| DISABLE_TRACING | "false" | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector) |
-| KEYCLOAK_URL | "http://localhost:8080" | Base URL (host + port) to access Keycloak |
-| KEYCLOAK_REALM | "tdf" | Keycloak Realm used for integration |
-| KEYCLOAK_CLIENT_ID | "tdf-entity-resolution-service" | OIDC Client ID used by Entity Resolution Service |
-| KEYCLOAK_CLIENT_SECRET | "" | OIDC Client Secret used by Entity Resolution Service |
-| LEGACY_KEYCLOAK | "false" | Is "/auth" in the Url path for Keycloak.  e.g. Keycloak 17+ /auth is not in the url path by default. Defaults to False, see [gocloak bug](https://github.com/Nerzal/gocloak/issues/346) for reference/context. |
+| Name                   | Default                         | Description                                                                                                                                                                                                   |
+| ---------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LISTEN_PORT            | "7070"                          | Port the server will listen on                                                                                                                                                                                |
+| EXTERNAL_HOST          | ""                              | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                        |
+| VERBOSE                | "false"                         | Enable verbose/debug logging                                                                                                                                                                                  |
+| DISABLE_TRACING        | "false"                         | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)                                                                                                               |
+| KEYCLOAK_URL           | "http://localhost:8080"         | Base URL (host + port) to access Keycloak                                                                                                                                                                     |
+| KEYCLOAK_REALM         | "tdf"                           | Keycloak Realm used for integration                                                                                                                                                                           |
+| KEYCLOAK_CLIENT_ID     | "tdf-entity-resolution-service" | OIDC Client ID used by Entity Resolution Service                                                                                                                                                              |
+| KEYCLOAK_CLIENT_SECRET | ""                              | OIDC Client Secret used by Entity Resolution Service                                                                                                                                                          |
+| LEGACY_KEYCLOAK        | "false"                         | Is "/auth" in the Url path for Keycloak. e.g. Keycloak 17+ /auth is not in the url path by default. Defaults to False, see [gocloak bug](https://github.com/Nerzal/gocloak/issues/346) for reference/context. |
 
 ## API
 
@@ -46,19 +46,19 @@ If service is running, it will also expose a live OpenAPI endpoint on `https://<
 
 ### Test
 
-``` sh
+```sh
 make test
 ```
 
 ### Build container image
 
-``` sh
+```sh
 make dockerbuild
 ```
 
 ### Publish container image
 
-``` sh
+```sh
 make dockerbuildpush
 ```
 

@@ -79,13 +79,11 @@ def make_my_kas_app(name):
 
 ```
 
-
 ### Publishing tdf3_kas_core
 
 We publish to a private PyPI managed by a Sonatype Nexus Repository Manager.
-This is at https://nexus.mgmt.virtru.com/. 
+This is at https://nexus.mgmt.virtru.com/.
 To get user creds, you'll need to follow [the guide in our devops wiki](https://virtru.atlassian.net/wiki/spaces/ENG/pages/707788811/Getting+Started+With+Hub+Nexus).
-
 
 1. Use aviatrix to connect to the virtru VPN named `virtru-us-west-2`
 2. Run the following script:

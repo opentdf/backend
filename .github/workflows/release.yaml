@@ -190,7 +190,6 @@ jobs:
           helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz
 
-
   signing-artifacts:
     needs:
       - version

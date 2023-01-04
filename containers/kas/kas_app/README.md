@@ -60,7 +60,6 @@ $ scripts/start 4300
 
 The port number is optional; it defaults to 4000 if it is not specified.
 
-
 # NOTE: OUT OF DATE
 
 TODO: Rewrite this section!
@@ -79,14 +78,15 @@ See the [root README](../../README.md) for instructions on generating keys for E
   - (SECRET) private key of curve secp256r1, KAS uses to certify responses.
 - KAS_EC_SECP256R1_CERTIFICATE
   - The public key of curve secp256r1, KAS clients can use
-   to validate responses.
+    to validate responses.
 
 An attribute authority is required for KAS to fetch attribute definitions and check the validity of attributes. OpenTDF provides the Attribute service for this purpose.
+
 - ATTR_AUTHORITY_HOST
   - OpenTDF Attribute service host, or other compliant authority
 - ATTR_AUTHORITY_CERTIFICATE
   - The public key used to validate responses from ATTR_AUTHORITY_HOST.
-  
+
 ### Optional
 
 - SWAGGER_UI
@@ -101,13 +101,13 @@ An attribute authority is required for KAS to fetch attribute definitions and ch
 - WSGI_CORS_ORIGIN (Default: "https://localhost")
 
 ### Security headers
+
 reference: https://flask.palletsprojects.com/en/master/security/#security-headers
 
-- X-Content-Type-Options 
+- X-Content-Type-Options
   - Anti-MIME-Sniffing header
 - X-Frame-Options
   - Prevents external sites from embedding your site in an iframe.
-
 
 ## Adding a user to a Block List (DEMO)
 
@@ -153,16 +153,15 @@ pipenv run gunicorn \
     wsgi:app
 ```
 
-
 Okay let's make some TDF3s
 
 #### Option 1: Python
+
 ```sh
 pip3 install --user tdf3sdk
 echo "Hello TDF3" > plain.txt
 python3
 ```
-
 
 ```py
 from tdf3sdk import TDF3Client
@@ -170,7 +169,6 @@ client = TDF3Client(eas_url="http://eas.local:4010/v1/entity_object", user="Char
 client.share_with_users(["Charlie_1234", "tom_1234", "bob_5678"])
 client.encrypt_file("plain.txt", "sample.tdf3")
 ```
-
 
 Note on my mac (big sur) I also had to
 [install pyenv](https://opensource.com/article/19/5/python-3-default-mac)
@@ -181,7 +179,6 @@ brew install pyenv
 pyenv install 3.10.9
 pyenv global 3.10.9
 ```
-
 
 #### Option 2: I still can't get python to work dangit
 
@@ -201,20 +198,22 @@ node
 const { Client: Tdf3 } = require("tdf3-js");
 const fs = require("fs");
 
-const c =
-    new Tdf3.Client({
-        userId:"Charlie_1234",
-        entityObjectEndpoint:"http://eas.local:4010/v1/entity_object",
-    });
-const ep = new Tdf3.EncryptParamsBuilder().withFileSource("plain.txt").withOffline().withUsersWithAccess(["Charlie_1234", "tom_1234", "bob_5678"]).build();
-const os = fs.createWriteStream("sample.tdf3", {flag: "w", encoding: "utf8"});
-c.encrypt(ep).then(p => p.pipe(os));
+const c = new Tdf3.Client({
+  userId: "Charlie_1234",
+  entityObjectEndpoint: "http://eas.local:4010/v1/entity_object",
+});
+const ep = new Tdf3.EncryptParamsBuilder()
+  .withFileSource("plain.txt")
+  .withOffline()
+  .withUsersWithAccess(["Charlie_1234", "tom_1234", "bob_5678"])
+  .build();
+const os = fs.createWriteStream("sample.tdf3", { flag: "w", encoding: "utf8" });
+c.encrypt(ep).then((p) => p.pipe(os));
 ```
 
 Okay, so now you should have a file, `sample.tdf3`, that Charlie owns. Bob is
 on the list, but banned the explicit revocation plugin using the EO_BLOCK_LIST
 environment variable as above. Compare the outcomes of the following:
-
 
 Decrypting as Bob:
 
@@ -224,20 +223,21 @@ Decrypting as Bob:
 const { Client: Tdf3 } = require("tdf3-js");
 const fs = require("fs");
 
-const done = () =>
-  process.stderr.write(
-    `completed cli`
-  );
-const c =
-    new Tdf3.Client({
-        userId:"bob_5678",
-        entityObjectEndpoint:"https://opentdf.local/eas/v1/entity_object",
-    });
-const dp = new Tdf3.DecryptParamsBuilder().withFileSource("sample.tdf3").build();
-const os = fs.createWriteStream("plain-for-charlie.txt", {flag: "w", encoding: "utf8"});
-c.decrypt(dp).then(p => {
-    p.pipe(os);
-    p.on("end", done);
+const done = () => process.stderr.write(`completed cli`);
+const c = new Tdf3.Client({
+  userId: "bob_5678",
+  entityObjectEndpoint: "https://opentdf.local/eas/v1/entity_object",
+});
+const dp = new Tdf3.DecryptParamsBuilder()
+  .withFileSource("sample.tdf3")
+  .build();
+const os = fs.createWriteStream("plain-for-charlie.txt", {
+  flag: "w",
+  encoding: "utf8",
+});
+c.decrypt(dp).then((p) => {
+  p.pipe(os);
+  p.on("end", done);
 });
 ```
 
@@ -249,29 +249,29 @@ Decrypting as Charlie:
 const { Client: Tdf3 } = require("tdf3-js");
 const fs = require("fs");
 
-const done = () =>
-  process.stderr.write(
-    `completed cli`
-  );
-const c =
-    new Tdf3.Client({
-        userId:"Charlie_1234",
-        entityObjectEndpoint:"http://eas.local:4010/v1/entity_object",
-        keyRewrapEndpoint: "http://kas.local:8000/rewrap",
-        keyUpsertEndpoint: "http://kas.local:8000/upsert",
-    });
-const dp = new Tdf3.DecryptParamsBuilder().withFileSource("sample.tdf3").build();
-const os = fs.createWriteStream("plain-for-charlie.txt", {flag: "w", encoding: "utf8"});
-c.decrypt(dp).then(p => {
-    p.pipe(os);
-    p.on("end", done);
+const done = () => process.stderr.write(`completed cli`);
+const c = new Tdf3.Client({
+  userId: "Charlie_1234",
+  entityObjectEndpoint: "http://eas.local:4010/v1/entity_object",
+  keyRewrapEndpoint: "http://kas.local:8000/rewrap",
+  keyUpsertEndpoint: "http://kas.local:8000/upsert",
+});
+const dp = new Tdf3.DecryptParamsBuilder()
+  .withFileSource("sample.tdf3")
+  .build();
+const os = fs.createWriteStream("plain-for-charlie.txt", {
+  flag: "w",
+  encoding: "utf8",
+});
+c.decrypt(dp).then((p) => {
+  p.pipe(os);
+  p.on("end", done);
 });
 ```
 
 ## Rotating Keys (DEMO)
 
 Okay, so configure local EAS and KAS as described above. From the xtest folder, after running `npm i`, we have a working environment for testing our system. So let's first bring up a local stack and create a tdf.
-
 
 ```shell
 export MONOLOG_LEVEL=0
@@ -281,24 +281,28 @@ scripts/genkeys-if-needed
 docker-compose -f docker-compose.yml up --build
 ```
 
-
 ```javascript
 #!/usr/bin/env node --trace-warnings --unhandled-rejections=strict
 
 const fs = require("fs");
 const https = require("https");
-https.globalAgent.options.ca = fs.readFileSync('../../certs/ca.crt');
+https.globalAgent.options.ca = fs.readFileSync("../../certs/ca.crt");
 
 const { Client: Tdf3 } = require("../../tdf3-js/src");
 
-const c =
-    new Tdf3.Client({
-        userId:"Charlie_1234",
-        entityObjectEndpoint:"https://opentdf.local/eas/v1/entity_object",
-    });
-const ep = new Tdf3.EncryptParamsBuilder().withFileSource("plain.txt").withOffline().build();
-const os = fs.createWriteStream("charlie-01.tdf3", {flag: "w", encoding: "utf8"});
-c.encrypt(ep).then(p => p.pipe(os));
+const c = new Tdf3.Client({
+  userId: "Charlie_1234",
+  entityObjectEndpoint: "https://opentdf.local/eas/v1/entity_object",
+});
+const ep = new Tdf3.EncryptParamsBuilder()
+  .withFileSource("plain.txt")
+  .withOffline()
+  .build();
+const os = fs.createWriteStream("charlie-01.tdf3", {
+  flag: "w",
+  encoding: "utf8",
+});
+c.encrypt(ep).then((p) => p.pipe(os));
 ```
 
 ### Changing EAS keys.
@@ -307,9 +311,11 @@ This should not cause problems for the workflow using our current clients, as we
 
 1. kill all servers (ctrl+c on the docker-compose thread, or otherwise send SIGTERM)
 2. Regenerate the EAS keys:
+
 ```
 GENKEYS_FOR_APPS=eas scripts/genkey-apps
 ```
+
 3. restart with the new keys, e.g. `docker-compose up` (Keys are loaded via local volumes)
 4. Decrypt still works:
 
@@ -318,26 +324,27 @@ GENKEYS_FOR_APPS=eas scripts/genkey-apps
 
 const fs = require("fs");
 const https = require("https");
-https.globalAgent.options.ca = fs.readFileSync('../../certs/ca.crt');
+https.globalAgent.options.ca = fs.readFileSync("../../certs/ca.crt");
 
 const { Client: Tdf3 } = require("../../tdf3-js/src");
 
-const c =
-    new Tdf3.Client({
-        userId:"Charlie_1234",
-        entityObjectEndpoint:"https://opentdf.local/eas/v1/entity_object",
-    });
+const c = new Tdf3.Client({
+  userId: "Charlie_1234",
+  entityObjectEndpoint: "https://opentdf.local/eas/v1/entity_object",
+});
 
-const done = () =>
-  process.stderr.write(
-    `completed cli`
-  );
+const done = () => process.stderr.write(`completed cli`);
 
-const dp = new Tdf3.DecryptParamsBuilder().withFileSource("charlie-01.tdf3").build();
-const os = fs.createWriteStream("charlie-01-plain.txt", {flag: "w", encoding: "utf8"});
-c.decrypt(dp).then(p => {
-    p.pipe(os);
-    p.on("end", done);
+const dp = new Tdf3.DecryptParamsBuilder()
+  .withFileSource("charlie-01.tdf3")
+  .build();
+const os = fs.createWriteStream("charlie-01-plain.txt", {
+  flag: "w",
+  encoding: "utf8",
+});
+c.decrypt(dp).then((p) => {
+  p.pipe(os);
+  p.on("end", done);
 });
 ```
 
