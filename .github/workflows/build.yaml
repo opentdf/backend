@@ -9,6 +9,18 @@ on:
     branches:
       - main
 jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check branch is main
+        run: |
+          GIT_BRANCH=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+          if [ "$GIT_BRANCH" -ne "main" ]; then
+              echo 'Aborting workflow -- not running on main'
+              exit 0 # need some way to kill whole workflow, not just step
+          fi
   config:
     runs-on: ubuntu-latest
     outputs:
@@ -30,6 +42,8 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+    needs:
+      - check-branch
     container:
       image: quay.io/helmpack/chart-testing:latest
     timeout-minutes: 10
