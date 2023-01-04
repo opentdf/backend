@@ -3,10 +3,11 @@ import pytest
 import logging
 import sys
 
+from python_base import hook_into
+
 from ..hooks import (
-    hook_into,
-    run_pre_command_hooks,
-    run_post_command_hooks,
+    run_pre_hooks,
+    run_post_hooks,
     run_err_hooks,
     HttpMethod
 )
@@ -15,11 +16,11 @@ from .. import hooks
 
 logger = logging.getLogger(__package__)
 
-def mock_run_pre_command_hooks(http_method, function_name, *args, **kwargs):
+def mock_run_pre_hooks(http_method, function_name, *args, **kwargs):
     # STUB
     pass
 
-def mock_run_post_command_hooks(http_method, function_name, *args, **kwargs):
+def mock_run_post_hooks(http_method, function_name, *args, **kwargs):
     # STUB
     pass
 
@@ -34,24 +35,21 @@ async def hi_error(name):
     raise Exception("TESTING hi_error EXCEPTION")
 
 @pytest.mark.asyncio
-async def test_function_name(monkeypatch, caplog):
+async def test_function_name(caplog):
 
     def mock_run_pre_command_hooks_func_name(
             http_method, function_name, *args, **kwargs):
         logger.info("pre_command: "+function_name)
 
     caplog.set_level(logging.INFO)
-    monkeypatch.setattr(hooks, "run_pre_command_hooks",
-                         mock_run_pre_command_hooks_func_name)
-    monkeypatch.setattr(hooks, "run_post_command_hooks", mock_run_post_command_hooks)
-    monkeypatch.setattr(hooks, "run_err_hooks", mock_run_err_hooks)
-    result = await hook_into(HttpMethod.GET)(hi_name)("Alice")
+    result = await hook_into(HttpMethod.GET, mock_run_pre_command_hooks_func_name,
+     mock_run_post_hooks, mock_run_err_hooks)(hi_name)("Alice")
     messages = [r.msg for r in caplog.records]
     assert result == "hello Alice"
     assert "pre_command: hi_name" in messages
 
 @pytest.mark.asyncio
-async def test_sys_exec_info(monkeypatch, caplog):
+async def test_sys_exec_info(caplog):
 
     def mock_run_err_hooks_sys_exec(
             http_method, function_name, *args, **kwargs):
@@ -59,11 +57,9 @@ async def test_sys_exec_info(monkeypatch, caplog):
         logger.info(repr(err))
 
     caplog.set_level(logging.INFO)
-    monkeypatch.setattr(hooks, "run_pre_command_hooks", mock_run_pre_command_hooks)
-    monkeypatch.setattr(hooks, "run_post_command_hooks", mock_run_post_command_hooks)
-    monkeypatch.setattr(hooks, "run_err_hooks", mock_run_err_hooks_sys_exec)
     with pytest.raises(Exception) as e_info:
-        result = await hook_into(HttpMethod.GET)(hi_error)("Bob")
+        result = await hook_into(HttpMethod.GET, mock_run_pre_hooks,
+        mock_run_post_hooks, mock_run_err_hooks_sys_exec)(hi_error)("Bob")
     messages = [r.msg for r in caplog.records]
     assert e_info.value.args[0] == 'TESTING hi_error EXCEPTION'
     assert "Exception('TESTING hi_error EXCEPTION')" in messages
