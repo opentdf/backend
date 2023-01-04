@@ -36,12 +36,19 @@ from fastapi.security import OAuth2AuthorizationCodeBearer, OpenIdConnect
 from keycloak import KeycloakOpenID
 from pydantic import AnyUrl, BaseSettings, Field, Json, ValidationError
 from pydantic.main import BaseModel
-from python_base import Pagination, get_query, add_filter_by_access_control
+from python_base import (
+    Pagination,
+    get_query,
+    add_filter_by_access_control,
+    hook_into,
+)
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .hooks import (
-    hook_into,
+    run_pre_hooks,
+    run_post_hooks,
+    run_err_hooks,
     HttpMethod,
 )
 
@@ -688,7 +695,7 @@ async def read_attributes_definitions(
         }
     },
 )
-@hook_into(HttpMethod.POST)
+@hook_into(HttpMethod.POST, run_pre_hooks, run_post_hooks, run_err_hooks)
 async def create_attributes_definitions(
     request: AttributeDefinition = Body(
         ...,
@@ -801,7 +808,7 @@ async def create_attributes_definitions_crud(request, decoded_token=None):
         }
     },
 )
-@hook_into(HttpMethod.PUT)
+@hook_into(HttpMethod.PUT, run_pre_hooks, run_post_hooks, run_err_hooks)
 async def update_attribute_definition(
     request: AttributeDefinition = Body(
         ...,
@@ -904,7 +911,7 @@ async def update_attribute_definition_crud(request, decoded_token=None):
         }
     },
 )
-@hook_into(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE, run_pre_hooks, run_post_hooks, run_err_hooks)
 async def delete_attributes_definitions(
     request: AttributeDefinition = Body(
         ...,
@@ -971,7 +978,7 @@ async def read_authorities_crud():
         200: {"content": {"application/json": {"example": ["https://opentdf.io"]}}}
     },
 )
-@hook_into(HttpMethod.POST)
+@hook_into(HttpMethod.POST, run_pre_hooks, run_post_hooks, run_err_hooks)
 async def create_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}
@@ -1011,7 +1018,7 @@ async def create_authorities_crud(request, decoded_token=None):
         }
     },
 )
-@hook_into(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE, run_pre_hooks, run_post_hooks, run_err_hooks)
 async def delete_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}

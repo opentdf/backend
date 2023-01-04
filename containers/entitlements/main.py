@@ -31,12 +31,14 @@ from fastapi.security import OAuth2AuthorizationCodeBearer
 from keycloak import KeycloakOpenID
 from pydantic import AnyUrl, BaseSettings, Field, HttpUrl, Json, validator
 from pydantic.main import BaseModel
-from python_base import Pagination, get_query
+from python_base import Pagination, get_query, hook_into
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .hooks import (
-    hook_into,
+    run_pre_hooks,
+    run_post_hooks,
+    run_err_hooks,
     HttpMethod,
 )
 
@@ -561,7 +563,7 @@ async def read_entity_attribute_relationship(
         }
     },
 )
-@hook_into(HttpMethod.POST)
+@hook_into(HttpMethod.POST, run_pre_hooks, run_pre_hooks, run_err_hooks)
 async def add_entitlements_to_entity(
     entityId: str = Path(
         ...,
@@ -633,7 +635,7 @@ async def get_attribute_entity_relationship(
     "/v1/attribute/{attributeURI:path}/entity/",
     include_in_schema=False,
 )
-@hook_into(HttpMethod.PUT)
+@hook_into(HttpMethod.PUT, run_pre_hooks, run_pre_hooks, run_err_hooks)
 async def create_attribute_entity_relationship(
     attributeURI: HttpUrl, request: List[str], auth_token=Depends(get_auth)
 ):
@@ -664,7 +666,7 @@ async def create_attribute_entity_relationship(
         }
     },
 )
-@hook_into(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE, run_pre_hooks, run_pre_hooks, run_err_hooks)
 async def remove_entitlement_from_entity(
     entityId: str = Path(
         ...,

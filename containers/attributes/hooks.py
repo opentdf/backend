@@ -4,7 +4,6 @@ import datetime
 import os
 import logging
 import sys
-import functools
 from enum import Enum
 
 ##### Set Up Logger ########
@@ -39,36 +38,13 @@ class HttpMethod(Enum):
     PATCH = 7
     DELETE = 8
 
-##### Hook decorator #########
-
-def hook_into(http_method):
-    def hooks_decorator(func):
-        @functools.wraps(func)
-        async def hooks_wrapper(*args, **kwargs):
-            # Do something before
-            run_pre_command_hooks(http_method, func.__name__, *args, **kwargs)
-            # try to execute function
-            try:
-                value = await func(*args, **kwargs)
-                # Do something after
-                run_post_command_hooks(http_method, func.__name__, *args, **kwargs)
-                # return the result
-                return value
-            # in case of errors
-            except Exception as e:
-                # run the error hooks
-                run_err_hooks(http_method, func.__name__, e, *args, **kwargs)
-                raise e
-        return hooks_wrapper
-    return hooks_decorator
-
 ###### HOOKS ##########
 
-def run_pre_command_hooks(http_method, function_name, *args, **kwargs):
+def run_pre_hooks(http_method, function_name, *args, **kwargs):
     # STUB
     pass
 
-def run_post_command_hooks(http_method, function_name, *args, **kwargs):
+def run_post_hooks(http_method, function_name, *args, **kwargs):
     if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
         _audit_log(CallType.POST, http_method, function_name, *args, **kwargs)
     pass
