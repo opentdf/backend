@@ -114,7 +114,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         ath = decoded["ath"]
         htm = decoded["htm"]
         htu = decoded["htu"]
-        m = request.method.lower()
+        m = request.method
         u = request.url
     except Exception as e:
         raise UnauthorizedError("Invalid JWT") from e

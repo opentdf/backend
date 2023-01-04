@@ -100,7 +100,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
 
         configProperties.add(new ProviderConfigProperty(DPOP_ENABLED, "Enable DPoP Extension",
                 "Support registering proof of possession with DPoP confirmation token",
-                ProviderConfigProperty.BOOLEAN_TYPE, true));
+                ProviderConfigProperty.BOOLEAN_TYPE, "true"));
     }
 
     @Override
@@ -295,11 +295,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             var jwk = dpop.get().getHeader().getJwk();
             clientPK = DPoP.jwkToPem(jwk);
             JsonNode cnf = DPoP.confirmation(jwk);
-            logger.debug("Registering dpop cnf jkt [{}] for dpop with jti [{}]", cnf.get("jkt"),
+            logger.info("Registering dpop cnf jkt [{}] for dpop with jti [{}]", cnf.get("jkt"),
                     dpop.get().getPayload().getIdentifier());
             accessToken.setOtherClaims("cnf", cnf);
         } else if (dpopEnabled) {
             logger.info("Client request without DPoP header.");
+        } else {
+            logger.info("DPOP_ENABLED? {}=[{}]", DPOP_ENABLED, dpopEnabledValue);
         }
         // Now, compare with legacy header
         String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
@@ -321,7 +323,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         if (clientPK == null) {
             logger.warn("No client cert presented in request, returning null");
         } else {
-            logger.debug("Client Cert: [{}]", clientPK);
+            logger.info("Client Cert: [{}]", clientPK);
         }
 
         return clientPK;
