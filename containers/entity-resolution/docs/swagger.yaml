@@ -6,13 +6,14 @@ definitions:
         type: string
       type:
         enum:
-        - email
-        - username
+          - email
+          - username
         example: email
         type: string
     type: object
   handlers.EntityResolution:
-    description: Returns the original identifier that was used to query for the included
+    description:
+      Returns the original identifier that was used to query for the included
       EntityRepresentations. Includes all EntityRepresentations that are mapped to
       the original identifier. EntityRepresentations are generic JSON objects as returned
       and serialized from the entity store.
@@ -26,10 +27,11 @@ definitions:
           type: object
         type: array
       original_id:
-        $ref: '#/definitions/handlers.EntityIdentifier'
+        $ref: "#/definitions/handlers.EntityIdentifier"
     type: object
   handlers.EntityResolutionRequest:
-    description: Request containing entity identifiers which will be used to query/resolve
+    description:
+      Request containing entity identifiers which will be used to query/resolve
       to an EntityRepresentation by querying the underlying store. This assumes that
       some entity store exists somewhere, and that user store keeps track of entities
       by canonical ID, and that each entity with a canonical ID might be "searchable"
@@ -37,9 +39,9 @@ definitions:
       identifier is required
     properties:
       entity_identifiers:
-        description: 'enum: email,username'
+        description: "enum: email,username"
         items:
-          $ref: '#/definitions/handlers.EntityIdentifier'
+          $ref: "#/definitions/handlers.EntityIdentifier"
         type: array
     type: object
 info:
@@ -64,30 +66,30 @@ paths:
             type: string
       summary: Check service status
       tags:
-      - Service Health
+        - Service Health
   /resolve:
     post:
       consumes:
-      - application/json
+        - application/json
       description: |-
         Provide an attribute type and attribute label list
         and receive a list of entity idenitifiers
       parameters:
-      - description: Entity Identifiers to be resolved
-        in: body
-        name: Request"
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.EntityResolutionRequest'
+        - description: Entity Identifiers to be resolved
+          in: body
+          name: Request"
+          required: true
+          schema:
+            $ref: "#/definitions/handlers.EntityResolutionRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
               items:
-                $ref: '#/definitions/handlers.EntityResolution'
+                $ref: "#/definitions/handlers.EntityResolution"
               type: array
             type: array
       summary: Resolve a set of entity labels to their keycloak identifiers

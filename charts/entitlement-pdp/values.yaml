@@ -79,7 +79,6 @@ opaConfig:
     #   sample_percentage: 50
     #   encryption: "off"
 
-
 config:
   # -- Port the server will listen on
   listenPort: 3355
