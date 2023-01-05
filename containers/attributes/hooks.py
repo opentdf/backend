@@ -80,9 +80,9 @@ def _audit_log(
         "tdf_id": None,
         "tdf_name": None,
         # this will be the clientid or user
-        "owner_id": decoded_token.get("azp") if type(auth_token) is dict else None,
+        "owner_id": decoded_token.get("azp") if type(decoded_token) is dict else None,
         # who created the token: http://localhost:65432/auth/realms/tdf
-        "owner_org_id": decoded_token.get("iss") if type(auth_token) is dict else None,
+        "owner_org_id": decoded_token.get("iss") if type(decoded_token) is dict else None,
         "transaction_type": transaction_type,
         "action_type": "access_modified",
         "tdf_attributes": request.dict(),

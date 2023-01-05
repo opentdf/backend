@@ -19,18 +19,18 @@ def hook_into(context=None, *, pre=stub_pre, post=stub_post, err=stub_err):
         @functools.wraps(func)
         async def hooks_wrapper(*args, **kwargs):
             # Do something before
-            pre(http_method, func.__name__, *args, **kwargs)
+            pre(context, func.__name__, *args, **kwargs)
             # try to execute function
             try:
                 value = await func(*args, **kwargs)
                 # Do something after
-                post(http_method, func.__name__, *args, **kwargs)
+                post(context, func.__name__, *args, **kwargs)
                 # return the result
                 return value
             # in case of errors
             except Exception as e:
                 # run the error hooks
-                err(http_method, func.__name__, e, *args, **kwargs)
+                err(context, func.__name__, e, *args, **kwargs)
                 raise e
         return hooks_wrapper
     return hooks_decorator
