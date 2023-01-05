@@ -4,7 +4,7 @@ import base64
 import logging
 
 from tdf3_kas_core.models.crypto import Crypto
-from tdf3_kas_core.util import validate_hmac
+from tdf3_kas_core.util import aes_gcm_decrypt, validate_hmac
 
 logger = logging.getLogger(__name__)
 
@@ -41,19 +41,6 @@ class WrappedKey(object):
         # If here then the key can be trusted. Pack and ship the instance.
         self.__unwrapped_key = plain_key
 
-    @property
-    def plain_key(self):
-        """Return the trusted key."""
-        # NOTE - this should not be possible. Need to refactor this class.
-        logger.warning("Plain key access")
-        return self.__unwrapped_key
-
-    @plain_key.setter
-    def plain_key(self, key):
-        """Protect the key."""
-        logger.warning("Attempt to reset the key in a wrapped key model")
-        pass
-
     def perform_hmac_check(self, binding, message, method="HS256"):
         """Perform a HMAC check on the message string.
 
@@ -69,3 +56,6 @@ class WrappedKey(object):
         crypto = Crypto(method)
         entity_wrapped_key = crypto.encrypt(self.__unwrapped_key, entity_public_key)
         return bytes.decode(base64.b64encode(entity_wrapped_key))
+
+    def decrypt(self, ciphertext, iv):
+        return aes_gcm_decrypt(ciphertext, self.__unwrapped_key, iv)

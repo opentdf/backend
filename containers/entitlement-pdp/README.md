@@ -1,4 +1,5 @@
 # entitlement-pdp
+
 Repo for Entitlement Policy Decision Point (PDP) service
 
 What's an Entitlement PDP?
@@ -20,7 +21,7 @@ as long as the following is also true of the Rego policy bundle it is replaced w
 1. The `opentdf.entitlement` package has a rule named `generated_entitlements`
 1. `generated_entitlements` evaluates to an array of objects in the following schema:
 
-``` json
+```json
 [
     {
       "entity_identifier": "xxx",
@@ -34,6 +35,7 @@ as long as the following is also true of the Rego policy bundle it is replaced w
 ```
 
 ### Where Rego policy bundles are stored
+
 This service expects a valid [OPA config file](https://www.openpolicyagent.org/docs/latest/configuration/) to exist at the path pointed to by `OPA_CONFIG_PATH`. That config file will "tell" the OPA runtime embedded within this service where to load the policy bundle from.
 
 The standard OPA approach is to store policy bundles remotely, e.g. in an OCI artifact registry (preferred), or e.g. S3, and regularly check the remote policy store for updated policy bundles.
@@ -55,32 +57,32 @@ If service is running, it will also expose a live OpenAPI endpoint on `https://<
 
 ## Environment variables
 
-| Name | Default | Description |
-| ---- | ------- | ----------- |
-| LISTEN_PORT | "3355" | Port the server will listen on |
-| EXTERNAL_HOST | "" | External endpoint the server will be accessed from (used for OpenAPI endpoint serving) |
-| VERBOSE | "false" | Enable verbose/debug logging |
-| DISABLE_TRACING | "false" | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector) |
-| OPA_CONFIG_PATH | "/etc/opa/config/opa-config.yaml" | Path to OPA config yaml - valid OPA config must exist here or service will not start. Normally this should be left alone |
-| OPA_POLICYBUNDLE_PULLCRED | "YOURPATHERE" | If the OPA config used points to a policybundle stored in an OCI registry that requires credentials to fetch OCI artifacts, this should be set to a valid personal access token that has pull access to that registry |
+| Name                      | Default                           | Description                                                                                                                                                                                                           |
+| ------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LISTEN_PORT               | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
+| EXTERNAL_HOST             | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
+| VERBOSE                   | "false"                           | Enable verbose/debug logging                                                                                                                                                                                          |
+| DISABLE_TRACING           | "false"                           | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)                                                                                                                       |
+| OPA_CONFIG_PATH           | "/etc/opa/config/opa-config.yaml" | Path to OPA config yaml - valid OPA config must exist here or service will not start. Normally this should be left alone                                                                                              |
+| OPA_POLICYBUNDLE_PULLCRED | "YOURPATHERE"                     | If the OPA config used points to a policybundle stored in an OCI registry that requires credentials to fetch OCI artifacts, this should be set to a valid personal access token that has pull access to that registry |
 
 ## OCI container image
 
 ### Test
 
-``` sh
+```sh
 make test
 ```
 
 ### Build container image
 
-``` sh
+```sh
 make dockerbuild
 ```
 
 ### Publish container image
 
-``` sh
+```sh
 make dockerbuildpush
 ```
 

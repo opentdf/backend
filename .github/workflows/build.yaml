@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Select keycloak base version
-        run: | 
+        run: |
           KEYCLOAK_BASE_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
           echo "KEYCLOAK_BASE_VERSION=$KEYCLOAK_BASE_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-base-version
@@ -258,7 +258,7 @@ jobs:
           helm package backend
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
-          rm *.tgz 
+          rm *.tgz
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
@@ -440,7 +440,7 @@ jobs:
       - name: Setup policy OCI bundler tool
         uses: actions/setup-go@v3
         with:
-          go-version: '>=1.18.0'
+          go-version: ">=1.18.0"
       - name: Build policy bundle
         if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
