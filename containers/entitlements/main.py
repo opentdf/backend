@@ -495,8 +495,10 @@ def parse_attribute_uri(attribute_uri):
         }
     else:
         logger.error(f"Invalid attribute format: '{attribute_uri}'")
-        raise HTTPException(status_code=BAD_REQUEST,
-                             detail=f"Invalid attribute format: '{attribute_uri}'")
+        raise HTTPException(
+            status_code=BAD_REQUEST,
+            detail=f"Invalid attribute format: '{attribute_uri}'",
+        )
 
 
 @app.get(
@@ -701,9 +703,7 @@ async def remove_entitlement_from_entity_crud(entityId, request, auth_token=None
             )
 
     except IndexError as e:
-        raise HTTPException(
-            status_code=BAD_REQUEST, detail=f"invalid: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=BAD_REQUEST, detail=f"invalid: {str(e)}") from e
 
     await database.execute(
         table_entity_attribute.delete().where(

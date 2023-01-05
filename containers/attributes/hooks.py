@@ -17,19 +17,23 @@ logging.basicConfig(
 
 logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
 
+
 def audit(self, message, *args, **kws):
     if self.isEnabledFor(AUDIT_LEVEL_NUM) and AUDIT_ENABLED:
         self._log(AUDIT_LEVEL_NUM, message, args, **kws)
+
 
 logging.Logger.audit = audit
 logger = logging.getLogger(__package__)
 
 ##### Custom Enums #########
 
+
 class CallType(Enum):
     PRE = 1
     POST = 2
     ERR = 3
+
 
 class HttpMethod(Enum):
     GET = 4
@@ -38,12 +42,15 @@ class HttpMethod(Enum):
     PATCH = 7
     DELETE = 8
 
+
 ###### HOOKS ##########
+
 
 def audit_hook(http_method, function_name, *args, **kwargs):
     if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
         _audit_log(CallType.POST, http_method, function_name, *args, **kwargs)
     pass
+
 
 def err_audit_hook(http_method, function_name, err, *args, **kwargs):
     if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
@@ -53,7 +60,10 @@ def err_audit_hook(http_method, function_name, err, *args, **kwargs):
 
 ##### Custom Log ######
 
-def _audit_log(call_type, http_method, function_name, request, decoded_token, *args, **kwargs):
+
+def _audit_log(
+    call_type, http_method, function_name, request, decoded_token, *args, **kwargs
+):
     if call_type == CallType.ERR:
         if http_method == HttpMethod.POST:
             transaction_type = "create-error"
@@ -65,16 +75,16 @@ def _audit_log(call_type, http_method, function_name, request, decoded_token, *a
         else:
             transaction_type = "update"
     audit_log = {
-                "id": str(uuid.uuid4()), 
-                "transaction_timestamp": str(datetime.datetime.now()), 
-                "tdf_id": None,
-                "tdf_name": None,
-                #this will be the clientid or user
-                "owner_id": decoded_token.get("azp") if type(auth_token) is dict else None,
-                # who created the token: http://localhost:65432/auth/realms/tdf
-                "owner_org_id": decoded_token.get("iss") if type(auth_token) is dict else None,
-                "transaction_type": transaction_type, 
-                "action_type": "access_modified",
-                "tdf_attributes": request.dict()
-                }
+        "id": str(uuid.uuid4()),
+        "transaction_timestamp": str(datetime.datetime.now()),
+        "tdf_id": None,
+        "tdf_name": None,
+        # this will be the clientid or user
+        "owner_id": decoded_token.get("azp") if type(auth_token) is dict else None,
+        # who created the token: http://localhost:65432/auth/realms/tdf
+        "owner_org_id": decoded_token.get("iss") if type(auth_token) is dict else None,
+        "transaction_type": transaction_type,
+        "action_type": "access_modified",
+        "tdf_attributes": request.dict(),
+    }
     logger.audit(json.dumps(audit_log))

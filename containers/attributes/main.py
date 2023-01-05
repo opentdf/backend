@@ -258,7 +258,6 @@ engine = sqlalchemy.create_engine(DATABASE_URL, pool_pre_ping=True)
 dbase_session = sessionmaker(bind=engine)
 
 
-
 def get_db_session() -> Session:
     session = dbase_session()
     try:
@@ -270,8 +269,10 @@ def get_db_session() -> Session:
 class AttributeSchema(declarative_base()):
     __table__ = table_attribute
 
+
 class AuthoritySchema(declarative_base()):
     __table__ = table_authority
+
 
 # middleware
 @app.middleware("http")
@@ -468,9 +469,9 @@ async def read_attributes(
 
 
 async def read_attributes_crud(request, session, filter_args, sort_args):
-    table_to_query = metadata.tables['tdf_attribute.attribute']
+    table_to_query = metadata.tables["tdf_attribute.attribute"]
     org_name = add_filter_by_access_control(request)
-    table_ns = metadata.tables['tdf_attribute.attribute_namespace']
+    table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
     query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
     if org_name is not None:
         for row in query:
@@ -589,9 +590,9 @@ async def read_attributes_definitions(
         filter_args["rule"] = rule
 
     sort_args = sort.split(",") if sort else []
-    table_to_query = metadata.tables['tdf_attribute.attribute']
+    table_to_query = metadata.tables["tdf_attribute.attribute"]
     org_name = add_filter_by_access_control(request)
-    table_ns = metadata.tables['tdf_attribute.attribute_namespace']
+    table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
     query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
     if org_name is not None:
         for row in query:
