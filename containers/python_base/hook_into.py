@@ -2,7 +2,19 @@ import functools
 
 ##### Hook decorator #########
 
-def hook_into(http_method, pre_hook, post_hook, err_hook):
+def stub_pre(http_method, function_name, *args, **kwargs):
+    # STUB
+    pass
+
+def stub_post(http_method, function_name, *args, **kwargs):
+    # STUB
+    pass
+
+def stub_err(http_method, function_name, *args, **kwargs):
+    # STUB
+    pass
+
+def hook_into(context=None, *, pre=stub_pre, post=stub_post, err=stub_err):
     def hooks_decorator(func):
         @functools.wraps(func)
         async def hooks_wrapper(*args, **kwargs):

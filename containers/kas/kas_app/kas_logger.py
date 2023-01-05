@@ -10,13 +10,13 @@ class KasLogger(glogging.Logger):
 
     LOG_LEVELS = {
         "critical": logging.CRITICAL,
+        "audit": AUDIT_LEVEL_NUM,
         "error": logging.ERROR,
         "warning": logging.WARNING,
         "info": logging.INFO,
         "debug": logging.DEBUG
     }
 
-    LOG_LEVELS["audit"] = AUDIT_LEVEL_NUM
     logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
 
     def audit(self, message, *args, **kws):

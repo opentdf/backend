@@ -40,16 +40,12 @@ class HttpMethod(Enum):
 
 ###### HOOKS ##########
 
-def run_pre_hooks(http_method, function_name, *args, **kwargs):
-    # STUB
-    pass
-
-def run_post_hooks(http_method, function_name, *args, **kwargs):
+def audit_hook(http_method, function_name, *args, **kwargs):
     if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
         _audit_log(CallType.POST, http_method, function_name, *args, **kwargs)
     pass
 
-def run_err_hooks(http_method, function_name, err, *args, **kwargs):
+def err_audit_hook(http_method, function_name, err, *args, **kwargs):
     if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
         _audit_log(CallType.ERR, http_method, function_name, *args, **kwargs)
     pass
@@ -73,8 +69,10 @@ def _audit_log(call_type, http_method, function_name, request, decoded_token, *a
                 "transaction_timestamp": str(datetime.datetime.now()), 
                 "tdf_id": None,
                 "tdf_name": None,
-                "owner_id": decoded_token["azp"], #this will be the clientid or user
-                "owner_org_id": decoded_token["iss"], # who created the token: http://localhost:65432/auth/realms/tdf
+                #this will be the clientid or user
+                "owner_id": decoded_token.get("azp") if type(auth_token) is dict else None,
+                # who created the token: http://localhost:65432/auth/realms/tdf
+                "owner_org_id": decoded_token.get("iss") if type(auth_token) is dict else None,
                 "transaction_type": transaction_type, 
                 "action_type": "access_modified",
                 "tdf_attributes": request.dict()

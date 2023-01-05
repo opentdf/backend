@@ -5,28 +5,11 @@ import sys
 
 from python_base import hook_into
 
-from ..hooks import (
-    run_pre_hooks,
-    run_post_hooks,
-    run_err_hooks,
-    HttpMethod
-)
+from ..hooks import HttpMethod
 
 from .. import hooks
 
 logger = logging.getLogger(__package__)
-
-def mock_run_pre_hooks(http_method, function_name, *args, **kwargs):
-    # STUB
-    pass
-
-def mock_run_post_hooks(http_method, function_name, *args, **kwargs):
-    # STUB
-    pass
-
-def mock_run_err_hooks(http_method, function_name, *args, **kwargs):
-    # STUB
-    pass
 
 async def hi_name(name):
     return "hello "+ name
@@ -42,8 +25,8 @@ async def test_function_name(caplog):
         logger.info("pre_command: "+function_name)
 
     caplog.set_level(logging.INFO)
-    result = await hook_into(HttpMethod.GET, mock_run_pre_command_hooks_func_name,
-     mock_run_post_hooks, mock_run_err_hooks)(hi_name)("Alice")
+    result = await hook_into(HttpMethod.GET,
+     pre=mock_run_pre_command_hooks_func_name)(hi_name)("Alice")
     messages = [r.msg for r in caplog.records]
     assert result == "hello Alice"
     assert "pre_command: hi_name" in messages
@@ -58,8 +41,8 @@ async def test_sys_exec_info(caplog):
 
     caplog.set_level(logging.INFO)
     with pytest.raises(Exception) as e_info:
-        result = await hook_into(HttpMethod.GET, mock_run_pre_hooks,
-        mock_run_post_hooks, mock_run_err_hooks_sys_exec)(hi_error)("Bob")
+        result = await hook_into(HttpMethod.GET,
+         err=mock_run_err_hooks_sys_exec)(hi_error)("Bob")
     messages = [r.msg for r in caplog.records]
     assert e_info.value.args[0] == 'TESTING hi_error EXCEPTION'
     assert "Exception('TESTING hi_error EXCEPTION')" in messages

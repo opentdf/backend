@@ -36,9 +36,8 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .hooks import (
-    run_pre_hooks,
-    run_post_hooks,
-    run_err_hooks,
+    audit_hook,
+    err_audit_hook,
     HttpMethod,
 )
 
@@ -563,7 +562,7 @@ async def read_entity_attribute_relationship(
         }
     },
 )
-@hook_into(HttpMethod.POST, run_pre_hooks, run_pre_hooks, run_err_hooks)
+@hook_into(HttpMethod.POST, post=audit_hook, err=err_audit_hook)
 async def add_entitlements_to_entity(
     entityId: str = Path(
         ...,
@@ -635,7 +634,7 @@ async def get_attribute_entity_relationship(
     "/v1/attribute/{attributeURI:path}/entity/",
     include_in_schema=False,
 )
-@hook_into(HttpMethod.PUT, run_pre_hooks, run_pre_hooks, run_err_hooks)
+@hook_into(HttpMethod.PUT, post=audit_hook, err=err_audit_hook)
 async def create_attribute_entity_relationship(
     attributeURI: HttpUrl, request: List[str], auth_token=Depends(get_auth)
 ):
@@ -666,7 +665,7 @@ async def create_attribute_entity_relationship(
         }
     },
 )
-@hook_into(HttpMethod.DELETE, run_pre_hooks, run_pre_hooks, run_err_hooks)
+@hook_into(HttpMethod.DELETE, post=audit_hook, err=err_audit_hook)
 async def remove_entitlement_from_entity(
     entityId: str = Path(
         ...,
