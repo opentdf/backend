@@ -6,7 +6,7 @@ metadata:
     {{- include "entitlements.labels" . | nindent 4 }}
 data:
   {{- if .Values.global.opentdf.common.auditLogEnabled }}
-  AUDIT_ENABLED: true
+  AUDIT_ENABLED: 'true'
   {{- end  }}
   # TODO /auth and /token are well-known and can be hardcoded
   # we do not need two config properties for this - just one.
