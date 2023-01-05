@@ -29,6 +29,9 @@ global:
       #   - name: my-existing-ghcr-pullsecret
       #   - name: my-other-pullsecret
       imagePullSecrets: []
+      # -- Enable audit logging
+      auditLogEnabled: false
+
       keycloak:
         # -- The Keycloak admin username
         user: keycloakadmin
