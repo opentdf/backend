@@ -90,6 +90,11 @@ paths:
         data keys as needed to provide access for entities with a TDF that they
         would like to open.
       operationId: tdf3_kas_core.web.rewrap.rewrap
+      parameters: &dpop-header
+        - in: header
+          name: dpop
+          schema:
+            type: string
       requestBody:
         $ref: "#/components/requestBodies/Rewrap"
       responses:
@@ -132,6 +137,7 @@ paths:
         data keys as needed to provide access for entities with a TDF that they
         would like to open.
       operationId: tdf3_kas_core.web.rewrap.rewrap_v2
+      parameters: *dpop-header
       requestBody:
         $ref: "#/components/requestBodies/RewrapV2"
       # security:
@@ -175,6 +181,7 @@ paths:
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
       operationId: tdf3_kas_core.web.upsert.upsert
+      parameters: *dpop-header
       requestBody:
         $ref: "#/components/requestBodies/Upsert"
       responses:
@@ -207,6 +214,7 @@ paths:
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
       operationId: tdf3_kas_core.web.upsert.upsert_v2
+      parameters: *dpop-header
       requestBody:
         $ref: "#/components/requestBodies/UpsertV2"
       # security:
@@ -236,18 +244,18 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
 
 components:
-# TODO we should declare this in the openapi spec, but
-# if this is present connexion craps the bed unless
-# you define an x-bearerInfoFunc property
-# that points back to a function in your code to parse the token
-#
-# We should do that but not doing it now
-# Example: https://github.com/zalando/connexion/tree/master/examples/openapi3/jwt
-#  securitySchemes:
-#     virtruOIDCBearerToken:
-#       type: http
-#       scheme: bearer
-#       bearerFormat: JWT  # optional, for documentation purposes only
+  # TODO we should declare this in the openapi spec, but
+  # if this is present connexion craps the bed unless
+  # you define an x-bearerInfoFunc property
+  # that points back to a function in your code to parse the token
+  #
+  # We should do that but not doing it now
+  # Example: https://github.com/zalando/connexion/tree/master/examples/openapi3/jwt
+  #  securitySchemes:
+  #     virtruOIDCBearerToken:
+  #       type: http
+  #       scheme: bearer
+  #       bearerFormat: JWT  # optional, for documentation purposes only
   responses:
     ### Errors
     BadRequest:
@@ -339,7 +347,7 @@ components:
                 maxProperties: 1
                 properties:
                   signedRequestToken:
-                    $ref: "#/components/schemas/JWT"      
+                    $ref: "#/components/schemas/JWT"
     Upsert:
       description: Upsert request body
       required: true
@@ -379,7 +387,7 @@ components:
                 maxProperties: 1
                 properties:
                   signedRequestToken:
-                    $ref: "#/components/schemas/JWT"      
+                    $ref: "#/components/schemas/JWT"
 
   schemas:
     Algorithm:

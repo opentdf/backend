@@ -15,12 +15,16 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
 import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.models.*;
 import org.keycloak.protocol.oidc.mappers.*;
 import org.keycloak.provider.ProviderConfigProperty;
+import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.IDToken;
+import org.keycloak.representations.JsonWebToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +32,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.HttpHeaders;
+
 import java.util.Map;
 
 /**
@@ -38,10 +46,15 @@ import java.util.Map;
  * - Configurable properties allow for providing additional header and proprty
  * values to be passed to the attribute provider.
  *
+ * Configurable properties allow for providing additional header and proprty
+ * values to be passed to the attribute provider.
  */
 public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
     private static final Logger logger = LoggerFactory.getLogger(TdfClaimsMapper.class);
+    static {
+        logger.info("Registered TdfClaimsMapper");
+    }
 
     public static final String PROVIDER_ID = "virtru-oidc-protocolmapper";
 
@@ -53,6 +66,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     final static String REMOTE_PARAMETERS_USERNAME = "remote.parameters.username";
     final static String REMOTE_PARAMETERS_CLIENTID = "remote.parameters.clientid";
     final static String CLAIM_NAME = "claim.name";
+    final static String DPOP_ENABLED = "client.dpop";
     final static String PUBLIC_KEY_HEADER = "client.publickey";
     final static String CLAIM_REQUEST_TYPE = "claim_request_type";
 
@@ -84,6 +98,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 "Header name containing tdf client public key",
                 ProviderConfigProperty.STRING_TYPE, "X-VirtruPubKey"));
 
+        configProperties.add(new ProviderConfigProperty(DPOP_ENABLED, "Enable DPoP Extension",
+                "Support registering proof of possession with DPoP confirmation token",
+                ProviderConfigProperty.BOOLEAN_TYPE, "true"));
     }
 
     @Override
@@ -122,22 +139,23 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         //
         // We will have to fix `dissems` to properly get rid of this hack.
         token.setSubject(userSession.getUser().getId());
-        logger.info("Custom claims mapper triggered");
+        logger.info("TDF claims mapper triggered");
 
-        String clientPK = getClientPublicKey(mappingModel, keycloakSession);
-        JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
+        String clientPK = getClientPublicKey(token, mappingModel, keycloakSession);
         // If no PK in request, don't bother asking for claims - no authorization.
         if (clientPK == null) {
-            logger.info("No public key in auth request, skipping remote auth call and returning empty claims");
+            logger.info(
+                    "No public key in auth request, skipping remote auth call and returning empty claims; simple access/id token");
             return;
         }
-
+        JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
         // If claims are not cached OR this is a userinfo request (which should always
         // refresh claims from remote) then refresh claims.
         if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
             logger.debug("Getting remote authorizations");
             JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
             claims = buildClaimsObject(entitlements, clientPK);
+            // Cache for next callback
             clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
         } else {
             logger.debug("Using cached remote authorizations: [{}]", claims);
@@ -253,25 +271,59 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         return rootNode;
     }
 
-    private String getClientPublicKey(ProtocolMapperModel mappingModel, KeycloakSession keycloakSession) {
-        String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
-        String clientPK = null;
-        if (clientPKHeaderName != null) {
-            List<String> clientPKList = keycloakSession.getContext().getRequestHeaders()
-                    .getRequestHeader(clientPKHeaderName);
-            clientPK = clientPKList == null || clientPKList.isEmpty() ? null : clientPKList.get(0);
+    static Optional<DPoP.Proof> getProofHeader(HttpHeaders headers) {
+        List<String> dpopValues = new ArrayList<>(new HashSet<>(headers.getRequestHeader("dpop")));
+        if (dpopValues.isEmpty()) {
+            logger.info("No DPoP Header");
+            return Optional.empty();
         }
-        if (clientPK != null) {
-            if (clientPK.startsWith("LS0")) {
-                byte[] decodedBytes = Base64.getDecoder().decode(clientPK);
-                clientPK = new String(decodedBytes);
+        if (dpopValues.size() > 1) {
+            throw new BadRequestException("Conflicting dpop headers");
+        }
+        return Optional.of(DPoP.validate(dpopValues.get(0)));
+    }
+
+    private String getClientPublicKey(JsonWebToken accessToken, ProtocolMapperModel mappingModel,
+            KeycloakSession keycloakSession) {
+        // First, let's try loading from DPoP header if present:
+        HttpHeaders headers = keycloakSession.getContext().getRequestHeaders();
+        Object dpopEnabledValue = mappingModel.getConfig().get(DPOP_ENABLED);
+        boolean dpopEnabled = "true".equals(dpopEnabledValue);
+        Optional<DPoP.Proof> dpop = dpopEnabled ? getProofHeader(headers) : Optional.empty();
+        String clientPK = null;
+        if (dpop.isPresent()) {
+            var jwk = dpop.get().getHeader().getJwk();
+            clientPK = DPoP.jwkToPem(jwk);
+            JsonNode cnf = DPoP.confirmation(jwk);
+            logger.info("Registering dpop cnf jkt [{}] for dpop with jti [{}]", cnf.get("jkt"),
+                    dpop.get().getPayload().getIdentifier());
+            accessToken.setOtherClaims("cnf", cnf);
+        } else if (dpopEnabled) {
+            logger.info("Client request without DPoP header.");
+        } else {
+            logger.info("DPOP_ENABLED? {}=[{}]", DPOP_ENABLED, dpopEnabledValue);
+        }
+        // Now, compare with legacy header
+        String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
+        List<String> clientPKValues = new ArrayList<>(new HashSet<>(headers.getRequestHeader(clientPKHeaderName)));
+        if (!clientPKValues.isEmpty()) {
+            if (clientPKValues.size() > 1) {
+                throw new BadRequestException("Conflicting public key headers; only one supported at the moment");
             }
-            logger.debug("Client Cert: [{}]", clientPK);
+            String legacyPK = clientPKValues.get(0);
+            if (legacyPK.startsWith("LS0")) {
+                byte[] decodedBytes = Base64.getDecoder().decode(legacyPK);
+                legacyPK = new String(decodedBytes);
+            }
+            if (clientPK != null && !clientPK.equals(legacyPK)) {
+                logger.info("Conflicting public key and dpop headers: [" + clientPK + "] != [" + legacyPK + "]");
+            }
+            clientPK = legacyPK;
         }
         if (clientPK == null) {
             logger.warn("No client cert presented in request, returning null");
-            // noop - return
-            return null;
+        } else {
+            logger.info("Client Cert: [{}]", clientPK);
         }
 
         return clientPK;
@@ -357,5 +409,4 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             throw new JsonRemoteClaimException("Error when accessing remote claim", url, e);
         }
     }
-
 }

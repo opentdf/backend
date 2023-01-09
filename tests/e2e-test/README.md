@@ -6,7 +6,7 @@ Made for preventing from breaking python core sdk(https://pypi.org/project/tdf3s
 ## Running Tests locally
 
 1. Run EAS microservices locally
-2. Run individual service_*.  See corresponding README.md
+2. Run individual service\_\*. See corresponding README.md
 
 ## Stress Tests
 
@@ -21,6 +21,7 @@ Setup and run shell script runs it with default params
 `--stress=True --size=10 --step=1`
 
 ### Environment variables
+
 ```shell
 export KAS_HOST=http://localhost:8000
 export ENTITY_OBJECT_HOST=http://localhost:4010
@@ -36,6 +37,7 @@ python3 run_test.py
 ```
 
 ## docker-compose
+
 ```shell script
 docker-compose --env-file certs/.env --file e2e-test/docker-compose.yml up --build --exit-code-from e2e-test e2e-test
 docker-compose --env-file certs/.env --file e2e-test/docker-compose.yml down --rmi=local

@@ -8,6 +8,8 @@ from tdf3_kas_core.schema import get_schema
 from .create_context import create_context
 from .run_service_with_exceptions import run_service_with_exceptions
 
+from ..dpop import validate_dpop
+
 TDF3_REWRAP_SCHEMA = get_schema("tdf3_rewrap_schema")
 logger = logging.getLogger(__name__)
 
@@ -37,10 +39,12 @@ def rewrap_helper(body, session_rewrap):
 
 
 @run_service_with_exceptions
-def rewrap(body):
+def rewrap(body, *, dpop=None):
+    validate_dpop(dpop, Kas.get_instance()._key_master)
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap())
 
 
 @run_service_with_exceptions
-def rewrap_v2(body):
+def rewrap_v2(body, *, dpop=None):
+    validate_dpop(dpop, Kas.get_instance()._key_master)
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap_v2())

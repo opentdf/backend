@@ -20,16 +20,16 @@
   - Note that if you try to evaluate a section that uses variables declared outside the selection, you will get errors about "unsafe variables", since OPA can't see where you defined them if you pass it an incomplete snippet.
 - Run `OPA: Test Workspace` command to run all `_test.rego` files
   - Tests are just regular rules with a unique filename, so you can evaluate them individually just like you evaluate rules in the above section
-  
+
 ## Package policy bundle
 
-``` sh
+```sh
 make policybuild
 ```
 
 ## Publish policy bundle
 
-``` sh
+```sh
 make policypush
 ```
 
@@ -38,15 +38,16 @@ make policypush
 ## Rego reference
 
 - https://www.openpolicyagent.org/docs/latest/policy-reference/
- 
+
 ## Rego browser playground
 
 - https://play.openpolicyagent.org/
 
 ## Rego quickref
+
 There are a few key things to understand with Rego that tend to trip up people used to imperative languages (e.g. most of us)
 
-1. It is not Turing-complete, it is guaranteed deterministic (Turning-complete languages are *not* guaranteed deterministic) - a Rego policy always resolves to either success or failure.
+1. It is not Turing-complete, it is guaranteed deterministic (Turning-complete languages are _not_ guaranteed deterministic) - a Rego policy always resolves to either success or failure.
 1. It in not imperative - it is rules-based. There is no guarantee about execution order of rules.
 1. All rules must be valid for all data at all times - if undefined results are possible policy will not build. Think of every rule as a "for all possible (data/inputs)".
 1. Rules are composable.
@@ -54,10 +55,9 @@ There are a few key things to understand with Rego that tend to trip up people u
 1. Rego includes some helper functions to make network calls, parse JWTs, handle JSON and YAML, etc etc
 1. Rego policies can be unit tested
 
-
 You can copy this into https://play.openpolicyagent.org/ to evaluate it if you wish
 
-``` rego
+```rego
 
 package play
 

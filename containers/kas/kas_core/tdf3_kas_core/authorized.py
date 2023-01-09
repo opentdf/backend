@@ -105,21 +105,19 @@ def authorized(public_key, auth_token):
     try:
         unpack_rs256_jwt(auth_token, public_key)
         return True
-
     except Exception as e:
         raise AuthorizationError("Not authorized") from e
 
 
 def authorized_v2(public_key, auth_token):
     decoded = unsafe_decode_jwt(auth_token)
-    audience = decoded["aud"]
     try:
         decoded = jwt.decode(
             auth_token,
             public_key,
-            audience=audience,
             algorithms=["RS256", "ES256", "ES384", "ES512"],
             leeway=leeway,
+            options={"verify_aud": False},
         )
     except jwt.exceptions.PyJWTError as e:
         logger.warning(

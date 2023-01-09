@@ -4,7 +4,6 @@ fullnameOverride: ""
 # -- Optionally override the name
 nameOverride: ""
 
-
 embedded:
   # -- Use an embedded keycloak or not
   keycloak: true
@@ -30,6 +29,9 @@ global:
       #   - name: my-existing-ghcr-pullsecret
       #   - name: my-other-pullsecret
       imagePullSecrets: []
+      # -- Enable audit logging
+      auditLogEnabled: false
+
       keycloak:
         # -- The Keycloak admin username
         user: keycloakadmin
@@ -62,7 +64,6 @@ secrets:
       # -- Password of user used to create attributes during bootstap
       password: testuser123
 
-
 attributes:
   # -- Optionally override the name
   fullnameOverride: attributes
@@ -91,7 +92,7 @@ attributes:
           pathType: Prefix
       host.docker.internal: *pathsAttributes
       opentdf.local: *pathsAttributes
-      '': *pathsAttributes
+      "": *pathsAttributes
   # -- Sets the default loglevel for the application. One of the valid python logging
   # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
   logLevel: DEBUG
@@ -147,7 +148,7 @@ entitlement-store:
           pathType: Prefix
       host.docker.internal: *pathsEntitlementStore
       opentdf.local: *pathsEntitlementStore
-      '': *pathsEntitlementStore
+      "": *pathsEntitlementStore
 
 entitlements:
   # -- Optionally override the name
@@ -177,7 +178,7 @@ entitlements:
           pathType: Prefix
       host.docker.internal: *pathsEntitlements
       opentdf.local: *pathsEntitlements
-      '': *pathsEntitlements
+      "": *pathsEntitlements
 
 entity-resolution:
   # -- Optionally override the name
@@ -227,7 +228,7 @@ kas:
           pathType: Prefix
       host.docker.internal: *pathsKas
       opentdf.local: *pathsKas
-      '': *pathsKas
+      "": *pathsKas
   # -- Sets the default loglevel for the application. One of the valid python logging
   # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
   logLevel: DEBUG
@@ -307,7 +308,7 @@ keycloak:
       - host: opentdf.local
         paths: *paths
       - paths: *paths
-        host: ''
+        host: ""
     # -- TLS configuration
     tls: []
 
@@ -335,74 +336,74 @@ keycloak-bootstrap:
     clientId: dcr-test
     # -- List of authorities to create
     preloadedAuthorities:
-    - https://example.com
+      - https://example.com
     # -- List of attributes to create in the form:
     #  [{authority:"", name:"", rule:"", state:"", order:[]}]
     preloadedAttributes:
-    - authority: https://example.com
-      name: Classification
-      rule: hierarchy
-      state: published
-      order:
-      - TS
-      - S
-      - C
-      - U
-    - authority: https://example.com
-      name: COI
-      rule: allOf
-      state: published
-      order:
-      - PRX
-      - PRA
-      - PRB
-      - PRC
-      - PRD
-      - PRF
+      - authority: https://example.com
+        name: Classification
+        rule: hierarchy
+        state: published
+        order:
+          - TS
+          - S
+          - C
+          - U
+      - authority: https://example.com
+        name: COI
+        rule: allOf
+        state: published
+        order:
+          - PRX
+          - PRA
+          - PRB
+          - PRC
+          - PRD
+          - PRF
 
   entitlements:
     # -- Internal entitlements service url
     hostname: http://entitlements:4030
     realms:
       # keycloak-bootstrap.entitlements.realms[0].name -- Name of realm for which creating entitlements
-    - name: tdf
-      # -- OIDC client ID used to create entitlements
-      clientId: dcr-test
-      # -- OIDC username used to create entitlements
-      username: user1
-      # -- Password for given username used to create entitlements
-      password: testuser123
-      # -- Entitlements to create, in the form
-      # {client: ["attribute"]}
-      preloadedClaims:
-        alice_1234:
-          - https://example.com/attr/Classification/value/C
-          - https://example.com/attr/COI/value/PRD
-        bob_1234:
-          - https://example.com/attr/Classification/value/C
-          - https://example.com/attr/COI/value/PRC
-        browsertest:
-          - https://example.com/attr/Classification/value/C
-          - https://example.com/attr/COI/value/PRA
-        client_x509:
-          - https://example.com/attr/Classification/value/S
-          - https://example.com/attr/COI/value/PRX
-        dcr-test:
-          - https://example.com/attr/Classification/value/C
-          - https://example.com/attr/COI/value/PRF
-        service-account-tdf-client:
-          - https://example.com/attr/Classification/value/C
-          - https://example.com/attr/COI/value/PRB
-        tdf-client:
-          - https://example.com/attr/Classification/value/S
-          - https://example.com/attr/COI/value/PRX
-          - https://example.com/attr/Env/value/CleanRoom
-        tdf-user:
-          - https://example.com/attr/Classification/value/C
-          - https://example.com/attr/COI/value/PRX
-        user1:
-          - https://example.com/attr/Classification/value/S
-          - https://example.com/attr/COI/value/PRX
+      - name: tdf
+        # -- OIDC client ID used to create entitlements
+        clientId: dcr-test
+        # -- OIDC username used to create entitlements
+        username: user1
+        # -- Password for given username used to create entitlements
+        password: testuser123
+        # -- Entitlements to create, in the form
+        # {client: ["attribute"]}
+        preloadedClaims:
+          alice_1234:
+            - https://example.com/attr/Classification/value/C
+            - https://example.com/attr/COI/value/PRD
+          bob_1234:
+            - https://example.com/attr/Classification/value/C
+            - https://example.com/attr/COI/value/PRC
+          browsertest:
+            - https://example.com/attr/Classification/value/C
+            - https://example.com/attr/COI/value/PRA
+          client_x509:
+            - https://example.com/attr/Classification/value/S
+            - https://example.com/attr/COI/value/PRX
+          dcr-test:
+            - https://example.com/attr/Classification/value/C
+            - https://example.com/attr/COI/value/PRF
+          service-account-tdf-client:
+            - https://example.com/attr/Classification/value/C
+            - https://example.com/attr/COI/value/PRB
+          tdf-client:
+            - https://example.com/attr/Classification/value/S
+            - https://example.com/attr/COI/value/PRX
+            - https://example.com/attr/Env/value/CleanRoom
+          tdf-user:
+            - https://example.com/attr/Classification/value/C
+            - https://example.com/attr/COI/value/PRX
+          user1:
+            - https://example.com/attr/Classification/value/S
+            - https://example.com/attr/COI/value/PRX
 
 postgresql:
   # -- Optionally override the name

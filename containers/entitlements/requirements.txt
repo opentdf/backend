@@ -7,3 +7,4 @@ idna==3.3; python_version >= '3.5'
 sniffio==1.2.0; python_version >= '3.5'
 python-keycloak==2.6.0
 uritools==4.0.0
+pytest-asyncio==0.18.3

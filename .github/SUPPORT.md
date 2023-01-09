@@ -2,10 +2,10 @@
 
 There are many ways to get our attention!
 
-* [Join our Slack channel](slack)
-* [Submit a support ticket](support-ticket)
-* [View the Virtru Developer Hub](developer-hub)
-* [Email us feedback](email-developers)
+- [Join our Slack channel](slack)
+- [Submit a support ticket](support-ticket)
+- [View the Virtru Developer Hub](developer-hub)
+- [Email us feedback](email-developers)
 
 ---
 

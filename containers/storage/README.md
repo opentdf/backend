@@ -1,10 +1,12 @@
 # Remote Payload
+
 Provides temporary credentials to upload a file to a S3 service.
 Dictates where to upload, access control, and establishes constraints.
 
 ## Development
 
 ### environment variables
+
 ```shell
 export BUCKET=datalake
 export AWS_ACCESS_KEY_ID=AKI...
@@ -14,20 +16,22 @@ export CORS_ORIGINS="localhost,opentdf.local"
 ```
 
 ### server
+
 ```shell
 pipenv install
 pipenv run uvicorn main:app --reload --port 4050
 ```
 
 ### OpenAPI
+
 ```shell
 pipenv run python3 main.py > openapi.json
 ```
 
-
 ## Kubernetes
 
 ### image
+
 ```shell
 # from project root
 TAG=`python3 -c "import storage;print(storage.__version__)"`
@@ -35,7 +39,9 @@ docker build --no-cache --tag opentdf/storage:${TAG} storage
 ```
 
 ### secrets
+
 deployment.envFrom.secretRef == tdf-storage-secrets
+
 ```shell
 kubectl create secret generic tdf-storage-secrets \
   --from-literal=AWS_ACCESS_KEY_ID=myAccessKeyId \
@@ -43,11 +49,14 @@ kubectl create secret generic tdf-storage-secrets \
 ```
 
 ### helm
+
 TODO
+
 ```shell
 # from project root
 helm upgrade --install --values deployments/local/values-tdf-storage-service.yaml tdf-storage-service ./charts/storage --debug
 ```
+
 Then follow the `NOTES:`
 
 ## Troubleshooting

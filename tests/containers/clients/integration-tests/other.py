@@ -10,6 +10,7 @@ logger = logging.getLogger("xtest")
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
+
 def no_tdf_claims(client_id, client_secret, org_name, oidc_endpoint, kas_endpoint):
     oidc_creds = OIDCCredentials()
     oidc_creds.set_client_credentials_client_secret(
@@ -19,9 +20,7 @@ def no_tdf_claims(client_id, client_secret, org_name, oidc_endpoint, kas_endpoin
         oidc_endpoint=oidc_endpoint,
     )
 
-    client = (
-        NanoTDFClient(oidc_credentials=oidc_creds, kas_url=kas_endpoint)
-    )
+    client = NanoTDFClient(oidc_credentials=oidc_creds, kas_url=kas_endpoint)
 
     plain_text = "testing123"
     sampleStringStorageNano = TDFStorageType()
