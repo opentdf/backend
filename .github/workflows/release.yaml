@@ -25,11 +25,24 @@ jobs:
       - run: echo -e "$EVENT_CONTEXT\n"
         env:
           EVENT_CONTEXT: ${{ toJson(github.event) }}
+      - run: |
+          git merge-base --is-ancestor "$tag" main || echo "# Invalid release tag [$tag] - must be on `main` branch" >> $GITHUB_STEP_SUMMARY
+        env:
+          tag: "${{ github.event.release.tag_version }}"
+        name: Validate published release is on main (reviewed) branch
       - run: |-
           echo "CORE=${RELEASE_TAG%%-*}" >> $GITHUB_OUTPUT
           echo "FULL=${RELEASE_TAG}" >> $GITHUB_OUTPUT
           echo "SHA=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         id: info
+      - run: |
+          for service in attributes entitlement-pdp entitlement_store entitlements entity-resolution kas/kas_app kas/kas_core keycloak-bootstrap storage; do
+            ver="$(cut -d- -f1 <containers/$service/VERSION)
+            [[ "$ver" == "$app_ver" ]] || echo "## Invalid [$service] version [$ver] - must match release version [$app_ver]" >> $GITHUB_STEP_SUMMARY
+          done
+        env:
+          app_ver: "${{ steps.info.outputs.CORE }}"
+        name: Validate release tag matches package version
       - name: Keycloak application version
         run: |
           KEYCLOAK_OTDF_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
