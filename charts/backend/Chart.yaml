@@ -27,8 +27,8 @@ dependencies:
     repository: file://../kas
     version: 0.0.1
   - name: postgresql
-    repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
-    version: 10.16.2
+    repository: https://charts.bitnami.com/bitnami
+    version: 12.1.8
     condition: embedded.postgresql
     tags: ["third-party"]
   - name: keycloakx
