@@ -31,6 +31,7 @@ from .abstractions import (
 from .util.utility import value_to_boolean
 from .util.reverse_proxy import ReverseProxied
 from .util.swagger_ui_bundle import swagger_ui_4_path
+from .util.hooks import hook_into
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,9 @@ def create_session_rewrap_v2(key_master, plugins):
     plugin_runner = RewrapPluginRunnerV2(plugins)
 
     def session_rewrap(data, options):
-        return rewrap_v2(data, options, plugin_runner, key_master)
+        return hook_into(post=Kas.get_instance()._post_rewrap_hook,
+                    err=Kas.get_instance()._err_rewrap_hook)(rewrap_v2)(
+                        data, options, plugin_runner, key_master)
 
     return session_rewrap
 
@@ -156,6 +159,8 @@ class Kas(object):
         self._rewrap_plugins_v2 = []
         self._upsert_plugins = []
         self._upsert_plugins_v2 = []
+        self._post_rewrap_hook = lambda *args: None
+        self._post_err_hook = lambda *args: None
         self._key_master = KeyMaster()
 
         # These callables and the flask app will be constructed by the app() method after configuration
@@ -242,6 +247,20 @@ class Kas(object):
             self._healthz_plugins.append(plugin)
         else:
             raise PluginIsBadError("plugin is not a decendent of AbstractHealthzPlugin")
+
+    def use_post_rewrap_hook(self, hook):
+        """ Add a hook called after rewrap completes """
+        if callable(hook):
+            self._post_rewrap_hook = hook
+        # maybe need to check if it fits criteria? what are criteria?
+        # else raise some custom error?
+
+    def use_err_rewrap_hook(self, hook):
+        """ Add a hook called when rewrap returns an error """
+        if callable(hook):
+            self._err_rewrap_hook = hook
+        # maybe need to check if it fits criteria? what are criteria?
+        # else raise some custom error?
 
     def get_session_healthz(self):
         """return the callable to process healthz requests."""
