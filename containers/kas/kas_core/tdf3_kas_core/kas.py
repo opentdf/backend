@@ -160,7 +160,7 @@ class Kas(object):
         self._upsert_plugins = []
         self._upsert_plugins_v2 = []
         self._post_rewrap_hook = lambda *args: None
-        self._post_err_hook = lambda *args: None
+        self._err_rewrap_hook = lambda *args: None
         self._key_master = KeyMaster()
 
         # These callables and the flask app will be constructed by the app() method after configuration
