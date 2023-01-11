@@ -5,6 +5,7 @@ import os
 import logging
 import sys
 from python_base import HttpMethod
+from enum import Enum
 
 
 ##### Set up logger ########
