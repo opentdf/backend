@@ -2,6 +2,13 @@ import functools
 
 ##### Hook decorator #########
 
+class HttpMethod(Enum):
+    GET = 4
+    POST = 5
+    PUT = 6
+    PATCH = 7
+    DELETE = 8
+
 def stub_pre(http_method, function_name, *args, **kwargs):
     # STUB
     pass

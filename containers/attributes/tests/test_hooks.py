@@ -3,9 +3,7 @@ import pytest
 import logging
 import sys
 
-from python_base import hook_into
-
-from ..hooks import HttpMethod
+from python_base import hook_into, HttpMethod
 
 from .. import hooks
 
