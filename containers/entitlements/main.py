@@ -31,14 +31,13 @@ from fastapi.security import OAuth2AuthorizationCodeBearer
 from keycloak import KeycloakOpenID
 from pydantic import AnyUrl, BaseSettings, Field, HttpUrl, Json, validator
 from pydantic.main import BaseModel
-from python_base import Pagination, get_query, hook_into
+from python_base import Pagination, get_query, hook_into, HttpMethod
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
 from .hooks import (
     audit_hook,
     err_audit_hook,
-    HttpMethod,
 )
 
 logging.basicConfig(stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL"))

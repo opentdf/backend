@@ -5,6 +5,7 @@ import os
 import logging
 import sys
 from enum import Enum
+from python_base import HttpMethod
 
 
 ##### Set up logger ########
@@ -37,14 +38,6 @@ class CallType(Enum):
     ERR = 3
 
 
-class HttpMethod(Enum):
-    GET = 4
-    POST = 5
-    PUT = 6
-    PATCH = 7
-    DELETE = 8
-
-
 ###### HOOKS ##########
 
 
@@ -66,27 +59,5 @@ def err_audit_hook(http_method, function_name, err, *args, **kwargs):
 def _audit_log(
     call_type, http_method, function_name, request, auth_token, *args, **kwargs
 ):
-    if call_type == CallType.ERR:
-        if http_method == HttpMethod.POST:
-            transaction_type = "create-error"
-        else:
-            transaction_type = "update-error"
-    else:
-        if http_method == HttpMethod.POST:
-            transaction_type = "create"
-        else:
-            transaction_type = "update"
-    audit_log = {
-        "id": str(uuid.uuid4()),
-        "transaction_timestamp": str(datetime.datetime.now()),
-        "tdf_id": None,
-        "tdf_name": None,
-        # this will be the clientid or user
-        "owner_id": auth_token.get("azp") if type(auth_token) is dict else None,
-        # who created the token: http://localhost:65432/auth/realms/tdf
-        "owner_org_id": auth_token.get("iss") if type(auth_token) is dict else None,
-        "transaction_type": transaction_type,
-        "action_type": "access_modified",
-        "actor_attributes": request,
-    }
-    logger.audit(json.dumps(audit_log))
+    # not currently configured for entity audit logging
+    pass
