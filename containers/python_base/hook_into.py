@@ -1,4 +1,5 @@
 import functools
+from enum import Enum
 
 ##### Hook decorator #########
 

@@ -4,7 +4,6 @@ import datetime
 import os
 import logging
 import sys
-from enum import Enum
 from python_base import HttpMethod
 
 
