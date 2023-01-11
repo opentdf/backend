@@ -5,8 +5,6 @@ import sys
 
 from python_base import hook_into, HttpMethod
 
-from .. import hooks
-
 logger = logging.getLogger(__package__)
 
 
