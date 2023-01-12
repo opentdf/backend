@@ -46,6 +46,11 @@ from python_base import (
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
+from .hooks import (
+    audit_hook,
+    err_audit_hook,
+)
+
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
 )
@@ -690,7 +695,7 @@ async def read_attributes_definitions(
         }
     },
 )
-@hook_into(HttpMethod.POST)
+@hook_into(HttpMethod.POST, post=audit_hook, err=err_audit_hook)
 async def create_attributes_definitions(
     request: AttributeDefinition = Body(
         ...,
@@ -803,7 +808,7 @@ async def create_attributes_definitions_crud(request, decoded_token=None):
         }
     },
 )
-@hook_into(HttpMethod.PUT)
+@hook_into(HttpMethod.PUT, post=audit_hook, err=err_audit_hook)
 async def update_attribute_definition(
     request: AttributeDefinition = Body(
         ...,
@@ -906,7 +911,7 @@ async def update_attribute_definition_crud(request, decoded_token=None):
         }
     },
 )
-@hook_into(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE, post=audit_hook, err=err_audit_hook)
 async def delete_attributes_definitions(
     request: AttributeDefinition = Body(
         ...,
@@ -973,7 +978,7 @@ async def read_authorities_crud():
         200: {"content": {"application/json": {"example": ["https://opentdf.io"]}}}
     },
 )
-@hook_into(HttpMethod.POST)
+@hook_into(HttpMethod.POST, post=audit_hook, err=err_audit_hook)
 async def create_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}
@@ -1013,7 +1018,7 @@ async def create_authorities_crud(request, decoded_token=None):
         }
     },
 )
-@hook_into(HttpMethod.DELETE)
+@hook_into(HttpMethod.DELETE, post=audit_hook, err=err_audit_hook)
 async def delete_authorities(
     request: AuthorityDefinition = Body(
         ..., example={"authority": "https://opentdf.io"}
