@@ -406,21 +406,22 @@ keycloak-bootstrap:
             - https://example.com/attr/COI/value/PRX
 
 postgresql:
-  # Optionally override the name
+  # -- Optionally override the name
   fullnameOverride: postgresql
-  # Configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
+  # -- Configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
   image:
-    # Specify if debug values should be set
+    # -- Specify if debug values should be set
     debug: true
+    # -- Postgres Application Image tag. Note this will be for the bitnami postgres image.
     tag: 11
   auth:
-    # Name of externally defined secret to use for PostgreSQL credentials
+    # -- Name of externally defined secret to use for PostgreSQL credentials
     existingSecret: >
       {{ include "postgresql.primary.fullname" . }}-otdf-secret
   primary:
     initdb:
-      # Specify the PostgreSQL username to execute the initdb scripts
+      # -- Specify the PostgreSQL username to execute the initdb scripts
       user: postgres
-      # Secret with scripts to be run at first boot (in case it contains sensitive information)
+      # -- Secret with scripts to be run at first boot (in case it contains sensitive information)
       scriptsSecret: >
         {{ include "postgresql.primary.fullname" . }}-initdb-secret
