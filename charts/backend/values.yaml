@@ -413,7 +413,7 @@ postgresql:
     # -- Specify if debug values should be set
     debug: true
     # -- Postgres Application Image tag. Note this will be for the bitnami postgres image.
-    tag: 11
+    tag: "11"
   auth:
     # -- Name of externally defined secret to use for PostgreSQL credentials
     existingSecret: >
