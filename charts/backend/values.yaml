@@ -410,13 +410,18 @@ postgresql:
   fullnameOverride: postgresql
   # -- Configuration https://github.com/bitnami/charts/tree/master/bitnami/postgresql/#parameters
   image:
-    # Specify if debug values should be set
+    # -- Specify if debug values should be set
     debug: true
-  # -- Name of existing secret to use for PostgreSQL credentials
-  existingSecret: >
-    {{ include "postgresql.primary.fullname" . }}-otdf-secret
-  # -- Specify the PostgreSQL username to execute the initdb scripts
-  initdbUser: postgres
-  # -- Secret with scripts to be run at first boot (in case it contains sensitive information)
-  initdbScriptsSecret: >
-    {{ include "postgresql.primary.fullname" . }}-initdb-secret
+    # -- Postgres Application Image tag. Note this will be for the bitnami postgres image.
+    tag: "11"
+  auth:
+    # -- Name of externally defined secret to use for PostgreSQL credentials
+    existingSecret: >
+      {{ include "postgresql.primary.fullname" . }}-otdf-secret
+  primary:
+    initdb:
+      # -- Specify the PostgreSQL username to execute the initdb scripts
+      user: postgres
+      # -- Secret with scripts to be run at first boot (in case it contains sensitive information)
+      scriptsSecret: >
+        {{ include "postgresql.primary.fullname" . }}-initdb-secret
