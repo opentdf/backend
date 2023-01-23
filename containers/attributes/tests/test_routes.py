@@ -7,7 +7,7 @@ from .. import main
 def test_read_authority_namespace(test_app, monkeypatch):
     test_data = {1: "https://opentdf1.io", 2: "https://opentdf2.io"}
 
-    async def mock_read_authorities_crud():
+    async def mock_read_authorities_crud(request, session):
         return test_data
 
     monkeypatch.setattr(main, "read_authorities_crud", mock_read_authorities_crud)

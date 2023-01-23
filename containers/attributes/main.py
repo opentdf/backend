@@ -305,7 +305,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="OpenTDF",
-        version="1.2.1",
+        version="1.1.2",
         license_info={
             "name": "BSD 3-Clause Clear",
             "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
@@ -451,7 +451,7 @@ async def read_attributes(
     if authority:
         # logger.debug(authority)
         # lookup authority by value and get id (namespace_id)
-        authorities = await read_authorities_crud()
+        authorities = await read_authorities_crud(request, session)
         filter_args["namespace_id"] = list(authorities.keys())[
             list(authorities.values()).index(authority)
         ]
@@ -479,7 +479,7 @@ async def read_attributes_crud(request, session, filter_args, sort_args):
     filters, sorters = get_query(table_to_query, filter_args, sort_args)
     results = session.query(table_to_query).filter(*filters).order_by(*sorters)
     error = None
-    authorities = await read_authorities_crud()
+    authorities = await read_authorities_crud(request, session)
     attributes: List[AnyUrl] = []
 
     try:
@@ -573,7 +573,7 @@ async def read_attributes_definitions(
     filter_args = {}
     if authority:
         # lookup authority by value and get id (namespace_id)
-        authorities = await read_authorities_crud()
+        authorities = await read_authorities_crud(request, session)
         try:
             filter_args["namespace_id"] = list(authorities.keys())[
                 list(authorities.values()).index(authority)
@@ -600,7 +600,7 @@ async def read_attributes_definitions(
     filters, sorters = get_query(table_to_query, filter_args, sort_args)
     results = session.query(table_to_query).filter(*filters).order_by(*sorters)
 
-    authorities = await read_authorities_crud()
+    authorities = await read_authorities_crud(request, session)
     attributes: List[AttributeDefinition] = []
     for row in results:
         try:
@@ -954,19 +954,24 @@ async def delete_attributes_definitions_crud(request, decoded_token=None):
         200: {"content": {"application/json": {"example": ["https://opentdf.io"]}}}
     },
 )
-async def read_authorities():
-    authorities = await read_authorities_crud()
+async def read_authorities(
+    request: Request,
+    session: Session = Depends(get_db_session),
+):
+    authorities = await read_authorities_crud(request, session)
     return list(authorities.values())
 
 
-async def read_authorities_crud():
-    query = table_authority.select()
-    result = await database.fetch_all(query)
+async def read_authorities_crud(request, session):
+    org_name = add_filter_by_access_control(request)
+    table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
+    if org_name is not None:
+        query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
+    else:
+        query = session.query(table_ns).all()
     authorities = {}
-    for row in result:
-        authorities[
-            row.get(table_authority.c.id)
-        ] = f"{row.get(table_authority.c.name)}"
+    for row in query:
+        authorities[row.id] = row.name
     return authorities
 
 
