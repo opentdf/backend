@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 def _get_keycloak_host():
-    kc_host = os.environ.get("KEYCLOAK_HOST")
+    kc_host = os.environ.get("OIDC_SERVER_URL")
     if not kc_host:
-        raise AuthorizationError("KEYCLOAK_HOST not set! Can't fetch keys")
+        raise AuthorizationError("OIDC_SERVER_URL not set! Can't fetch keys")
 
     return kc_host
 
