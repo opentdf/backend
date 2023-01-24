@@ -101,8 +101,8 @@ def mocked_requests_get_fails(*args, **kwargs):
 def test_get_keycloak_public_key_fails_without_required_env(mock_get):
     """Tests that fetching KC pubkey, but without crucial
     env vars set, will raise."""
-    with pytest.raises(Exception, match=r"KEYCLOAK_HOST"):
-        del os.environ["KEYCLOAK_HOST"]
+    with pytest.raises(Exception, match=r"OIDC_SERVER_URL"):
+        del os.environ["OIDC_SERVER_URL"]
         pubkey = keycloak.get_keycloak_public_key("tdf")
     # Should bail before it makes a request if the env vars aren't set.
     assert mock_get.called == False
@@ -112,7 +112,7 @@ def test_get_keycloak_public_key_fails_without_required_env(mock_get):
 def test_get_keycloak_public_key_succeeds_with_required_env(mock_get):
     """Tests that fetching KC pubkey, but with crucial
     env vars set, will fetch pubkey."""
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
+    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
     pubkey = keycloak.get_keycloak_public_key("tdf")
     assert mock_get.called == True
     assert pubkey
@@ -129,7 +129,7 @@ def test_try_extract_realm_returns_realmkey(mock_get):
 def test_load_realm_key_prefers_cached_key(mock_get):
     key_master = FakeKeyMaster()
     realm = "tdf"
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
+    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
     realmKey = keycloak.load_realm_key(realm, key_master)
     assert mock_get.called == False
     assert realmKey
@@ -139,7 +139,7 @@ def test_load_realm_key_prefers_cached_key(mock_get):
 def test_load_realm_key_fetches_uncached_key(mock_get):
     key_master = FakeKeyMaster()
     realm = "someRealm"
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
+    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
     realmKey = keycloak.load_realm_key(realm, key_master)
     assert mock_get.called == True
     assert realmKey
@@ -150,7 +150,7 @@ def test_uncached_key_fetch_fails_returns_falsy_empty(mock_get):
     key_master = FakeKeyMaster()
     realm = "someRealm"
     realmKey = ""
-    os.environ["KEYCLOAK_HOST"] = "https://mykc.com"
+    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
     realmKey = keycloak.load_realm_key(realm, key_master)
     assert mock_get.called == True
     assert not realmKey

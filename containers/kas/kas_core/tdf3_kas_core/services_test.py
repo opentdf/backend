@@ -197,7 +197,7 @@ def test_ping():
 )
 def test_rewrap_v2(entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp):
     """Test the rewrap_v2 service."""
-    os.environ["KEYCLOAK_HOST"] = "https://keycloak.dev"
+    os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
     expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
     expected_canonical = "This is a canonical string"
     attributes = [
