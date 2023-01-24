@@ -1,7 +1,7 @@
 keycloak:
   image:
     repository: ghcr.io/opentdf/keycloak
-    tag: 19.0.2
+    tag: 20.0.1
 entity-resolution:
   secret:
     keycloak:
