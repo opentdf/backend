@@ -22,6 +22,8 @@ keycloak:
     - "/opt/keycloak/bin/kc.sh"
     - "--verbose"
     - "start-dev"
+    - "--http-relative-path"
+    - "/auth"
   extraEnv: |
     - name: KEYCLOAK_ADMIN
       value: keycloakadmin

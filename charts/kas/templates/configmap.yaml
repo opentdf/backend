@@ -11,7 +11,7 @@ data:
   {{- end }}
   FLASK_DEBUG: {{ .Values.flaskDebug | quote }}
   GUNICORN_WORKERS: {{ .Values.gunicornWorkers | default 1 | quote }}
-  KEYCLOAK_HOST: {{ include "kas.oidcPubkeyEndpoint" . | quote }}
+  OIDC_SERVER_URL: {{ include "kas.oidcPubkeyEndpoint" . | quote }}
   LOGLEVEL: {{ .Values.logLevel | quote }}
   VERBOSE: {{ .Values.pdp.verbose | quote }}
   {{- with .Values.endpoints.statsdHost }}
@@ -21,4 +21,4 @@ data:
   JSON_LOGGER: {{ .Values.jsonLogger | default "true" | quote }}
   AUDIT_ENABLED: {{ .Values.global.opentdf.common.auditLogEnabled | quote  }}
 
-  USE_KEYCLOAK: "1"
+  USE_OIDC: "1"

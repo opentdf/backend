@@ -75,7 +75,7 @@ logger = logging.getLogger(__name__)
 flags = {
     # TODO(PLAT-1212) Remove (set to False)
     "default_to_small_iv": os.environ.get("LEGACY_NANOTDF_IV") == "1",
-    "idp": os.environ.get("USE_KEYCLOAK") == "1",
+    "idp": os.environ.get("USE_OIDC") == "1",
 }
 
 
