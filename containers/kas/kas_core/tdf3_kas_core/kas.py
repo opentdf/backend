@@ -31,7 +31,7 @@ from .abstractions import (
 from .util.utility import value_to_boolean
 from .util.reverse_proxy import ReverseProxied
 from .util.swagger_ui_bundle import swagger_ui_4_path
-from .util.hooks import hook_into
+from .util.hooks import hook_into, post_rewrap_v2_hook_default
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +159,7 @@ class Kas(object):
         self._rewrap_plugins_v2 = []
         self._upsert_plugins = []
         self._upsert_plugins_v2 = []
-        self._post_rewrap_hook = lambda *args: None
+        self._post_rewrap_hook = post_rewrap_v2_hook_default
         self._err_rewrap_hook = lambda *args: None
         self._key_master = KeyMaster()
 

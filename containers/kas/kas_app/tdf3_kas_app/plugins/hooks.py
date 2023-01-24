@@ -1,32 +1,176 @@
 import logging
+import json
+import uuid
+import datetime
+import base64
+import jwt
+import os
+
+from cryptography.hazmat.primitives import serialization
+from pkg_resources import packaging
+
+from tdf3_kas_core.models import Policy
+from tdf3_kas_core.models.nanotdf import Policy as PolicyInfo
+from tdf3_kas_core.models.nanotdf import ResourceLocator
+from tdf3_kas_core.models.nanotdf import ECCMode
+from tdf3_kas_core.models.nanotdf import SymmetricAndPayloadConfig
+
+from tdf3_kas_core.errors import AuthorizationError
 
 logger = logging.getLogger(__name__)
 
-def audit_hook(function_name, data, context, *args, **kwargs):
-    logger.audit("------AUDIT_HOOK------")
-    logger.audit(data)
-    logger.audit(context)
-    for arg in args:
-        logger.audit(arg)
-    for key, value in kwargs.items():
-        logger.audit("%s == %s" % (key, value))
-    logger.audit("-------------------------")
-    # check if signed request token -- if not pass? or throw error? shouldnt get here without it
-    # decode request token
-    # decode bearer token
-    # get iss and sub or azp
-    # log statement
-# {"asctime": "2023-01-10 22:30:35,942", "levelname": "AUDIT", "module": "hooks", "lineno": 7, "message": null, "signedRequestToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzMzODk4OTUsImlhdCI6MTY3MzM4OTgzNSwicmVxdWVzdEJvZHkiOiJ7XCJjbGllbnRQdWJsaWNLZXlcIjpcIi0tLS0tQkVHSU4gUFVCTElDIEtFWS0tLS0tXFxuTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFsWThXMGRrMXBWWkZoMnZETndSYVxcbmRmaVk4XC9vbExXUk1nTkdIcXliOUF5QjRBbURXeUpWWko2dFNKSGJ0cEFmTHA2TjNZXC9wSXZpRFpkMzE5SHpGU1xcbm9jc0JsV01UdVVRejk0MDZVWENsU012eGFmWkFsZ1pxRUtma1ZBdW5wY3VERmdmQnRZb2FPVWlaWnJKSGhvMkNcXG45YzFzaUpEVUtHTnJwb1NKZzFVOU1BaWVHRUN1cDBoVzMrajUxK0F3UUFnaGtyZHFFUVN2Z1pST3NGU2RoTEl3XFxuYW9FUVd1b3FCYkg2ejNKdUd3UFh2clpXZW9HSHJTOEhBYWNYT3hNTktaMkVjbjNOVmtNcnpMclJtNkpMVE1WZVxcblJQRlRwdUlEM3NLd3NNSE5NTkQzWHlMS21aWSsrOEl5d0xwTmZuV1wvbHVUN1wvaGlsV2tDTTJnaVRpXC9hNU9oUHJcXG5pUUlEQVFBQlxcbi0tLS0tRU5EIFBVQkxJQyBLRVktLS0tLVxcblwiLFwia2V5QWNjZXNzXCI6e1wicG9saWN5QmluZGluZ1wiOlwiTm1NeFpqbGhZVGhsWW1ZM1lXTmxOV0ZsT0RneE1EZGtNVEV6TXpJME5qZGtNMlF6TWpObU56RmlabU01T1RFME5qTXpOemswWkRNeU1XRTJabVpqTWc9PVwiLFwicHJvdG9jb2xcIjpcImthc1wiLFwidHlwZVwiOlwid3JhcHBlZFwiLFwidXJsXCI6XCJodHRwOlwvXC9sb2NhbGhvc3Q6NjU0MzJcL2FwaVwva2FzXCIsXCJ3cmFwcGVkS2V5XCI6XCJPcW56ZTdZRkVEN1dkVlZIbnI0ZElDWnp0SWREOFwvRjBpZUNRTFBrNU1EUGNDTVE5NE5YVzZ3THhKelJqeW14TURHcHRoZjdLSlExTDhhdk41K2k5ck00eDh2XC9ka2NFZXdBQWlvTHhSdk90VUFxQnY4RGZpNjFcL0RhUHlcL1BpeHJEM0pSZVdnT0VlQzN4ZVl0SjdIV1wvU2NidDFoOVNmaFBycUMwbHpSYm9WMEJJa21ZVEh1d2VpZkFtSEtTaGYyMUFkMEkrbjZvdjRLMWIxZTByQ3B0Zm5MS3BkTGxNOXlTZjBFOXVRXC90ekhhN1VwR1FsTEV4aUFSanpYcDJuQzljbmJWaGVqNjg0Q2VVUDZFbjk3bXpCakM3dHphcEVrdElTam50SUwwR1lFS1pOKzlVS3l4OUx2M3lwbFNSRWk0bSs0YmFvSGNWb0xOMitHbFd3R3dYTFE9PVwifSxcInBvbGljeVwiOlwiZXlKaWIyUjVJanA3SW1SaGRHRkJkSFJ5YVdKMWRHVnpJanBiZXlKaGRIUnlhV0oxZEdVaU9pSm9kSFJ3Y3pvdkwyVjRZVzF3YkdVdVkyOXRMMkYwZEhJdlEyeGhjM05wWm1sallYUnBiMjR2ZG1Gc2RXVXZVeUlzSW1ScGMzQnNZWGxPWVcxbElqb2lJaXdpYTJGelZYSnNJam9pYUhSMGNEb3ZMMnh2WTJGc2FHOXpkRG8yTlRRek1pOWhjR2t2YTJGeklpd2ljSFZpUzJWNUlqb2lJbjBzZXlKaGRIUnlhV0oxZEdVaU9pSm9kSFJ3Y3pvdkwyVjRZVzF3YkdVdVkyOXRMMkYwZEhJdlEwOUpMM1poYkhWbEwxQlNXQ0lzSW1ScGMzQnNZWGxPWVcxbElqb2lJaXdpYTJGelZYSnNJam9pYUhSMGNEb3ZMMnh2WTJGc2FHOXpkRG8yTlRRek1pOWhjR2t2YTJGeklpd2ljSFZpUzJWNUlqb2lJbjFkTENKa2FYTnpaVzBpT2x0ZGZTd2lkWFZwWkNJNklqRTNNREF5T1RJNUxXUmhPRGt0TkdOaFl5MDRabUZqTFdKbU1UZzNPVFJoWW1Ga1pTSjlcIn0ifQ.AXoEJpAWWPontcVZ4Eeg3J5tdceRWSwkixdmjAT7pFzNYFUO30KWlXmvizuzLvkzFq1698Oz_WR6KjYc3EoMxTg-7MfIh5cgaBla4BD5GxLLsaidzK333cKn9MoO-uhS2e4Vl_-5Xeie88HQizyXaLIHFRV_EM24Ze-rlR9QzCoJRnPPRMoLA-4m2q6uAqq9Z1Z3-vU903lXiQHJIuRS-GojIIEPPr4b5TqcS1FPvzQatjFJP3MjIwFBlfhZPJutPB68p9crymOfcvU3SkhqR9vLpWqBpbWAVYql2OOiZAWmQcWMjMBxvyQ47UHGeFPwkDJya3Woz_2PYe8x8uKxJg"}
-# {"asctime": "2023-01-10 22:30:35,942", "levelname": "AUDIT", "module": "hooks", "lineno": 8, "message": "{'Host': 'localhost', 'X-Request-Id': '078ad41a086767a3d981621191256994', 'X-Real-Ip': '127.0.0.1', 'X-Forwarded-For': '127.0.0.1', 'X-Forwarded-Host': 'localhost', 'X-Forwarded-Port': '80', 'X-Forwarded-Proto': 'http', 'X-Forwarded-Scheme': 'http', 'X-Scheme': 'http', 'Content-Length': '2563', 'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJ5ZkgzOE5UWnRfVTdoZXljOGk2NVN5eTlrck5vcTRBV0ZiUkdDZ2NxSEFvIn0.eyJleHAiOjE2NzMzOTAxMzUsImlhdCI6MTY3MzM4OTgzNSwianRpIjoiYjIwNzZjOTctZjMzYS00MWU1LWIxODYtZGZhYmQ2ZDc1OTU3IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo2NTQzMi9hdXRoL3JlYWxtcy90ZGYiLCJhdWQiOlsidGRmLWF0dHJpYnV0ZXMiLCJhY2NvdW50Il0sInN1YiI6ImExN2E0ZTZlLWM1YTMtNDcxYi05YTY3LTBlMWM1MjkzNzVjNiIsInR5cCI6IkJlYXJlciIsImF6cCI6InRkZi1jbGllbnQiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHA6Ly9rZXljbG9hay1odHRwIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJkZWZhdWx0LXJvbGVzLXRkZiIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6ImVtYWlsIHByb2ZpbGUiLCJjbGllbnRIb3N0IjoiMTI3LjAuMC4xIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJjbGllbnRJZCI6InRkZi1jbGllbnQiLCJ0ZGZfY2xhaW1zIjp7ImVudGl0bGVtZW50cyI6W3siZW50aXR5X2lkZW50aWZpZXIiOiI1MjEwM2U1ZS03NmViLTQ1YzEtYjQxMi1mMGEyMzY3MzJiY2IiLCJlbnRpdHlfYXR0cmlidXRlcyI6W3siYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0NsYXNzaWZpY2F0aW9uL3ZhbHVlL1MiLCJkaXNwbGF5TmFtZSI6IkNsYXNzaWZpY2F0aW9uIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ09JL3ZhbHVlL1BSWCIsImRpc3BsYXlOYW1lIjoiQ09JIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvRW52L3ZhbHVlL0NsZWFuUm9vbSIsImRpc3BsYXlOYW1lIjoiRW52In0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ2xhc3NpZmljYXRpb24vdmFsdWUvUyIsImRpc3BsYXlOYW1lIjoiQ2xhc3NpZmljYXRpb24ifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DT0kvdmFsdWUvUFJYIiwiZGlzcGxheU5hbWUiOiJDT0kifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9FbnYvdmFsdWUvQ2xlYW5Sb29tIiwiZGlzcGxheU5hbWUiOiJFbnYifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DbGFzc2lmaWNhdGlvbi92YWx1ZS9TIiwiZGlzcGxheU5hbWUiOiJDbGFzc2lmaWNhdGlvbiJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0NPSS92YWx1ZS9QUlgiLCJkaXNwbGF5TmFtZSI6IkNPSSJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0Vudi92YWx1ZS9DbGVhblJvb20iLCJkaXNwbGF5TmFtZSI6IkVudiJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0NsYXNzaWZpY2F0aW9uL3ZhbHVlL1MiLCJkaXNwbGF5TmFtZSI6IkNsYXNzaWZpY2F0aW9uIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ09JL3ZhbHVlL1BSWCIsImRpc3BsYXlOYW1lIjoiQ09JIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvRW52L3ZhbHVlL0NsZWFuUm9vbSIsImRpc3BsYXlOYW1lIjoiRW52In0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ2xhc3NpZmljYXRpb24vdmFsdWUvUyIsImRpc3BsYXlOYW1lIjoiQ2xhc3NpZmljYXRpb24ifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DT0kvdmFsdWUvUFJYIiwiZGlzcGxheU5hbWUiOiJDT0kifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9FbnYvdmFsdWUvQ2xlYW5Sb29tIiwiZGlzcGxheU5hbWUiOiJFbnYifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DbGFzc2lmaWNhdGlvbi92YWx1ZS9TIiwiZGlzcGxheU5hbWUiOiJDbGFzc2lmaWNhdGlvbiJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0NPSS92YWx1ZS9QUlgiLCJkaXNwbGF5TmFtZSI6IkNPSSJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0Vudi92YWx1ZS9DbGVhblJvb20iLCJkaXNwbGF5TmFtZSI6IkVudiJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0NsYXNzaWZpY2F0aW9uL3ZhbHVlL1MiLCJkaXNwbGF5TmFtZSI6IkNsYXNzaWZpY2F0aW9uIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ09JL3ZhbHVlL1BSWCIsImRpc3BsYXlOYW1lIjoiQ09JIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvRW52L3ZhbHVlL0NsZWFuUm9vbSIsImRpc3BsYXlOYW1lIjoiRW52In0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ2xhc3NpZmljYXRpb24vdmFsdWUvUyIsImRpc3BsYXlOYW1lIjoiQ2xhc3NpZmljYXRpb24ifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DT0kvdmFsdWUvUFJYIiwiZGlzcGxheU5hbWUiOiJDT0kifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9FbnYvdmFsdWUvQ2xlYW5Sb29tIiwiZGlzcGxheU5hbWUiOiJFbnYifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DbGFzc2lmaWNhdGlvbi92YWx1ZS9TIiwiZGlzcGxheU5hbWUiOiJDbGFzc2lmaWNhdGlvbiJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0NPSS92YWx1ZS9QUlgiLCJkaXNwbGF5TmFtZSI6IkNPSSJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0Vudi92YWx1ZS9DbGVhblJvb20iLCJkaXNwbGF5TmFtZSI6IkVudiJ9LHsiYXR0cmlidXRlIjoiaHR0cHM6Ly9leGFtcGxlLmNvbS9hdHRyL0NsYXNzaWZpY2F0aW9uL3ZhbHVlL1MiLCJkaXNwbGF5TmFtZSI6IkNsYXNzaWZpY2F0aW9uIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ09JL3ZhbHVlL1BSWCIsImRpc3BsYXlOYW1lIjoiQ09JIn0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvRW52L3ZhbHVlL0NsZWFuUm9vbSIsImRpc3BsYXlOYW1lIjoiRW52In0seyJhdHRyaWJ1dGUiOiJodHRwczovL2V4YW1wbGUuY29tL2F0dHIvQ2xhc3NpZmljYXRpb24vdmFsdWUvUyIsImRpc3BsYXlOYW1lIjoiQ2xhc3NpZmljYXRpb24ifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DT0kvdmFsdWUvUFJYIiwiZGlzcGxheU5hbWUiOiJDT0kifSx7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9FbnYvdmFsdWUvQ2xlYW5Sb29tIiwiZGlzcGxheU5hbWUiOiJFbnYifV19XSwiY2xpZW50X3B1YmxpY19zaWduaW5nX2tleSI6Ii0tLS0tQkVHSU4gUFVCTElDIEtFWS0tLS0tXG5NSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXk5N2UyeisyZTltQ21kcUxYS1ltXG5JS042NkY0Vzc3QnhwNG5aUHk0UDZlU1N5ZmlIbGd2UlFmVjFGYnRyblkxMHE5UlhxVUJEZDBsMm1zek5wZzgwXG50NXRRajl5TkNCRjlld2JuakdGWDV5TnorUXJKcll5UDdrMW9hMkxRRm9LNXBGelNEWEVOQVN5eTVCMlNpVlVLXG5mVFRXemRoemNlaWRWYVJsa0gwQzV4TkV3U3RvRG54ZXNFZ2M4L0UzWG1vVm9SYmkvR2lTelZpN0g0QzVrUUdmXG5ubkF4MmtWNzZ6YXFJMlZ5VTRMYlFBQXhQY0hFWW1yS2NxRmI1QUFkUGt0V1plZjZkcm1VUHZuNnZRNDc3NHZXXG5LNnJxTnRDRFcyZFVhM0tFLzlDeWpkeURGWjE4UHhlNW1zaGNVOWFXaFZlRFcxd05MVG10RnFncEI5bGczemxEXG5sd0lEQVFBQlxuLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0tXG4ifSwicHJlZmVycmVkX3VzZXJuYW1lIjoic2VydmljZS1hY2NvdW50LXRkZi1jbGllbnQiLCJjbGllbnRBZGRyZXNzIjoiMTI3LjAuMC4xIn0.r3W-NRSKg1_bMF_gl1Kn5Aqje2WFuFe8O7G1_Esbm66jdUq0BCR923dLwHH-ocCCw2vSrBf_AoS_jJ9JSjBJfgJm3ARy2n6SUX3bR6OqUmshPFe7iDwwyFHX6PWE2B5eJb5RgXnEYD6JSIlUPpolp_-uqtAMqsJMbYgVb56QYqFKhXvh6xymw9qu8xv7UFTkMhUI0p4RBWpE9DwlthBDIo89YpH8kTMfxDQ8j6o8EOZGadfNWdmjbZUfKq4PXwjRSOoIqxeXPhfQ9QlaBc21UVtD0y8RCW_SvRQDg6sDohmUp3N5kUPMgLiZTCiDvaPN8N2bDSUorvZj4cp-4xFqKQ', 'User-Agent': 'Openstack C++ SDK v1.0', 'X-Virtru-Client': 'openstack-cpp-sdk:1.0.0', 'Content-Type': 'application/json', 'Accept': 'application/json; charset=utf-8', 'Date': 'Tue, 10 Jan 2023 22:30:35 GMT'}"}
+# temporarily use constant owner org id
+OWNER_ORG_ID = str(uuid.uuid4())
+
+def audit_hook(function_name, return_value, data, context, *args, **kwargs):
+    # wrap in try except to prevent unnecessary 500s
+    try:
+        audit_log = {
+            "id": str(uuid.uuid4()),
+            "transaction_timestamp": str(datetime.datetime.now()),
+            "tdf_id": "",
+            "tdf_name": None,
+            # this will be the clientid or user
+            "owner_id": "",
+            "owner_org_id": OWNER_ORG_ID,
+            "transaction_type": "create",
+            "action_type": "decrypt",
+            "tdf_attributes": {"dissem":[], "attrs":[]},
+            "actor_attributes": {"npe":True, "actor_id":"", "attrs":[]},
+        }
+
+        res, policy, claims = return_value
+
+        audit_log["tdf_attributes"]["attrs"] = policy.data_attributes.export_raw()
+        audit_log["tdf_attributes"]["dissem"] = policy.dissem.list
+            
+        audit_log = extract_info_from_auth_token(audit_log, context)
+
+        logger.audit(json.dumps(audit_log))
+    except:
+        logger.error("Error on audit_hook - unable to log audit")
+
+    return res
+
+def err_audit_hook(function_name, err, data, context, plugin_runner, key_master, *args, **kwargs):
+    # wrap in try except to prevent unnecessary 500s
+    try:
+        # not yet auditing other errors, only access denied
+        if not (type(err) is AuthorizationError) and ("Access Denied" in str(err)):
+            return
+
+        audit_log = {
+            "id": str(uuid.uuid4()),
+            "transaction_timestamp": str(datetime.datetime.now()),
+            "tdf_id": "",
+            "tdf_name": None,
+            # this will be the clientid or user
+            "owner_id": "",
+            "owner_org_id": OWNER_ORG_ID,
+            "transaction_type": "create_error",
+            "action_type": "access_denied",
+            "tdf_attributes": {"dissem":[], "attrs":[]},
+            "actor_attributes": {"npe":True, "actor_id":"", "attrs":[]},
+        }
+        
+        audit_log = extract_info_from_auth_token(audit_log, context)
+
+        # wrap in try except -- should not fail since succeeded before
+        if "signedRequestToken" not in data:
+            logger.error("Rewrap success without signedRequestToken - should never get here")
+        else:
+            decoded_request = jwt.decode(
+                data["signedRequestToken"],
+                options={"verify_signature": False},
+                algorithms=["RS256", "ES256", "ES384", "ES512"],
+                leeway=30,
+            )
+            requestBody = decoded_request["requestBody"]
+            json_string = requestBody.replace("'", '"')
+            dataJson = json.loads(json_string)
+            algorithm = dataJson.get("algorithm", "rsa:2048")
+            if algorithm == "ec:secp256r1":
+                # nano tdf
+                key_access = dataJson["keyAccess"]
+                header = base64.b64decode(key_access["header"])
+                client_version = packaging.version.parse(
+                    context.get("virtru-ntdf-version") or "0.0.0"
+                )
+                legacy_wrapping = (os.environ.get("LEGACY_NANOTDF_IV") == "1") and client_version < packaging.version.parse("0.0.1")
+                (_, header) = ResourceLocator.parse(header[3:])
+                (ecc_mode, header) = ECCMode.parse(header)
+                # extract payload config from header.
+                (payload_config, header) = SymmetricAndPayloadConfig.parse(header)
+                # extract policy from header.
+                (policy_info, header) = PolicyInfo.parse(ecc_mode, payload_config, header)
+                # extract ephemeral key from the header.
+                ephemeral_key = header[0 : ecc_mode.curve.public_key_byte_length]
+
+                kas_private = key_master.get_key("KAS-EC-SECP256R1-PRIVATE")
+                private_key_bytes = kas_private.private_bytes(
+                    serialization.Encoding.DER,
+                    serialization.PrivateFormat.PKCS8,
+                    serialization.NoEncryption(),
+                )
+                decryptor = ecc_mode.curve.create_decryptor(ephemeral_key, private_key_bytes)
+
+                zero_iv = b"\0" * (3 if legacy_wrapping else 12)
+                symmetric_cipher = payload_config.symmetric_cipher(decryptor.symmetric_key, zero_iv)
+                policy_data = policy_info.body.data
+                policy_data_len = len(policy_data) - payload_config.symmetric_tag_length
+                auth_tag = policy_data[-payload_config.symmetric_tag_length :]
+
+                policy_data_as_byte = base64.b64encode(
+                    symmetric_cipher.decrypt(policy_data[0:policy_data_len], auth_tag)
+                )
+                original_policy = Policy.construct_from_raw_canonical(
+                    policy_data_as_byte.decode("utf-8")
+                )
+
+                audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
+                audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
+
+            else:
+                # tdf3
+                canonical_policy = dataJson["policy"]
+                original_policy = Policy.construct_from_raw_canonical(canonical_policy)
+                audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
+                audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
+    
+    
+        logger.audit(json.dumps(audit_log))
+
+    except:
+        logger.error("Error on err_audit_hook - unable to log audit")
 
 
-def err_audit_hook(http_method, function_name, err, *args, **kwargs):
-    logger.audit("ERR_AUDIT_HOOK")
-        # check if signed request token -- if not pass? or throw error? shouldnt get here without it
-    # decode request token
-    # decode bearer token
-    # get iss and sub or azp
-    # log statement
-    # if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
-    #     _audit_log(CallType.ERR, http_method, function_name, *args, **kwargs)
-    # pass
+
+def extract_info_from_auth_token(audit_log, context):
+    try:
+        authToken = context.data["Authorization"]
+        bearer, _, idpJWT = authToken.partition(" ")
+    except KeyError as e:
+        logger.error("Rewrap success without auth header - should never get here")
+    else:
+        if bearer != "Bearer":
+            logger.error("Rewrap success without valid auth header - should never get here")
+        else:
+            decoded_auth = jwt.decode(
+                    idpJWT,
+                    options={"verify_signature": False, "verify_aud": False},
+                    algorithms=["RS256", "ES256", "ES384", "ES512"],
+                )
+            if decoded_auth.get("sub"):
+                audit_log["owner_id"] = decoded_auth.get("sub")
+            if decoded_auth.get("tdf_claims").get("entitlements"):
+                attributes = set()
+                # assuming items formatted correctly
+                # just put all entitlements into one list, dont seperate by entity for now
+                for item in decoded_auth.get("tdf_claims").get("entitlements"):
+                    for attribute in item.get("entity_attributes"):
+                        attributes.add(attribute.get("attribute"))
+                audit_log["actor_attributes"]["attrs"] = list(attributes)
+            if decoded_auth.get("azp"):
+                audit_log["actor_attributes"]["actor_id"] = decoded_auth.get("azp")
+    
+    return audit_log
