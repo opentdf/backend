@@ -6,9 +6,9 @@ A read-only service that fetches and returns any entity<->attribute mappings pre
 
 ## Maintainers
 
-| Name   | Email | Url |
-| ------ | ----- | --- |
-| OpenTDF | support@opentdf.io | opentdf.io |
+| Name    | Email                | Url          |
+| ------- | -------------------- | ------------ |
+| OpenTDF | <support@opentdf.io> | <opentdf.io> |
 
 ## Values
 

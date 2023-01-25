@@ -6,9 +6,9 @@ OpenTDF attribute and rule service
 
 ## Maintainers
 
-| Name   | Email | Url |
-| ------ | ----- | --- |
-| OpenTDF | support@opentdf.io | opentdf.io |
+| Name    | Email                | Url          |
+| ------- | -------------------- | ------------ |
+| OpenTDF | <support@opentdf.io> | <opentdf.io> |
 
 ## Values
 

@@ -6,9 +6,9 @@ An implementation of an ABAC Entity Entitlement Policy Decision Point
 
 ## Maintainers
 
-| Name   | Email | Url |
-| ------ | ----- | --- |
-| OpenTDF | support@opentdf.io | opentdf.io |
+| Name    | Email                | Url          |
+| ------- | -------------------- | ------------ |
+| OpenTDF | <support@opentdf.io> | <opentdf.io> |
 
 ## Values
 

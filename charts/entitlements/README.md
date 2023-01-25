@@ -6,9 +6,9 @@ A deployed service to configure entity/attribute mappings in an OpenTDF ABAC sys
 
 ## Maintainers
 
-| Name   | Email | Url |
-| ------ | ----- | --- |
-| OpenTDF | support@opentdf.io | opentdf.io |
+| Name    | Email                | Url          |
+| ------- | -------------------- | ------------ |
+| OpenTDF | <support@opentdf.io> | <opentdf.io> |
 
 ## Values
 

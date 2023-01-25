@@ -6,9 +6,9 @@ Keycloak Bootstrap Configurator Job
 
 ## Maintainers
 
-| Name   | Email | Url |
-| ------ | ----- | --- |
-| OpenTDF | support@opentdf.io | opentdf.io |
+| Name    | Email                | Url          |
+| ------- | -------------------- | ------------ |
+| OpenTDF | <support@opentdf.io> | <opentdf.io> |
 
 ## Values
 
