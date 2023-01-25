@@ -34,7 +34,7 @@ jobs:
           echo "Current branch is $GIT_BRANCH"
           if [ "$GIT_BRANCH" != "main" ]; then
               echo 'Aborting workflow -- not running on main'
-              exit  # need some way to kill whole workflow, not just step
+              exit 1 # need some way to kill whole workflow, not just step
           fi
           echo "Current branch is main, proceeding with release process"
   config:
