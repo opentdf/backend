@@ -257,6 +257,8 @@ keycloak:
     - "/opt/keycloak/bin/kc.sh"
     - "--verbose"
     - "start-dev"
+    - "--http-relative-path"
+    - "/auth"
   postgresql:
     # -- If `true`, the Postgresql dependency is enabled
     enabled: false
