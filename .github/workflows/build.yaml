@@ -14,14 +14,27 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
+      - name: Debug
+        run: echo ${{ env.BRANCH_NAME }}
+
       - name: Check branch is main
         run: |
           echo "Github ref: $GITHUB_REF"
-          GIT_BRANCH=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
+          GIT_BRANCH=${{ env.BRANCH_NAME }}
           echo "Current branch is $GIT_BRANCH"
           if [ "$GIT_BRANCH" != "main" ]; then
               echo 'Aborting workflow -- not running on main'
-              exit 0 # need some way to kill whole workflow, not just step
+              exit  # need some way to kill whole workflow, not just step
           fi
           echo "Current branch is main, proceeding with release process"
   config:
