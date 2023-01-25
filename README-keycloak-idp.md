@@ -1,11 +1,11 @@
 # OpenTDF + Keycloak Identity Provider Integration
 
 Keycloak is our Identity Provider (IdP), and integrating
-it into Virtru's technology requires the following components:
+it into OpenTDF's technology requires the following components:
 
 - `claims`: A web service that provides Claims Objects to the OpenTDF Keycloak
   Protocol Mapper.
-- `keycloak-protocol-mapper`: Virtru's Keycloak Protocol Mapper.
+- `keycloak-protocol-mapper`: OpenTDF's Keycloak Protocol Mapper.
   This is a customized Keycloak image that makes a web service
   call to `claims` to fetch the authorization (authZ) information
   with the authenticated client and return it inside the signed JWT.
@@ -15,8 +15,8 @@ it into Virtru's technology requires the following components:
   the OpenTDF backend. The demo implementation:
   - creates the `tdf` realm
   - creates the `tdf-client` client (non-person entity -- a service account)
-  - configures the client to use Virtru Protocol Mapper
-  - configures Virtru Protocol Mapper itself
+  - configures the client to use OpenTDF Protocol Mapper
+  - configures OpenTDF Protocol Mapper itself
   - uses the `attributes` service to define some demo attributes
   - uses the `entitlements` service to assign demo attributes to these users
 

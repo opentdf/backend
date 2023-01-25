@@ -8,7 +8,7 @@ TDF key access control service
 
 | Name   | Email | Url |
 | ------ | ----- | --- |
-| Virtru |       |     |
+| OpenTDF | support@opentdf.io | opentdf.io |
 
 ## Kas's Keys
 

@@ -8,7 +8,7 @@ A read-only service that fetches and returns any entity<->attribute mappings pre
 
 | Name   | Email | Url |
 | ------ | ----- | --- |
-| Virtru |       |     |
+| OpenTDF | support@opentdf.io | opentdf.io |
 
 ## Values
 

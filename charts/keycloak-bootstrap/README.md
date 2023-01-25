@@ -8,7 +8,7 @@ Keycloak Bootstrap Configurator Job
 
 | Name   | Email | Url |
 | ------ | ----- | --- |
-| Virtru |       |     |
+| OpenTDF | support@opentdf.io | opentdf.io |
 
 ## Values
 

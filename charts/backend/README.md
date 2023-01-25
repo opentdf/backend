@@ -8,7 +8,7 @@ Minimal deployment of OpenTDF backend services
 
 | Name   | Email | Url |
 | ------ | ----- | --- |
-| Virtru |       |     |
+| OpenTDF | support@opentdf.io | opentdf.io |
 
 ## Deploy Chart
 

@@ -1,7 +1,7 @@
 # Keycloak Bootstrap Configuration
 
 We use a Python wrapper around Keycloak's REST API
-to automatically configure Keycloak for Virtru's needs.
+to automatically configure Keycloak for OpenTDF's needs.
 
 ## Build and Setup
 

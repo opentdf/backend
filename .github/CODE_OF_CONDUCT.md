@@ -73,4 +73,3 @@ available at [https://contributor-covenant.org/version/1/4][cc-version]
 [email-developers]: mailto:support@opentdf.io
 [cc-homepage]: https://contributor-covenant.org
 [cc-version]: https://contributor-covenant.org/version/1/4/
-[virtru]: https://www.virtru.com/

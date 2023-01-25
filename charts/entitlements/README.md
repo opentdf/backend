@@ -8,7 +8,7 @@ A deployed service to configure entity/attribute mappings in an OpenTDF ABAC sys
 
 | Name   | Email | Url |
 | ------ | ----- | --- |
-| Virtru |       |     |
+| OpenTDF | support@opentdf.io | opentdf.io |
 
 ## Values
 

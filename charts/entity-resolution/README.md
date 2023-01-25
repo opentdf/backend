@@ -8,7 +8,7 @@ Resolves external entity identifiers to OpenTDF entity identifiers
 
 | Name   | Email | Url |
 | ------ | ----- | --- |
-| Virtru |       |     |
+| OpenTDF | support@opentdf.io | opentdf.io |
 
 ## Values
 

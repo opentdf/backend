@@ -8,7 +8,7 @@ An implementation of an ABAC Entity Entitlement Policy Decision Point
 
 | Name   | Email | Url |
 | ------ | ----- | --- |
-| Virtru |       |     |
+| OpenTDF | support@opentdf.io | opentdf.io |
 
 ## Values
 
