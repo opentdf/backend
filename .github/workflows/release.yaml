@@ -31,9 +31,9 @@ jobs:
       - name: Check branch is main
         run: |
           echo "Github ref: $GITHUB_REF"
-          GIT_BRANCH=${{ env.BRANCH_NAME }}
-          echo "Current branch is $GIT_BRANCH"
-          if [ "$GIT_BRANCH" != "main" ]; then
+          echo "Git branch: ${{ env.BRANCH_NAME }}""
+          echo "Current branch is ${{ env.BRANCH_NAME }}"
+          if [ "${{ env.BRANCH_NAME }}" != "main" ]; then
               echo 'Aborting workflow -- not running on main'
               exit 1 # need some way to kill whole workflow, not just step
           fi
