@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import sys
-import requests
 from enum import Enum
 from http.client import (
     NO_CONTENT,
@@ -14,7 +13,9 @@ from http.client import (
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
-from requests.adapters import HTTPAdapter
+
+# conflict with fastapi.Request
+import requests as requestshttp
 from urllib3.util import Retry
 
 import databases as databases
@@ -103,9 +104,9 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 def get_retryable_request():
     retry_strategy = Retry(total=3, backoff_factor=1)
 
-    adapter = HTTPAdapter(max_retries=retry_strategy)
+    adapter = requestshttp.adapter.HTTPAdapter(max_retries=retry_strategy)
 
-    http = requests.Session()
+    http = requestshttp.Session()
     http.mount("https://", adapter)
     http.mount("http://", adapter)
     return http
