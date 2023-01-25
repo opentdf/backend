@@ -25,9 +25,6 @@ jobs:
         shell: bash
         run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
 
-      - name: Debug
-        run: echo ${{ env.BRANCH_NAME }}
-
       - name: Check branch is main
         run: |
           echo "Github ref: $GITHUB_REF"

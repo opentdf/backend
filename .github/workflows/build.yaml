@@ -9,34 +9,6 @@ on:
     branches:
       - main
 jobs:
-  check-branch:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Get branch name (not PR)
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
-
-      - name: Get branch name (PR)
-        if: github.event_name == 'pull_request'
-        shell: bash
-        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
-
-      - name: Debug
-        run: echo ${{ env.BRANCH_NAME }}
-
-      - name: Check branch is main
-        run: |
-          echo "Github ref: $GITHUB_REF"
-          echo "Git branch: ${{ env.BRANCH_NAME }}"
-          echo "Current branch is ${{ env.BRANCH_NAME }}"
-          if [ "${{ env.BRANCH_NAME }}" != "main" ]; then
-              echo 'Aborting workflow -- not running on main'
-              exit 1 # need some way to kill whole workflow, not just step
-          fi
-          echo "Current branch is main, proceeding with release process"
   config:
     runs-on: ubuntu-latest
     outputs:
@@ -57,7 +29,6 @@ jobs:
         id: keycloak-otdf-version
 
   lint:
-    needs: check-branch
     runs-on: ubuntu-latest
     container:
       image: quay.io/helmpack/chart-testing:latest
