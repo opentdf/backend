@@ -964,11 +964,11 @@ async def read_authorities(
     search_filter=Depends(add_filter_by_access_control),
     session: Session = Depends(get_db_session),
 ):
-    authorities = await read_authorities_crud(request, search_filter, session)
+    authorities = await read_authorities_crud(search_filter, session)
     return list(authorities.values())
 
 
-async def read_authorities_crud(request: Request, search_filter, session):
+async def read_authorities_crud(search_filter, session):
     table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
     if search_filter is not None:
         query = session.query(table_ns).filter(table_ns.c.name == search_filter).all()
