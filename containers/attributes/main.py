@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from urllib3.util import Retry
 
 import databases as databases
 import sqlalchemy
@@ -446,7 +446,7 @@ async def read_attributes(
     ),
     session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
-    search_filter = Depends(add_filter_by_access_control),
+    search_filter=Depends(add_filter_by_access_control),
 ):
     filter_args = {}
     if authority:
@@ -464,14 +464,17 @@ async def read_attributes(
         filter_args["values_array"] = order
 
     sort_args = sort.split(",") if sort else []
-    results = await read_attributes_crud(search_filter, session, filter_args, sort_args)
+    results = await read_attributes_crud(
+        request, search_filter, session, filter_args, sort_args
+    )
 
     return pager.paginate(results)
 
 
-async def read_attributes_crud(search_filter, session, filter_args, sort_args):
+async def read_attributes_crud(
+    request: Request, search_filter, session, filter_args, sort_args
+):
     table_to_query = metadata.tables["tdf_attribute.attribute"]
-    org_name = add_filter_by_access_control(request)
     table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
     query = session.query(table_ns).filter(table_ns.c.name == search_filter).all()
     if search_filter is not None:
@@ -569,7 +572,7 @@ async def read_attributes_definitions(
     ),
     session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
-    search_filter = Depends(add_filter_by_access_control),
+    search_filter=Depends(add_filter_by_access_control),
 ):
     logger.debug("read_attributes_definitions %s", request.url)
     filter_args = {}
@@ -593,7 +596,6 @@ async def read_attributes_definitions(
 
     sort_args = sort.split(",") if sort else []
     table_to_query = metadata.tables["tdf_attribute.attribute"]
-    #org_name = add_filter_by_access_control(request)
     table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
     query = session.query(table_ns).filter(table_ns.c.name == search_filter).all()
     if search_filter is not None:
@@ -957,14 +959,15 @@ async def delete_attributes_definitions_crud(request, decoded_token=None):
     },
 )
 async def read_authorities(
-    search_filter =  Depends(add_filter_by_access_control),
+    request: Request,
+    search_filter=Depends(add_filter_by_access_control),
     session: Session = Depends(get_db_session),
 ):
-    authorities = await read_authorities_crud(search_filter, session)
+    authorities = await read_authorities_crud(request, search_filter, session)
     return list(authorities.values())
 
 
-async def read_authorities_crud(search_filter, session):
+async def read_authorities_crud(request: Request, search_filter, session):
     table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
     if search_filter is not None:
         query = session.query(table_ns).filter(table_ns.c.name == search_filter).all()
