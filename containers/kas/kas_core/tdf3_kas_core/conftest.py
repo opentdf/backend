@@ -13,11 +13,11 @@ from .models import Entity
 from .models import EntityAttributes
 from .models import KeyAccess
 from .models import Context
+from .models.wrapped_keys import aes_encrypt_sha1
 
 from .util import get_public_key_from_disk
 from .util import get_private_key_from_disk
 from .util import generate_hmac_digest
-from .util import aes_encrypt_sha1
 
 public_key = get_public_key_from_disk("test")
 private_key = get_private_key_from_disk("test")
