@@ -3,10 +3,11 @@
 import pytest
 import base64
 
+from tdf3_kas_core.models.wrapped_keys import aes_encrypt_sha1
+
 from tdf3_kas_core.util import get_public_key_from_disk
 from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
-from tdf3_kas_core.util import aes_encrypt_sha1
 
 from tdf3_kas_core.errors import KeyAccessError
 

@@ -6,6 +6,8 @@ global:
       oidcInternalBaseUrl: http://keycloak-http
       # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
+      # -- Enable audit logging
+      auditLogEnabled: false
 
 # -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
