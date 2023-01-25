@@ -176,7 +176,7 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
   "/upsert":
     post:
-      summary: Request a upsert
+      summary: Request an upsert
       description: |
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
@@ -209,7 +209,7 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
   "/v2/upsert":
     post:
-      summary: Request a upsert
+      summary: Request an upsert
       description: |
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
