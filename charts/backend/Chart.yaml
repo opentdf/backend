@@ -3,7 +3,9 @@ appVersion: main
 description: Minimal deployment of OpenTDF backend services
 icon: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
 maintainers:
-  - name: Virtru
+  - name: OpenTDF
+    email: support@opentdf.io
+    url: opentdf.io
 name: backend
 type: application
 version: 0.0.1

@@ -3,11 +3,12 @@ import pytest
 
 from .. import main
 
+
 # Test Authorities
 def test_read_authority_namespace(test_app, monkeypatch):
     test_data = {1: "https://opentdf1.io", 2: "https://opentdf2.io"}
 
-    async def mock_read_authorities_crud():
+    async def mock_read_authorities_crud(search_filter, session):
         return test_data
 
     monkeypatch.setattr(main, "read_authorities_crud", mock_read_authorities_crud)
@@ -40,7 +41,9 @@ def test_read_attributes(test_app, monkeypatch):
         "http://opentdf.io/attr/Top/value/V2",
     ]
 
-    async def mock_read_attributes_crud(request, session, filter, sort):
+    async def mock_read_attributes_crud(
+        request, search_filter, session, filter_args, sort_args
+    ):
         return test_data
 
     monkeypatch.setattr(main, "read_attributes_crud", mock_read_attributes_crud)
