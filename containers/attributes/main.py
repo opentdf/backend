@@ -104,8 +104,7 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 def get_retryable_request():
     retry_strategy = Retry(total=3, backoff_factor=1)
 
-    adapter = requestshttp.adapter.HTTPAdapter(max_retries=retry_strategy)
-
+    adapter = requestshttp.adapters.HTTPAdapter(max_retries=retry_strategy)
     http = requestshttp.Session()
     http.mount("https://", adapter)
     http.mount("http://", adapter)
