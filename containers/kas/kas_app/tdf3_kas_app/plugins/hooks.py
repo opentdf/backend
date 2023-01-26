@@ -19,9 +19,6 @@ from tdf3_kas_core.errors import AuthorizationError
 
 logger = logging.getLogger(__name__)
 
-# temporarily use constant owner org id
-OWNER_ORG_ID = str(uuid.uuid4())
-
 def audit_hook(function_name, return_value, data, context, *args, **kwargs):
     # wrap in try except to prevent unnecessary 500s
     try:
@@ -32,7 +29,7 @@ def audit_hook(function_name, return_value, data, context, *args, **kwargs):
             "tdf_name": None,
             # this will be the clientid or user
             "owner_id": "",
-            "owner_org_id": OWNER_ORG_ID,
+            "owner_org_id": None,
             "transaction_type": "create",
             "action_type": "decrypt",
             "tdf_attributes": {"dissem":[], "attrs":[]},
@@ -66,7 +63,7 @@ def err_audit_hook(function_name, err, data, context, plugin_runner, key_master,
             "tdf_name": None,
             # this will be the clientid or user
             "owner_id": "",
-            "owner_org_id": OWNER_ORG_ID,
+            "owner_org_id": None,
             "transaction_type": "create_error",
             "action_type": "access_denied",
             "tdf_attributes": {"dissem":[], "attrs":[]},
@@ -88,40 +85,41 @@ def err_audit_hook(function_name, err, data, context, plugin_runner, key_master,
             requestBody = decoded_request["requestBody"]
             json_string = requestBody.replace("'", '"')
             dataJson = json.loads(json_string)
-            algorithm = dataJson.get("algorithm", "rsa:2048")
-            if algorithm == "ec:secp256r1":
+            if dataJson.get("algorithm", "rsa:2048") == "ec:secp256r1":
                 # nano tdf
-                key_access = dataJson["keyAccess"]
-                header = base64.b64decode(key_access["header"])
-                client_version = packaging.version.parse(
-                    context.get("virtru-ntdf-version") or "0.0.0"
-                )
-                legacy_wrapping = (os.environ.get("LEGACY_NANOTDF_IV") == "1") and client_version < packaging.version.parse("0.0.1")
-                (_, header) = ResourceLocator.parse(header[3:])
-                (ecc_mode, header) = ECCMode.parse(header)
+                header = base64.b64decode(dataJson["keyAccess"]["header"])
+                legacy_wrapping = (os.environ.get("LEGACY_NANOTDF_IV") == "1") and packaging.version.parse(
+                        context.get("virtru-ntdf-version") or "0.0.0"
+                    ) < packaging.version.parse("0.0.1")
+                
+                (ecc_mode, header) = ECCMode.parse(ResourceLocator.parse(header[3:])[1])
                 # extract payload config from header.
                 (payload_config, header) = SymmetricAndPayloadConfig.parse(header)
                 # extract policy from header.
                 (policy_info, header) = PolicyInfo.parse(ecc_mode, payload_config, header)
-                # extract ephemeral key from the header.
-                ephemeral_key = header[0 : ecc_mode.curve.public_key_byte_length]
 
-                kas_private = key_master.get_key("KAS-EC-SECP256R1-PRIVATE")
-                private_key_bytes = kas_private.private_bytes(
+                private_key_bytes = key_master.get_key(
+                    "KAS-EC-SECP256R1-PRIVATE"
+                    ).private_bytes(
                     serialization.Encoding.DER,
                     serialization.PrivateFormat.PKCS8,
                     serialization.NoEncryption(),
                 )
-                decryptor = ecc_mode.curve.create_decryptor(ephemeral_key, private_key_bytes)
+                decryptor = ecc_mode.curve.create_decryptor(
+                    header[0 : ecc_mode.curve.public_key_byte_length], private_key_bytes
+                )
 
-                zero_iv = b"\0" * (3 if legacy_wrapping else 12)
-                symmetric_cipher = payload_config.symmetric_cipher(decryptor.symmetric_key, zero_iv)
+                symmetric_cipher = payload_config.symmetric_cipher(
+                    decryptor.symmetric_key,
+                    b"\0" * (3 if legacy_wrapping else 12)
+                )
                 policy_data = policy_info.body.data
-                policy_data_len = len(policy_data) - payload_config.symmetric_tag_length
-                auth_tag = policy_data[-payload_config.symmetric_tag_length :]
 
                 policy_data_as_byte = base64.b64encode(
-                    symmetric_cipher.decrypt(policy_data[0:policy_data_len], auth_tag)
+                    symmetric_cipher.decrypt(
+                        policy_data[0:len(policy_data) - payload_config.symmetric_tag_length],
+                        policy_data[-payload_config.symmetric_tag_length :]
+                    )
                 )
                 original_policy = Policy.construct_from_raw_canonical(
                     policy_data_as_byte.decode("utf-8")
@@ -164,7 +162,6 @@ def extract_info_from_auth_token(audit_log, context):
                 audit_log["owner_id"] = decoded_auth.get("sub")
             if decoded_auth.get("tdf_claims").get("entitlements"):
                 attributes = set()
-                # assuming items formatted correctly
                 # just put all entitlements into one list, dont seperate by entity for now
                 for item in decoded_auth.get("tdf_claims").get("entitlements"):
                     for attribute in item.get("entity_attributes"):
