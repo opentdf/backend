@@ -252,15 +252,11 @@ class Kas(object):
         """ Add a hook called after rewrap completes """
         if callable(hook):
             self._post_rewrap_hook = hook
-        # maybe need to check if it fits criteria? what are criteria?
-        # else raise some custom error?
 
     def use_err_rewrap_hook(self, hook):
         """ Add a hook called when rewrap returns an error """
         if callable(hook):
             self._err_rewrap_hook = hook
-        # maybe need to check if it fits criteria? what are criteria?
-        # else raise some custom error?
 
     def get_session_healthz(self):
         """return the callable to process healthz requests."""
