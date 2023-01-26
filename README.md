@@ -94,8 +94,6 @@ ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf
 
 1. Start cluster
 
-> TODO([PLAT-1599](https://virtru.atlassian.net/browse/PLAT-1599)) Consolidate integration and root tiltfile.
-
 `tilt up` will run the main Tiltfile in the repo root, e.g. [./Tiltfile](./Tiltfile). Tilt will watch the local disk
 for changes, and rebuild/redeploy images on local changes.
 
