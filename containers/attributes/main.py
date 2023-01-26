@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import sys
-import requests
 from enum import Enum
 from http.client import (
     NO_CONTENT,
@@ -14,8 +13,10 @@ from http.client import (
 from urllib.parse import urlparse
 from pprint import pprint
 from typing import Optional, List, Annotated
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+
+# conflict with fastapi.Request
+import requests as requestshttp
+from urllib3.util import Retry
 
 import databases as databases
 import sqlalchemy
@@ -103,9 +104,8 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
 def get_retryable_request():
     retry_strategy = Retry(total=3, backoff_factor=1)
 
-    adapter = HTTPAdapter(max_retries=retry_strategy)
-
-    http = requests.Session()
+    adapter = requestshttp.adapters.HTTPAdapter(max_retries=retry_strategy)
+    http = requestshttp.Session()
     http.mount("https://", adapter)
     http.mount("http://", adapter)
     return http
@@ -446,12 +446,13 @@ async def read_attributes(
     ),
     session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
+    search_filter=Depends(add_filter_by_access_control),
 ):
     filter_args = {}
     if authority:
         # logger.debug(authority)
         # lookup authority by value and get id (namespace_id)
-        authorities = await read_authorities_crud()
+        authorities = await read_authorities_crud(search_filter, session)
         filter_args["namespace_id"] = list(authorities.keys())[
             list(authorities.values()).index(authority)
         ]
@@ -463,23 +464,26 @@ async def read_attributes(
         filter_args["values_array"] = order
 
     sort_args = sort.split(",") if sort else []
-    results = await read_attributes_crud(request, session, filter_args, sort_args)
+    results = await read_attributes_crud(
+        request, search_filter, session, filter_args, sort_args
+    )
 
     return pager.paginate(results)
 
 
-async def read_attributes_crud(request, session, filter_args, sort_args):
+async def read_attributes_crud(
+    request: Request, search_filter, session, filter_args, sort_args
+):
     table_to_query = metadata.tables["tdf_attribute.attribute"]
-    org_name = add_filter_by_access_control(request)
     table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
-    query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
-    if org_name is not None:
+    query = session.query(table_ns).filter(table_ns.c.name == search_filter).all()
+    if search_filter is not None:
         for row in query:
             filter_args["namespace_id"] = row.id
     filters, sorters = get_query(table_to_query, filter_args, sort_args)
     results = session.query(table_to_query).filter(*filters).order_by(*sorters)
     error = None
-    authorities = await read_authorities_crud()
+    authorities = await read_authorities_crud(search_filter, session)
     attributes: List[AnyUrl] = []
 
     try:
@@ -568,12 +572,13 @@ async def read_attributes_definitions(
     ),
     session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
+    search_filter=Depends(add_filter_by_access_control),
 ):
     logger.debug("read_attributes_definitions %s", request.url)
     filter_args = {}
     if authority:
         # lookup authority by value and get id (namespace_id)
-        authorities = await read_authorities_crud()
+        authorities = await read_authorities_crud(search_filter, session)
         try:
             filter_args["namespace_id"] = list(authorities.keys())[
                 list(authorities.values()).index(authority)
@@ -591,16 +596,15 @@ async def read_attributes_definitions(
 
     sort_args = sort.split(",") if sort else []
     table_to_query = metadata.tables["tdf_attribute.attribute"]
-    org_name = add_filter_by_access_control(request)
     table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
-    query = session.query(table_ns).filter(table_ns.c.name == org_name).all()
-    if org_name is not None:
+    query = session.query(table_ns).filter(table_ns.c.name == search_filter).all()
+    if search_filter is not None:
         for row in query:
             filter_args["namespace_id"] = row.id
     filters, sorters = get_query(table_to_query, filter_args, sort_args)
     results = session.query(table_to_query).filter(*filters).order_by(*sorters)
 
-    authorities = await read_authorities_crud()
+    authorities = await read_authorities_crud(search_filter, session)
     attributes: List[AttributeDefinition] = []
     for row in results:
         try:
@@ -954,19 +958,24 @@ async def delete_attributes_definitions_crud(request, decoded_token=None):
         200: {"content": {"application/json": {"example": ["https://opentdf.io"]}}}
     },
 )
-async def read_authorities():
-    authorities = await read_authorities_crud()
+async def read_authorities(
+    request: Request,
+    search_filter=Depends(add_filter_by_access_control),
+    session: Session = Depends(get_db_session),
+):
+    authorities = await read_authorities_crud(search_filter, session)
     return list(authorities.values())
 
 
-async def read_authorities_crud():
-    query = table_authority.select()
-    result = await database.fetch_all(query)
+async def read_authorities_crud(search_filter, session):
+    table_ns = metadata.tables["tdf_attribute.attribute_namespace"]
+    if search_filter is not None:
+        query = session.query(table_ns).filter(table_ns.c.name == search_filter).all()
+    else:
+        query = session.query(table_ns).all()
     authorities = {}
-    for row in result:
-        authorities[
-            row.get(table_authority.c.id)
-        ] = f"{row.get(table_authority.c.name)}"
+    for row in query:
+        authorities[row.id] = row.name
     return authorities
 
 
