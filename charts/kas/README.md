@@ -6,9 +6,9 @@ TDF key access control service
 
 ## Maintainers
 
-| Name   | Email | Url |
-| ------ | ----- | --- |
-| Virtru |       |     |
+| Name    | Email                | Url          |
+| ------- | -------------------- | ------------ |
+| OpenTDF | <support@opentdf.io> | <opentdf.io> |
 
 ## Kas's Keys
 

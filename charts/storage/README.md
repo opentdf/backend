@@ -6,9 +6,9 @@ Storage backend for remote content support in OpenTDF
 
 ## Maintainers
 
-| Name   | Email | Url |
-| ------ | ----- | --- |
-| Virtru |       |     |
+| Name    | Email                | Url          |
+| ------- | -------------------- | ------------ |
+| OpenTDF | <support@opentdf.io> | <opentdf.io> |
 
 ## Values
 
