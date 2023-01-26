@@ -65,10 +65,5 @@ Create Keycloak External Url
 Create Keycloak hostname by extracting from the external url base .Values.global.opentdf.common.oidcExternalBaseUrl
 */}}
 {{- define "backend.keycloak.externalHostname" }}
-{{- if hasPrefix "http://" .Values.global.opentdf.common.oidcExternalBaseUrl }}
-{{- default ( trimPrefix "http://" .Values.global.opentdf.common.oidcExternalBaseUrl ) }}
-{{- else }}
-{{- default ( trimPrefix "https://" .Values.global.opentdf.common.oidcExternalBaseUrl ) }}
+{{- .Values.global.opentdf.common.oidcExternalBaseUrl | trimPrefix "http://"  | trimPrefix "https://" | trimSuffix "/" }}
 {{- end }}
-{{- end }}
-
