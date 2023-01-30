@@ -10,7 +10,6 @@ RUN apk add --no-cache --upgrade \
     build-base \
     postgresql-dev \
     postgresql-client \
-    libressl-dev \
     musl-dev \
     zlib-dev \
     jpeg-dev \
