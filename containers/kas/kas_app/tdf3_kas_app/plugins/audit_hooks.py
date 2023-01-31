@@ -19,7 +19,11 @@ from tdf3_kas_core.errors import AuthorizationError
 
 logger = logging.getLogger(__name__)
 
+
 def audit_hook(function_name, return_value, data, context, *args, **kwargs):
+
+    res, policy, claims = return_value
+
     # wrap in try except to prevent unnecessary 500s
     try:
         audit_log = {
@@ -27,29 +31,30 @@ def audit_hook(function_name, return_value, data, context, *args, **kwargs):
             "transaction_timestamp": str(datetime.datetime.now()),
             "tdf_id": "",
             "tdf_name": None,
-            # this will be the clientid or user
             "owner_id": "",
             "owner_org_id": None,
             "transaction_type": "create",
             "action_type": "decrypt",
-            "tdf_attributes": {"dissem":[], "attrs":[]},
-            "actor_attributes": {"npe":True, "actor_id":"", "attrs":[]},
+            "tdf_attributes": {"dissem": [], "attrs": []},
+            "actor_attributes": {"npe": True, "actor_id": "", "attrs": []},
         }
-
-        res, policy, claims = return_value
 
         audit_log["tdf_attributes"]["attrs"] = policy.data_attributes.export_raw()
         audit_log["tdf_attributes"]["dissem"] = policy.dissem.list
-            
+
         audit_log = extract_info_from_auth_token(audit_log, context)
 
         logger.audit(json.dumps(audit_log))
-    except:
-        logger.error("Error on audit_hook - unable to log audit")
+
+    except Exception as e:
+        logger.error(f"Error on err_audit_hook - unable to log audit: {str(e)}")
 
     return res
 
-def err_audit_hook(function_name, err, data, context, plugin_runner, key_master, *args, **kwargs):
+
+def err_audit_hook(
+    function_name, err, data, context, plugin_runner, key_master, *args, **kwargs
+):
     # wrap in try except to prevent unnecessary 500s
     try:
         # not yet auditing other errors, only access denied
@@ -61,20 +66,21 @@ def err_audit_hook(function_name, err, data, context, plugin_runner, key_master,
             "transaction_timestamp": str(datetime.datetime.now()),
             "tdf_id": "",
             "tdf_name": None,
-            # this will be the clientid or user
             "owner_id": "",
             "owner_org_id": None,
             "transaction_type": "create_error",
             "action_type": "access_denied",
-            "tdf_attributes": {"dissem":[], "attrs":[]},
-            "actor_attributes": {"npe":True, "actor_id":"", "attrs":[]},
+            "tdf_attributes": {"dissem": [], "attrs": []},
+            "actor_attributes": {"npe": True, "actor_id": "", "attrs": []},
         }
-        
+
         audit_log = extract_info_from_auth_token(audit_log, context)
 
         # wrap in try except -- should not fail since succeeded before
         if "signedRequestToken" not in data:
-            logger.error("Rewrap success without signedRequestToken - should never get here")
+            logger.error(
+                "Rewrap success without signedRequestToken - should never get here"
+            )
         else:
             decoded_request = jwt.decode(
                 data["signedRequestToken"],
@@ -86,61 +92,73 @@ def err_audit_hook(function_name, err, data, context, plugin_runner, key_master,
             json_string = requestBody.replace("'", '"')
             dataJson = json.loads(json_string)
             if dataJson.get("algorithm", "rsa:2048") == "ec:secp256r1":
-                # nano tdf
-                header = base64.b64decode(dataJson["keyAccess"]["header"])
-                legacy_wrapping = (os.environ.get("LEGACY_NANOTDF_IV") == "1") and packaging.version.parse(
-                        context.get("virtru-ntdf-version") or "0.0.0"
-                    ) < packaging.version.parse("0.0.1")
-                
-                (ecc_mode, header) = ECCMode.parse(ResourceLocator.parse(header[3:])[1])
-                # extract payload config from header.
-                (payload_config, header) = SymmetricAndPayloadConfig.parse(header)
-                # extract policy from header.
-                (policy_info, header) = PolicyInfo.parse(ecc_mode, payload_config, header)
-
-                private_key_bytes = key_master.get_key(
-                    "KAS-EC-SECP256R1-PRIVATE"
-                    ).private_bytes(
-                    serialization.Encoding.DER,
-                    serialization.PrivateFormat.PKCS8,
-                    serialization.NoEncryption(),
+                # nano
+                audit_log = extract_policy_data_from_nano(
+                    audit_log, dataJson, context, key_master
                 )
-                decryptor = ecc_mode.curve.create_decryptor(
-                    header[0 : ecc_mode.curve.public_key_byte_length], private_key_bytes
-                )
-
-                symmetric_cipher = payload_config.symmetric_cipher(
-                    decryptor.symmetric_key,
-                    b"\0" * (3 if legacy_wrapping else 12)
-                )
-                policy_data = policy_info.body.data
-
-                policy_data_as_byte = base64.b64encode(
-                    symmetric_cipher.decrypt(
-                        policy_data[0:len(policy_data) - payload_config.symmetric_tag_length],
-                        policy_data[-payload_config.symmetric_tag_length :]
-                    )
-                )
-                original_policy = Policy.construct_from_raw_canonical(
-                    policy_data_as_byte.decode("utf-8")
-                )
-
-                audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
-                audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
-
             else:
                 # tdf3
-                canonical_policy = dataJson["policy"]
-                original_policy = Policy.construct_from_raw_canonical(canonical_policy)
-                audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
-                audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
-    
-    
+                audit_log = extract_policy_data_from_tdf3(audit_log, dataJson)
+
         logger.audit(json.dumps(audit_log))
 
-    except:
-        logger.error("Error on err_audit_hook - unable to log audit")
+    except Exception as e:
+        logger.error(f"Error on err_audit_hook - unable to log audit: {str(e)}")
 
+
+def extract_policy_data_from_tdf3(audit_log, dataJson):
+    canonical_policy = dataJson["policy"]
+    original_policy = Policy.construct_from_raw_canonical(canonical_policy)
+    audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
+    audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
+
+    return audit_log
+
+
+def extract_policy_data_from_nano(audit_log, dataJson, context, key_master):
+    header = base64.b64decode(dataJson["keyAccess"]["header"])
+    legacy_wrapping = (
+        os.environ.get("LEGACY_NANOTDF_IV") == "1"
+    ) and packaging.version.parse(
+        context.get("virtru-ntdf-version") or "0.0.0"
+    ) < packaging.version.parse(
+        "0.0.1"
+    )
+
+    (ecc_mode, header) = ECCMode.parse(ResourceLocator.parse(header[3:])[1])
+    # extract payload config from header.
+    (payload_config, header) = SymmetricAndPayloadConfig.parse(header)
+    # extract policy from header.
+    (policy_info, header) = PolicyInfo.parse(ecc_mode, payload_config, header)
+
+    private_key_bytes = key_master.get_key("KAS-EC-SECP256R1-PRIVATE").private_bytes(
+        serialization.Encoding.DER,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+    decryptor = ecc_mode.curve.create_decryptor(
+        header[0 : ecc_mode.curve.public_key_byte_length], private_key_bytes
+    )
+
+    symmetric_cipher = payload_config.symmetric_cipher(
+        decryptor.symmetric_key, b"\0" * (3 if legacy_wrapping else 12)
+    )
+    policy_data = policy_info.body.data
+
+    policy_data_as_byte = base64.b64encode(
+        symmetric_cipher.decrypt(
+            policy_data[0 : len(policy_data) - payload_config.symmetric_tag_length],
+            policy_data[-payload_config.symmetric_tag_length :],
+        )
+    )
+    original_policy = Policy.construct_from_raw_canonical(
+        policy_data_as_byte.decode("utf-8")
+    )
+
+    audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
+    audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
+
+    return audit_log
 
 
 def extract_info_from_auth_token(audit_log, context):
@@ -151,13 +169,15 @@ def extract_info_from_auth_token(audit_log, context):
         logger.error("Rewrap success without auth header - should never get here")
     else:
         if bearer != "Bearer":
-            logger.error("Rewrap success without valid auth header - should never get here")
+            logger.error(
+                "Rewrap success without valid auth header - should never get here"
+            )
         else:
             decoded_auth = jwt.decode(
-                    idpJWT,
-                    options={"verify_signature": False, "verify_aud": False},
-                    algorithms=["RS256", "ES256", "ES384", "ES512"],
-                )
+                idpJWT,
+                options={"verify_signature": False, "verify_aud": False},
+                algorithms=["RS256", "ES256", "ES384", "ES512"],
+            )
             if decoded_auth.get("sub"):
                 audit_log["owner_id"] = decoded_auth.get("sub")
             if decoded_auth.get("tdf_claims").get("entitlements"):
@@ -169,5 +189,5 @@ def extract_info_from_auth_token(audit_log, context):
                 audit_log["actor_attributes"]["attrs"] = list(attributes)
             if decoded_auth.get("azp"):
                 audit_log["actor_attributes"]["actor_id"] = decoded_auth.get("azp")
-    
+
     return audit_log
