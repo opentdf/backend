@@ -12,6 +12,7 @@ from .plugins import (
     opentdf_attr_authority_plugin,
     revocation_plugin,
     access_pdp_healthz_plugin,
+    audit_hooks
 )
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 USE_OIDC = os.environ.get("USE_OIDC") == "1"
 OIDC_SERVER_URL = os.environ.get("OIDC_SERVER_URL") is not None
+
+AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
 
 
 def configure_filters(kas):
@@ -98,6 +101,10 @@ def app(name):
 
     access_pdp_health = access_pdp_healthz_plugin.AccessPDPHealthzPlugin()
     kas.use_healthz_plugin(access_pdp_health)
+
+    if AUDIT_ENABLED:
+        kas.use_post_rewrap_hook(audit_hooks.audit_hook)
+        kas.use_err_rewrap_hook(audit_hooks.err_audit_hook)
 
     configure_filters(kas)
 

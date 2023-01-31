@@ -42,6 +42,7 @@ from python_base import (
     get_query,
     add_filter_by_access_control,
     hook_into,
+    HttpMethod
 )
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
@@ -49,7 +50,6 @@ from sqlalchemy.orm import Session, sessionmaker, declarative_base
 from .hooks import (
     audit_hook,
     err_audit_hook,
-    HttpMethod,
 )
 
 logging.basicConfig(

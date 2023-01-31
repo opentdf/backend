@@ -3,11 +3,7 @@ import pytest
 import logging
 import sys
 
-from python_base import hook_into
-
-from ..hooks import HttpMethod
-
-from .. import hooks
+from python_base import hook_into, HttpMethod
 
 logger = logging.getLogger(__package__)
 
