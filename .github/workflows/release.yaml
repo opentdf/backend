@@ -10,13 +10,6 @@ on:
 # This workflow assumes the release tag is the literal Semver you want to use to stamp the release charts with.
 # This workflow will bake images into the (human-readable SEMVER from tag) charts using (generated from current tag SHA) tagged image builds, which presumably have already been built+pushed for this SHA
 jobs:
-  branch-warning:
-    runs-on: ubuntu-latest
-    if: github.ref_name != 'main'
-    steps:
-      - name: This workflow should run only main branch
-        run: echo Current branch is "${{ github.ref_name }}"
-
   version:
     runs-on: ubuntu-latest
     env:
@@ -30,7 +23,7 @@ jobs:
     steps:
       - name: This workflow should run only main branch
         if: github.ref_name != 'main'
-        run: echo This workflow should run only main branch. Please switch from "${{ github.ref_name }}"  to main and try again >> $GITHUB_STEP_SUMMARY && exit 1
+        run: echo This workflow should run only main branch. Please switch from "${{ github.ref_name }}" to main and try again >> $GITHUB_STEP_SUMMARY && exit 1
 
       - uses: actions/checkout@v3
       - run: echo -e "$EVENT_CONTEXT\n"
