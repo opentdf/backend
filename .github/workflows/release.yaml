@@ -18,7 +18,6 @@ jobs:
         run: echo Current branch is "${{ github.ref_name }}"
 
   version:
-    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     env:
       RELEASE_TAG: "${{ github.event.release.tag_name}}"
@@ -29,6 +28,10 @@ jobs:
       SHA_TAG: "${{ steps.info.outputs.SHA }}"
     timeout-minutes: 5
     steps:
+      - name: This workflow should run only main branch
+        if: github.ref_name != 'main'
+        run: echo This workflow should run only main branch. Please switch from "${{ github.ref_name }}"  to main and try again >> $GITHUB_STEP_SUMMARY && exit 1
+
       - uses: actions/checkout@v3
       - run: echo -e "$EVENT_CONTEXT\n"
         env:
@@ -45,7 +48,6 @@ jobs:
         id: keycloak-otdf-version
 
   tag-microservice-containers:
-    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs:
       - version
@@ -84,7 +86,6 @@ jobs:
           --tag "ghcr.io/opentdf/${{ matrix.repo }}:${FULL_VERSION}"
 
   tag-custom-keycloak:
-    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     needs:
       - version
@@ -114,7 +115,6 @@ jobs:
           --tag "ghcr.io/opentdf/keycloak:${KEYCLOAK_OTDF_VERSION}"
 
   policybundle:
-    if: github.ref_name == 'main'
     needs:
       - version
     permissions:
@@ -154,7 +154,6 @@ jobs:
           policy push "${BUNDLETAG}:${FULL_VERSION}"
 
   publish-helm-charts-release:
-    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -203,7 +202,6 @@ jobs:
           rm *.tgz
 
   signing-artifacts:
-    if: github.ref_name == 'main'
     needs:
       - version
       - tag-microservice-containers
@@ -227,7 +225,6 @@ jobs:
     secrets: inherit
 
   verifying-signing:
-    if: github.ref_name == 'main'
     needs:
       - version
       - signing-artifacts
