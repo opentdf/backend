@@ -198,7 +198,10 @@ def createTestClientForX509Flow(keycloak_admin):
                 "protocol": "openid-connect",
                 "redirectUris": redirect_uris,
                 "webOrigins": ["+"],
-                "attributes": {"x509.subjectdn": "CN=(.*)(?:$)"},
+                "attributes": {
+                    "x509.subjectdn": "CN=(.*)(?:$)",
+                    "post.logout.redirect.uris": "+"
+                },
             },
             skip_exists=True,
         )
@@ -228,6 +231,7 @@ def createTestClientForClientCredentialsFlow(
             "attributes": {
                 "user.info.response.signature.alg": "RS256",
                 "pkce.code.challenge.method": "S256",
+                "post.logout.redirect.uris": "+",
             },  # Needed to make UserInfo return signed JWT
         },
         skip_exists=True,
@@ -308,7 +312,8 @@ def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clien
                     keycloak_auth_url + "admin/" + item["clientId"] + "/console"
                 ],
                 "attributes": {
-                    "user.info.response.signature.alg": "RS256"
+                    "user.info.response.signature.alg": "RS256",
+                    "post.logout.redirect.uris": "+",
                 },  # Needed to make UserInfo return signed JWT
             },
             skip_exists=True,
@@ -338,7 +343,8 @@ def createTestClientTDFAttributes(keycloak_admin):
             "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
-                "user.info.response.signature.alg": "RS256"
+                "user.info.response.signature.alg": "RS256",
+                "post.logout.redirect.uris": "+",
             },  # Needed to make UserInfo return signed JWT
         },
         skip_exists=True,
@@ -367,6 +373,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
             "webOrigins": ["+"],
             "attributes": {
                 "user.info.response.signature.alg": "RS256"
+                "post.logout.redirect.uris": "+",
             },  # Needed to make UserInfo return signed JWT
         },
         skip_exists=True,
@@ -396,7 +403,8 @@ def createTestClientTDFEntityResolution(keycloak_admin):
             "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
-                "user.info.response.signature.alg": "RS256"
+                "user.info.response.signature.alg": "RS256",
+                "post.logout.redirect.uris": "+",
             },  # Needed to make UserInfo return signed JWT
         },
         skip_exists=True,
@@ -438,6 +446,7 @@ def createTestClientForAbacusWebAuth(keycloak_admin):
             "protocol": "openid-connect",
             "redirectUris": redirect_uris,
             "webOrigins": ["+"],
+            "attributes": {"post.logout.redirect.uris": "+"},
         },
         skip_exists=True,
     )
@@ -520,8 +529,9 @@ def createTestClientForExchangeFlow(keycloak_admin, keycloak_auth_url):
             "publicClient": "false",
             "redirectUris": redirect_uris,
             "attributes": {
-                "user.info.response.signature.alg": "RS256"
-            },  # Needed to make UserInfo return signed JWT
+                "user.info.response.signature.alg": "RS256", # Needed to make UserInfo return signed JWT
+                "post.logout.redirect.uris": "+",
+            },
         },
         skip_exists=True,
     )
