@@ -17,7 +17,9 @@ export PATH="$PATH:$TOOLS_DIR"
 
 monolog TRACE "monotest: [$0 $*]"
 
+monolog INFO "monotest: PROJECT ROOT before gen keys [${PROJECT_ROOT}]"
 genkeys-if-needed || exit 1
+monolog INFO "monotest: PROJECT ROOT after gen keys [${PROJECT_ROOT}]"
 
 export packages_under_test=()
 export coverage=
@@ -117,7 +119,9 @@ _single_package() {
   fi
 }
 
+monolog INFO "monotest: PROJECT ROOT before for loop [${PROJECT_ROOT}]"
 for p in "${packages_under_test[@]}"; do
+  monolog INFO "monotest: PROJECT ROOT in for loop [${PROJECT_ROOT}]"
   _single_package "$p"
   rval=$?
   if [[ $rval -ne 0 ]]; then
