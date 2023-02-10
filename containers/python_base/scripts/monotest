@@ -91,7 +91,7 @@ _single_pytest() {
 _single_package() {
   monolog TRACE "_single_package: [$*]"
   if [ ! -d "${PROJECT_ROOT}/$1" ]; then
-    monolog ERROR "monotest: Not a package directory [${PROJECT_ROOT}/$1]"
+    monolog ERROR "Not a package directory [${PROJECT_ROOT}/$1]"
     exit 1
   fi
 
