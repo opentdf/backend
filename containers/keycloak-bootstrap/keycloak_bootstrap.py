@@ -253,8 +253,9 @@ def createTestClientForBrowserAuthFlow(keycloak_admin):
             "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
-                "user.info.response.signature.alg": "RS256"
-            },  # Needed to make UserInfo return signed JWT
+                "user.info.response.signature.alg": "RS256", # Needed to make UserInfo return signed JWT
+                "post.logout.redirect.uris": "+",
+            },  
         },
         skip_exists=True,
     )
@@ -491,6 +492,7 @@ def createTestClientForDCRAuth(keycloak_admin):
             "protocol": "openid-connect",
             "redirectUris": redirect_uris,
             "webOrigins": ["+"],
+            "attributes": {"post.logout.redirect.uris": "+"},
         },
         skip_exists=True,
     )
