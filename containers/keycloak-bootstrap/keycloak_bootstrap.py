@@ -200,7 +200,7 @@ def createTestClientForX509Flow(keycloak_admin):
                 "webOrigins": ["+"],
                 "attributes": {
                     "x509.subjectdn": "CN=(.*)(?:$)",
-                    "post.logout.redirect.uris": "+"
+                    "post.logout.redirect.uris": "+",
                 },
             },
             skip_exists=True,
@@ -372,7 +372,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
             "redirectUris": redirect_uris,
             "webOrigins": ["+"],
             "attributes": {
-                "user.info.response.signature.alg": "RS256"
+                "user.info.response.signature.alg": "RS256",
                 "post.logout.redirect.uris": "+",
             },  # Needed to make UserInfo return signed JWT
         },
