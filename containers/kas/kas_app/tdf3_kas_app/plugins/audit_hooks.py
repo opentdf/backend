@@ -19,6 +19,8 @@ from tdf3_kas_core.errors import AuthorizationError
 
 logger = logging.getLogger(__name__)
 
+ORG_ID = os.getenv("CONFIG_ORG_ID", str(uuid.uuid4()))
+
 
 def audit_hook(function_name, return_value, data, context, *args, **kwargs):
 
@@ -32,7 +34,7 @@ def audit_hook(function_name, return_value, data, context, *args, **kwargs):
             "tdf_id": "",
             "tdf_name": None,
             "owner_id": "",
-            "owner_org_id": None,
+            "owner_org_id": ORG_ID,
             "transaction_type": "create",
             "action_type": "decrypt",
             "tdf_attributes": {"dissem": [], "attrs": []},
@@ -67,7 +69,7 @@ def err_audit_hook(
             "tdf_id": "",
             "tdf_name": None,
             "owner_id": "",
-            "owner_org_id": None,
+            "owner_org_id": ORG_ID,
             "transaction_type": "create_error",
             "action_type": "access_denied",
             "tdf_attributes": {"dissem": [], "attrs": []},
