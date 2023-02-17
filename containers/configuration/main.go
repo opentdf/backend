@@ -14,6 +14,11 @@ import (
 func main() {
 	log.Println("Configuration service starting")
 
+	openapi, err := os.ReadFile("./openapi.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	client := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: os.Getenv("REDIS_PASSWORD"),
@@ -34,7 +39,10 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
-	http.HandleFunc("/configuration", Handler)
+	http.Handle("/", &ConfigurationHandler{
+		openapi: openapi,
+		client:  client,
+	})
 	go func() {
 		log.Printf("listening on http://%s", server.Addr)
 		log.Printf(os.Getenv("SERVICE"))
@@ -49,6 +57,19 @@ func main() {
 	}
 }
 
-func Handler(writer http.ResponseWriter, request *http.Request) {
+type ConfigurationHandler struct {
+	openapi []byte
+	client  *redis.Client
+}
 
+func (h ConfigurationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println(r.URL)
+	if r.URL.Path == "/openapi.json" {
+		_, err := w.Write(h.openapi)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		return
+	}
 }
