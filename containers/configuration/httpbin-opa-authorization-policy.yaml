@@ -1,0 +1,15 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: httpbin-opa
+spec:
+  selector:
+    matchLabels:
+      app: httpbin-with-opa
+  action: CUSTOM
+  provider:
+    name: "opa.local"
+  rules:
+    - to:
+        - operation:
+            notPaths: ["/ip"]
