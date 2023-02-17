@@ -70,3 +70,11 @@
            service: "local-opa-grpc.local"
            port: "9191"
    ```
+
+### Development
+
+```shell
+kubectl port-forward service/redis 6379:6379
+
+export REDIS_PASSWORD a-very-complex-password-here
+```
