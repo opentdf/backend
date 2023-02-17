@@ -1,0 +1,171 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Configuration Management Service",
+    "description": "Service to centrally manage configuration",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://virtserver.swaggerhub.com/pflynn-virtru/configuration/1.0.0",
+      "description": "SwaggerHub API Auto Mocking"
+    }
+  ],
+  "security": [
+    {
+      "application": [
+        "read",
+        "write"
+      ]
+    }
+  ],
+  "paths": {
+    "/configuration/{key}": {
+      "get": {
+        "summary": "Get Configuration",
+        "description": "Get Configuration Value By Key.",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "compound key of the configuration to get",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Content Length."
+              },
+              "Last-Modified": {
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "description": "Content Last Modified Date."
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Update Configuration",
+        "description": "Update Configuration.",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "compound key of the configuration to post",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Configuruation Value",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            },
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "head": {
+        "summary": "Configuration Metadata",
+        "description": "Returns Configuration Metadata for a given key.",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "compound key of the configuration to get",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Content-Length": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Content Length."
+              },
+              "Last-Modified": {
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "description": "Content Last Modified Date."
+              }
+            }
+          },
+          "404": {
+            "description": "Item Not Found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "securitySchemes": {
+      "application": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "http://example.com/oauth/token",
+            "scopes": {
+              "write": "allows modifying resources",
+              "read": "allows reading resources"
+            }
+          }
+        }
+      }
+    }
+  }
+}
