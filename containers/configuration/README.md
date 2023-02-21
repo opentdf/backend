@@ -78,3 +78,8 @@ kubectl port-forward service/redis 6379:6379
 
 export REDIS_PASSWORD a-very-complex-password-here
 ```
+
+### Future Considerations
+
+Use Redis HA helm chart https://artifacthub.io/packages/helm/dandydev-charts/redis-ha
+

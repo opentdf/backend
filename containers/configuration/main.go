@@ -13,36 +13,36 @@ import (
 
 func main() {
 	log.Println("Configuration service starting")
-
+	// load openapi
 	openapi, err := os.ReadFile("./openapi.json")
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// setup redis client
 	client := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: os.Getenv("REDIS_PASSWORD"),
 		DB:       0,
 	})
-
+	// test redis connectivity
 	pong, err := client.Ping().Result()
 	fmt.Println(pong, err)
-
 	// os interrupt
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
-
-	// server
+	// setup server
 	server := http.Server{
 		Addr:         "127.0.0.1:8080",
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
+	// setup handler
 	http.Handle("/", &ConfigurationHandler{
 		openapi: openapi,
 		client:  client,
 	})
+	// start server
 	go func() {
 		log.Printf("listening on http://%s", server.Addr)
 		log.Printf(os.Getenv("SERVICE"))
