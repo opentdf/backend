@@ -26,7 +26,7 @@ type Config struct {
 }
 
 
-func loadConfig() (*Config, error) {
+func loadGlobalConfig() (*Config, error) {
 	data := &Config{}
 	dirPath, err := filepath.Abs(ConfigDir)
 	if err != nil {
