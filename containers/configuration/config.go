@@ -47,7 +47,7 @@ func loadConfig() (*Config, error) {
 }
 
 
-func saveConfigToFile(cfg *Config) error {
+func saveAppConfig(cfg *Config) error {
 	dirPath, err := filepath.Abs(OutputDir)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func saveConfigToFile(cfg *Config) error {
 	return json.NewEncoder(file).Encode(&cfg)
 }
 
-func saveConfigWithTemplate(cfg *Config) error {
+func saveAppConfigWithTemplate(cfg *Config) error {
 	dirPath, err := filepath.Abs(OutputDir)
 	if err != nil {
 		return err
@@ -90,12 +90,12 @@ func main() {
 		log.Fatal("error on parsing config: ", err)
 	}
 
-	err = saveConfigToFile(configData)
+	err = saveAppConfig(configData)
 	if err != nil {
 		log.Fatal("error on writing config: ", err)
 	}
 
-	err = saveConfigWithTemplate(configData)
+	err = saveAppConfigWithTemplate(configData)
 	if err != nil {
 		log.Fatal("error on writing config: ", err)
 	}
