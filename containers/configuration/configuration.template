@@ -1,9 +1,7 @@
-{
-    "attributes": {{.Attributes}},
-    "entitlements": {{.Entitlements}},
-    "authority": {{.Authority}},
-    "clientId": {{.ClientId}},
-    "access": {{.Access}},
-    "realms": {{.Realms}},
-    "basePath": {{.BasePath}}
-}
+attributes: {{ .Attributes }}
+entitlements: {{ .Entitlements }}
+authority: {{ .Authority }}
+clientId: {{ .ClientId }}
+access: {{ .Access }}
+realms: {{ .Realms }}
+basePath: {{ .BasePath }}

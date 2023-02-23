@@ -1,0 +1,7 @@
+attributes: "https://opentdf.us/api/attributes/"
+entitlements: "https://opentdf.us/api/entitlements/"
+authority: "https://opentdf.us/auth/"
+clientId: "dcr-test"
+access: "http://opentdf.us/api/kas"
+realms: "tdf"
+basePath: "/abacus"

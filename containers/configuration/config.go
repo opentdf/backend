@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	"gopkg.in/yaml.v3"
 	"log"
 	"path/filepath"
     "os"
@@ -10,19 +10,19 @@ import (
 
 const (
 	ConfigDir    = "./global-configuration"
-	ConfigFile   = "configuration.json"
+	ConfigFile   = "configuration.yaml"
 	OutputDir    = "./app1-configuration"
 	TemplateFile = "configuration.template"
 )
 
 type Config struct {
-	Attributes     string `json:"attributes"`
-	Entitlements   string `json:"entitlements"`
-	Authority      string `json:"authority"`
-	ClientId       string `json:"clientId"`
-	Access         string `json:"access"`
-	Realms         string `json:"realms"`
-	BasePath       string `json:"basePath"`
+	Attributes     string `yaml:"attributes"`
+	Entitlements   string `yaml:"entitlements"`
+	Authority      string `yaml:"authority"`
+	ClientId       string `yaml:"clientId"`
+	Access         string `yaml:"access"`
+	Realms         string `yaml:"realms"`
+	BasePath       string `yaml:"basePath"`
 }
 
 
@@ -39,7 +39,7 @@ func loadGlobalConfig() (*Config, error) {
 		return data, err
 	}
 
-	decoder := json.NewDecoder(file)
+	decoder := yaml.NewDecoder(file)
 	if err = decoder.Decode(&data); err != nil {
 		return data, err
 	}
@@ -60,7 +60,7 @@ func saveAppConfig(cfg *Config) error {
 	}
 	defer file.Close()
 
-	return json.NewEncoder(file).Encode(&cfg)
+	return yaml.NewEncoder(file).Encode(&cfg)
 }
 
 func saveAppConfigWithTemplate(cfg *Config) error {
@@ -85,7 +85,7 @@ func saveAppConfigWithTemplate(cfg *Config) error {
 
 
 func main() {
-	configData, err := loadConfig()
+	configData, err := loadGlobalConfig()
 	if err != nil {
 		log.Fatal("error on parsing config: ", err)
 	}
