@@ -32,6 +32,7 @@ TEST_REQUEST_BODY = {
 def test_extract_policy_data_from_tdf():
     new_audit_log = extract_policy_data_from_tdf3(BASE_AUDIT_LOG, TEST_REQUEST_BODY)
 
+    assert new_audit_log["tdf_id"] == "a46dd163-6039-4ef3-9bd3-0ebb3f403954"
     assert new_audit_log["tdf_attributes"]["dissem"] == []
     assert new_audit_log["tdf_attributes"]["attrs"] == [
             {"attribute": "https://example.com/attr/Classification/value/TS"}
