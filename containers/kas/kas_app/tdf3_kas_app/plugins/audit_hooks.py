@@ -41,6 +41,7 @@ def audit_hook(function_name, return_value, data, context, *args, **kwargs):
             "actor_attributes": {"npe": True, "actor_id": "", "attrs": []},
         }
 
+        audit_log["tdf_id"] = policy.uuid
         audit_log["tdf_attributes"]["attrs"] = policy.data_attributes.export_raw()
         audit_log["tdf_attributes"]["dissem"] = policy.dissem.list
 
@@ -111,6 +112,7 @@ def err_audit_hook(
 def extract_policy_data_from_tdf3(audit_log, dataJson):
     canonical_policy = dataJson["policy"]
     original_policy = Policy.construct_from_raw_canonical(canonical_policy)
+    audit_log["tdf_id"] = original_policy.uuid
     audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
     audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
 
@@ -157,6 +159,7 @@ def extract_policy_data_from_nano(audit_log, dataJson, context, key_master):
         policy_data_as_byte.decode("utf-8")
     )
 
+    audit_log["tdf_id"] = original_policy.uuid
     audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
     audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
 
