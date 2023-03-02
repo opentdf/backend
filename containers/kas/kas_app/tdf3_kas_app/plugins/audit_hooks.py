@@ -30,20 +30,21 @@ def audit_hook(function_name, return_value, data, context, *args, **kwargs):
     try:
         audit_log = {
             "id": str(uuid.uuid4()),
-            "transaction_timestamp": str(datetime.datetime.now()),
-            "tdf_id": "",
-            "tdf_name": None,
-            "owner_id": "",
-            "owner_org_id": ORG_ID,
-            "transaction_type": "create",
-            "action_type": "decrypt",
-            "tdf_attributes": {"dissem": [], "attrs": []},
-            "actor_attributes": {"npe": True, "actor_id": "", "attrs": []},
+            "transactionId": str(uuid.uuid4()), ##TODO
+            "transactionTimestamp": str(datetime.datetime.now()),
+            "tdfId": "",
+            "tdfName": None,
+            "ownerId": "",
+            "ownerOrganizationId": ORG_ID,
+            "transactionType": "create",
+            "eventType": "decrypt",
+            "tdfAttributes": {"dissem": [], "attrs": []},
+            "actorAttributes": {"npe": True, "actorId": "", "attrs": []},
         }
 
-        audit_log["tdf_id"] = policy.uuid
-        audit_log["tdf_attributes"]["attrs"] = policy.data_attributes.export_raw()
-        audit_log["tdf_attributes"]["dissem"] = policy.dissem.list
+        audit_log["tdfId"] = policy.uuid
+        audit_log["tdfAttributes"]["attrs"] = policy.data_attributes.export_raw()
+        audit_log["tdfAttributes"]["dissem"] = policy.dissem.list
 
         audit_log = extract_info_from_auth_token(audit_log, context)
 
@@ -66,15 +67,16 @@ def err_audit_hook(
 
         audit_log = {
             "id": str(uuid.uuid4()),
-            "transaction_timestamp": str(datetime.datetime.now()),
-            "tdf_id": "",
-            "tdf_name": None,
-            "owner_id": "",
-            "owner_org_id": ORG_ID,
-            "transaction_type": "create_error",
-            "action_type": "access_denied",
-            "tdf_attributes": {"dissem": [], "attrs": []},
-            "actor_attributes": {"npe": True, "actor_id": "", "attrs": []},
+            "transactionId": str(uuid.uuid4()),
+            "transactionTimestamp": str(datetime.datetime.now()),
+            "tdfId": "",
+            "tdfName": None,
+            "ownerId": "",
+            "ownerOrganizationId": ORG_ID,
+            "transactionType": "create_error",
+            "eventType": "access_denied",
+            "tdfAttributes": {"dissem": [], "attrs": []},
+            "actorAttributes": {"npe": True, "actorId": "", "attrs": []},
         }
 
         audit_log = extract_info_from_auth_token(audit_log, context)
@@ -112,9 +114,9 @@ def err_audit_hook(
 def extract_policy_data_from_tdf3(audit_log, dataJson):
     canonical_policy = dataJson["policy"]
     original_policy = Policy.construct_from_raw_canonical(canonical_policy)
-    audit_log["tdf_id"] = original_policy.uuid
-    audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
-    audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
+    audit_log["tdfId"] = original_policy.uuid
+    audit_log["tdfAttributes"]["attrs"] = original_policy.data_attributes.export_raw()
+    audit_log["tdfAttributes"]["dissem"] = original_policy.dissem.list
 
     return audit_log
 
@@ -159,9 +161,9 @@ def extract_policy_data_from_nano(audit_log, dataJson, context, key_master):
         policy_data_as_byte.decode("utf-8")
     )
 
-    audit_log["tdf_id"] = original_policy.uuid
-    audit_log["tdf_attributes"]["attrs"] = original_policy.data_attributes.export_raw()
-    audit_log["tdf_attributes"]["dissem"] = original_policy.dissem.list
+    audit_log["tdfId"] = original_policy.uuid
+    audit_log["tdfAttributes"]["attrs"] = original_policy.data_attributes.export_raw()
+    audit_log["tdfAttributes"]["dissem"] = original_policy.dissem.list
 
     return audit_log
 
@@ -184,15 +186,15 @@ def extract_info_from_auth_token(audit_log, context):
                 algorithms=["RS256", "ES256", "ES384", "ES512"],
             )
             if decoded_auth.get("sub"):
-                audit_log["owner_id"] = decoded_auth.get("sub")
+                audit_log["ownerId"] = decoded_auth.get("sub")
             if decoded_auth.get("tdf_claims").get("entitlements"):
                 attributes = set()
                 # just put all entitlements into one list, dont seperate by entity for now
                 for item in decoded_auth.get("tdf_claims").get("entitlements"):
                     for attribute in item.get("entity_attributes"):
                         attributes.add(attribute.get("attribute"))
-                audit_log["actor_attributes"]["attrs"] = list(attributes)
+                audit_log["actorAttributes"]["attrs"] = list(attributes)
             if decoded_auth.get("azp"):
-                audit_log["actor_attributes"]["actor_id"] = decoded_auth.get("azp")
+                audit_log["actorAttributes"]["actorId"] = decoded_auth.get("azp")
 
     return audit_log
