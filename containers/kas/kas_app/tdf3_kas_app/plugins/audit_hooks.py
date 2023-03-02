@@ -31,7 +31,7 @@ def audit_hook(function_name, return_value, data, context, *args, **kwargs):
         audit_log = {
             "id": str(uuid.uuid4()),
             "transactionId": str(uuid.uuid4()), ##TODO
-            "transactionTimestamp": str(datetime.datetime.now()),
+            "transactionTimestamp": str(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")),
             "tdfId": "",
             "tdfName": None,
             "ownerId": "",
@@ -68,7 +68,7 @@ def err_audit_hook(
         audit_log = {
             "id": str(uuid.uuid4()),
             "transactionId": str(uuid.uuid4()),
-            "transactionTimestamp": str(datetime.datetime.now()),
+            "transactionTimestamp": str(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")),
             "tdfId": "",
             "tdfName": None,
             "ownerId": "",
