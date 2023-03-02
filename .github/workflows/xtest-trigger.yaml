@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - name: Sleep for 90 minutes (wair for images/charts to publish)
+      - name: Sleep for 90 minutes (wait for images/charts to publish)
         run: sleep 90m
       - name: Trigger opentdf/tests
         run: >-
