@@ -90,7 +90,7 @@ jobs:
       - name: "🐍 🧪"
         run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.10" scripts/monotest --coverage containers/kas/kas_app containers/kas/kas_core
       - name: SonarCloud Scan
-        if: ${{ ! github.event.pull_request.head.repo.fork && secrets.SONAR_TOKEN }}
+        if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
