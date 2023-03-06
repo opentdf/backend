@@ -36,7 +36,7 @@ def test_extract_policy_data_from_tdf():
     assert new_audit_log["tdfId"] == "a46dd163-6039-4ef3-9bd3-0ebb3f403954"
     assert new_audit_log["tdfAttributes"]["dissem"] == []
     assert new_audit_log["tdfAttributes"]["attrs"] == [
-            {"attribute": "https://example.com/attr/Classification/value/TS"}
+            "https://example.com/attr/Classification/value/TS"
         ]
 
 
