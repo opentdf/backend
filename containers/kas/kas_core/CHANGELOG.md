@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]: https://github.com/opentdf/backend/compare/main...HEAD
+
+## 1.2.1 - 2023-3-10
 - NO-REF
   - Update certifi to address vulnerability
 - PLAT-2291
