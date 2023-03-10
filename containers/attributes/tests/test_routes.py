@@ -215,6 +215,6 @@ def test_delete_attributes_definitions(test_app, monkeypatch):
         mock_delete_attributes_definitions_crud,
     )
 
-    response = test_app.delete("/definitions/attributes", data=json.dumps(test_payload))
+    response = test_app.request("DELETE", "/definitions/attributes", data=json.dumps(test_payload))
     assert response.status_code == 202
     assert response.json() == {}
