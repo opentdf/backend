@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-version = "0.8.7"
+version = "1.2.1"
 
 setup(
     name="tdf3-kas-core",
