@@ -12,7 +12,7 @@
 # Usage: scripts/monotest [--coverage] <package dir>
 
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
-PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+PROJECT_ROOT="$(cd "$TOOLS_DIR"/../ >/dev/null && pwd)"
 export PATH="$PATH:$TOOLS_DIR"
 
 monolog TRACE "monotest: [$0 $*]"

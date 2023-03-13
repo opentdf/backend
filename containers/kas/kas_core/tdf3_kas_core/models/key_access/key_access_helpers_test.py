@@ -9,11 +9,11 @@ from pprint import pprint
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from tdf3_kas_core.models import WrappedKey
+from tdf3_kas_core.models.wrapped_keys import aes_encrypt_sha1
 
 from tdf3_kas_core.util import get_public_key_from_disk
 from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
-from tdf3_kas_core.util import aes_encrypt_sha1
 from tdf3_kas_core.util import aes_gcm_encrypt
 
 from tdf3_kas_core.errors import KeyAccessError
@@ -242,5 +242,5 @@ def test_metadata_from_raw_with_iv_prepend():
         "iv": base64.b64encode(iv),
         "ciphertext": base64.b64encode(iv + encrypted),
     }
-    metadata = decrypt_encrypted_metadata(raw_metadata, secret)
+    metadata = decrypt_encrypted_metadata(raw_metadata, WrappedKey(secret))
     assert json.dumps(json.loads(metadata)) == json.dumps(expected)

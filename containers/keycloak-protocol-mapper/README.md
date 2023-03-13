@@ -28,7 +28,7 @@ make dockerbuildpush
 > and we can drop it entirely if we make a PR to [Keycloak image](https://github.com/keycloak/keycloak-containers)
 > enabling an `arm64` image build in upstream in the same manner we do here.
 
-``` sh
+```sh
 make keycloak-base-buildpush
 ```
 

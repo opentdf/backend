@@ -10,6 +10,8 @@ global:
       oidcUrlPath: auth
       # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
+      # -- Enable audit logging
+      auditLogEnabled: false
       postgres:
         # -- postgres server's k8s name or global DNS for external server
         host: postgresql

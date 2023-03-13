@@ -68,13 +68,14 @@ from tdf3_kas_core.authorized import authorized_v2
 from tdf3_kas_core.authorized import looks_like_jwt
 from tdf3_kas_core.authorized import leeway
 
+
 logger = logging.getLogger(__name__)
 
 
 flags = {
     # TODO(PLAT-1212) Remove (set to False)
     "default_to_small_iv": os.environ.get("LEGACY_NANOTDF_IV") == "1",
-    "idp": os.environ.get("USE_KEYCLOAK") == "1",
+    "idp": os.environ.get("USE_OIDC") == "1",
 }
 
 
@@ -497,7 +498,7 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
             wrapped_key = WrappedKey.from_raw(key_access.wrapped_key, kas_private)
             res["entityWrappedKey"] = wrapped_key.rewrap_key(client_public_key)
             logger.debug("REWRAP SERVICE FINISH")
-            return res
+            return res, policy, claims
         else:
             logger.error("Wrapped key missing from %s", key_access)
             raise KeyAccessError("No wrapped key in key access model")
@@ -650,7 +651,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         "entityWrappedKey": encrypted_symmetric_kak_base64,
         "sessionPublicKey": ephemeral_rewrap_public_key,
     }
-    return res
+    return res, policy, claims
 
 
 def upsert(data, context, plugin_runner, key_master):

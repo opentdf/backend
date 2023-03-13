@@ -60,7 +60,9 @@ def test_remove_entitlement_from_entity(test_app, monkeypatch):
         "https://opentdf.io/attr/IntellectualProperty/value/TradeSecret2",
     ]
 
-    async def mock_remove_entitlement_from_entity_crud(entityId, request, auth_token=None):
+    async def mock_remove_entitlement_from_entity_crud(
+        entityId, request, auth_token=None
+    ):
         return {}
 
     monkeypatch.setattr(
@@ -69,8 +71,8 @@ def test_remove_entitlement_from_entity(test_app, monkeypatch):
         mock_remove_entitlement_from_entity_crud,
     )
 
-    response = test_app.delete(
-        "/entitlements/tdf_client", data=json.dumps(test_payload)
+    response = test_app.request(
+        "DELETE", "/entitlements/tdf_client", data=json.dumps(test_payload)
     )
     assert response.status_code == 202
     assert response.json() == {}

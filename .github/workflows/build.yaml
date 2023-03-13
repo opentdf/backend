@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Select keycloak base version
-        run: | 
+        run: |
           KEYCLOAK_BASE_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
           echo "KEYCLOAK_BASE_VERSION=$KEYCLOAK_BASE_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-base-version
@@ -90,7 +90,7 @@ jobs:
       - name: "🐍 🧪"
         run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.10" scripts/monotest --coverage containers/kas/kas_app containers/kas/kas_core
       - name: SonarCloud Scan
-        if: ${{ ! github.event.pull_request.head.repo.fork }}
+        if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -134,7 +134,7 @@ jobs:
       packages: read
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: "18.x"
           registry-url: https://npm.pkg.github.com
@@ -241,7 +241,7 @@ jobs:
           helm package backend
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
-          rm *.tgz 
+          rm *.tgz
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
@@ -287,7 +287,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           build-args: |-
-            ALPINE_VERSION=3.16
+            ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
           context: ./containers/python_base
@@ -337,7 +337,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           build-args: |-
-            ALPINE_VERSION=3.16
+            ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
           context: ./containers/${{ matrix.repo }}
@@ -423,7 +423,7 @@ jobs:
       - name: Setup policy OCI bundler tool
         uses: actions/setup-go@v3
         with:
-          go-version: '>=1.18.0'
+          go-version: ">=1.18.0"
       - name: Build policy bundle
         if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
@@ -478,7 +478,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           build-args: |-
-            ALPINE_VERSION=3.16
+            ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
             PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}

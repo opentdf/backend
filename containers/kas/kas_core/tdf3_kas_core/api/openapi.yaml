@@ -1,7 +1,7 @@
 # OpenAPI Spec https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md
 openapi: 3.0.0
 info:
-  version: 1.1.1
+  version: 1.2.1
   title: Key Access Service
   termsOfService: https://github.com/opentdf/backend/blob/master/LICENSE
   license:
@@ -176,7 +176,7 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
   "/upsert":
     post:
-      summary: Request a upsert
+      summary: Request an upsert
       description: |
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
@@ -209,7 +209,7 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
   "/v2/upsert":
     post:
-      summary: Request a upsert
+      summary: Request an upsert
       description: |
         The upsert service is a proxy to the back-end services that persist
         policies and keys.

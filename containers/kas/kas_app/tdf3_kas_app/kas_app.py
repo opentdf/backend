@@ -12,13 +12,16 @@ from .plugins import (
     opentdf_attr_authority_plugin,
     revocation_plugin,
     access_pdp_healthz_plugin,
+    audit_hooks
 )
 
 logger = logging.getLogger(__name__)
 
 
-USE_KEYCLOAK = os.environ.get("USE_KEYCLOAK") == "1"
-KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST") is not None
+USE_OIDC = os.environ.get("USE_OIDC") == "1"
+OIDC_SERVER_URL = os.environ.get("OIDC_SERVER_URL") is not None
+
+AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
 
 
 def configure_filters(kas):
@@ -35,7 +38,7 @@ def configure_filters(kas):
     filter_plugin = revocation_plugin.RevocationPlugin(allows=allows, blocks=blocks)
     kas.use_rewrap_plugin(filter_plugin)
     kas.use_upsert_plugin(filter_plugin)
-    if USE_KEYCLOAK:
+    if USE_OIDC:
         # filter_plugin = revocation_plugin.RevocationPluginV2(allows=allows, blocks=blocks)
         kas.use_rewrap_plugin_v2(filter_plugin)
         kas.use_upsert_plugin_v2(filter_plugin)
@@ -61,7 +64,7 @@ def app(name):
     The name parameter is the name of the execution root. Typically this will
     be __main__.
     """
-    global USE_KEYCLOAK
+    global USE_OIDC
     # Construct the KAS instance
     kas = Kas.get_instance()
     kas.set_root_name(name)
@@ -78,10 +81,10 @@ def app(name):
             logger.exception(e)
             logger.warning("Version not set")
 
-    if USE_KEYCLOAK and KEYCLOAK_HOST:
+    if USE_OIDC and OIDC_SERVER_URL:
         logger.info("Keycloak integration enabled.")
-    elif USE_KEYCLOAK or KEYCLOAK_HOST:
-        e_msg = "Either USE_KEYCLOAK or KEYCLOAK_HOST are not correctly defined - both are required."
+    elif USE_OIDC or OIDC_SERVER_URL:
+        e_msg = "Either USE_OIDC or OIDC_SERVER_URL are not correctly defined - both are required."
         logger.error(e_msg)
         raise Exception(e_msg)
     # Add Attribute fetch plugin
@@ -98,6 +101,10 @@ def app(name):
 
     access_pdp_health = access_pdp_healthz_plugin.AccessPDPHealthzPlugin()
     kas.use_healthz_plugin(access_pdp_health)
+
+    if AUDIT_ENABLED:
+        kas.use_post_rewrap_hook(audit_hooks.audit_hook)
+        kas.use_err_rewrap_hook(audit_hooks.err_audit_hook)
 
     configure_filters(kas)
 

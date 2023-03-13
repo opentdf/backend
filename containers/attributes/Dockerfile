@@ -2,7 +2,7 @@
 # NOTE - The version is also needed in the site-packages COPY command below
 # context must be parent folder
 ARG PY_VERSION=3.10
-ARG ALPINE_VERSION=3.16
+ARG ALPINE_VERSION=3.17
 ARG CONTAINER_REGISTRY=docker.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 
@@ -32,8 +32,6 @@ RUN diff <(python3 -m attributes.main) attributes/openapi.json
 # stage - production server
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 ARG PY_VERSION
-
-RUN apk add --no-cache --upgrade sqlite
 
 WORKDIR /app
 COPY --from=build --chown=root:root /build/ .

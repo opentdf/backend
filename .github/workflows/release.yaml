@@ -21,6 +21,10 @@ jobs:
       SHA_TAG: "${{ steps.info.outputs.SHA }}"
     timeout-minutes: 5
     steps:
+      - name: This workflow should run only main branch
+        if: github.ref_name != 'main'
+        run: echo This workflow should run only main branch. Please switch from "${{ github.ref_name }}" to main and try again >> $GITHUB_STEP_SUMMARY && exit 1
+
       - uses: actions/checkout@v3
       - run: echo -e "$EVENT_CONTEXT\n"
         env:
@@ -189,7 +193,6 @@ jobs:
           echo "Packaged Helm chart [backend] as " *.tgz
           helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz
-
 
   signing-artifacts:
     needs:
