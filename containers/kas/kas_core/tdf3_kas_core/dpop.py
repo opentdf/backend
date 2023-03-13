@@ -69,7 +69,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     logger.info("id_jwt: [%s], dpop: [%s]", id_jwt, dpop)
     if bearer != "Bearer" or not looks_like_jwt(id_jwt):
         if do_oidc:
-            raise UnauthorizedError("Missing auth header")
+            raise UnauthorizedError("Invalid auth header")
         return False
     verifier_key = fetch_realm_key_by_jwt(id_jwt, key_master)
     jwt_decoded = authorized_v2(verifier_key, id_jwt)
