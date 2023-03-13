@@ -53,10 +53,14 @@ def test_validate_dpop_no_auth():
 
 def test_validate_dpop_malformed_auth():
     with pytest.raises(UnauthorizedError, match=r".*Invalid auth.*"):
-        validate_dpop("", keys, MockRequest({"authorization": "Barely a.b.c"}))
+        validate_dpop("", keys, MockRequest({"authorization": "Barely a.b.c"}), do_oidc=True)
 
 
 def test_validate_dpop_malformed_auth_2():
+    assert not validate_dpop("", keys, MockRequest({"authorization": "Barely a.b.c"}))
+
+
+def test_validate_dpop_malformed_auth_3():
     with pytest.raises(UnauthorizedError, match=r".*Invalid JWT.*"):
         validate_dpop("", keys, MockRequest({"authorization": "Bearer a.b.c"}))
 
