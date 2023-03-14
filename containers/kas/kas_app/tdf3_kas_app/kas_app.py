@@ -7,6 +7,7 @@ from importlib import metadata
 from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
+from tdf3_kas_core import validate_dpop
 
 from .plugins import (
     opentdf_attr_authority_plugin,
@@ -101,6 +102,8 @@ def app(name):
 
     access_pdp_health = access_pdp_healthz_plugin.AccessPDPHealthzPlugin()
     kas.use_healthz_plugin(access_pdp_health)
+
+    kas.use_pop_middleware(validate_dpop)
 
     if AUDIT_ENABLED:
         kas.use_post_rewrap_hook(audit_hooks.audit_hook)

@@ -161,6 +161,7 @@ class Kas(object):
         self._upsert_plugins_v2 = []
         self._post_rewrap_hook = post_rewrap_v2_hook_default
         self._err_rewrap_hook = lambda *args: None
+        self._pop_middleware = lambda *args: None
         self._key_master = KeyMaster()
 
         # These callables and the flask app will be constructed by the app() method after configuration
@@ -257,6 +258,10 @@ class Kas(object):
         """ Add a hook called when rewrap returns an error """
         if callable(hook):
             self._err_rewrap_hook = hook
+
+    def use_pop_middleware(self, middleware):
+        if callable(middleware):
+            self._pop_middleware = middleware
 
     def get_session_healthz(self):
         """return the callable to process healthz requests."""
