@@ -31,6 +31,6 @@ six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3
 statsd==3.3.0
 -e ./../kas_core
 urllib3==1.26.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
-werkzeug==2.1.2; python_version >= '3.7'
+werkzeug==2.2.3; python_version >= '3.7'
 wsgicors==0.7.0
 zipp==3.8.0; python_version >= '3.7'
