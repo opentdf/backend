@@ -43,11 +43,11 @@ def upsert_helper(body, mode="upsert"):
 
 @run_service_with_exceptions
 def upsert(body, *, dpop=None):
-    Kas.get_instance()._pop_middleware(dpop, Kas.get_instance()._key_master)
+    Kas.get_instance()._middleware(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert")
 
 
 @run_service_with_exceptions
 def upsert_v2(body, *, dpop=None):
-    Kas.get_instance()._pop_middleware(dpop, Kas.get_instance()._key_master)
+    Kas.get_instance()._middleware(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert_v2")
