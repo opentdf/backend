@@ -21,6 +21,7 @@ from .models import KeyMaster
 
 from .errors import PluginIsBadError
 from .errors import ServerStartupError
+from .errors import MiddlewareIsBadError
 
 from .abstractions import (
     AbstractHealthzPlugin,
@@ -161,6 +162,7 @@ class Kas(object):
         self._upsert_plugins_v2 = []
         self._post_rewrap_hook = post_rewrap_v2_hook_default
         self._err_rewrap_hook = lambda *args: None
+        self._middleware = None
         self._key_master = KeyMaster()
 
         # These callables and the flask app will be constructed by the app() method after configuration
@@ -250,13 +252,26 @@ class Kas(object):
 
     def use_post_rewrap_hook(self, hook):
         """ Add a hook called after rewrap completes """
-        if callable(hook):
-            self._post_rewrap_hook = hook
+        if not callable(hook):
+            raise MiddlewareIsBadError("Provided error hook is not callable")
+        self._post_rewrap_hook = hook
 
     def use_err_rewrap_hook(self, hook):
         """ Add a hook called when rewrap returns an error """
-        if callable(hook):
-            self._err_rewrap_hook = hook
+        if not callable(hook):
+            raise MiddlewareIsBadError("Provided error hook is not callable")
+        self._err_rewrap_hook = hook
+
+    def add_middleware(self, middleware):
+        if not(callable(middleware) or None):
+            raise MiddlewareIsBadError("Provided middleware is not callable")
+        self._middleware = middleware
+
+    def get_middleware(self):
+        """ return the callable middleare """
+        if self._middleware is not None:
+            return self._middleware
+        return lambda *args: None
 
     def get_session_healthz(self):
         """return the callable to process healthz requests."""

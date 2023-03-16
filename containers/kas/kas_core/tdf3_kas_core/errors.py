@@ -55,6 +55,8 @@ class KeyNotFoundError(Error):
 class JWTError(Error):
     """Raise when there is some failure creating or verifying a JWT."""
 
+class MiddlewareIsBadError(Error):
+    """Throw when something non-callable is provided."""
 
 class PluginBackendError(Error):
     """Generic 502 errors, for use by plugins."""

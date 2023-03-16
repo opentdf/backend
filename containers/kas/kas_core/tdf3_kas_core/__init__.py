@@ -7,4 +7,6 @@ from .models import Context  # noqa: F401
 from .models import WrappedKey  # noqa: F401
 from .models import AttributeValue  # noqa: F401
 
+from .dpop import validate_dpop # noqa: F401
+
 from .kas import Kas  # noqa: F401
