@@ -158,7 +158,7 @@ def test_add_wrapped_values():
 
 def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     """Test add metadata values."""
-    expected = {"foo": "bar"}
+    expected = {"foo": "\/こんにちは"}
     print(expected)
     metadata = str.encode(json.dumps(expected))
     print(metadata)
