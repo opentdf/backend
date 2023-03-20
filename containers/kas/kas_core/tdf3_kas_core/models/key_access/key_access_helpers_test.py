@@ -178,7 +178,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     metadata_json = str.encode(json.dumps(metadata_dict))
     encrypted_metadata = bytes.decode(base64.b64encode(metadata_json))
     print(encrypted_metadata)
-    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiZDR1MnFHTkc0aUZTZ1NzajBqVlJzL0doaUVob1JLRGlpOFJtdEZLbVRDbFZSQVlVS3dOSWttLy81cjI1alJVSEFnVVRUcXhZcmgwalZJRXJaS2F1aHMxZXBFN1VFSTlLb1BHSXNhYkIzYk5xMjc0QTBjK2VONGJYcmljN1ZOY0RYK01wWlZyWVVmMU9rTVNObEFBbVBDZFpDbGFZc0VTbGh6UkZIRDA9IiwiaXYiOiJkNHUycUdORzRpRlNnU3NqIn0="}
+    raw_dict = {"encryptedMetadata": encrypted_metadata}
     print(raw_dict)
 
     # generate the "kas wrapped 'object' key" from the local test secret
