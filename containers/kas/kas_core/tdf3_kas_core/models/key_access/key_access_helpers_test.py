@@ -187,6 +187,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     # wrapped_key = wrapped_secret.rewrap_key(public_key)
 
     kao = KeyAccess()
+
     wrapped_key_hardcode = 'TdLFVtKNv2maNmk14moVg9n5TqtfPTilNRbbQjdO0hgey5LYZpqtWv1LQ5IiFLsHOm7xLaOHW3aFusMkrQUyX4/D5hCcmC33HDLNYZZ1y75EMF5kgJ9CqNNmdiHxlgexsc2kU0JXvGAd4iSU1t9JBZTT6XwMYanSS4lKspmzZE9BnIb6OUXLqgtUjGNJ251hpYlQcsTKGviSn9/0N6XzCd49BAHRiaBR1tGXtGy7ewqsVcwJzIb06gInw8qODwhLPnbQoC1CO5pO4d70XCMeZt8TxUNCr1wvp9wn54lJo7/B4IacY5udKz+du4fekef7mK0rSKq4dT0Y1rYKYPt9oA=='
     kao.metadata = decrypt_metadata_string(
         raw_dict, wrapped_key=wrapped_key_hardcode, private_key=private_key
