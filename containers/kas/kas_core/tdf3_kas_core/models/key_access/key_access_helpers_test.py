@@ -194,7 +194,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     )
     print('kao.metadata')
     print(kao.metadata)
-    print(json.loads(kao.metadata))
+    print(json.loads(kao.metadata.decode("utf-8", "ignore")))
     # assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
 
 
