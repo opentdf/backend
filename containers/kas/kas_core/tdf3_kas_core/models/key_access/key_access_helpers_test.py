@@ -158,7 +158,7 @@ def test_add_wrapped_values():
 
 def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     """Test add metadata values."""
-    # expected = {"foo": "\/こんにちは"}
+    expected = {"foo": "\/こんにちは"}
     # print(expected)
     # metadata = str.encode(json.dumps(expected))
     # print(metadata)
@@ -193,9 +193,8 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
         raw_dict, wrapped_key=wrapped_key_hardcode, private_key=private_key
     )
     print('kao.metadata')
-    print(kao.metadata)
     print(json.loads(kao.metadata.decode("utf-8", "ignore")))
-    # assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
+    assert json.dumps(json.loads(kao.metadata.decode("utf-8", "ignore"))) == json.dumps(expected)
 
 
 def test_add_metadata_values_without_metadata_in_raw_dict():
