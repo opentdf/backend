@@ -178,7 +178,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     # metadata_json = str.encode(json.dumps(metadata_dict))
     # encrypted_metadata = bytes.decode(base64.b64encode(metadata_json))
     # print(encrypted_metadata)
-    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiWWMvOGFlbjZGMXJ3eXR5RGhCRldRVi9xTUFTTEsvUkhaSWduQm5KQmc0ajFRQ0JrYktoR1kvQmtHenoycDVza3VPeXpVUTd5N2c2WUtCOC80NXVkeFFwZVQvWkFVY1Y0Rkt1WXJ5ampobUlpRm41a0VEU2F1ZFBZVncycEtrMnVwaEozU0tUeWNHRWR1TUFRU2lrMlRwY2E3SDdGcXBFdFhDOXV2L1E9IiwiaXYiOiJZYy84YWVuNkYxcnd5dHlEIn0="}
+    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiM2M1enRyZUViZEU3Z2R4cVNEa1QwN0RxdTJPVnpIWFJJQ2VXaXE2ZEp2RHg1eFdKOTcxYytHTGE2L0tLRmp3c2hidmo3TUxVb2pYdUJSTzMzZWJjbTBVaHRaNjN3UWQ1aVR4UDJZdEozSkdId1VLV0tnWFhUdUVydldsdTBRL1pxcHFRZ0dSNXdqVHZNZzZXQjBCOFBjUXR0c3creGI1SHV3bz0iLCJpdiI6IjNjNXp0cmVFYmRFN2dkeHEifQ=="}
     print(raw_dict)
 
     # generate the "kas wrapped 'object' key" from the local test secret
@@ -188,13 +188,13 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
 
     kao = KeyAccess()
 
-    wrapped_key_hardcode = 'TdLFVtKNv2maNmk14moVg9n5TqtfPTilNRbbQjdO0hgey5LYZpqtWv1LQ5IiFLsHOm7xLaOHW3aFusMkrQUyX4/D5hCcmC33HDLNYZZ1y75EMF5kgJ9CqNNmdiHxlgexsc2kU0JXvGAd4iSU1t9JBZTT6XwMYanSS4lKspmzZE9BnIb6OUXLqgtUjGNJ251hpYlQcsTKGviSn9/0N6XzCd49BAHRiaBR1tGXtGy7ewqsVcwJzIb06gInw8qODwhLPnbQoC1CO5pO4d70XCMeZt8TxUNCr1wvp9wn54lJo7/B4IacY5udKz+du4fekef7mK0rSKq4dT0Y1rYKYPt9oA=='
+    wrapped_key_hardcode = 'ajZ4U0dFTG5XUHM1UzZlTkROOUgzWHJpNFVlQklzM2w1b0d0b3Jyc21XYllGYnFKcUxIZzdoU1pEeVVqMVJTL3YzWGZtWDVUbmY0TFM2YXdyc0Ryb01FS1RGRWVsU0JoWWtac2tsYXNweUY1TUpkdzZ6SXdvMms0aXRzNmsrTkFDaUY0SExBVmZPcmdBNXRldmhqYmViS1l3MkFxWEtCdjJIWHJKVXJJc0pKK0JQeGhmR1NZa1NxaTdncHAwTFluRFRaaWxWaXJmZDVOYlhRQWZNeWV5bCsyWnJDVWxrdDFVbmdOakwrMlpHUkt5SlZFL3Npb2UrZ3NuTWkvRjExVFEyaFQrSCtFNml1RWphTlJSZmp1MVJDM2FBcm9ic3BoL2QxamRPVWVYTlUwOUEzNWNkaUF1QXppeHhBalBBL2xNWVgrSG1UcTFsL29PSFpQV0dDV3lRPT0='
     kao.metadata = decrypt_metadata_string(
         raw_dict, wrapped_key=wrapped_key_hardcode, private_key=private_key
     )
     print('kao.metadata')
-    print(json.loads(kao.metadata.decode("utf-8", "ignore")))
-    assert json.dumps(json.loads(kao.metadata.decode("utf-8", "ignore"))) == json.dumps(expected)
+    print(kao.metadata)
+    assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
 
 
 def test_add_metadata_values_without_metadata_in_raw_dict():
