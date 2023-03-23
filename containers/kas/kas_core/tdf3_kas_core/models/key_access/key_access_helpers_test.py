@@ -178,7 +178,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     # metadata_json = str.encode(json.dumps(metadata_dict))
     # encrypted_metadata = bytes.decode(base64.b64encode(metadata_json))
     # print(encrypted_metadata)
-    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiXHUwMDFklkqN3/VHXHUwMDEwg/b+6js5lsWopDNtfexcdTAwMDB76fXJ2yGPTo29spR/+Fx1MDAwMHX6Sl81snC/hFwicJtcXHjyOGdZr1hjJFx1MDAwMz1cdTAwMDCOzlx1MDAxOFx1MDAxMK5cdTAwMDKrPMamodFvKbxcdTAwMTk4t2lIrVx1MDAxY+XXXcVcdTAwMDdcdTAwMWRcdTAwMGVQLlx1MDAwNTJIonvjPYmgMSpqXHUwMDE2bWOwXHSpXG5gRtxETWciLCJpdiI6Ilx1MDAxZJZKjd/1R1x1MDAxMIP2/uoifQ=="}
+    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiY1UrSjVSSVluQTJ6RXJKMnZVelEySExCZWNaSzB4aUNsYVBBd3RQaTMzRjhTSllqcUk3Mkw2SUF5VmluUFRKWTNkWHhrVWtnYlR3ZS9JcGc2VXYwdGlUaHRzUU12dVFkaDVNaTlwOFBnUzNjaXVyUXdvZWJaTEFTN2p2b0Z5U0dRekJEbk9DNW10eWpWZ0xQanJhRy9FV1VaOGZCNjlwY0g1WT0iLCJpdiI6ImNVK0o1UklZbkEyekVySjIifQ=="}
     print(raw_dict)
 
     # generate the "kas wrapped 'object' key" from the local test secret
@@ -188,7 +188,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
 
     kao = KeyAccess()
 
-    wrapped_key_hardcode = 'cnNkWXRtT2l2cjIxbjlQU241aThPZ2JWZDUrWURPNC80TDRUREg5Z0hkVUNwRUE4UXlwQjBOdDM1aFdyWHRrN2NBRktwdDY5dW1qSGI1cEUvRDI2RnQ1dVR0dDdXVXRjWnNWNmlBemdmN0tmajhyTUhzSmY5a0E3Yk5rcTdiek8wNHc0LzcvU1hhTHlxUXU5c1Btb2E3VHEzMlA1aGFNYUZLekVIS0FDc2w5S3B2TFZUaGtKaExOelJyRUFyVVdHZ1hia3VXWWJpaXlQNURad0RUZTEwbEZmTWh0N256OHlTMmtuU29jRDVJR0FpQ3dCeFI2L0RmMVV4Z0p0eS9SMkhkcCtUa1Fwb1BqSEZkemhYZnMxUHQ0RjBNZUZFMCttaU1VN0hMamIzelpEWWVXTlRNSkhjbzVzUTRxSFdoa0htR0NCZUFpVXdhQ3pTVm9IYjlWM0l3PT0='
+    wrapped_key_hardcode = 'Y94S6Pscs8MA/244y2xLtPdIXB4ox+gKDao1h6zztomQskjs8Sm4YFYCARFMycAW2ZSIzQ0tCm+wJB+PhTFg9t1iOCI45MDLflPwxr4NCmylJcXFJVhpHUs+XythTvefaSvlwRp59EM9i6XSNqvM0wBdPi4ALdxHlqUTJEg2KLCYikQb+U/juOv7Po8aO/G/P7GtMuiC/F/+yzA7zS1IfUL4ouukGV7NsGH+4OrM0Iyn/KneGVBy4WxMcOryMLEmktgy3w92qCp4Q0GD0nAzmDSxWrKpAnde7HllXO98FpZsUMlth4WXxNNoGcEh4w2ZX9wsV9x3QN61mtqKKYsTXA=='
     kao.metadata = decrypt_metadata_string(
         raw_dict, wrapped_key=wrapped_key_hardcode, private_key=private_key
     )
