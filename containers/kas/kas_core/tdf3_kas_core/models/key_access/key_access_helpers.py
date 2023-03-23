@@ -115,7 +115,7 @@ def decrypt_metadata_string(raw_dict, wrapped_key=None, private_key=None):
     json_metadata = bytes.decode(base64.b64decode(raw_metadata))
     logger.debug("json metadata = %s", json_metadata)
 
-    metadata_dict = json.loads(decoded_raw_metadata.decode("utf-8", "ignore"))
+    metadata_dict = json.loads(json_metadata)
     logger.debug("metadata_dict = %s", metadata_dict)
 
     # Policies currently work with a single KAS environment.
