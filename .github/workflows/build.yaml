@@ -289,7 +289,7 @@ jobs:
           platforms: ${{ env.CONTAINER_ARCHS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
+          push: true
 
   # "isolated" - meaning these do not depend or build on `python_base`
   build-and-publish-isolated:
