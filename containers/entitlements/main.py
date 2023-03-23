@@ -669,10 +669,7 @@ async def remove_entitlement_from_entity(
         ...,
         example="tdf-client",
     ),
-    request: Annotated[
-        List[str],
-        Field(max_length=2000, exclusiveMaximum=2000),
-    ] = Body(
+    request=Body(
         ...,
         example=[
             "https://opentdf.io/attr/IntellectualProperty/value/TradeSecret",
