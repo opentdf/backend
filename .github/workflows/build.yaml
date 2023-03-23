@@ -243,7 +243,6 @@ jobs:
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz
   build-base:
-    if: ${{ github.event_name == 'push' }}
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
     permissions:
