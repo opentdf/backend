@@ -243,7 +243,7 @@ jobs:
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz
   build-base:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' }}
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
     permissions:
@@ -284,10 +284,6 @@ jobs:
         id: publish
         uses: docker/build-push-action@v3
         with:
-          build-args: |-
-            ALPINE_VERSION=3.17
-            CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.9
           context: ./containers/python_base
           cache-from: type=gha
           cache-to: type=gha,mode=max

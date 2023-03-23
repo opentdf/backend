@@ -28,7 +28,7 @@ COPY attributes/VERSION attributes/
 COPY attributes/tests attributes/tests
 
 # Compile application
-RUN python3 -m compileall attributes/
+# RUN python3 -m compileall attributes/
 
 # Validate openapi
 COPY attributes/openapi.json attributes/
