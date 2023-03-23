@@ -1,31 +1,56 @@
 # base requirements
 
 -i https://pypi.org/simple
-alembic==1.7.7
-asgiref==3.4.1; python_version >= '3.6'
-asyncpg==0.24.0
+alembic==1.10.2
+anyio==3.6.2
+asgiref==3.6.0
+asyncpg==0.27.0
+attrs==22.2.0
+certifi==2022.12.7
 cffi==1.15.1
-click==8.0.3; python_version >= '3.6'
-cryptography==39.0.1
-databases[postgresql]==0.5.5
-fastapi==0.92.0
-h11==0.12.0; python_version >= '3.6'
-httptools==0.4.0
-httpx==0.23.3; python_version >= '3.7'
-markupsafe==2.0.1; python_version >= '3.6'
-psycopg2-binary==2.9.3
-pydantic==1.8.2; python_full_version >= '3.6.1'
-pyjwt==2.4.0
-pytest==7.1.1
-python-dotenv==0.20.0
+charset-normalizer==3.1.0
+click==8.1.3
+cryptography==39.0.2
+databases==0.7.0
+deprecation==2.1.0
+ecdsa==0.18.0
+exceptiongroup==1.1.1
+fastapi==0.95.0
+greenlet==2.0.2
+h11==0.14.0
+httpcore==0.16.3
+httptools==0.5.0
+httpx==0.23.3
+idna==3.4
+iniconfig==2.0.0
+Mako==1.2.4
+MarkupSafe==2.1.2
+packaging==23.0
+pluggy==1.0.0
+psycopg2-binary==2.9.5
+pyasn1==0.4.8
+pycparser==2.21
+pydantic==1.10.7
+PyJWT==2.6.0
+pytest==7.2.2
+python-dotenv==1.0.0
 python-editor==1.0.4
-python-keycloak==2.6.0
-pyyaml==6.0
-requests==2.28.1
-sqlalchemy==1.4.32
-starlette==0.25.0; python_version >= '3.7'
-typing-extensions==4.1.1
-uvicorn[standard]==0.17.6
-uvloop==0.16.0
-watchgod==0.8.1
-websockets==10.2
+python-jose==3.3.0
+python-keycloak==2.14.0
+PyYAML==6.0
+requests==2.28.2
+requests-toolbelt==0.10.1
+rfc3986==1.5.0
+rsa==4.9
+six==1.16.0
+sniffio==1.3.0
+SQLAlchemy==1.4.47
+starlette==0.26.1
+tomli==2.0.1
+typing_extensions==4.5.0
+urllib3==1.26.15
+uvicorn==0.21.1
+uvloop==0.17.0
+watchfiles==0.18.1
+watchgod==0.8.2
+websockets==10.4

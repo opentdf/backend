@@ -1,27 +1,16 @@
-ARG PY_VERSION=3.10
-ARG ALPINE_VERSION=3.17
+ARG BUILD_IMAGE_REGISTRY=registry.access.redhat.com/
+ARG BUILD_IMAGE=ubi9/python-39
+ARG BUILD_IMAGE_TAG=1
 
 # stage - build
-FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
-# Install apk dependencies
-RUN apk add --no-cache --upgrade \
-    gcc \
-    rust \
-    build-base \
-    postgresql-dev \
-    postgresql-client \
-    musl-dev \
-    zlib-dev \
-    jpeg-dev \
-    libffi-dev \
-    openssl \
-    bash
+FROM $BUILD_IMAGE_REGISTRY$BUILD_IMAGE:$BUILD_IMAGE_TAG AS build
 
 COPY ./scripts /scripts
 
 WORKDIR /build
 # Install pip dependencies
-ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
     pip3 install --no-cache-dir -r requirements.txt
+
+CMD /bin/bash
