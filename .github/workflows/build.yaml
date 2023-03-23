@@ -244,8 +244,6 @@ jobs:
           rm *.tgz
   build-base:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    needs:
-      - integration-test
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
     permissions:
