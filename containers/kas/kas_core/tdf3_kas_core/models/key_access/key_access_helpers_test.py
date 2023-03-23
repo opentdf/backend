@@ -178,7 +178,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     # metadata_json = str.encode(json.dumps(metadata_dict))
     # encrypted_metadata = bytes.decode(base64.b64encode(metadata_json))
     # print(encrypted_metadata)
-    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiY1UrSjVSSVluQTJ6RXJKMnZVelEySExCZWNaSzB4aUNsYVBBd3RQaTMzRjhTSllqcUk3Mkw2SUF5VmluUFRKWTNkWHhrVWtnYlR3ZS9JcGc2VXYwdGlUaHRzUU12dVFkaDVNaTlwOFBnUzNjaXVyUXdvZWJaTEFTN2p2b0Z5U0dRekJEbk9DNW10eWpWZ0xQanJhRy9FV1VaOGZCNjlwY0g1WT0iLCJpdiI6ImNVK0o1UklZbkEyekVySjIifQ=="}
+    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiMUpqM2JTd2FpakpJKytxaGxjZFhqWU15WkJPUXIveUhUZ1Y3NjZMQ2dORmRFQTZBZFhQK2ZPUlc1d2ZYbHJmUlRTSjBmMjhxUXB5dDBhQnFPUWJKY1JpSitBM1FXZ2QzaHZNMDlVSkNpdXl2c3JvcTkwbW5FQ3RGU1ZBaDkyd3dSNUtUdHBhL3BzOUN1T0VxQWE5TkFUU2Z2OWI5ckduWDdjOD0iLCJpdiI6IjFKajNiU3dhaWpKSSsrcWgifQ=="}
     print(raw_dict)
 
     # generate the "kas wrapped 'object' key" from the local test secret
@@ -188,7 +188,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
 
     kao = KeyAccess()
 
-    wrapped_key_hardcode = 'Y94S6Pscs8MA/244y2xLtPdIXB4ox+gKDao1h6zztomQskjs8Sm4YFYCARFMycAW2ZSIzQ0tCm+wJB+PhTFg9t1iOCI45MDLflPwxr4NCmylJcXFJVhpHUs+XythTvefaSvlwRp59EM9i6XSNqvM0wBdPi4ALdxHlqUTJEg2KLCYikQb+U/juOv7Po8aO/G/P7GtMuiC/F/+yzA7zS1IfUL4ouukGV7NsGH+4OrM0Iyn/KneGVBy4WxMcOryMLEmktgy3w92qCp4Q0GD0nAzmDSxWrKpAnde7HllXO98FpZsUMlth4WXxNNoGcEh4w2ZX9wsV9x3QN61mtqKKYsTXA=='
+    wrapped_key_hardcode = 'AmR4YQgcyB7bliJhYC9r5fu1XRwZu9TXOTnWceKKwgbj60wAnrQ957Wrrop4yuvkM2shen+Ktej4LBhEUQRjjOKaEqfei3Z3bfTJAtGn2kU7saAPt242/dpmPbzJz7adgH0YyetAkRR0huLsUYvsumNJlgAXp5zemTENSg9DkSPqyG3p/uYQqjPImQ/2QlqdBIcmhc8cbk5ptHNxgdk1eV1qovRFVdcthEsc+JYjCdX0jI515uVN21uIBNJrWBEgtUO787SsMx3ahmRgrX5Jw27El/VTU+JmGvR+0nvKQpOR8U7fShJpZeN9hNblhqtv2cz8Ke4t0UjW63WcNvyJaw=='
     kao.metadata = decrypt_metadata_string(
         raw_dict, wrapped_key=wrapped_key_hardcode, private_key=private_key
     )
