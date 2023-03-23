@@ -1,3 +1,4 @@
 # requirements.txt
 -r ../python_base/requirements.txt
 -i https://pypi.org/simple
+uritools==4.0.1
