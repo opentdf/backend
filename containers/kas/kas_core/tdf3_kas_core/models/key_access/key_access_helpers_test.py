@@ -243,4 +243,4 @@ def test_metadata_from_raw_with_iv_prepend():
         "ciphertext": base64.b64encode(iv + encrypted),
     }
     metadata = decrypt_encrypted_metadata(raw_metadata, WrappedKey(secret))
-    assert json.dumps(json.loads(metadata)) == json.dumps(expected)
+    assert json.dumps(metadata) == json.dumps(expected)
