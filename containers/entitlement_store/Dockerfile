@@ -2,9 +2,11 @@
 # NOTE - The version is also needed in the site-packages COPY command below
 # context must be parent folder
 ARG PY_VERSION=3.10
-ARG ALPINE_VERSION=3.17
-ARG CONTAINER_REGISTRY=docker.io
+ARG CONTAINER_REGISTRY=ghcr.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
+ARG PROD_IMAGE_REGISTRY=registry.access.redhat.com/
+ARG PROD_IMAGE=ubi9/python-39
+ARG PROD_IMAGE_TAG=1
 
 # stage - build
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
@@ -20,7 +22,7 @@ COPY entitlement_store/*.py entitlement_store/
 COPY entitlement_store/VERSION entitlement_store/
 
 # Compile application
-RUN python3 -m compileall .
+# RUN python3 -m compileall .
 
 # Validate openapi
 COPY entitlement_store/openapi.json entitlement_store/
@@ -33,9 +35,9 @@ FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 ARG PY_VERSION
 
 WORKDIR /app
-COPY --from=build --chown=root:root /build/ .
+COPY --from=build /build/ .
 # NOTE - the python version needs to be specified in the following COPY command:
-COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
+COPY --from=build /opt/app-root/lib/python${PY_VERSION}/site-packages/ /opt/app-root/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
 
 # Application
