@@ -80,9 +80,9 @@ class KeyAccess(object):
             logger.setLevel(logging.DEBUG)  # dynamically escalate level
             raise KeyAccessError(msg)
 
-        kao.metadata = decrypt_metadata_string(
+        kao.metadata = json.loads(decrypt_metadata_string(
             raw_dict, wrapped_key=kao.wrapped_key, private_key=private_key
-        )
+        ))
 
         logger.debug("Key Access Object Complete = %s", kao)
         return kao
