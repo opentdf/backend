@@ -127,7 +127,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - pytest
-      - kas-unittest
       - config
     timeout-minutes: 45
     permissions:
