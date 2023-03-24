@@ -1,14 +1,18 @@
-ARG PY_VERSION=3.10
-ARG CONTAINER_REGISTRY=docker.io
+ARG PY_VERSION=3.9
+ARG CONTAINER_REGISTRY=ghcr.io
+ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
+ARG PROD_IMAGE_REGISTRY=registry.access.redhat.com/
+ARG PROD_IMAGE=ubi9/python-39
+ARG PROD_IMAGE_TAG=1
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
-FROM golang:1.18 AS gobuilder
+FROM golang:1.19-bullseye AS gobuilder
 RUN mkdir /dist
 RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
 
 # stage - build
-FROM python:${PY_VERSION} AS build
+FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 
 # Install pip dependencies
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
@@ -18,7 +22,6 @@ ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 WORKDIR /kas_app
 ENV PYTHONPATH .
-ENV PYTHONPYCACHEPREFIX /app-pyc
 ENV PYTHONUNBUFFERED 1
 
 # NOTE - This must match the UID set for the certs in scripts/genkey_apps or the value passed in via docker --user
@@ -34,10 +37,12 @@ RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
 # Install and compiile application
 COPY kas_app /kas_app/
 COPY kas_core /kas_core/
-RUN python3 -m compileall .
+# RUN python3 -m compileall .
 
+
+CMD /bin/bash
 # stage - production server
-FROM python:${PY_VERSION}-slim AS production
+FROM ${PROD_IMAGE_REGISTRY}${PROD_IMAGE}:${PROD_IMAGE_TAG} AS production
 
 ARG PY_VERSION
 
