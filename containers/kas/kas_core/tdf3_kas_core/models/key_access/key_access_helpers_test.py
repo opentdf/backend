@@ -158,41 +158,38 @@ def test_add_wrapped_values():
 
 def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     """Test add metadata values."""
-    expected = {"foo": "こんにちは"}
-    # print(expected)
-    # metadata = str.encode(json.dumps(expected))
-    # print(metadata)
-    # secret = AESGCM.generate_key(bit_length=128)
-    # print(secret)
-    # (ciphertext, iv) = aes_gcm_encrypt(metadata, secret)
-    # print(ciphertext)
-    # print(iv)
-    # # Note - IV prepend should not be required. Once hard-coded 12 byte
-    # # removal is fixed this test should run without the prepend.
-    # metadata_dict = {
-    #     "algorithm": "AES_GCM",
-    #     "iv": bytes.decode(base64.b64encode(iv)),
-    #     "ciphertext": bytes.decode(base64.b64encode(iv + ciphertext)),
-    # }
-    # print(metadata_dict)
-    # metadata_json = str.encode(json.dumps(metadata_dict))
-    # encrypted_metadata = bytes.decode(base64.b64encode(metadata_json))
-    # print(encrypted_metadata)
-    raw_dict = {"encryptedMetadata": "eyJjaXBoZXJ0ZXh0IjoiS1V1R1Y3YjJoOFYvY1R0aGYrZ3c5c21GSHdQTjR6eWE4aUpkTXNjd3dkUkNuODFZdnJsUEhMNWJvVGpqTUNLdCtvcXcvVCtCQ3ZoalhQMksrcnhzUDhmQmJSZXBNNmV4V1lSNytBUUt2RjZZZ2JOeE1Nc0xlK2FVQnBUS0t4YmlUaVNsUGhObXJINmZZMjl4R2lhblBrZkVlOFFXalYzYlIrS2pkVVVrT05wQi85S0EiLCJpdiI6IktVdUdWN2IyaDhWL2NUdGgifQ=="}
+    expected = {"foo": "bar"}
+    print(expected)
+    metadata = str.encode(json.dumps(expected))
+    print(metadata)
+    secret = AESGCM.generate_key(bit_length=128)
+    print(secret)
+    (ciphertext, iv) = aes_gcm_encrypt(metadata, secret)
+    print(ciphertext)
+    print(iv)
+    # Note - IV prepend should not be required. Once hard-coded 12 byte
+    # removal is fixed this test should run without the prepend.
+    metadata_dict = {
+        "algorithm": "AES_GCM",
+        "iv": bytes.decode(base64.b64encode(iv)),
+        "ciphertext": bytes.decode(base64.b64encode(iv + ciphertext)),
+    }
+    print(metadata_dict)
+    metadata_json = str.encode(json.dumps(metadata_dict))
+    encrypted_metadata = bytes.decode(base64.b64encode(metadata_json))
+    print(encrypted_metadata)
+    raw_dict = {"encryptedMetadata": encrypted_metadata}
     print(raw_dict)
 
     # generate the "kas wrapped 'object' key" from the local test secret
     # using the WrappedKey model.
-    # wrapped_secret = WrappedKey(secret)
-    # wrapped_key = wrapped_secret.rewrap_key(public_key)
+    wrapped_secret = WrappedKey(secret)
+    wrapped_key = wrapped_secret.rewrap_key(public_key)
 
     kao = KeyAccess()
-
-    wrapped_key_hardcode = 'Z1OcJNz2Nz0atiO0v87UZfS8Hz69Qq6czu0S7JRTsyTGZcUK4EERXD9LUs1mHasV4sE7+wL3d0fZ5rzVffSWn1l6VmEU7aeuwUh1DaB2ExLK4Y73Axaw51aIXut4MzGPXA7yALcNG8NX4yLZJ6AE7stGgkS803YySmiq2V5DQBGlzLy2fGK5fmSUYm+9NV/394+15TsUa6G92T6erEct2iU7vvGVTlapy1LBafh+TeeYdgQ5UDo8tq2U+/scfifhmDbFU0dnWVkp437pFyFcFLp5g4d8ikw6sH8HYeskubhS6wCRIlRq5UBfDsfpnE/GqE+EnnSuo88JgiRRBWESVg=='
     kao.metadata = decrypt_metadata_string(
-        raw_dict, wrapped_key=wrapped_key_hardcode, private_key=private_key
+        raw_dict, wrapped_key=wrapped_key, private_key=private_key
     )
-    print('kao.metadata')
     print(kao.metadata)
     assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
 
