@@ -15,6 +15,7 @@ def plugins():
 
 @pytest.fixture
 def req(policy, entity, key_access_remote, context):
+    key_access_remote.metadata = b'{"authorizations":["forward","copy","print"],"displayName":"\xe3\x81\x93\xe3\x82\x93\xe3\x81\xab\xe3\x81\xa1\xe3\x81\xaf.png","fileProvider":"drive"}'
     """Generate a req object."""
     yield {
         "policy": policy,
