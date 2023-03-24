@@ -1,5 +1,6 @@
 """KeyAccess model."""
 import logging
+import json
 
 from tdf3_kas_core.errors import KeyAccessError
 from tdf3_kas_core.validation import attr_authority_check
