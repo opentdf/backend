@@ -191,7 +191,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
         raw_dict, wrapped_key=wrapped_key, private_key=private_key
     )
     print(kao.metadata)
-    assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
+    assert json.dumps(kao.metadata) == json.dumps(expected)
 
 
 def test_add_metadata_values_without_metadata_in_raw_dict():
