@@ -41,7 +41,6 @@ COPY kas_app /kas_app/
 COPY kas_core /kas_core/
 # RUN python3 -m compileall .
 
-
 CMD /bin/bash
 # stage - production server
 FROM ${PROD_IMAGE_REGISTRY}${PROD_IMAGE}:${PROD_IMAGE_TAG} AS production
@@ -51,21 +50,20 @@ ARG PY_VERSION
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
 
-# install addgroup and adduser
-RUN yum -y update && yum install -y shadow-utils curl
-
 RUN pip3 install \
     gunicorn \
     gunicorn[gthread] \
     wsgicors
 
+# workaround for groupadd and useradd requiring root
+USER root
 # Add kas user and kas group
-RUN addgroup --system kas && adduser --system --uid ${KAS_UID:-909} kas --ingroup kas
+RUN groupadd --system kas && useradd --system --uid ${KAS_UID:-909} kas --gid kas
 
 COPY --from=build --chown=kas:kas /kas_app/ /kas_app
 COPY --from=build --chown=kas:kas /kas_core/ /kas_core
-# NOTE - the python version needs to be specified in the following COPY command:
-COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
+
+COPY --from=build --chown=root:root /usr/lib/python${PY_VERSION}/site-packages/ /usr/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
 RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 
