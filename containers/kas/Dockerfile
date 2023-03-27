@@ -32,6 +32,8 @@ COPY kas_app/requirements.txt /kas_app/
 COPY kas_app/setup.py /kas_app/
 COPY kas_core/setup.py /kas_core/
 COPY kas_core/requirements.txt /kas_core/
+# workaround for setuptools requiring root
+USER root
 RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
     pip3 install --no-cache-dir -r requirements.txt
 # Install and compiile application
