@@ -50,12 +50,9 @@ ARG PY_VERSION
 
 WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
-# RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install --no-install-recommends -y \
-#     curl \
-#     && rm -rf /var/lib/apt/lists/*
 
 # install addgroup and adduser
-RUN microdnf install shadow-utils
+RUN yum install shadow-utils curl
 
 RUN pip3 install \
     gunicorn \
