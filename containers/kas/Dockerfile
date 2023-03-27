@@ -63,7 +63,8 @@ RUN groupadd --system kas && useradd --system --uid ${KAS_UID:-909} kas --gid ka
 COPY --from=build --chown=kas:kas /kas_app/ /kas_app
 COPY --from=build --chown=kas:kas /kas_core/ /kas_core
 
-COPY --from=build --chown=root:root /usr/lib/python${PY_VERSION}/site-packages/ /usr/lib/python${PY_VERSION}/site-packages
+COPY --from=build --chown=root:root /opt/app-root/lib/python${PY_VERSION}/site-packages/ /opt/app-root/lib/python${PY_VERSION}/site-packages
+
 # add any new deployable directories and files from the build stage here
 RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
 
