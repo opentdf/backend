@@ -52,7 +52,7 @@ WORKDIR /kas_app
 ENV KAS_UID ${KAS_UID:-909}
 
 # install addgroup and adduser
-RUN yum install shadow-utils curl
+RUN yum -y update && yum install -y shadow-utils curl
 
 RUN pip3 install \
     gunicorn \
