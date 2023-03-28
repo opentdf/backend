@@ -263,6 +263,7 @@ class Kas(object):
         self._err_rewrap_hook = hook
 
     def add_middleware(self, middleware):
+        """ add middleware called with upsert and rewrap """
         if not(callable(middleware) or None):
             raise MiddlewareIsBadError("Provided middleware is not callable")
         self._middleware = middleware
@@ -338,19 +339,19 @@ class Kas(object):
         app = connexion.FlaskApp(
             self._root_name, specification_dir="api/", options=flask_options
         )
-        flask_app = app.app
-
-        proxied = ReverseProxied(flask_app.wsgi_app, script_name="/api/kas/")
-        flask_app.wsgi_app = proxied
-
+        
         # Allow swagger_ui to be disabled
-        options = {"swagger_path": swagger_ui_4_path}
-        if not swagger_enabled():
+        options = {"swagger_ui": False}
+        if swagger_enabled():
             # Turn off Swagger UI feature
-            logger.debug("Disable Swagger UI")
-            options.update({"swagger_ui": False})
-        else:
             logger.warning("Enable Swagger UI")
+            flask_app = app.app
+
+            proxied = ReverseProxied(flask_app.wsgi_app, script_name="/api/kas/")
+            flask_app.wsgi_app = proxied
+            options.update({"swagger_ui": True, "swagger_path": swagger_ui_4_path})
+        else:
+            logger.debug("Disable Swagger UI")
 
         # Connexion will link REST endpoints to handlers using the openapi.yaml file
         openapi_file = importlib_resources.files(__package__) / "api" / "openapi.yaml"
@@ -362,5 +363,5 @@ class Kas(object):
 
 
 def swagger_enabled():
-    """Default true, but if SWAGGER_UI env variable is false or 0 then disable"""
-    return value_to_boolean(os.getenv("SWAGGER_UI", True))
+    """Default false, but if SWAGGER_UI env variable is true or 1 then enable"""
+    return value_to_boolean(os.getenv("SWAGGER_UI", False))
