@@ -727,7 +727,7 @@ async def create_attributes_definitions_crud(request, decoded_token=None):
     ns_result = await database.fetch_one(query)
     if not ns_result:
         raise HTTPException(status_code=BAD_REQUEST, detail=f"namespace not found")
-    namespace_id = ns_result.get(table_authority.c.id)
+    namespace_id = ns_result[table_authority.c.id]
 
     group_attr_id = None
     if request.group_by:
@@ -1011,7 +1011,7 @@ async def create_authorities_crud(request, decoded_token=None):
     result = await database.fetch_all(query)
     namespaces = []
     for row in result:
-        namespaces.append(f"{row.get(table_authority.c.name)}")
+        namespaces.append(f"{row[table_authority.c.name]}")
     return namespaces
 
 
