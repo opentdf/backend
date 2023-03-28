@@ -20,7 +20,7 @@ openapi_enable = {
         "attributes",
         "entitlements",
         "entitlement-store",
-        # "kas/kas_core/tdf3_kas_core/api/",
+        "kas/kas_core/tdf3_kas_core/api/",
     ]
 }
 
