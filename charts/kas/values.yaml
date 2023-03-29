@@ -41,7 +41,7 @@ serverRootPath: /
 openapiUrl: ""
 
 # -- To enable swagger ui
-SWAGGER_UI: "True"
+swaggerUIEnabled: "True"
 
 # Container image configuration.
 image:
