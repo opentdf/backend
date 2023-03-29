@@ -52,5 +52,5 @@ def test_kas_constructor():
 #     assert actual.size == 3
 
 
-def test_swagger_enabled():
-    assert swagger_enabled()
+def test_swagger_disabled_default():
+    assert not swagger_enabled()
