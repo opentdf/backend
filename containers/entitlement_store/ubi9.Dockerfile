@@ -1,6 +1,6 @@
 # Context: opentdf/backend/containers
 # NOTE - The version is also needed in the site-packages COPY command below
-# Context: opentdf/backend/containers
+# context must be parent folder
 ARG PY_VERSION=3.9
 ARG CONTAINER_REGISTRY=ghcr.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}-ubi9
@@ -12,27 +12,26 @@ ARG PROD_IMAGE_TAG=1
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 WORKDIR /build
 # Install application dependencies
-COPY entitlements/requirements.txt entitlements/requirements.txt
+COPY entitlement_store/requirements.txt entitlement_store/requirements.txt
 COPY python_base/requirements.txt python_base/requirements.txt
 RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
-    pip3 install --no-cache-dir --requirement entitlements/requirements.txt
+    pip3 install --no-cache-dir --requirement entitlement_store/requirements.txt
 # Install application into WORKDIR
 COPY python_base/*.py python_base/
-COPY entitlements/*.py entitlements/
-COPY entitlements/VERSION entitlements/
-COPY entitlements/tests entitlements/tests
+COPY entitlement_store/*.py entitlement_store/
+COPY entitlement_store/VERSION entitlement_store/
 
 # Compile application
-#RUN python3 -m compileall .
+# RUN python3 -m compileall .
 
 # Validate openapi
-COPY entitlements/openapi.json entitlements/
+COPY entitlement_store/openapi.json entitlement_store/
 
 FROM build AS validate-openapi
-RUN diff <(python3 -m entitlements.main) entitlements/openapi.json
+RUN diff <(python3 -m entitlement_store.main) entitlement_store/openapi.json
 
 # stage - production server
-FROM ${PROD_IMAGE_REGISTRY}${PROD_IMAGE}:${PROD_IMAGE_TAG} AS production
+FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 ARG PY_VERSION
 
 WORKDIR /app
@@ -41,30 +40,23 @@ COPY --from=build /build/ .
 COPY --from=build /opt/app-root/lib/python${PY_VERSION}/site-packages/ /opt/app-root/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
 
+# Application
+ENV KAS_CERTIFICATE ""
+ENV KAS_EC_SECP256R1_CERTIFICATE ""
 # Server
 ENV SERVER_ROOT_PATH "/"
-ENV SERVER_PORT "4030"
+ENV SERVER_PORT "5000"
 ENV SERVER_PUBLIC_NAME ""
 ENV SERVER_LOG_LEVEL "INFO"
-ENV SERVER_CORS_ORIGINS ""
 # Postgres
 ENV POSTGRES_HOST ""
 ENV POSTGRES_PORT "5432"
-ENV POSTGRES_USER "tdf_entitlement_manager"
+ENV POSTGRES_USER ""
 ENV POSTGRES_PASSWORD ""
-ENV POSTGRES_DATABASE "tdf_database"
+ENV POSTGRES_DATABASE ""
 ENV POSTGRES_SCHEMA "tdf_entitlement"
-# OIDC
-ENV OIDC_CLIENT_ID ""
-ENV OIDC_CLIENT_SECRET ""
-ENV OIDC_REALM ""
-## trailing / is required
-ENV OIDC_SERVER_URL ""
-ENV OIDC_AUTHORIZATION_URL ""
-ENV OIDC_TOKEN_URL ""
-# Disable OpenAPI
-ENV OPENAPI_URL ""
 
+EXPOSE 5000
 ENTRYPOINT python3 -m uvicorn \
     --host 0.0.0.0 \
     --port ${SERVER_PORT} \
@@ -72,4 +64,4 @@ ENTRYPOINT python3 -m uvicorn \
     --no-use-colors \
     --no-server-header \
     --log-level error \
-    entitlements.main:app
+    entitlement_store.main:app
