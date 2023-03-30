@@ -28,7 +28,6 @@ jobs:
           echo "KEYCLOAK_OTDF_VERSION=$KEYCLOAK_OTDF_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-otdf-version
   build-base:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
     permissions:

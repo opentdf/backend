@@ -2,12 +2,7 @@ name: Build Backend
 env:
   CONTAINER_ARCHS: linux/amd64,linux/arm64
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - main
+on: workflow_dispatch
 jobs:
   config:
     runs-on: ubuntu-latest
