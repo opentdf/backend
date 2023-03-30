@@ -101,7 +101,7 @@ jobs:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
-            type=sha
+            type=sha,suffix=-ubi9
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -147,7 +147,7 @@ jobs:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
-            type=sha
+            type=sha,suffix=-ubi9
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -194,7 +194,7 @@ jobs:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
-            type=sha
+            type=sha,suffix=-ubi9
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -216,7 +216,7 @@ jobs:
           cache-to: type=gha,mode=max
           file: ./containers/${{ matrix.repo }}/ubi9.Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -238,7 +238,7 @@ jobs:
           images: ghcr.io/opentdf/keycloak
           tags: |
             type=ref,event=branch
-            type=sha
+            type=sha,suffix=-ubi9
       - name: Set up QEMU (required for crossbuild)
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
