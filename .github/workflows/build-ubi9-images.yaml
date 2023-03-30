@@ -78,7 +78,7 @@ jobs:
           platforms: ${{ env.CONTAINER_ARCHS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: true
 
   # "isolated" - meaning these do not depend or build on `python_base`
   build-and-publish-isolated:
@@ -211,7 +211,6 @@ jobs:
           build-args: |-
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.9
-            PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}
           context: ./containers
           cache-from: type=gha
           cache-to: type=gha,mode=max
