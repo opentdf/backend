@@ -119,15 +119,15 @@ jobs:
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.9
           context: ./containers/${{ matrix.repo }}
+          file: ./containers/kas/ubi9.Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   build-and-publish:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
     permissions:
       contents: read
       packages: write
@@ -164,10 +164,11 @@ jobs:
           build-args: |-
             CONTAINER_REGISTRY=ghcr.io
           context: ./containers/${{ matrix.repo }}
+          file: ./containers/${{ matrix.repo }}/ubi9.Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -221,7 +222,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   custom-keycloak-image:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
     needs:
       - config
     permissions:
@@ -259,6 +259,6 @@ jobs:
             KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
