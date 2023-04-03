@@ -25,7 +25,7 @@ RUN /opt/app-root/src/go/bin/policy build entitlement-policy -t local:$(cat <VER
     && /opt/app-root/src/go/bin/policy save local:$(cat <VERSION)
 
 # Create the minimal runtime image
-FROM registry.access.redhat.com/ubi9-minimal:9.1 AS emptyfinal
+FROM registry.access.redhat.com/ubi9-micro:9.1 AS emptyfinal
 
 ENV HOME=/opt/app-root/src/entitlement-pdp
 ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
