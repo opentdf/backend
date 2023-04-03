@@ -37,8 +37,8 @@ ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
 RUN mkdir -p $CACHEDIR
 RUN chmod -R 777 $HOME
 
-COPY --from=builder /opt/app-root/entitlement-pdp /entitlement-pdp
-COPY --chmod=777 --from=builder /opt/app-root/bundle.tar.gz $CACHEDIR/bundle.tar.gz
+COPY --from=builder /opt/app-root/src/entitlement-pdp /entitlement-pdp
+COPY --chmod=777 --from=builder /opt/app-root/src/bundle.tar.gz $CACHEDIR/bundle.tar.gz
 
 WORKDIR $HOME
 
