@@ -119,7 +119,7 @@ jobs:
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.9
           context: ./containers/${{ matrix.repo }}
-          file: ./containers/kas/ubi9.Dockerfile
+          file: ./containers/${{ matrix.repo }}/ubi9.Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
