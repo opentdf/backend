@@ -1,5 +1,13 @@
 name: X-Test-trigger
-on: workflow_dispatch
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
 jobs:
   xtest:
     timeout-minutes: 60

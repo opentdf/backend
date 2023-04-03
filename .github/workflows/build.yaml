@@ -2,7 +2,12 @@ name: Build Backend
 env:
   CONTAINER_ARCHS: linux/amd64,linux/arm64
 
-on: workflow_dispatch
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
 jobs:
   config:
     runs-on: ubuntu-latest
@@ -191,7 +196,7 @@ jobs:
 
   publish-helm-charts:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
       # If we publish helm charts before we finish publishing the images
@@ -238,7 +243,7 @@ jobs:
           helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
           rm *.tgz
   build-base:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     outputs:
@@ -291,11 +296,11 @@ jobs:
           platforms: ${{ env.CONTAINER_ARCHS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
 
   # "isolated" - meaning these do not depend or build on `python_base`
   build-and-publish-isolated:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     permissions:
@@ -339,12 +344,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   build-and-publish:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     permissions:
@@ -386,12 +391,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   build-and-publish-policybundle:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
     permissions:
@@ -420,14 +425,14 @@ jobs:
         with:
           go-version: ">=1.18.0"
       - name: Build policy bundle
-        if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/feature/ubi9' || github.event.pull_request.head.repo.fork }}
+        if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
         run: |
           go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
           cd containers/entitlement-pdp/entitlement-policy
           policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policybuild
       - name: Publish policy bundle
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
         run: |
           go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
           cd containers/entitlement-pdp/entitlement-policy
@@ -435,7 +440,7 @@ jobs:
           POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
 
   build-and-publish-with-shared-base:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - build-base
     timeout-minutes: 10
@@ -482,12 +487,12 @@ jobs:
           cache-to: type=gha,mode=max
           file: ./containers/${{ matrix.repo }}/Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
   custom-keycloak-image:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - config
     permissions:
@@ -525,6 +530,6 @@ jobs:
             KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feature/ubi9' && github.repository == 'opentdf/backend' }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
