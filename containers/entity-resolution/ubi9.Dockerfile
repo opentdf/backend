@@ -17,20 +17,9 @@ COPY . .
 # Build the application
 RUN go build .
 
-# Build a local copy of the policy - normally OPA will be configured to fetch the policybundle from
-# an OCI registry, and using a cluster-local OCI registry would be the best approach for offline mode for all OCI artifacts generally,
-# but until we have a local OCI registry for offline scenarios, just pack a
-# .tar.gz policy bundle into the cache which can (if OPA is configured accordingly) be used as a fallback
-# when the remote OCI bundle is unreachable.
-RUN go install github.com/opcr-io/policy/cmd/policy@${OPCR_POLICY_VERSION}
-
-RUN policy build entitlement-policy -t local:$(cat <VERSION) \
-    && policy save local:$(cat <VERSION) \
-    && cp bundle.tar.gz /dist/bundle.tar.gz
-
 # Create the minimal runtime image
 FROM registry.access.redhat.com/ubi9-minimal:9.1 AS emptyfinal
 
-COPY --chown=0:0 --from=builder /dist/entity-resolution-service /entity-resolution-service
+COPY --from=builder /opt/app-root/entity-resolution-service /entity-resolution-service
 
 ENTRYPOINT ["/entity-resolution-service"]

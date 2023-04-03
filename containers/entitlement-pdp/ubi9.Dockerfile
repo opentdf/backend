@@ -31,14 +31,14 @@ RUN policy build entitlement-policy -t local:$(cat <VERSION) \
 # Create the minimal runtime image
 FROM registry.access.redhat.com/ubi9-minimal:9.1 AS emptyfinal
 
-ENV HOME=/opt/entitlement-pdp
+ENV HOME=/opt/app-root/entitlement-pdp
 ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
 
 RUN mkdir -p $CACHEDIR
-RUN chmod -R 777 /opt/entitlement-pdp
+RUN chmod -R 777 $HOME
 
-COPY --from=builder /dist/entitlement-pdp /entitlement-pdp
-COPY --chmod=777 --from=builder /dist/bundle.tar.gz $CACHEDIR/bundle.tar.gz
+COPY --from=builder /opt/app-root/entitlement-pdp /entitlement-pdp
+COPY --chmod=777 --from=builder /opt/app-root/bundle.tar.gz $CACHEDIR/bundle.tar.gz
 
 WORKDIR $HOME
 
