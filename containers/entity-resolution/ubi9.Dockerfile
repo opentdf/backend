@@ -17,7 +17,6 @@ COPY . .
 # Build the application
 RUN go build .
 
-CMD /bin/bash
 # Create the minimal runtime image
 FROM registry.access.redhat.com/ubi9-minimal:9.1 AS emptyfinal
 
