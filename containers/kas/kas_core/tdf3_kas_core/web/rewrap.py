@@ -37,7 +37,9 @@ def rewrap_helper(body, session_rewrap):
 
 
 @run_service_with_exceptions
-def rewrap(body, *, dpop=None):
+def rewrap(body, *, dpop=None, userId=None):
+    if userId:
+        logger.info("Legacy user logging in")
     Kas.get_instance().get_middleware()(dpop, Kas.get_instance()._key_master)
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap())
 
