@@ -220,7 +220,7 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     then returns the JSON
     """
     idpJWT = _get_bearer_token_from_header(context)
-    realmKey = (key_master.get_key("AA-PUBLIC") if context.data["X-Tdf-Claims"]
+    realmKey = (key_master.get_key("AA-PUBLIC") if context.data.get("X-Tdf-Claims")
                 else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master))
     return authorized_v2(realmKey, idpJWT)
 
