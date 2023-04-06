@@ -201,7 +201,7 @@ def rewrap(data, context, plugin_runner, key_master):
 def _get_bearer_token_from_header(context):
     # Get bearer token
     try:
-        authToken = context.data["X-Tdf-Claims"] or context.data["Authorization"]
+        authToken = context.data.get("X-Tdf-Claims") or context.data["Authorization"]
         bearer, _, idpJWT = authToken.partition(" ")
     except KeyError as e:
         raise UnauthorizedError("Missing auth header") from e
