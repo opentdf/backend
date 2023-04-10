@@ -58,6 +58,9 @@ opentdf:
 secretRef: |-
   name: {{ template "keycloak-bootstrap.fullname" . }}-secret
 
+# The name of an existing secret containing configuration file keys values.
+existingConfigSecret:
+
 keycloak:
   # -- override for `global.opentdf.common.oidcExternalBaseUrl`
   hostname:

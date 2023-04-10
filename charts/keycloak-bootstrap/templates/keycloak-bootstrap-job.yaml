@@ -76,8 +76,13 @@ spec:
               mountPath: /etc/virtru-config
       volumes:
         - name: keycloak-bootstrap-config-volume
+          {{- if .Values.existingConfigSecret }}
+          secret:
+            name: {{ .Values.existingConfigSecret }}
+          {{- else }}
           configMap:
             name: {{ include "keycloak-bootstrap.fullname" . }}-cm
+          {{- end }}
       restartPolicy: Never
       {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
