@@ -10,7 +10,7 @@ from tdf3_kas_core.errors import CryptoError
 from tdf3_kas_core.util import get_public_key_from_disk
 from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
-from tdf3_kas_core.util.cipher.aes_gcm import aes_gcm_decrypt, aes_gcm_encrypt
+from tdf3_kas_core.util.cipher.aes_gcm import aes_gcm_encrypt
 
 
 from .wrapped_keys import (

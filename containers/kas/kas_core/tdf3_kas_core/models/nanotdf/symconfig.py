@@ -1,7 +1,7 @@
 import bitstruct
 
 from tdf3_kas_core.errors import NanoTDFParseError
-from .crypto import flags, CipherMode, CurveMode, MODE_OPTIONS, SYM_OPTIONS
+from .crypto import CipherMode, CurveMode, MODE_OPTIONS, SYM_OPTIONS
 
 
 class SymmetricAndPayloadConfig(object):
