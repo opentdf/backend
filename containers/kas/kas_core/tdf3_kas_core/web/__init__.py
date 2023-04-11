@@ -14,3 +14,8 @@ done with a tdf3_kas_core.schema.
 """
 
 from .create_context import create_context  # noqa: F401
+from .heartbeat import ping
+from .public_key import get
+from .rewrap import rewrap
+from .upsert import upsert
+from .run_service_with_exceptions import run_service_with_exceptions
