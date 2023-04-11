@@ -5,7 +5,7 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from dataclasses import dataclass, field
-from jwt import PyJWK, PyJWS, PyJWT
+from jwt import PyJWT
 from jwt.algorithms import RSAAlgorithm
 
 from .dpop import canonical, jwk_thumbprint, jws_sha, validate_dpop

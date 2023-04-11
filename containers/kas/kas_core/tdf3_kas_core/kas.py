@@ -1,6 +1,5 @@
 """The KAS class builds the Flask app from openapi.yaml using Connexion."""
 
-import sys
 import os
 import connexion
 

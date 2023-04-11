@@ -1,7 +1,6 @@
 import pytest  # noqa: F401
 
 import os
-import sys
 import json
 import jwt
 import functools
@@ -12,10 +11,7 @@ import tdf3_kas_core
 
 from unittest.mock import MagicMock, patch
 
-from tdf3_kas_core.models import ClaimsAttributes
 from tdf3_kas_core.models import Context
-from tdf3_kas_core.models import EntityAttributes
-from tdf3_kas_core.models import KeyAccess
 from tdf3_kas_core.models import KeyMaster
 from tdf3_kas_core.models import Claims
 

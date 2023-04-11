@@ -9,7 +9,6 @@ import tdf3_kas_core.pdp_grpc as pdp_grpc
 from tdf3_kas_core.errors import AuthorizationError
 
 from accesspdp.v1 import accesspdp_pb2_grpc, accesspdp_pb2
-from attributes.v1 import attributes_pb2
 
 logger = logging.getLogger(__name__)
 

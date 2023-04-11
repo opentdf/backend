@@ -5,7 +5,6 @@ import logging
 import os
 import re
 
-from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timedelta
 
 from tdf3_kas_core.errors import AuthorizationError
