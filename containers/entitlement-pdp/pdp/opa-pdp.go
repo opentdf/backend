@@ -4,6 +4,7 @@ import (
 	"bytes"
 	ctx "context"
 	"encoding/json"
+	"entitlement-pdp/handlers"
 	"os"
 	"strings"
 	"time"
@@ -12,8 +13,6 @@ import (
 	"github.com/open-policy-agent/opa/sdk"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
-
-	"github.com/opentdf/v2/entitlement-pdp/handlers"
 )
 
 var tracer = otel.Tracer("pdp")
@@ -88,7 +87,7 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 	evalCtx, evalSpan := tracer.Start(parentCtx, "ApplyEntitlementPolicy")
 	defer evalSpan.End()
 
-	pdp.logger.Debug("ENTITLEMENT CONTEXT JSON: %s", entitlementContextJSON)
+	pdp.logger.Debugf("ENTITLEMENT CONTEXT JSON: %s", entitlementContextJSON)
 
 	inputDoc, err := pdp.buildInputDoc(primaryEntity, secondaryEntities, entitlementContextJSON)
 	if err != nil {
@@ -96,7 +95,7 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 		return nil, err
 	}
 
-	pdp.logger.Debug("INPUT DOC is %s", inputDoc)
+	pdp.logger.Debugf("INPUT DOC is %s", inputDoc)
 
 	decisionReq := sdk.DecisionOptions{
 		Now:   time.Now(),

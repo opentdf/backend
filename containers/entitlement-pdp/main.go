@@ -2,14 +2,12 @@ package main
 
 import (
 	"context"
+	"entitlement-pdp/handlers"
+	"entitlement-pdp/pdp"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/opentdf/v2/entitlement-pdp/handlers"
-
-	"github.com/opentdf/v2/entitlement-pdp/pdp"
 
 	"github.com/virtru/oteltracer"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -22,7 +20,7 @@ var svcName = "entitlement-pdp"
 
 var cfg EnvConfig
 
-//Env config
+// Env config
 type EnvConfig struct {
 	ListenPort          string `env:"LISTEN_PORT" envDefault:"3355"`
 	ExternalHost        string `env:"EXTERNAL_HOST" envDefault:""`
@@ -95,8 +93,6 @@ func main() {
 	http.Handle("/healthz", otelhttp.NewHandler(handlers.GetHealthzHandler(), "HealthZHandler"))
 
 	http.Handle("/entitlements", otelhttp.NewHandler(handlers.GetEntitlementsHandler(&opaPDP, logger), "EntitlementsHandler"))
-
-	http.Handle("/docs/", handlers.GetSwaggerHandler(server.Addr))
 
 	logger.Info("Starting server", zap.String("address", server.Addr))
 	handlers.MarkHealthy()

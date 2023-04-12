@@ -55,7 +55,9 @@ If service is running, it will also expose a live OpenAPI endpoint on `https://<
 
 > NOTE: If you get an error about `not being able to fetch doc.json`, make sure you've set `EXTERNAL_HOST` to the hostname the service is exposed on (`localhost`, etc), or just manually type in the service host in the OpenAPI URL box.
 
-## Environment variables
+## Development
+
+### Environment variables
 
 | Name                      | Default                           | Description                                                                                                                                                                                                           |
 | ------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -66,7 +68,41 @@ If service is running, it will also expose a live OpenAPI endpoint on `https://<
 | OPA_CONFIG_PATH           | "/etc/opa/config/opa-config.yaml" | Path to OPA config yaml - valid OPA config must exist here or service will not start. Normally this should be left alone                                                                                              |
 | OPA_POLICYBUNDLE_PULLCRED | "YOURPATHERE"                     | If the OPA config used points to a policybundle stored in an OCI registry that requires credentials to fetch OCI artifacts, this should be set to a valid personal access token that has pull access to that registry |
 
-## OCI container image
+```shell
+export OPA_CONFIG_PATH="offline-config-example/opa-config.yaml"
+export VERBOSE="true"
+```
+
+```dotenv
+OPA_CONFIG_PATH=offline-config-example/opa-config.yaml
+VERBOSE=true
+```
+
+### Policy OPA
+
+#### Prerequisite
+
+```shell
+brew tap opcr-io/tap && brew install opcr-io/tap/policy
+```
+
+#### Build OPA bundle
+
+```shell
+policy build entitlement-policy -t local:$(cat <VERSION) \
+    && policy save local:$(cat <VERSION)
+
+mkdir -p derp-opa/bundles/entitlement-policy/
+mv bundle.tar.gz derp-opa/bundles/entitlement-policy/
+```
+
+### Endpoints
+
+```shell
+curl -v http://localhost:3355/entitlements \
+  -H "Content-Type: application/json" \
+  -d '{"id": "chat", "ou": "us", "status": 3}'
+```
 
 ### Test
 

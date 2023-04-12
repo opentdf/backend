@@ -12,7 +12,7 @@ bundles:
     resource: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle:main
     # Set `persist` to true so OPA will expect/check for a local policy cache
     persist: true
-    # On startup, if persistence is enabled, $PERSIST_DIR/bundles/bundle.tar.gz
+    # On startup, if persistence is enabled, $PERSIST_DIR/bundles/entitlement-policy/bundle.tar.gz
     # will be loaded. However OPA will keep trying to update it. Setting `trigger`
     # to manual means we disable bundle update polling entirely
     trigger: "manual"
@@ -21,7 +21,7 @@ bundles:
       max_delay_seconds: 120
 
 # Sets the persistence directory. Policy deployment for airgapped installs
-# can be achieved by putting a valid `bundle.tar.gz` under a `/bundles`
+# can be achieved by putting a valid `bundle.tar.gz` under a `/bundles/entitlement-policy/`
 # subfolder in this dir - OPA will load the local cache, and carry on.
 persistence_directory: derp-opa
 
