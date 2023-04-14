@@ -129,9 +129,9 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 
 			switch ident.Type {
 			case TypeEmail:
-				getUserParams = gocloak.GetUsersParams{Email: &ident.Identifier}
+				getUserParams = gocloak.GetUsersParams{Email: &ident.Identifier, Exact: true}
 			case TypeUsername:
-				getUserParams = gocloak.GetUsersParams{Username: &ident.Identifier}
+				getUserParams = gocloak.GetUsersParams{Username: &ident.Identifier, Exact: true}
 			}
 
 			users, userErr := kcConnector.client.GetUsers(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, getUserParams)
