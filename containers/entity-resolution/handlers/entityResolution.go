@@ -127,12 +127,12 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 			logger.Debugf("Lookup entity %s/%s", ident.Type, ident.Identifier)
 			var getUserParams gocloak.GetUsersParams
 
-                        exactMatch := true
+			exactMatch := true
 			switch ident.Type {
 			case TypeEmail:
-				getUserParams = gocloak.GetUsersParams{Email: &ident.Identifier, Exact: &exactMatch }
+				getUserParams = gocloak.GetUsersParams{Email: &ident.Identifier, Exact: &exactMatch}
 			case TypeUsername:
-				getUserParams = gocloak.GetUsersParams{Username: &ident.Identifier, Exact: &exactMatch }
+				getUserParams = gocloak.GetUsersParams{Username: &ident.Identifier, Exact: &exactMatch}
 			}
 
 			users, userErr := kcConnector.client.GetUsers(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, getUserParams)
