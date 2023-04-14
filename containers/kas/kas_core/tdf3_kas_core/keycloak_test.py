@@ -1,17 +1,13 @@
 """Test the Keycloak module."""
 import os
 import pytest
-import re
 import json
 
-from unittest.mock import MagicMock, patch
-from flask import Flask, Response
-from flask.testing import FlaskClient
+from unittest.mock import patch
 
 from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import get_public_key_from_disk
 
-from tdf3_kas_core.authorized import unsafe_decode_jwt
 
 from tdf3_kas_core.errors import KeyNotFoundError
 

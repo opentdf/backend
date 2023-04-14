@@ -7,7 +7,6 @@ from tdf3_kas_core.models import Entity
 from tdf3_kas_core.models import EntityAttributes
 from tdf3_kas_core.models import AttributePolicyCache
 
-from tdf3_kas_core.models import HIERARCHY
 
 from tdf3_kas_core.errors import AuthorizationError
 

@@ -47,7 +47,6 @@ from tdf3_kas_core.errors import NanoTDFParseError
 from tdf3_kas_core.errors import PolicyError
 from tdf3_kas_core.errors import PolicyBindingError
 from tdf3_kas_core.errors import UnauthorizedError
-from tdf3_kas_core.errors import RouteNotFoundError
 
 from tdf3_kas_core.models import Adjudicator
 from tdf3_kas_core.models import AccessPDP

@@ -5,7 +5,6 @@ import logging
 from attributes.v1 import attributes_pb2
 from accesspdp.v1 import accesspdp_pb2
 
-from tdf3_kas_core.errors import InvalidAttributeError
 
 logger = logging.getLogger(__name__)
 

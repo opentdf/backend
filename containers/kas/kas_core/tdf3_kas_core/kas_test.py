@@ -1,10 +1,7 @@
 """Test the KAS core code."""
 
-import json
 
-from pprint import pprint
 
-from tdf3_kas_core.models import AttributePolicyCache
 
 from .kas import Kas, swagger_enabled
 
