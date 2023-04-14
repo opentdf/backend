@@ -200,7 +200,9 @@ def rewrap(data, context, plugin_runner, key_master):
 def _get_bearer_token_from_header(context):
     # Get bearer token
     try:
-        authToken = context.data["Authorization"]
+        authToken = (context.data["X-Tdf-Claims"]
+                     if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED") == "true")
+                     else context.data["Authorization"])
         bearer, _, idpJWT = authToken.partition(" ")
     except KeyError as e:
         raise UnauthorizedError("Missing auth header") from e
@@ -219,8 +221,9 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     then returns the JSON
     """
     idpJWT = _get_bearer_token_from_header(context)
-
-    realmKey = keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
+    realmKey = (key_master.get_key("AA-PUBLIC")
+                if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
+                else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master))
     return authorized_v2(realmKey, idpJWT)
 
 
