@@ -145,8 +145,8 @@ func Test_ByEmail(t *testing.T) {
 	zapLog, _ := zap.NewDevelopment()
 
 	server := test_server(t, map[string]string{
-		"email=bob%40sample.org":   by_email_bob_resp,
-		"email=alice%40sample.org": by_email_alice_resp,
+		"email=bob%40sample.org&exact=true":   by_email_bob_resp,
+		"email=alice%40sample.org&exact=true": by_email_alice_resp,
 	}, nil, nil, nil)
 	defer server.Close()
 
@@ -180,7 +180,7 @@ func Test_ByGroupEmail(t *testing.T) {
 	zapLog, _ := zap.NewDevelopment()
 
 	server := test_server(t, map[string]string{
-		"email=group1%40sample.org": "[]",
+		"email=group1%40sample.org&exact=true": "[]",
 	}, map[string]string{
 		"search=group1%40sample.org": `[{"id":"group1-uuid"}]`,
 	}, map[string]string{
@@ -216,7 +216,7 @@ func Test_ByUsername(t *testing.T) {
 	zapLog, _ := zap.NewDevelopment()
 
 	server := test_server(t, map[string]string{
-		"username=bob.smith": by_username_bob_resp,
+		"exact=true&username=bob.smith": by_username_bob_resp,
 	}, nil, nil, nil)
 	defer server.Close()
 
