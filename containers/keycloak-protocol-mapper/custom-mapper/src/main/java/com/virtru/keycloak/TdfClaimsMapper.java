@@ -192,7 +192,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         return map;
     }
 
-    private Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
+    protected Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
             UserSessionModel userSession,
             IDToken token) throws JsonProcessingException {
         // Get parameters
@@ -260,6 +260,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         ObjectMapper objectMapper = new ObjectMapper();
         // if device grant flow, add subject as entitlement_context_obj since IDToken is nulls
         if (isDeviceGrant) {
+            logger.debug("Device grant flow, user in entitlement_context_obj");
             formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(user));
         } else {
             formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
