@@ -1,10 +1,23 @@
 package com.virtru.keycloak;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Strings;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.core.HttpHeaders;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -15,37 +28,34 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
 import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
-import org.keycloak.models.*;
-import org.keycloak.protocol.oidc.mappers.*;
+import org.jetbrains.annotations.NotNull;
+import org.keycloak.models.AuthenticatedClientSessionModel;
+import org.keycloak.models.ClientModel;
+import org.keycloak.models.ClientSessionContext;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.UserModel;
+import org.keycloak.models.UserSessionModel;
+import org.keycloak.protocol.oidc.mappers.AbstractOIDCProtocolMapper;
+import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper;
+import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
+import org.keycloak.protocol.oidc.mappers.OIDCIDTokenMapper;
+import org.keycloak.protocol.oidc.mappers.UserInfoTokenMapper;
 import org.keycloak.provider.ProviderConfigProperty;
-import org.keycloak.representations.AccessToken;
-import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.IDToken;
 import org.keycloak.representations.JsonWebToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.HttpHeaders;
-
-import java.util.Map;
-
 /**
  * Custom OIDC Protocol Mapper that interfaces with an Attribute Provider
  * Endpoint to retrieve custom claims to be
  * placed in a configured custom claim name
- *
+ * <p>
  * - Configurable properties allow for providing additional header and proprty
  * values to be passed to the attribute provider.
- *
+ * <p>
  * Configurable properties allow for providing additional header and proprty
  * values to be passed to the attribute provider.
  */
@@ -57,25 +67,21 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     public static final String PROVIDER_ID = "virtru-oidc-protocolmapper";
-
-    private static final List<ProviderConfigProperty> configProperties = new ArrayList<ProviderConfigProperty>();
-
-    final static String REMOTE_URL = "remote.url";
-    final static String REMOTE_HEADERS = "remote.headers";
-    final static String REMOTE_PARAMETERS = "remote.parameters";
-    final static String REMOTE_PARAMETERS_USERNAME = "remote.parameters.username";
-    final static String REMOTE_PARAMETERS_CLIENTID = "remote.parameters.clientid";
-    final static String CLAIM_NAME = "claim.name";
-    final static String DPOP_ENABLED = "client.dpop";
-    final static String PUBLIC_KEY_HEADER = "client.publickey";
-    final static String CLAIM_REQUEST_TYPE = "claim_request_type";
-
-    private CloseableHttpClient client = HttpClientBuilder.create().build();
+    private static final List<ProviderConfigProperty> configProperties = new ArrayList<>();
+    static final String REMOTE_URL = "remote.url";
+    static final String REMOTE_HEADERS = "remote.headers";
+    static final String REMOTE_PARAMETERS = "remote.parameters";
+    static final String REMOTE_PARAMETERS_USERNAME = "remote.parameters.username";
+    static final String REMOTE_PARAMETERS_CLIENTID = "remote.parameters.clientid";
+    static final String CLAIM_NAME = "claim.name";
+    static final String DPOP_ENABLED = "client.dpop";
+    static final String PUBLIC_KEY_HEADER = "client.publickey";
+    private final CloseableHttpClient client = HttpClientBuilder.create().build();
 
     /**
      * Inner configuration to cache retrieved authorization for multiple tokens
      */
-    private final static String REMOTE_AUTHORIZATION_ATTR = "remote-authorizations";
+    private static final String REMOTE_AUTHORIZATION_ATTR = "remote-authorizations";
 
     static {
         OIDCAttributeMapperHelper.addIncludeInTokensConfig(configProperties, TdfClaimsMapper.class);
@@ -186,7 +192,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         return map;
     }
 
-    private Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
+    protected Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
             UserSessionModel userSession,
             IDToken token) throws JsonProcessingException {
         // Get parameters
@@ -201,8 +207,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
 
         logger.debug("userSession.getNotes CONTENT IS: ");
+        // check notes to see if device grant flow
+        boolean isDeviceGrant = false;
         for (Map.Entry<String, String> entry : userSession.getNotes().entrySet()) {
-            logger.debug("ENTRY IS: " + entry);
+            if ("KC_DEVICE_NOTE".equals(entry.getKey())) {
+                isDeviceGrant = true;
+            }
+            logger.debug("ENTRY IS: {}", entry);
         }
 
         // AZP == clientID (always present)
@@ -215,7 +226,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 .distinct()
                 .collect(Collectors.joining(","));
 
-        logger.debug("Complete list of clients from keycloak is: " + clientId);
+        logger.debug("Complete list of clients from keycloak is: {}", clientId);
 
         String[] clientIds = clientId.split(",");
 
@@ -232,24 +243,28 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // For similar usage examples, see:
         // https://github.com/keycloak/keycloak/blob/99c06d11023689875b48ef56442c90bdb744c869/services/src/main/java/org/keycloak/exportimport/util/ExportUtils.java#L519
         if (user.getServiceAccountClientLink() != null) {
-            logger.debug("User: " + userSession.getLoginUsername()
-                    + " is a service account user, ignoring and using client ID in claims request");
+            logger.debug("User: {} is a service account user, ignoring and using client ID in claims request", userSession.getLoginUsername());
             String clientInternalId = user.getServiceAccountClientLink();
             formattedParameters.put("primary_entity_id", clientInternalId);
 
             // This is dumb. If there's a terser and more efficient Java-y way to do this,
             // feel free to fix.
-            List<String> clientlist = new ArrayList<String>(Arrays.asList(clientIds));
+            List<String> clientlist = new ArrayList<>(Arrays.asList(clientIds));
             clientlist.remove(clientInternalId);
             clientIds = clientlist.toArray(new String[0]);
         } else {
             formattedParameters.put("primary_entity_id", userSession.getUser().getId());
         }
-
         formattedParameters.put("secondary_entity_ids", clientIds);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        // if device grant flow, add subject as entitlement_context_obj since IDToken is nulls
+        if (isDeviceGrant) {
+            logger.debug("Device grant flow, user in entitlement_context_obj");
+            formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(user));
+        } else {
+            formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        }
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always
@@ -267,7 +282,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         JsonNode val = mapper.valueToTree(entitlements);
         rootNode.set("entitlements", val);
         rootNode.put("client_public_signing_key", clientPublicKey);
-        logger.debug("CLAIMSOBJ IS: " + rootNode.toPrettyString());
+        if (logger.isDebugEnabled()) {
+            logger.debug("CLAIMSOBJ IS: {}", rootNode.toPrettyString());
+        }
         return rootNode;
     }
 
@@ -316,7 +333,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 legacyPK = new String(decodedBytes);
             }
             if (clientPK != null && !clientPK.equals(legacyPK)) {
-                logger.info("Conflicting public key and dpop headers: [" + clientPK + "] != [" + legacyPK + "]");
+                logger.info("Conflicting public key and dpop headers: [{}] != [{}]", clientPK, legacyPK);
             }
             clientPK = legacyPK;
         }
@@ -331,7 +348,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
 
     /**
      * Query Attribute-Provider for user's attributes.
-     *
+     * <p>
      * If no client public key has been provided in the request headers noop occurs.
      * Otherwise, a request
      * is sent as a simple map json document with keys:
@@ -342,9 +359,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
      * - secondaryEntityIds: required - list of identifiers for any additional
      * secondary subjects claims will be fetched for.
      * 
-     * @param mappingModel
-     * @param userSession
-     * @param token
      * @return custom claims; null if no client pk present.
      */
     private JsonNode getRemoteAuthorizations(ProtocolMapperModel mappingModel, UserSessionModel userSession,
@@ -368,19 +382,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             Map<String, Object> headers = getHeaders(mappingModel, userSession);
             headers.put("Content-Type", "application/json");
 
-            HttpPost httpReq;
-            try {
-                httpReq = new HttpPost(url);
-                URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
-                httpReq.setURI(uriBuilder.build());
-            } catch (IllegalArgumentException | URISyntaxException e) {
-                throw new JsonRemoteClaimException("Invalid remote URL property for tdf_claims mapper", url);
-            }
+            HttpPost httpReq = getHttpPost(url);
 
             // Build parameters
             Map<String, Object> requestEntity = new HashMap<>(parameters);
-            // requestEntity.put("algorithm", "ec:secp256r1");
-            // requestEntity.put("clientPublicSigningKey", clientPK);
 
             // Build headers
             for (Map.Entry<String, Object> header : headers.entrySet()) {
@@ -389,11 +394,11 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             ObjectMapper objectMapper = new ObjectMapper();
             httpReq.setEntity(new StringEntity(objectMapper.writeValueAsString(requestEntity)));
 
-            logger.info("Request: " + requestEntity);
+            logger.info("Request: {}", requestEntity);
             try (CloseableHttpResponse response = client.execute(httpReq)) {
                 String bodyAsString = EntityUtils.toString(response.getEntity());
                 if (response.getStatusLine().getStatusCode() != 200) {
-                    logger.warn(response.getStatusLine() + "" + bodyAsString);
+                    logger.warn("line: {} body: {}", response.getStatusLine(), bodyAsString);
                     throw new JsonRemoteClaimException(
                             "Wrong status received for remote claim - Expected: 200, Received: "
                                     + response.getStatusLine().getStatusCode(),
@@ -408,5 +413,18 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             // information
             throw new JsonRemoteClaimException("Error when accessing remote claim", url, e);
         }
+    }
+
+    @NotNull
+    private static HttpPost getHttpPost(String url) {
+        HttpPost httpReq;
+        try {
+            httpReq = new HttpPost(url);
+            URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
+            httpReq.setURI(uriBuilder.build());
+        } catch (IllegalArgumentException | URISyntaxException e) {
+            throw new JsonRemoteClaimException("Invalid remote URL property for tdf_claims mapper", url);
+        }
+        return httpReq;
     }
 }

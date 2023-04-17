@@ -1,8 +1,25 @@
 package com.virtru.keycloak;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.jboss.resteasy.test.TestPortProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -11,25 +28,58 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.keycloak.models.*;
+import org.keycloak.common.enums.SslRequired;
+import org.keycloak.component.ComponentModel;
+import org.keycloak.models.AuthenticatedClientSessionModel;
+import org.keycloak.models.AuthenticationExecutionModel;
+import org.keycloak.models.AuthenticationFlowModel;
+import org.keycloak.models.AuthenticatorConfigModel;
+import org.keycloak.models.CibaConfig;
+import org.keycloak.models.ClientInitialAccessModel;
+import org.keycloak.models.ClientModel;
+import org.keycloak.models.ClientScopeModel;
+import org.keycloak.models.ClientSessionContext;
+import org.keycloak.models.GroupModel;
+import org.keycloak.models.IdentityProviderMapperModel;
+import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.KeycloakContext;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.OAuth2DeviceConfig;
+import org.keycloak.models.OTPPolicy;
+import org.keycloak.models.ParConfig;
+import org.keycloak.models.PasswordPolicy;
+import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.RequiredActionProviderModel;
+import org.keycloak.models.RequiredCredentialModel;
+import org.keycloak.models.RoleModel;
+import org.keycloak.models.UserModel;
+import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.WebAuthnPolicy;
 import org.keycloak.models.session.PersistentAuthenticatedClientSessionAdapter;
 import org.keycloak.models.session.PersistentClientSessionModel;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.storage.adapter.InMemoryUserAdapter;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import java.util.*;
-
-import static com.virtru.keycloak.TdfClaimsMapper.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.virtru.keycloak.TdfClaimsMapper.CLAIM_NAME;
+import static com.virtru.keycloak.TdfClaimsMapper.DPOP_ENABLED;
+import static com.virtru.keycloak.TdfClaimsMapper.PUBLIC_KEY_HEADER;
+import static com.virtru.keycloak.TdfClaimsMapper.REMOTE_PARAMETERS_CLIENTID;
+import static com.virtru.keycloak.TdfClaimsMapper.REMOTE_PARAMETERS_USERNAME;
+import static com.virtru.keycloak.TdfClaimsMapper.REMOTE_URL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({ MockitoExtension.class })
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class TdfClaimsMapperTest {
     private UndertowJaxrsServer server;
 
@@ -179,6 +229,22 @@ public class TdfClaimsMapperTest {
                         keycloakSession, userSessionModel, clientSessionContext),
                 "");
 
+    }
+
+    @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
+    @Test
+    public void testDeviceGrant() throws JsonProcessingException {
+        commonSetup("12345", true, true, false);
+        Map<String, String> notes = new HashMap<>(1);
+        notes.put("KC_DEVICE_NOTE", "eyJpcEFkZHJlc3MiOiIxNzIuMjQuMC4xIiwib3MiOiJXaW5kb3dzIiwib3NWZXJzaW9uIjoiMTAiLCJicm93c2VyIjoiQ2hyb21lLzExMS4wLjAiLCJkZXZpY2UiOiJPdGhlciIsImxhc3RBY2Nlc3MiOjAsIm1vYmlsZSI6ZmFsc2V9");
+        when(userSessionModel.getNotes()).thenReturn(notes);
+        UserModel user = new InMemoryUserAdapter(keycloakSession, realmModel, "test-user");
+        user.setEmail("test@test.net");
+        when(userSessionModel.getUser()).thenReturn(user);
+        AccessToken accessToken = new AccessToken();
+        Map<String, Object> formattedParameters = attributeOIDCProtocolMapper.getRequestParameters(protocolMapperModel,
+                        userSessionModel, accessToken);
+        assertTrue(formattedParameters.get("entitlement_context_obj").toString().contains("test@test.net"));
     }
 
     void commonSetup(String pkHeader, boolean setConfig, boolean userInfo, boolean userIsSvcAcct) {
