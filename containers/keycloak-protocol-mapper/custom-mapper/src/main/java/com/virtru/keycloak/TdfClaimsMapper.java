@@ -207,7 +207,12 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
 
         logger.debug("userSession.getNotes CONTENT IS: ");
+        // check notes to see if device grant flow
+        boolean isDeviceGrant = false;
         for (Map.Entry<String, String> entry : userSession.getNotes().entrySet()) {
+            if ("KC_DEVICE_NOTE".equals(entry.getKey())) {
+                isDeviceGrant = true;
+            }
             logger.debug("ENTRY IS: {}", entry);
         }
 
@@ -250,11 +255,15 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         } else {
             formattedParameters.put("primary_entity_id", userSession.getUser().getId());
         }
-
         formattedParameters.put("secondary_entity_ids", clientIds);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        // if device grant flow, add subject as entitlement_context_obj since IDToken is nulls
+        if (isDeviceGrant) {
+            formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(user));
+        } else {
+            formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        }
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always
