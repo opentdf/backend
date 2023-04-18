@@ -39,6 +39,7 @@ global:
           hosts:
             - "*"
           # -- (string) Use an existing istio gateway
+          # (format if in different namespace: namespace/gateway-name)
           existingGateway:
           # -- Name of istio gateway selector
           gatewaySelector: ingress
