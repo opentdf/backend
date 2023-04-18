@@ -12,7 +12,6 @@ global:
       imagePullSecrets: []
       # -- Enable audit logging
       auditLogEnabled: false
-
       istio:
         # -- Enable istio ingress
         enabled: false
@@ -25,7 +24,6 @@ global:
           name: ""
           # -- Redirect http requests to https
           httpsRedirect: false
-
       postgres:
         # -- postgres server's k8s name or global DNS for external server
         host: postgresql

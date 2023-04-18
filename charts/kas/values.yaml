@@ -8,7 +8,6 @@ global:
       imagePullSecrets: []
       # -- Enable audit logging
       auditLogEnabled: false
-
       istio:
         # -- Enable istio ingress
         enabled: false
@@ -21,7 +20,6 @@ global:
           name: ""
           # -- Redirect http requests to https
           httpsRedirect: false
-
 
 # -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`

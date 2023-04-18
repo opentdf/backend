@@ -31,7 +31,6 @@ global:
       imagePullSecrets: []
       # -- Enable audit logging
       auditLogEnabled: false
-
       istio:
         # -- Enable istio ingress
         enabled: false
@@ -47,7 +46,6 @@ global:
           name: backend-gateway
           # -- Redirect http requests to https
           httpsRedirect: false
-
       keycloak:
         # -- The Keycloak admin username
         user: keycloakadmin
