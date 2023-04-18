@@ -38,7 +38,7 @@ global:
           # -- Allow traffic for specific hosts
           hosts:
             - "*"
-          # -- Use an existing istio gateway
+          # -- (string) Use an existing istio gateway
           existingGateway:
           # -- Name of istio gateway selector
           gatewaySelector: ingress
