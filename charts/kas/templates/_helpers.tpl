@@ -77,3 +77,14 @@ Create oidc endpoint from a common value
 {{- printf "%s-secrets" ( include "kas.name" . ) }}
 {{- end }}
 {{- end }}
+
+{{/*
+Backend Ingress gateway name
+*/}}
+{{- define "kas.ingress.gateway" -}}
+{{- if .Values.global.opentdf.common.istio.ingress.existingGateway -}}
+{{ .Values.global.opentdf.common.istio.ingress.existingGateway }}
+{{- else -}}
+{{ .Values.global.opentdf.common.istio.ingress.name }}
+{{- end }}
+{{- end }}

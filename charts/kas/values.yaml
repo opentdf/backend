@@ -9,6 +9,20 @@ global:
       # -- Enable audit logging
       auditLogEnabled: false
 
+      istio:
+        # -- Enable istio ingress
+        enabled: false
+        ingress:
+          # -- Allow traffic for specific hosts
+          hosts: []
+          # -- Use an existing istio gateway
+          existingGateway:
+          # -- Name of istio gateway if not existing
+          name: ""
+          # -- Redirect http requests to https
+          httpsRedirect: false
+
+
 # -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
 logLevel: INFO

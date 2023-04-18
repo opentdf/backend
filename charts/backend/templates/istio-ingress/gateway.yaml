@@ -1,0 +1,24 @@
+{{- if and .Values.global.opentdf.common.istio.enabled (not .Values.global.opentdf.common.istio.ingress.existingGateway) -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Values.global.opentdf.common.istio.ingress.name }}
+  labels:
+    {{- include "backend.labels" . | nindent 4 }}
+spec:
+  selector:
+    istio: {{ .Values.global.opentdf.common.istio.ingress.gatewaySelector | default "ingress" }}
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP2
+      hosts: {{ .Values.global.opentdf.common.istio.ingress.hosts | toYaml | nindent 8 }}
+      tls:
+        httpsRedirect: {{ .Values.global.opentdf.common.istio.ingress.httpsRedirect }}
+    - port:
+        number: 443
+        name: https-443
+        protocol: HTTP2
+      hosts: {{ .Values.global.opentdf.common.istio.ingress.hosts | toYaml | nindent 8 }}
+{{- end -}}

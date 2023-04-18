@@ -1,0 +1,26 @@
+{{- if and .Values.global.opentdf.common.istio.enabled .Values.ingress.enabled -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "attributes.fullname" . }}-vsvc
+  labels:
+    {{- include "attributes.labels" . | nindent 4 }}
+spec:
+  gateways:
+    - {{ ( include "attributes.ingress.gateway" . ) }}
+  hosts: {{ .Values.global.opentdf.common.istio.ingress.hosts | toYaml | nindent 4 }}
+  http:
+    - match:
+        - uri:
+            prefix: /api/attributes/
+        - uri:
+            prefix: /api/attributes
+      name: {{ include "attributes.fullname" . }}
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: {{ include "attributes.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end -}}

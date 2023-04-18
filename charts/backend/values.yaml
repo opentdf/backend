@@ -32,6 +32,22 @@ global:
       # -- Enable audit logging
       auditLogEnabled: false
 
+      istio:
+        # -- Enable istio ingress
+        enabled: true
+        ingress:
+          # -- Allow traffic for specific hosts
+          hosts:
+            - "*"
+          # -- Use an existing istio gateway
+          existingGateway:
+          # -- Name of istio gateway selector
+          gatewaySelector: ingress
+          # -- Name of istio gateway if not existing
+          name: backend-gateway
+          # -- Redirect http requests to https
+          httpsRedirect: false
+
       keycloak:
         # -- The Keycloak admin username
         user: keycloakadmin
