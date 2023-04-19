@@ -8,19 +8,6 @@ global:
     common:
       # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
-      istio:
-        # -- Enable istio ingress
-        enabled: false
-        ingress:
-          # -- Allow traffic for specific hosts
-          hosts: []
-          # -- (string) Use an existing istio gateway
-          # (format if in different namespace: namespace/gateway-name)
-          existingGateway:
-          # -- Name of istio gateway to create if not existing
-          name: ""
-          # -- Redirect http requests to https
-          httpsRedirect: false
 
 # Configure the container image to use in the deployment.
 image:
