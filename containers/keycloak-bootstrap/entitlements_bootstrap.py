@@ -150,20 +150,21 @@ def entitlements_bootstrap():
     except FileNotFoundError:
         logger.warning("Not found: /etc/virtru-config/entitlements.yaml", exc_info=1)
 
-    for realm in entitlements:
-        keycloak_admin_tdf = KeycloakAdmin(
-            server_url=keycloak_auth_url,
-            username=username,
-            password=password,
-            realm_name=realm["name"],
-            user_realm_name="master",
-        )
-        insertEntitlementAttrsForRealm(
-            keycloak_admin_tdf,
-            realm["name"],
-            keycloak_auth_url,
-            realm["clientId"],
-            realm["username"],
-            realm["password"],
-            realm["preloadedClaims"],
-        )
+    if entitlements is not None:
+        for realm in entitlements:
+            keycloak_admin_tdf = KeycloakAdmin(
+                server_url=keycloak_auth_url,
+                username=username,
+                password=password,
+                realm_name=realm["name"],
+                user_realm_name="master",
+            )
+            insertEntitlementAttrsForRealm(
+                keycloak_admin_tdf,
+                realm["name"],
+                keycloak_auth_url,
+                realm["clientId"],
+                realm["username"],
+                realm["password"],
+                realm["preloadedClaims"],
+            )
