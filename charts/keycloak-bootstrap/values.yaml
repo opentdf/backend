@@ -124,19 +124,19 @@ attributes:
 entitlements:
   # -- Internal entitlements service url
   hostname: http://entitlements
-  realms:
+  realms: null
     # entitlements.realms[0].name -- Name of realm for which creating entitlements
-    - name: tdf
+    #- name: tdf
       # -- OIDC client ID used to create entitlements
-      clientId: dcr-test
+      #clientId: dcr-test
       # -- OIDC username used to create entitlements
-      username: user1
+      #username: user1
       # -- Password for given username used to create entitlements
-      password: testuser123
+      #password: testuser123
       # -- Entitlements to create, in the form
       # {client: ["attribute"]}
-      preloadedClaims:
-        {}
+      #preloadedClaims:
+      #  {}
         # tdf-user:
         #   - https://example.com/attr/Classification/value/C
         #   - https://example.com/attr/COI/value/PRX
