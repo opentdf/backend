@@ -179,7 +179,7 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
     helm_remote(
         "ingress-nginx",
         repo_url="https://kubernetes.github.io/ingress-nginx",
-        set=["controller.config.large-client-header-buffers=20 32k"],
+        set=["controller.config.large-client-header-buffers=20 128k"],
         version="4.2.1",
     )
 

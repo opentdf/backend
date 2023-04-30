@@ -1,0 +1,40 @@
+# Values file for backend chart with frontend.
+# Notably, this enables ingress access for the ABAC REST API at opentdf.local
+# and localhost:65432
+
+attributes:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    className: nginx
+    hosts:
+      localhost: &pathsAttributes
+        "/api/attributes(/|$)(.*)":
+          pathType: Prefix
+      host.docker.internal: *pathsAttributes
+      opentdf.local: *pathsAttributes
+entitlements:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    className: nginx
+    hosts:
+      localhost: &pathsEntitlements
+        "/api/entitlements(/|$)(.*)":
+          pathType: Prefix
+      host.docker.internal: *pathsEntitlements
+      opentdf.local: *pathsEntitlements
+kas:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+    className: nginx
+    hosts:
+      localhost: &pathsKas
+        "/api/kas(/|$)(.*)":
+          pathType: Prefix
+      host.docker.internal: *pathsKas
+      opentdf.local: *pathsKas
