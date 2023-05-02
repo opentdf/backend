@@ -293,6 +293,7 @@ def createTestClientTDFClient(keycloak_admin):
     logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
 
 
 def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clients):
