@@ -78,14 +78,16 @@ keycloak:
     #   clientSecret: test-client-secret
     # - clientId: test-client-2
     #   clientSecret: 123-456-789
-  # -- Create user in list with given username and password.
-  # In the form [{username:"user", password:"pass"}]
+  # -- Create user in list with given properties.  See https://www.keycloak.org/docs-api/19.0.1/rest-api/#_userrepresentation.
+  # In the form [UserRepresentation1, UserRepresentation2}]
   preloadedUsers:
     null
     # - username: user3
-    #   password: testuser1234
-    # - username: user4
-    #   password: testuser12345
+    #   enabled: true
+    #   email: user3@example.org
+    #   credentials:
+    #     - type: password
+    #       value: testuser12345
 attributes:
   # -- Internal attributes service url
   hostname: http://attributes

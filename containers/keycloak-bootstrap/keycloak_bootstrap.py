@@ -47,18 +47,7 @@ def check_matched(pattern, allData):
 def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
     for item in preloaded_users:
         try:
-            new_user = keycloak_admin.create_user(
-                {
-                    "username": item["username"],
-                    "enabled": True,
-                    "credentials": [
-                        {
-                            "value": item["password"],
-                            "type": "password",
-                        }
-                    ],
-                }
-            )
+            new_user = keycloak_admin.create_user(item)
             logger.info("Created new passworded user %s", new_user)
 
             # Add Abacus-related roles to user
