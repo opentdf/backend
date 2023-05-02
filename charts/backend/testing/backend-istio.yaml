@@ -1,0 +1,5 @@
+global:
+  opentdf:
+    common:
+      istio:
+        enabled: true

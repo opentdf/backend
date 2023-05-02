@@ -78,7 +78,7 @@ spec:
         - name: keycloak-bootstrap-config-volume
           {{- if .Values.existingConfigSecret }}
           secret:
-            name: {{ .Values.existingConfigSecret }}
+            secretName: {{ .Values.existingConfigSecret }}
           {{- else }}
           configMap:
             name: {{ include "keycloak-bootstrap.fullname" . }}-cm
