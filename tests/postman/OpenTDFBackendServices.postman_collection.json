@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "51502128-baa8-4d37-b0bd-8c0ae5b0340f",
 		"name": "OpenTDFBackendServices",
+		"description": "Postman collection for testing OpenTDF backend services.\n\nAll services should be up and running before running the test.\n\nEntitlement PDP service should be port-forwarded to 3355 using \"kubectl port-forward service/entitlement-pdp 3355\" to be accessible from outside of the cluster.\n\nEntity Resolution service should be port-forwarded to 7070 using \"kubectl port-forward service/entity-resolution 7070\" to be accessible from outside of the cluster.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "3237256"
 	},
