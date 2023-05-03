@@ -19,7 +19,7 @@
 								"exec": [
 									"var resp = pm.response.json()",
 									"var token = resp.access_token",
-									"pm.collectionVariables.set(\"new_access_token\", token);",
+									"pm.collectionVariables.set(\"access_token_api\", token);",
 									"",
 									"pm.test(\"Access token is received, 200 coded is returned\", function () {",
 									"    pm.expect(token).to.not.equal(null)",
@@ -909,7 +909,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{new_access_token}}",
+				"value": "{{access_token_api}}",
 				"type": "string"
 			}
 		]
@@ -959,10 +959,6 @@
 			"key": "existed_entity_id",
 			"value": "",
 			"type": "string"
-		},
-		{
-			"key": "new_access_token",
-			"value": ""
 		}
 	]
 }
