@@ -1,0 +1,241 @@
+name: Release Backend
+
+# GITHUB_SHA/REF will be set to the SHA/REF of the last commit in the tagged release
+on:
+  release:
+    types: [published]
+
+# This workflow is designed to be triggered only when someone publishes a Github release against a specific, preexisting Git tag in `main`
+# This workflow presumes that the normal `main` merge CI has already run for the particular merge SHA the release tag is bound to, as it should for every change to `main`
+# This workflow assumes the release tag is the literal Semver you want to use to stamp the release charts with.
+# This workflow will bake images into the (human-readable SEMVER from tag) charts using (generated from current tag SHA) tagged image builds, which presumably have already been built+pushed for this SHA
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: "${{ github.event.release.tag_name}}"
+    outputs:
+      CORE_VERSION: "${{ steps.info.outputs.CORE }}"
+      FULL_VERSION: "${{ steps.info.outputs.FULL }}"
+      KEYCLOAK_OTDF_VERSION: "${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}-${{ steps.info.outputs.FULL }}"
+      SHA_TAG: "${{ steps.info.outputs.SHA }}"
+    timeout-minutes: 5
+    steps:
+      - name: This workflow should run only main branch
+        if: github.ref_name != 'main'
+        run: echo This workflow should run only main branch. Please switch from "${{ github.ref_name }}" to main and try again >> $GITHUB_STEP_SUMMARY && exit 1
+
+      - uses: actions/checkout@v3
+      - run: echo -e "$EVENT_CONTEXT\n"
+        env:
+          EVENT_CONTEXT: ${{ toJson(github.event) }}
+      - run: |-
+          echo "CORE=${RELEASE_TAG%%-*}" >> $GITHUB_OUTPUT
+          echo "FULL=${RELEASE_TAG}" >> $GITHUB_OUTPUT
+          echo "SHA=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        id: info
+      - name: Keycloak application version
+        run: |
+          KEYCLOAK_OTDF_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
+          echo "KEYCLOAK_OTDF_VERSION=$KEYCLOAK_OTDF_VERSION" >> $GITHUB_OUTPUT
+        id: keycloak-otdf-version
+
+  tag-microservice-containers:
+    runs-on: ubuntu-latest
+    needs:
+      - version
+    permissions:
+      packages: write
+      contents: read
+    env:
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
+    strategy:
+      matrix:
+        repo:
+          - attributes
+          - entitlement_store
+          - entitlement-pdp
+          - entitlements
+          - entity-resolution
+          - kas
+          - keycloak-bootstrap
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag existing images
+        run: >-
+          docker buildx imagetools create
+          "ghcr.io/opentdf/${{ matrix.repo }}:${SHA_TAG}"
+          --tag "ghcr.io/opentdf/${{ matrix.repo }}:${FULL_VERSION}"
+
+  tag-custom-keycloak:
+    runs-on: ubuntu-latest
+    needs:
+      - version
+    permissions:
+      packages: write
+      contents: read
+    env:
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
+      KEYCLOAK_OTDF_VERSION: "${{ needs.version.outputs.KEYCLOAK_OTDF_VERSION }}"
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag existing images
+        run: >-
+          docker buildx imagetools create
+          "ghcr.io/opentdf/keycloak:${SHA_TAG}"
+          --tag "ghcr.io/opentdf/keycloak:${KEYCLOAK_OTDF_VERSION}"
+
+  policybundle:
+    needs:
+      - version
+    permissions:
+      packages: write
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+      POLICYTOOL_VERSION: v0.1.42
+      SHA_TAG: "${{ needs.version.outputs.SHA_TAG }}"
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+      - name: Setup OPA for running policy tests
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: latest
+      - name: Setup policy OCI bundler tool
+        uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18.0"
+      - name: Build policy bundle
+        run: |
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
+          cd containers/entitlement-pdp/entitlement-policy
+          policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+          policy pull "${BUNDLETAG}:${SHA_TAG}"
+          policy tag "${BUNDLETAG}:${SHA_TAG}" "${BUNDLETAG}:${FULL_VERSION}"
+          policy push "${BUNDLETAG}:${FULL_VERSION}"
+
+  publish-helm-charts-release:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    needs:
+      - tag-custom-keycloak
+      - tag-microservice-containers
+      - policybundle
+      - version
+    env:
+      FULL_VERSION: "${{ needs.version.outputs.FULL_VERSION }}"
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v3
+      - uses: yokawasa/action-setup-kube-tools@v0.9.2
+        with:
+          setup-tools: helm
+          helm: "3.10.3"
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+      - name: push
+        run: |
+          scripts/update-charts release "${FULL_VERSION}"
+          cd charts || exit 1
+          for d in */ ; do
+              if [ -f "$d/Chart.yaml" -a "$d" != "backend/" ]; then
+                echo "Packaging Helm chart $d..."
+                helm package $d
+                echo "Packaged as" *.tgz
+                helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+                rm *.tgz
+              fi
+          done
+          echo "Waiting a bit for subcharts to propagate"
+          sleep 10
+          echo "Updating backend chart versions"
+          helm dependency update backend
+          helm package backend
+          echo "Packaged Helm chart [backend] as " *.tgz
+          helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          rm *.tgz
+
+  signing-artifacts:
+    needs:
+      - version
+      - tag-microservice-containers
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        target:
+          - attributes
+          - entitlement_store
+          - entitlement-pdp
+          - entitlements
+          - entity-resolution
+          - kas
+          - keycloak-bootstrap
+    uses: ./.github/workflows/sign-artifacts.yaml
+    with:
+      target: ${{ matrix.target }}
+      version: "${{ needs.version.outputs.FULL_VERSION }}"
+    secrets: inherit
+
+  verifying-signing:
+    needs:
+      - version
+      - signing-artifacts
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        target:
+          - attributes
+          - entitlement_store
+          - entitlement-pdp
+          - entitlements
+          - entity-resolution
+          - kas
+          - keycloak-bootstrap
+    uses: ./.github/workflows/verify-artifacts.yaml
+    with:
+      target: ${{ matrix.target }}
+      version: "${{ needs.version.outputs.FULL_VERSION }}"
+    secrets: inherit

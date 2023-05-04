@@ -1,4 +1,3 @@
-import struct
 from .data import ByteData
 from .symconfig import SymmetricAndPayloadConfig
 

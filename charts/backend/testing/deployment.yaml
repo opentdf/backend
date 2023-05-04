@@ -1,0 +1,8 @@
+keycloak:
+  image:
+    repository: ghcr.io/opentdf/keycloak
+    tag: 21.0.1
+entity-resolution:
+  secret:
+    keycloak:
+      clientSecret: "123-456"

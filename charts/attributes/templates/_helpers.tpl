@@ -60,3 +60,41 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create OIDC Internal Url from a common value 
+*/}}
+{{- define "attributes.oidc.internalUrl" }}
+{{- if .Values.oidc.internalHost }}
+{{- .Values.oidc.internalHost }}
+{{- else if .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcInternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
+{{- else }}
+{{- .Values.global.opentdf.common.oidcInternalBaseUrl }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+Create OIDC External Url from a common value  
+*/}}
+{{- define "attributes.oidc.externalUrl" }}
+{{- if .Values.oidc.externalHost }}
+{{- .Values.oidc.externalHost }}
+{{- else if .Values.global.opentdf.common.oidcUrlPath }}
+{{- printf "%s/%s" .Values.global.opentdf.common.oidcExternalBaseUrl .Values.global.opentdf.common.oidcUrlPath }}
+{{- else }}
+{{- .Values.global.opentdf.common.oidcExternalBaseUrl }}
+{{- end }}
+{{- end }}
+
+{{/*
+Backend Ingress gateway name
+*/}}
+{{- define "attributes.ingress.gateway" -}}
+{{- if .Values.global.opentdf.common.istio.ingress.existingGateway -}}
+{{ .Values.global.opentdf.common.istio.ingress.existingGateway }}
+{{- else -}}
+{{ .Values.global.opentdf.common.istio.ingress.name }}
+{{- end }}
+{{- end }}

@@ -1,7 +1,7 @@
 # OpenAPI Spec https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md
 openapi: 3.0.0
 info:
-  version: 0.9.0
+  version: 1.2.1
   title: Key Access Service
   termsOfService: https://github.com/opentdf/backend/blob/master/LICENSE
   license:
@@ -57,7 +57,6 @@ paths:
   "/kas_public_key":
     get:
       summary: "Get the public key for KAS"
-      deprecated: true
       description: |
         This endpoint provides a public key for the private key that the
         kas has internally. The public key is used to wrap object keys in
@@ -91,6 +90,17 @@ paths:
         data keys as needed to provide access for entities with a TDF that they
         would like to open.
       operationId: tdf3_kas_core.web.rewrap.rewrap
+      parameters:
+        - &user-id-param 
+          in: query
+          name: userId
+          schema:
+            type: string
+        - &dpop-header
+          in: header
+          name: dpop
+          schema:
+            type: string
       requestBody:
         $ref: "#/components/requestBodies/Rewrap"
       responses:
@@ -133,6 +143,8 @@ paths:
         data keys as needed to provide access for entities with a TDF that they
         would like to open.
       operationId: tdf3_kas_core.web.rewrap.rewrap_v2
+      parameters:
+        - *dpop-header
       requestBody:
         $ref: "#/components/requestBodies/RewrapV2"
       # security:
@@ -171,11 +183,14 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
   "/upsert":
     post:
-      summary: Request a upsert
+      summary: Request an upsert
       description: |
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
       operationId: tdf3_kas_core.web.upsert.upsert
+      parameters:
+        - *user-id-param
+        - *dpop-header
       requestBody:
         $ref: "#/components/requestBodies/Upsert"
       responses:
@@ -203,11 +218,13 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
   "/v2/upsert":
     post:
-      summary: Request a upsert
+      summary: Request an upsert
       description: |
         The upsert service is a proxy to the back-end services that persist
         policies and keys.
       operationId: tdf3_kas_core.web.upsert.upsert_v2
+      parameters:
+        - *dpop-header
       requestBody:
         $ref: "#/components/requestBodies/UpsertV2"
       # security:
@@ -237,18 +254,18 @@ paths:
                   - $ref: "#/components/schemas/PolicyError"
 
 components:
-# TODO we should declare this in the openapi spec, but
-# if this is present connexion craps the bed unless
-# you define an x-bearerInfoFunc property
-# that points back to a function in your code to parse the token
-#
-# We should do that but not doing it now
-# Example: https://github.com/zalando/connexion/tree/master/examples/openapi3/jwt
-#  securitySchemes:
-#     virtruOIDCBearerToken:
-#       type: http
-#       scheme: bearer
-#       bearerFormat: JWT  # optional, for documentation purposes only
+  # TODO we should declare this in the openapi spec, but
+  # if this is present connexion craps the bed unless
+  # you define an x-bearerInfoFunc property
+  # that points back to a function in your code to parse the token
+  #
+  # We should do that but not doing it now
+  # Example: https://github.com/zalando/connexion/tree/master/examples/openapi3/jwt
+  #  securitySchemes:
+  #     virtruOIDCBearerToken:
+  #       type: http
+  #       scheme: bearer
+  #       bearerFormat: JWT  # optional, for documentation purposes only
   responses:
     ### Errors
     BadRequest:
@@ -340,7 +357,7 @@ components:
                 maxProperties: 1
                 properties:
                   signedRequestToken:
-                    $ref: "#/components/schemas/JWT"      
+                    $ref: "#/components/schemas/JWT"
     Upsert:
       description: Upsert request body
       required: true
@@ -380,7 +397,7 @@ components:
                 maxProperties: 1
                 properties:
                   signedRequestToken:
-                    $ref: "#/components/schemas/JWT"      
+                    $ref: "#/components/schemas/JWT"
 
   schemas:
     Algorithm:

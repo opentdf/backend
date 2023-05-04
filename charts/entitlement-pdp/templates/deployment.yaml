@@ -1,0 +1,105 @@
+{{- $cm := include "entitlement-pdp.fullname" . | printf "%s-cm" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "entitlement-pdp.fullname" . }}
+  annotations:
+    proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+  labels:
+    {{- include "entitlement-pdp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "entitlement-pdp.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        {{- include "entitlement-pdp.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "entitlement-pdp.serviceAccountName" . }}
+      containers:
+      - name: {{ include "entitlement-pdp.fullname" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        env:
+          - name: LISTEN_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $cm }}
+                key: listenPort
+          - name: EXTERNAL_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $cm }}
+                key: externalHost
+          - name: VERBOSE
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $cm }}
+                key: verbose
+          - name: DISABLE_TRACING
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $cm }}
+                key: disableTracing
+          - name: OTLP_COLLECTOR_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $cm }}
+                key: otlpCollectorEndpoint
+          - name: OPA_CONFIG_PATH
+            valueFrom:
+              configMapKeyRef:
+                name: {{ $cm }}
+                key: opaConfigPath
+          {{- if .Values.createPolicySecret }}
+          - name: OPA_POLICYBUNDLE_PULLCRED
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "entitlement-pdp.fullname" . }}-secret
+                key: opaPolicyPullSecret
+          {{- end }}
+        envFrom:
+          {{- with .Values.secretRef }}
+          - secretRef:
+              {{- tpl . $ | nindent 14 }}
+          {{- end }}
+        ports:
+          - containerPort: {{ .Values.config.listenPort }}
+        volumeMounts:
+          - name: opa-config
+            mountPath: {{ .Values.opaConfigMountPath }}
+            readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 1
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 30
+          periodSeconds: 10
+      volumes:
+        - name: opa-config
+          configMap:
+            name: {{ $cm }}
+            # An array of keys from the ConfigMap to create as files
+            items:
+            - key: "opa-config.yaml"
+              path: "opa-config.yaml"
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

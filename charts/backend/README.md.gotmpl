@@ -1,0 +1,115 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+## Deploy Chart
+
+1. Create Cluster: `ctlptl create cluster kind --registry=ctlptl-registry --name kind-opentdf`
+1. Update Dependencies: `helm dependency update`
+1. Install Chart (will generate non-production KAS keys if none provided): 
+
+```sh
+helm upgrade --install backend -f testing/deployment.yaml .
+```
+
+If you wish to provide and manage your own KAS keys (recommended), you may do so by either:
+
+1. Creating/managing your own named K8S Secret in the chart namespace in the form described by [](./templates/secrets.yaml), and setting `kas.externalEnvSecretName` accordingly:
+``` sh
+helm upgrade --install backend -f testing/deployment.yaml \
+  --set kas.externalEnvSecretName=<Secret-with-rsa-and-ec-keypairs> .
+```
+
+2. Supplying each private/public key as a values override, e.g:
+
+``` sh
+helm upgrade --install --create-namespace -n backend \
+  backend -f testing/deployment.yaml \
+  --set kas.envConfig.attrAuthorityCert=$ATTR_AUTHORITY_CERTIFICATE \
+  --set kas.envConfig.ecCert=$KAS_EC_SECP256R1_CERTIFICATE \
+  --set kas.envConfig.cert=$KAS_CERTIFICATE \
+  --set kas.envConfig.ecPrivKey=$KAS_EC_SECP256R1_PRIVATE_KEY \
+  --set kas.envConfig.privKey=$KAS_PRIVATE_KEY .
+```
+
+
+## Cluster Status 
+  To check to see if your cluster is running, enter the following command:
+  `kubectl get pods` 
+
+## Setting Up An Ingress (Optional)
+
+### Nginx
+
+```
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+helm install nginx-ingress-controller ingress-nginx/ingress-nginx --version 4.2.1 --set controller.config.large-client-header-buffers="20 32k"
+
+helm upgrade --install --create-namespace -n backend \
+backend -f values.yaml -f testing/deployment.yaml \
+-f testing/ingress.yaml \
+--set kas.envConfig.attrAuthorityCert=$ATTR_AUTHORITY_CERTIFICATE \
+--set kas.envConfig.ecCert=$KAS_EC_SECP256R1_CERTIFICATE \
+--set kas.envConfig.cert=$KAS_CERTIFICATE \
+--set kas.envConfig.ecPrivKey=$KAS_EC_SECP256R1_PRIVATE_KEY \
+--set kas.envConfig.privKey=$KAS_PRIVATE_KEY .
+
+kubectl port-forward service/nginx-ingress-controller-ingress-nginx-controller 65432:80
+```
+
+### Istio
+
+```
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+helm repo update  
+kubectl create namespace istio-system
+helm install istio-base istio/base -n istio-system
+helm install istiod istio/istiod -n istio-system --wait
+
+kubectl create namespace istio-ingress
+kubectl label namespace istio-ingress istio-injection=enabled
+helm install istio-ingress istio/gateway -n istio-ingress
+
+helm upgrade --install --create-namespace -n backend \
+backend -f values.yaml -f testing/deployment.yaml \
+-f testing/ingress.yaml -f testing/istio.yaml \
+--set kas.envConfig.attrAuthorityCert=$ATTR_AUTHORITY_CERTIFICATE \
+--set kas.envConfig.ecCert=$KAS_EC_SECP256R1_CERTIFICATE \
+--set kas.envConfig.cert=$KAS_CERTIFICATE \
+--set kas.envConfig.ecPrivKey=$KAS_EC_SECP256R1_PRIVATE_KEY \
+--set kas.envConfig.privKey=$KAS_PRIVATE_KEY .
+```
+
+#### Istio without an External Load Balancer
+```
+kubectl port-forward -n istio-ingress service/istio-ingress 65432:80
+```
+
+
+## Cleanup
+1. Uninstall Chart: `helm uninstall backend -n backend`
+2. Uninstall Ingress (if used): `helm uninstall nginx-ingress-controller`
+3. Delete Cluster: `ctlptl delete cluster kind-opentdf`
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
+## Generating the helm docs
+
+To generate the helm docs for the backend chart and its dependencies, install the helm-docs tool, navigate to the backend helm chart directory, and run the helm-docs command below.
+```
+brew install norwoodj/tap/helm-docs
+cd backend/charts/backend
+helm-docs --document-dependency-values --chart-search-root=.. --template-files=./backend/_templates.gotmpl --template-files=README.md.gotmpl
+```

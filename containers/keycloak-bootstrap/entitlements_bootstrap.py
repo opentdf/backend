@@ -9,52 +9,24 @@ logging.basicConfig()
 logger = logging.getLogger("keycloak_bootstrap")
 logger.setLevel(logging.DEBUG)
 
-# tdf_realm_user_attrmap = {
-#     'tdf-user': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'user1': [
-#         "https://example.com/attr/Classification/value/S",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'bob_1234': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRC"
-#     ],
-#     'alice_1234': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRD"
-#     ]
-# }
-
-# tdf_realm_client_attrmap = {
-#     'tdf-client': [
-#         "https://example.com/attr/Classification/value/S",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'browsertest': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRA"
-#     ],
-#     'service-account-tdf-client': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRB"
-#     ],
-#     'client_x509': [
-#         "https://example.com/attr/Classification/value/S",
-#         "https://example.com/attr/COI/value/PRX"
-#     ],
-#     'dcr-test': [
-#         "https://example.com/attr/Classification/value/C",
-#         "https://example.com/attr/COI/value/PRF"
-#     ]
-# }
+# This is the only URL this file should ever need -
+# The URL stuff inside the cluster (aka this bootstrap job) will use to resolve keycloak (private, non-browser clients)
+kc_internal_url = os.getenv(
+    "KEYCLOAK_INTERNAL_URL", "http://keycloak-http/auth"
+).rstrip("/")
 
 
 def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authToken):
     users = keycloak_admin.get_users()
-    logger.info(f"Got users: {users}")
+    logger.debug("Got users: %s", users)
+
+    expected_users = set(user_attr_map.keys())
+    missing_users = expected_users - set([user["username"] for user in users])
+    if missing_users:
+        logger.warning(
+            "Not all users listed in custom realm config found. Missing %s",
+            missing_users,
+        )
 
     for user in users:
         if user["username"] not in user_attr_map:
@@ -84,6 +56,14 @@ def insertAttrsForUsers(keycloak_admin, entitlement_host, user_attr_map, authTok
 
 def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, authToken):
     clients = keycloak_admin.get_clients()
+    logger.debug("Got clients: %s", clients)
+
+    expected_clients = set(client_attr_map.keys())
+    missing_clients = expected_clients - set([client["clientId"] for client in clients])
+    if missing_clients:
+        logger.warning(
+            "Not all clients listed in realm config found. Missing %s", missing_clients
+        )
 
     for client in clients:
         if client["clientId"] not in client_attr_map:
@@ -112,13 +92,21 @@ def insertAttrsForClients(keycloak_admin, entitlement_host, client_attr_map, aut
 
 
 def insertEntitlementAttrsForRealm(
-    keycloak_admin, target_realm, keycloak_auth_url, entity_attrmap
+    keycloak_admin,
+    target_realm,
+    keycloak_auth_url,
+    cliend_id,
+    username,
+    password,
+    entity_attrmap,
 ):
     logger.info("Inserting attrs for realm: [%s]", target_realm)
-    entitlement_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
-    entitlement_username = os.getenv("ENTITLEMENT_USERNAME")
-    entitlement_password = os.getenv("ENTITLEMENT_PASSWORD")
-    entitlement_host = os.getenv("ENTITLEMENT_HOST", "http://opentdf-entitlements:4030")
+    # entitlement_clientid = os.getenv("ENTITLEMENT_CLIENT_ID")
+    # entitlement_username = os.getenv("ENTITLEMENT_USERNAME")
+    # entitlement_password = os.getenv("ENTITLEMENT_PASSWORD")
+    entitlement_host = os.getenv("ENTITLEMENT_HOST", "http://entitlements:4030").rstrip(
+        "/"
+    )
 
     keycloak_openid = KeycloakOpenID(
         # NOTE: `realm_name` IS NOT == `target_realm` here
@@ -126,10 +114,17 @@ def insertEntitlementAttrsForRealm(
         # `realm_name` is the realm you're using to get a token to talk to entitlements with
         # They are not the same.
         server_url=keycloak_auth_url,
-        client_id=entitlement_clientid,
+        client_id=cliend_id,
         realm_name="tdf",
     )  # Entitlements endpoint always uses `tdf` realm client creds
-    authToken = keycloak_openid.token(entitlement_username, entitlement_password)
+
+    logger.debug(
+        "Connecting to realm [tdf] on [%s] with user [%s] for client [%s]",
+        entitlement_host,
+        username,
+        cliend_id,
+    )
+    authToken = keycloak_openid.token(username, password)
 
     insertAttrsForUsers(
         keycloak_admin, entitlement_host, entity_attrmap, authToken["access_token"]
@@ -137,42 +132,39 @@ def insertEntitlementAttrsForRealm(
     insertAttrsForClients(
         keycloak_admin, entitlement_host, entity_attrmap, authToken["access_token"]
     )
-    logger.info("Finished inserting attrs for realm: [%s]", target_realm)
+    logger.info("Finished inserting entitlement attrs for realm: [%s]", target_realm)
 
 
 def entitlements_bootstrap():
+    logger.info("Running Entitlement/PGSQL bootstrap")
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
 
-    keycloak_hostname = os.getenv("keycloak_hostname", "http://localhost:8080")
-    keycloak_auth_url = keycloak_hostname + "/auth/"
-
-    keycloak_admin_tdf = KeycloakAdmin(
-        server_url=keycloak_auth_url,
-        username=username,
-        password=password,
-        realm_name="tdf",
-        user_realm_name="master",
-    )
+    keycloak_auth_url = kc_internal_url + "/"
 
     # Contains a map of `entities` to attributes we want to preload
     # Entities can be clients or users, doesn't matter
-    with open("/etc/virtru-config/entitlements.yaml") as f:
-        entity_attrmap = yaml.safe_load(f)
+    try:
+        with open("/etc/virtru-config/entitlements.yaml") as f:
+            entitlements = yaml.safe_load(f)
+    except FileNotFoundError:
+        logger.warning("Not found: /etc/virtru-config/entitlements.yaml", exc_info=1)
 
-    insertEntitlementAttrsForRealm(
-        keycloak_admin_tdf, "tdf", keycloak_auth_url, entity_attrmap
-    )
-    # FIXME: Enable PKI realm
-    keycloak_admin_tdf_pki = KeycloakAdmin(
-        server_url=keycloak_auth_url,
-        username=username,
-        password=password,
-        realm_name="tdf-pki",
-        user_realm_name="master",
-    )
-    insertEntitlementAttrsForRealm(
-        keycloak_admin_tdf_pki, "tdf-pki", keycloak_auth_url, entity_attrmap
-    )
-
-    return True
+    if entitlements is not None:
+        for realm in entitlements:
+            keycloak_admin_tdf = KeycloakAdmin(
+                server_url=keycloak_auth_url,
+                username=username,
+                password=password,
+                realm_name=realm["name"],
+                user_realm_name="master",
+            )
+            insertEntitlementAttrsForRealm(
+                keycloak_admin_tdf,
+                realm["name"],
+                keycloak_auth_url,
+                realm["clientId"],
+                realm["username"],
+                realm["password"],
+                realm["preloadedClaims"],
+            )

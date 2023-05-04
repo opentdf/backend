@@ -9,12 +9,11 @@ from pprint import pprint
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from tdf3_kas_core.models import WrappedKey
-from tdf3_kas_core.models import MetaData
+from tdf3_kas_core.models.wrapped_keys import aes_encrypt_sha1
 
 from tdf3_kas_core.util import get_public_key_from_disk
 from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
-from tdf3_kas_core.util import aes_encrypt_sha1
 from tdf3_kas_core.util import aes_gcm_encrypt
 
 from tdf3_kas_core.errors import KeyAccessError
@@ -24,7 +23,8 @@ from .key_access import KeyAccess
 from .key_access_helpers import add_required_values
 from .key_access_helpers import add_remote_values
 from .key_access_helpers import add_wrapped_values
-from .key_access_helpers import add_metadata_values
+from .key_access_helpers import decrypt_metadata_string
+from .key_access_helpers import decrypt_encrypted_metadata
 
 public_key = get_public_key_from_disk("test")
 private_key = get_private_key_from_disk("test")
@@ -153,10 +153,10 @@ def test_add_wrapped_values():
     assert kao.wrapped_key == raw_wrapped_key
 
 
-# =========== Test add_metadata_values ===========================
+# =========== Test decrypt_metadata_string ===========================
 
 
-def test_add_metadata_values_with_metadata_in_raw_dict():
+def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     """Test add metadata values."""
     expected = {"foo": "bar"}
     print(expected)
@@ -187,49 +187,60 @@ def test_add_metadata_values_with_metadata_in_raw_dict():
     wrapped_key = wrapped_secret.rewrap_key(public_key)
 
     kao = KeyAccess()
-    kao = add_metadata_values(
-        kao, raw_dict, wrapped_key=wrapped_key, private_key=private_key
+    kao.metadata = decrypt_metadata_string(
+        raw_dict, wrapped_key=wrapped_key, private_key=private_key
     )
     print(kao.metadata)
-    assert isinstance(kao.metadata, MetaData)
-    assert kao.metadata.get("foo") == expected["foo"]
+    assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
 
 
 def test_add_metadata_values_without_metadata_in_raw_dict():
     """Test add metadata values with no encrypted metadata field."""
-    expected = {}
 
     secret = AESGCM.generate_key(bit_length=128)
     wrapped_secret = WrappedKey(secret)
     wrapped_key = wrapped_secret.rewrap_key(public_key)
 
     kao = KeyAccess()
-    kao = add_metadata_values(kao, {}, wrapped_key=wrapped_key, private_key=private_key)
+    kao.metadata = decrypt_metadata_string(
+        {}, wrapped_key=wrapped_key, private_key=private_key
+    )
     print(kao.metadata)
 
-    # Metadata object should exist
-    assert isinstance(kao.metadata, MetaData)
     # Metadata object should be empty
-    assert kao.metadata.data == expected
+    assert kao.metadata is None
 
 
 def test_exception_on_not_providing_wrapped_key():
-    """Should throw expected error if wrapped_key absent"""
-    kao = KeyAccess()
+    """Should throw expected error if wrapped_key absent."""
     try:
-        add_metadata_values(
-            kao, {"encryptedMetadata": True}, wrapped_key=None, private_key=private_key
+        decrypt_metadata_string(
+            {"encryptedMetadata": True}, wrapped_key=None, private_key=private_key
         )
     except KeyAccessError as inst:
         assert inst.args[0] == "No wrapped key provided"
 
 
 def test_exception_on_not_providing_private_key():
-    """Should throw expected error if private_key absent"""
-    kao = KeyAccess()
+    """Should throw expected error if private_key absent."""
     try:
-        add_metadata_values(
-            kao, {"encryptedMetadata": True}, wrapped_key=wrapped_key, private_key=None
+        decrypt_metadata_string(
+            {"encryptedMetadata": True}, wrapped_key=wrapped_key, private_key=None
         )
     except KeyAccessError as inst:
         assert inst.args[0] == "No private key provided"
+
+
+def test_metadata_from_raw_with_iv_prepend():
+    """Test raw_data factory with encryption."""
+    expected = {"foo": "bar"}
+    expected_encoded = str.encode(json.dumps(expected))
+    secret = AESGCM.generate_key(bit_length=128)
+    (encrypted, iv) = aes_gcm_encrypt(expected_encoded, secret)
+    raw_metadata = {
+        "algorithm": "AES_GCM",
+        "iv": base64.b64encode(iv),
+        "ciphertext": base64.b64encode(iv + encrypted),
+    }
+    metadata = decrypt_encrypted_metadata(raw_metadata, WrappedKey(secret))
+    assert json.dumps(json.loads(metadata)) == json.dumps(expected)

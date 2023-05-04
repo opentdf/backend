@@ -4,17 +4,25 @@ import os
 import logging
 
 from importlib import metadata
+from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
-from tdf3_kas_core.server_timing import Timing
+from tdf3_kas_core import validate_dpop
 
-from .plugins import eas_rewrap_plugin, revocation_plugin
+from .plugins import (
+    opentdf_attr_authority_plugin,
+    revocation_plugin,
+    access_pdp_healthz_plugin,
+    audit_hooks
+)
 
 logger = logging.getLogger(__name__)
 
 
-USE_KEYCLOAK = os.environ.get("USE_KEYCLOAK") == "1"
-KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST") is not None
+USE_OIDC = os.environ.get("USE_OIDC") == "1"
+OIDC_SERVER_URL = os.environ.get("OIDC_SERVER_URL") is not None
+
+AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
 
 
 def configure_filters(kas):
@@ -31,7 +39,7 @@ def configure_filters(kas):
     filter_plugin = revocation_plugin.RevocationPlugin(allows=allows, blocks=blocks)
     kas.use_rewrap_plugin(filter_plugin)
     kas.use_upsert_plugin(filter_plugin)
-    if USE_KEYCLOAK:
+    if USE_OIDC:
         # filter_plugin = revocation_plugin.RevocationPluginV2(allows=allows, blocks=blocks)
         kas.use_rewrap_plugin_v2(filter_plugin)
         kas.use_upsert_plugin_v2(filter_plugin)
@@ -57,7 +65,7 @@ def app(name):
     The name parameter is the name of the execution root. Typically this will
     be __main__.
     """
-    global USE_KEYCLOAK
+    global USE_OIDC
     # Construct the KAS instance
     kas = Kas.get_instance()
     kas.set_root_name(name)
@@ -74,22 +82,32 @@ def app(name):
             logger.exception(e)
             logger.warning("Version not set")
 
-    if USE_KEYCLOAK and KEYCLOAK_HOST:
+    if USE_OIDC and OIDC_SERVER_URL:
         logger.info("Keycloak integration enabled.")
-    elif USE_KEYCLOAK or KEYCLOAK_HOST:
-        e_msg = "Either USE_KEYCLOAK or KEYCLOAK_HOST are not correctly defined - both are required."
+    elif USE_OIDC or OIDC_SERVER_URL:
+        e_msg = "Either USE_OIDC or OIDC_SERVER_URL are not correctly defined - both are required."
         logger.error(e_msg)
         raise Exception(e_msg)
-    else:
-        # Add EAS junk - not used for OIDC
-        eas_host = os.environ.get("EAS_HOST")
-        if not eas_host:
-            logger.error("EAS host is not configured correctly.")
+    # Add Attribute fetch plugin
+    attr_host = os.environ.get("ATTR_AUTHORITY_HOST")
+    if not attr_host:
+        logger.error("OTDF attribute host is not configured correctly.")
 
-        logger.info("EAS_HOST = [%s]", eas_host)
-        eas_backend = eas_rewrap_plugin.EASRewrapPlugin(eas_host)
-        kas.use_healthz_plugin(eas_backend)
-        kas.use_rewrap_plugin(eas_backend)
+    logger.info("ATTR_AUTHORITY_HOST = [%s]", attr_host)
+    otdf_attr_backend = opentdf_attr_authority_plugin.OpenTDFAttrAuthorityPlugin(
+        attr_host
+    )
+    kas.use_healthz_plugin(otdf_attr_backend)
+    kas.use_rewrap_plugin_v2(otdf_attr_backend)
+
+    access_pdp_health = access_pdp_healthz_plugin.AccessPDPHealthzPlugin()
+    kas.use_healthz_plugin(access_pdp_health)
+
+    kas.add_middleware(validate_dpop)
+
+    if AUDIT_ENABLED:
+        kas.use_post_rewrap_hook(audit_hooks.audit_hook)
+        kas.use_err_rewrap_hook(audit_hooks.err_audit_hook)
 
     configure_filters(kas)
 
@@ -127,19 +145,13 @@ def app(name):
     kas.set_key_pem("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", kas_ec_secp256r1_certificate)
 
     # Configure compatibility with EO mode
-    eas_certificate = load_key_bytes("EAS_CERTIFICATE", missing_variables)
-    if not eas_certificate:
-        logger.warn("KAS does not have an EAS_CERTIFICATE; running in OIDC-only mode")
+    aa_certificate = load_key_bytes("ATTR_AUTHORITY_CERTIFICATE", missing_variables)
+    if not aa_certificate:
+        logger.warn(
+            "KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode"
+        )
     else:
-        kas.set_key_pem("AA-PUBLIC", "PUBLIC", eas_certificate)
+        kas.set_key_pem("AA-PUBLIC", "PUBLIC", aa_certificate)
 
     # Get a Flask app from the KAS instance
-    running_app = kas.app()
-    # set profiler
-    Timing(
-        running_app,
-        os.environ.get("STATSD_HOST"),
-        os.environ.get("STATSD_PORT"),
-        "service.kas.flask",
-    )
-    return running_app
+    return kas.app()

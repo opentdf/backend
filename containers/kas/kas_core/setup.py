@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-version = "0.8.3"
+version = "1.2.1"
 
 setup(
     name="tdf3-kas-core",
@@ -28,13 +28,16 @@ setup(
         "bitstruct",
         "connexion",
         "cryptography",
+        "grpcio",
         "gunicorn",
         "importlib-resources",
         "jsonschema",
+        "protobuf",
         "python-json-logger",
         "requests",
         "statsd",
-        "swagger-ui-bundle",
         "wsgicors",
+        "attributes @ git+https://github.com/virtru/access-pdp#egg=attributes&subdirectory=clients/python/attributes",
+        "accesspdp @ git+https://github.com/virtru/access-pdp#egg=accesspdp&subdirectory=clients/python/accesspdp",
     ],
 )

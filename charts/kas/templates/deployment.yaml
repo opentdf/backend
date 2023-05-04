@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "kas.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -31,13 +31,11 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.image }}"
+          image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
-            {{- with .Values.secretRef }}
             - secretRef:
-                {{- toYaml . | nindent 16 }}
-            {{- end }}
+                name: {{ include "kas.secretName" . }}
             - configMapRef:
                 name: {{ include "kas.name" . }}-cm
           ports:
@@ -60,7 +58,6 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      restartPolicy: Always
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

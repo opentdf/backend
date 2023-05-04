@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "entity-resolution.fullname" . }}
+  annotations:
+    proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'
+  labels:
+    {{- include "entity-resolution.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "entity-resolution.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        {{- include "entity-resolution.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "entity-resolution.serviceAccountName" . }}
+      containers:
+      - name: {{ include "entity-resolution.fullname" . }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+        env:
+          - name: LISTEN_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: listenPort
+          - name: EXTERNAL_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: externalHost
+          - name: VERBOSE
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: verbose
+          - name: DISABLE_TRACING
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: disableTracing
+          - name: OTLP_COLLECTOR_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: otlpCollectorEndpoint
+          - name: KEYCLOAK_URL
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: keycloakUrl
+          - name: KEYCLOAK_REALM
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: keycloakRealm
+          - name: KEYCLOAK_LEGACY
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: keycloakLegacy
+          - name: KEYCLOAK_CLIENT_ID
+            valueFrom:
+              configMapKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-cm
+                key: keycloakClientId
+          - name: KEYCLOAK_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "entity-resolution.fullname" . }}-keycloak-client-secret
+                key: keycloakClientSecret
+        ports:
+          - containerPort: {{ .Values.config.listenPort }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 1
+          periodSeconds: 10
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ .Values.config.listenPort }}
+          failureThreshold: 30
+          periodSeconds: 10
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

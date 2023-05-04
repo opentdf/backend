@@ -34,7 +34,10 @@ def test_host_validation_regex_good_value():
         attr_authority_check.match("https://127.0.0.1:12").group("name") == "127.0.0.1"
     )
     assert attr_authority_check.match("https://127.0.0.1:12").group("port") == "12"
-    assert attr_authority_check.match("https://www.ex-ample.com/kas/path").group("path") == "/kas/path"
+    assert (
+        attr_authority_check.match("https://www.ex-ample.com/kas/path").group("path")
+        == "/kas/path"
+    )
     assert attr_authority_check.match("https://www.ex-ample.com/").group("path") == "/"
     assert attr_authority_check.match("https://www.ex-ample.com").group("path") is None
 
@@ -73,12 +76,13 @@ def test_attr_namespace_validation_regex_good_value():
         == "acmeclassification"
     )
 
+
 def test_attr_namespace_validation_regex_with_internal_path():
     """Test namespace validation with a good string."""
     assert (
-        attr_namespace_check.match("https://acme.mil/kas/attr/acmeclassification").group(
-            "namespace"
-        )
+        attr_namespace_check.match(
+            "https://acme.mil/kas/attr/acmeclassification"
+        ).group("namespace")
         == "acmeclassification"
     )
 

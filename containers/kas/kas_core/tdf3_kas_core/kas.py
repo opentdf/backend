@@ -1,6 +1,5 @@
 """The KAS class builds the Flask app from openapi.yaml using Connexion."""
 
-import sys
 import os
 import connexion
 
@@ -21,6 +20,7 @@ from .models import KeyMaster
 
 from .errors import PluginIsBadError
 from .errors import ServerStartupError
+from .errors import MiddlewareIsBadError
 
 from .abstractions import (
     AbstractHealthzPlugin,
@@ -29,6 +29,9 @@ from .abstractions import (
 )
 
 from .util.utility import value_to_boolean
+from .util.reverse_proxy import ReverseProxied
+from .util.swagger_ui_bundle import swagger_ui_4_path
+from .util.hooks import hook_into, post_rewrap_v2_hook_default
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +80,9 @@ def create_session_rewrap_v2(key_master, plugins):
     plugin_runner = RewrapPluginRunnerV2(plugins)
 
     def session_rewrap(data, options):
-        return rewrap_v2(data, options, plugin_runner, key_master)
+        return hook_into(post=Kas.get_instance()._post_rewrap_hook,
+                    err=Kas.get_instance()._err_rewrap_hook)(rewrap_v2)(
+                        data, options, plugin_runner, key_master)
 
     return session_rewrap
 
@@ -154,6 +159,9 @@ class Kas(object):
         self._rewrap_plugins_v2 = []
         self._upsert_plugins = []
         self._upsert_plugins_v2 = []
+        self._post_rewrap_hook = post_rewrap_v2_hook_default
+        self._err_rewrap_hook = lambda *args: None
+        self._middleware = None
         self._key_master = KeyMaster()
 
         # These callables and the flask app will be constructed by the app() method after configuration
@@ -241,6 +249,30 @@ class Kas(object):
         else:
             raise PluginIsBadError("plugin is not a decendent of AbstractHealthzPlugin")
 
+    def use_post_rewrap_hook(self, hook):
+        """ Add a hook called after rewrap completes """
+        if not callable(hook):
+            raise MiddlewareIsBadError("Provided error hook is not callable")
+        self._post_rewrap_hook = hook
+
+    def use_err_rewrap_hook(self, hook):
+        """ Add a hook called when rewrap returns an error """
+        if not callable(hook):
+            raise MiddlewareIsBadError("Provided error hook is not callable")
+        self._err_rewrap_hook = hook
+
+    def add_middleware(self, middleware):
+        """ add middleware called with upsert and rewrap """
+        if not(callable(middleware) or None):
+            raise MiddlewareIsBadError("Provided middleware is not callable")
+        self._middleware = middleware
+
+    def get_middleware(self):
+        """ return the callable middleare """
+        if self._middleware is not None:
+            return self._middleware
+        return lambda *args: None
+
     def get_session_healthz(self):
         """return the callable to process healthz requests."""
         return self._session_healthz
@@ -302,16 +334,23 @@ class Kas(object):
 
         self._session_kas_public_key = create_session_public_key(self._key_master)
 
-        app = connexion.FlaskApp(self._root_name)
-
+        flask_options = {"swagger_url": "/docs"}
+        app = connexion.FlaskApp(
+            self._root_name, specification_dir="api/", options=flask_options
+        )
+        
         # Allow swagger_ui to be disabled
-        options = {}
-        if not swagger_enabled():
+        options = {"swagger_ui": False}
+        if swagger_enabled():
             # Turn off Swagger UI feature
-            logger.debug("Disable Swagger UI")
-            options.update({"swagger_ui": False})
-        else:
             logger.warning("Enable Swagger UI")
+            flask_app = app.app
+
+            proxied = ReverseProxied(flask_app.wsgi_app, script_name="/api/kas/")
+            flask_app.wsgi_app = proxied
+            options.update({"swagger_ui": True, "swagger_path": swagger_ui_4_path})
+        else:
+            logger.debug("Disable Swagger UI")
 
         # Connexion will link REST endpoints to handlers using the openapi.yaml file
         openapi_file = importlib_resources.files(__package__) / "api" / "openapi.yaml"
@@ -323,5 +362,5 @@ class Kas(object):
 
 
 def swagger_enabled():
-    """Default true, but if SWAGGER_UI env variable is false or 0 then disable"""
-    return value_to_boolean(os.getenv("SWAGGER_UI", True))
+    """Default false, but if SWAGGER_UI env variable is true or 1 then enable"""
+    return value_to_boolean(os.getenv("SWAGGER_UI", False))

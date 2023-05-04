@@ -1,8 +1,8 @@
 # docker build -t ct1 -f xtest/Dockerfile . && docker run --net=host ct1
 # We need `node` for the test harness and node tests, and python pysdk testing
-ARG NODE_VERSION=16
+ARG NODE_VERSION=18
 ARG PY_OSS_VERSION=1.1.1
-ARG PY_TEST_VERSION=3.8
+ARG PY_TEST_VERSION=3.10
 
 FROM node:${NODE_VERSION}
 
@@ -18,15 +18,16 @@ RUN python3 --version
 
 # test
 WORKDIR /wrk
-COPY ./tests/containers/clients /wrk
+COPY ./tests/containers/clients/package.json \
+ ./tests/containers/clients/package-lock.json \
+ ./tests/containers/clients/requirements.txt \
+ ./tests/containers/clients/.npmrc \
+ /wrk/
 RUN npm install
-# Delete credentials from layer
-RUN rm /wrk/.npmrc
-
-COPY ./scripts /scripts
 RUN pip3 install --requirement /wrk/requirements.txt || true
-
+COPY ./scripts /scripts
+COPY ./tests/containers/clients /wrk
 ENV KAS_ENDPOINT http://host.docker.internal:65432/api/kas
 ENV OIDC_ENDPOINT http://host.docker.internal:65432
 
-CMD ["python3", "xtest.py"]
+CMD ["python3", "xtest.py", "--attrtest"]

@@ -55,6 +55,8 @@ class KeyNotFoundError(Error):
 class JWTError(Error):
     """Raise when there is some failure creating or verifying a JWT."""
 
+class MiddlewareIsBadError(Error):
+    """Throw when something non-callable is provided."""
 
 class PluginBackendError(Error):
     """Generic 502 errors, for use by plugins."""
@@ -70,6 +72,10 @@ class PluginFailedError(Error):
 
 class PolicyError(Error):
     """Raise if a policy is malformed."""
+
+
+class PreconditionError(Error):
+    """Raise if the private key for unwrapping the wrapped key is not ok."""
 
 
 class PrivateKeyInvalidError(Error):

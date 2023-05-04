@@ -1,9 +1,9 @@
 """REST Web handler for upsert."""
 import connexion
 import logging
-from tdf3_kas_core.kas import Kas
-from tdf3_kas_core.schema import get_schema
-from tdf3_kas_core.server_timing import Timing
+
+from ..kas import Kas
+from ..schema import get_schema
 
 from .create_context import create_context
 from .run_service_with_exceptions import run_service_with_exceptions
@@ -18,7 +18,6 @@ def upsert_helper(body, mode="upsert"):
     This endpoint performs a secondary service of the KAS; to proxy the
     back-end services that support the KAS functions.
     """
-    Timing.start("upsert")
     logger.debug("+=+=+=+=+=+ Upsert service runner starting")
 
     # Data validation performed by Connexion library against openapi.yaml
@@ -39,15 +38,18 @@ def upsert_helper(body, mode="upsert"):
     # package up the response and send it.
 
     logger.debug("+=+=+=+=+=+ Upsert request complete")
-    Timing.stop("upsert")
     return res
 
 
 @run_service_with_exceptions
-def upsert(body):
+def upsert(body, *, dpop=None, userId=None):
+    if userId:
+        logger.info("Legacy user logging in")
+    Kas.get_instance().get_middleware()(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert")
 
 
 @run_service_with_exceptions
-def upsert_v2(body):
+def upsert_v2(body, *, dpop=None):
+    Kas.get_instance().get_middleware()(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert_v2")

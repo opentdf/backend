@@ -1,6 +1,5 @@
 name: Build Backend
 env:
-  KEYCLOAK_BASE_IMAGE: ghcr.io/opentdf/keycloak-multiarch-base
   CONTAINER_ARCHS: linux/amd64,linux/arm64
 
 on:
@@ -12,21 +11,21 @@ on:
 jobs:
   config:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/helmpack/chart-testing:latest
     outputs:
       KEYCLOAK_BASE_VERSION: ${{ steps.keycloak-base-version.outputs.KEYCLOAK_BASE_VERSION }}
       KEYCLOAK_OTDF_VERSION: ${{ steps.keycloak-otdf-version.outputs.KEYCLOAK_OTDF_VERSION }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
       - name: Select keycloak base version
-        run: echo '::set-output name=KEYCLOAK_BASE_VERSION::'$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)
+        run: |
+          KEYCLOAK_BASE_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
+          echo "KEYCLOAK_BASE_VERSION=$KEYCLOAK_BASE_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-base-version
       - name: Set output modified image version
-        run: echo '::set-output name=KEYCLOAK_OTDF_VERSION::'$(<containers/keycloak-protocol-mapper/VERSION)
+        run: |
+          KEYCLOAK_OTDF_VERSION="$(cut -d- -f1 <containers/keycloak-protocol-mapper/VERSION)"
+          echo "KEYCLOAK_OTDF_VERSION=$KEYCLOAK_OTDF_VERSION" >> $GITHUB_OUTPUT
         id: keycloak-otdf-version
 
   lint:
@@ -35,44 +34,63 @@ jobs:
       image: quay.io/helmpack/chart-testing:latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - run: >-
+          git version && ( git remote -v | grep backend.git ) || (
+            git config --global --add safe.directory /__w/backend/backend ||
+              git remote add origin https://github.com/opentdf/backend.git ||
+              git remote set-url origin https://github.com/opentdf/backend.git
+          ) || echo not configurable
       - name: Lint
         run: ct lint --target-branch main --all charts/
       - name: Render Templates
         run: |
           cd charts
-          for d in */ ; do
-              if [ -f "$d/Chart.yaml" ]; then
-                echo "Rendering Helm chart $d to validate defaults..."
-                helm template "$d"
-              fi
+          for d in * ; do
+            if [ -f "$d/Chart.yaml" ]; then
+              echo "Rendering Helm chart $d to validate defaults..."
+              helm template "$d"
+            fi
+          done
+      - name: Render Backend With Custom Values
+        run: |
+          cd charts
+          for val_file in ../tests/sample-values/backend-*.yaml ; do
+            if [ -f "backend/Chart.yaml" ]; then
+              echo "Rendering backend with custom values from [${val_file}]..."
+              helm template -f "${val_file}" backend
+            fi
           done
 
   scriptcheck:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: 🦪 ✔ 🧼🧼🧼
         run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "koalaman/shellcheck:v0.8.0" --color=always scripts/*
       - name: 🦪 ✅ 🦇🦇🦇
         run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" bats/bats:1.5.0 scripts/*.bats
 
-  unittest:
+  # TODO this seems to be redundant with `pytest` - it tests the same services
+  # Only KAS needs it, due to some unmocked environmental deps - which we should probably solve for
+  # Everything else should strive to be OK with plain/baseline `pip install && pytest`
+  kas-unittest:
     runs-on: ubuntu-latest
     needs:
       - lint
       - scriptcheck
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: "🐍 🧪"
-        run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.10" scripts/monotest --coverage
+        run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.10" scripts/monotest --coverage containers/kas/kas_app containers/kas/kas_core
       - name: SonarCloud Scan
+        if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -81,14 +99,21 @@ jobs:
   pytest:
     runs-on: ubuntu-latest
     needs:
-      - unittest
-    timeout-minutes: 30
+      - lint
+    strategy:
+      matrix:
+        repo:
+          - attributes
+          - entitlement_store
+          - entitlements
+          - kas
+    timeout-minutes: 10
     steps:
       - name: Checkout working branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
           cache: 'pipenv'
@@ -98,34 +123,45 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip3 install -r containers/attributes/requirements.txt
-          pip3 install -r containers/claims/requirements.txt
-          pip3 install -r containers/entitlements/requirements.txt
+          pip3 install -r containers/${{ matrix.repo }}/requirements.txt
       - name: Test
         run: |
-          python -m pytest containers/attributes/tests
-          python -m pytest containers/claims/tests
-          python -m pytest containers/entitlements/tests
-          python -m pytest containers/kas/
+          python -m pytest containers/${{ matrix.repo }}/tests
 
   integration-test:
     runs-on: ubuntu-latest
     needs:
       - pytest
-    timeout-minutes: 30
+      - kas-unittest
+      - config
+    timeout-minutes: 45
+    permissions:
+      packages: read
     steps:
-      - uses: actions/checkout@v2
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+          registry-url: https://npm.pkg.github.com
+      - name: config ghpr with github token
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          cd tests/containers/clients
+          echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
+          echo //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN} >>.npmrc
+          npm i
+          npm list
+      - uses: yokawasa/action-setup-kube-tools@v0.9.2
         with:
           setup-tools: |
             kubectl
             helm
             tilt
           # This should be in sync with the minikube-deployed kube version below
-          kubectl: "1.23.3"
-          helm: "3.8.0"
-          helmv3: "3.8.0"
-          tilt: "0.25.2"
+          kubectl: "1.25.5"
+          helm: "3.10.3"
+          tilt: "0.30.13"
       - run: |
           kustomize version
           tilt version
@@ -133,90 +169,111 @@ jobs:
         id: minikube
         uses: medyagh/setup-minikube@latest
         with:
-          minikube-version: 1.25.2
+          minikube-version: 1.28.0
           # This should be in sync with the setup-tools version above
-          kubernetes-version: 1.23.3
+          kubernetes-version: 1.25.5
       - name: Get cluster versions
         run: |-
           kubectl version
           kubectl get pods -A
-      - name: config ghpr with pat
+      - name: Run xtest.Tiltfile
         run: |-
-          cd tests/containers/clients
-          echo @opentdf:registry=https://npm.pkg.github.com >.npmrc
-          echo //npm.pkg.github.com/:_authToken=${{ secrets.READ_PACKAGES_PAT }} >>.npmrc
-      - name: Run integration test Tiltfile
+          export TILTFILE_FILE=xtest.Tiltfile
+          echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
+          tilt ci -f ${TILTFILE_FILE}
+          tilt down -f ${TILTFILE_FILE}
+      - name: Run pki-test.Tiltfile
         run: |-
           echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           pip3 install opentdf
-          tilt ci integration-test pki-test
-      - name: Quick check - run/validate local deployment Tiltfile
+          export TILTFILE_FILE=pki-test.Tiltfile
+          echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
+          docker system prune -af
+          tilt ci -f ${TILTFILE_FILE}
+      - name: Get Keycloak logs on failure
+        if: failure()
         run: |-
-          tilt ci all
+          kubectl get pods
+          # Sometimes, PKI tests only are failing randomly in CI with 400 errors when calling Keycloak.
+          # This is to help debug that
+          kubectl logs keycloak-0
+          tilt down -f ${TILTFILE_FILE}
 
   publish-helm-charts:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - integration-test
+      # If we publish helm charts before we finish publishing the images
+      # they depend on, we can get into weirdness where the chart is pullable
+      # but the images are not, yet. Avoid that.
+      - build-and-publish-with-shared-base
+      - build-and-publish-isolated
     permissions:
       packages: write
       contents: read
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
-      - uses: yokawasa/action-setup-kube-tools@v0.7.1
+      - uses: actions/checkout@v3
+      - uses: yokawasa/action-setup-kube-tools@v0.9.2
         with:
           setup-tools: helm
-          helm: "3.8.0"
+          helm: "3.10.3"
+      - uses: frenck/action-setup-yq@v1.0.2
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          logout: false
       - name: push
         run: |
-          cd charts
+          scripts/update-charts
+          cd charts || exit 1
           for d in */ ; do
-              if [ -f "$d/Chart.yaml" ]; then
-                echo "Rendering Helm chart $d to validate defaults..."
+              if [ -f "$d/Chart.yaml" -a "$d" != "backend/" ]; then
+                echo "Packaging Helm chart $d..."
                 helm package $d
-                echo *.tgz
-                helm push *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+                echo "Packaged as" *.tgz
+                helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
                 rm *.tgz
               fi
           done
-
+          echo "Waiting a bit for subcharts to propagate"
+          sleep 10
+          echo "Updating backend chart versions"
+          helm dependency update backend
+          helm package backend
+          echo "Packaged Helm chart [backend] as " *.tgz
+          helm push --debug *.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+          rm *.tgz
   build-base:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
-      - unittest
-      - lint
       - integration-test
     outputs:
       digest: ${{ steps.publish.outputs.digest }}
     permissions:
       contents: read
       packages: write
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/python-base
           tags: |
             3.10
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Inspect builder
         run: |
           echo "Name:      ${{ steps.buildx.outputs.name }}"
@@ -225,28 +282,32 @@ jobs:
           echo "Flags:     ${{ steps.buildx.outputs.flags }}"
           echo "Platforms: ${{ steps.buildx.outputs.platforms }}"
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         id: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
-            ALPINE_VERSION=3.15
+            ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
           context: ./containers/python_base
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          push: true
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
 
+  # "isolated" - meaning these do not depend or build on `python_base`
   build-and-publish-isolated:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
-      - build-base
+      - integration-test
     permissions:
       contents: read
       packages: write
@@ -256,45 +317,46 @@ jobs:
         repo:
           - kas
           - keycloak-bootstrap
-    timeout-minutes: 90
+    timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
             type=sha
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
-            ALPINE_VERSION=3.15
+            ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
-            PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}
           context: ./containers/${{ matrix.repo }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  build-and-publish-with-shared-base:
+  build-and-publish:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
-      - build-base
-    timeout-minutes: 90
+      - integration-test
     permissions:
       contents: read
       packages: write
@@ -302,131 +364,175 @@ jobs:
     strategy:
       matrix:
         repo:
-          - claims
-          - attributes
-          - entitlements
+          - entitlement-pdp
+          - entity-resolution
+    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/${{ matrix.repo }}
           tags: |
             type=ref,event=branch
             type=sha
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
-            ALPINE_VERSION=3.15
+            CONTAINER_REGISTRY=ghcr.io
+          context: ./containers/${{ matrix.repo }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: ${{ env.CONTAINER_ARCHS }}
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-and-publish-policybundle:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - integration-test
+    permissions:
+      packages: write
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BUNDLETAG: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle
+      POLICYTOOL_VERSION: v0.1.42
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+      - name: Setup OPA for running policy tests
+        uses: open-policy-agent/setup-opa@v2
+        with:
+          version: latest
+      - name: Setup policy OCI bundler tool
+        uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18.0"
+      - name: Build policy bundle
+        if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/main' || github.event.pull_request.head.repo.fork }}
+        run: |
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
+          cd containers/entitlement-pdp/entitlement-policy
+          policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+          POLICYVERSION=sha-$(git rev-parse --short HEAD) make policybuild
+      - name: Publish policy bundle
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
+        run: |
+          go install github.com/opcr-io/policy/cmd/policy@${{ env.POLICYTOOL_VERSION }}
+          cd containers/entitlement-pdp/entitlement-policy
+          policy login --server=ghcr.io -u ${{ github.repository_owner }} -p ${{ secrets.GITHUB_TOKEN }}
+          POLICYVERSION=sha-$(git rev-parse --short HEAD) make policypush
+
+  build-and-publish-with-shared-base:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - build-base
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - entitlement_store
+          - attributes
+          - entitlements
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/opentdf/${{ matrix.repo }}
+          tags: |
+            type=ref,event=branch
+            type=sha
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: publish
+        uses: docker/build-push-action@v3
+        with:
+          build-args: |-
+            ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
             PY_VERSION=3.10
             PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}
           context: ./containers
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           file: ./containers/${{ matrix.repo }}/Dockerfile
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  keycloak-image-base:
-    # We're literally building upstream Keycloak as-is
-    # and we don't need to rebuild unless there's a major Keycloak version bump
-    # so at least skip this for non-main builds
-    runs-on: ubuntu-latest
-    needs:
-      - config
-      - integration-test
-    permissions:
-      contents: read
-      packages: write
-    timeout-minutes: 90
-    steps:
-      - name: Checkout upstream Keycloak image repo
-        uses: actions/checkout@v2
-        with:
-          repository: 'keycloak/keycloak-containers'
-          ref: ${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
-      - name: Set up QEMU (required for crossbuild)
-        uses: docker/setup-qemu-action@v1
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: ${{ env.KEYCLOAK_BASE_IMAGE }}
-          tags: |
-            type=ref,event=branch
-            type=sha
-            type-raw,value=${{ needs.config.outputs.KEYCLOAK_OTDF_VERSION }}
-      - name: Set up Docker BuildX
-        uses: docker/setup-buildx-action@v1
-        with:
-          install: true
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish upstream Keycloak base image as multi-arch image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./server
-          file: ./server/Dockerfile
-          platforms: ${{ env.CONTAINER_ARCHS }}
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}
-          tags: ${{ steps.meta.outputs.tags }}
-
   custom-keycloak-image:
-    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - config
-      - keycloak-image-base
     permissions:
       contents: read
       packages: write
+    runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: ghcr.io/opentdf/keycloak
           tags: |
             type=ref,event=branch
             type=sha
-            type-raw,value=${{ needs.config.outputs.KEYCLOAK_OTDF_VERSION }}
       - name: Set up QEMU (required for crossbuild)
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: publish
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           build-args: |-
             MAVEN_VERSION=3.8.4
             JDK_VERSION=11
             CONTAINER_REGISTRY=ghcr.io
             KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
-            KEYCLOAK_BASE_IMAGE=${{ env.KEYCLOAK_BASE_IMAGE }}
           context: ./containers/keycloak-protocol-mapper
           platforms: ${{ env.CONTAINER_ARCHS }}
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'opentdf/backend' }}

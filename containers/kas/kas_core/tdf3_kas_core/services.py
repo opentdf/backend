@@ -47,10 +47,9 @@ from tdf3_kas_core.errors import NanoTDFParseError
 from tdf3_kas_core.errors import PolicyError
 from tdf3_kas_core.errors import PolicyBindingError
 from tdf3_kas_core.errors import UnauthorizedError
-from tdf3_kas_core.errors import RouteNotFoundError
 
 from tdf3_kas_core.models import Adjudicator
-from tdf3_kas_core.models import AdjudicatorV2
+from tdf3_kas_core.models import AccessPDP
 from tdf3_kas_core.models import AttributePolicyCache
 from tdf3_kas_core.models import Entity
 from tdf3_kas_core.models import KeyAccess
@@ -63,12 +62,11 @@ from tdf3_kas_core.models.nanotdf import ResourceLocator
 from tdf3_kas_core.models.nanotdf import ECCMode
 from tdf3_kas_core.models.nanotdf import SymmetricAndPayloadConfig
 
-from tdf3_kas_core.server_timing import Timing
-
 from tdf3_kas_core.authorized import authorized
 from tdf3_kas_core.authorized import authorized_v2
 from tdf3_kas_core.authorized import looks_like_jwt
 from tdf3_kas_core.authorized import leeway
+
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +74,7 @@ logger = logging.getLogger(__name__)
 flags = {
     # TODO(PLAT-1212) Remove (set to False)
     "default_to_small_iv": os.environ.get("LEGACY_NANOTDF_IV") == "1",
-    "idp": os.environ.get("USE_KEYCLOAK") == "1",
+    "idp": os.environ.get("USE_OIDC") == "1",
 }
 
 
@@ -202,7 +200,9 @@ def rewrap(data, context, plugin_runner, key_master):
 def _get_bearer_token_from_header(context):
     # Get bearer token
     try:
-        authToken = context.data["Authorization"]
+        authToken = (context.data["X-Tdf-Claims"]
+                     if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED") == "true")
+                     else context.data["Authorization"])
         bearer, _, idpJWT = authToken.partition(" ")
     except KeyError as e:
         raise UnauthorizedError("Missing auth header") from e
@@ -214,23 +214,55 @@ def _get_bearer_token_from_header(context):
 
     return idpJWT
 
+
 def _decode_and_validate_oidc_jwt(context, key_master):
     """Decodes the JWT in the Authorization header,
     validates it via the issuer pubkey,
     then returns the JSON
     """
     idpJWT = _get_bearer_token_from_header(context)
-
-    realmKey = keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
+    realmKey = (key_master.get_key("AA-PUBLIC")
+                if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
+                else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master))
     return authorized_v2(realmKey, idpJWT)
 
-def _get_tdf_claims(context, key_master):
-    """Serializes the decoded and validated JWT into KAS's object model stuff.
-    """
-    decodedJwt = _decode_and_validate_oidc_jwt(context, key_master)
-    claims = Claims.load_from_raw_data(decodedJwt)
 
-    return claims
+def _get_tdf_claims(context, key_master):
+    """Serializes the decoded and validated JWT into KAS's object model stuff."""
+    try:
+        decodedJwt = _decode_and_validate_oidc_jwt(context, key_master)
+        claims = Claims.load_from_raw_data(decodedJwt)
+        return claims
+    except (KeyError, ValueError) as e:
+        raise UnauthorizedError("Claims absent or invalid") from e
+
+
+def _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_runner):
+    #
+    # Run the plugins
+    #
+
+    data_attribute_definitions = []
+
+    # Fetch AttributeDefinitions from any configured attribute authority plugins
+    # by namespace
+    data_attribute_definition_namespaces = list(
+        original_policy.data_attributes.cluster_namespaces
+    )
+    logger.debug(
+        f"Got data attr def namespaces: {data_attribute_definition_namespaces}"
+    )
+
+    # Do we even have any data attributes? If we do, run the plugins to fetch their
+    # corresponding definitions from all configured authorities.
+    #
+    # Otherwise, just skip the plugin update - no data attrs to fetch for.
+    if data_attribute_definition_namespaces:
+        data_attribute_definitions = plugin_runner.fetch_attributes(
+            data_attribute_definition_namespaces
+        )
+
+    return data_attribute_definitions
 
 
 def rewrap_v2(data, context, plugin_runner, key_master):
@@ -261,7 +293,13 @@ def rewrap_v2(data, context, plugin_runner, key_master):
     if "signedRequestToken" not in data:
         raise AuthorizationError("Request not authorized")
 
-    logger.debug("SIGNER PUBKEY: {}".format(signer_public_key.public_bytes(encoding=Encoding.PEM, format=PublicFormat.SubjectPublicKeyInfo).decode("ascii")))
+    logger.debug(
+        "SIGNER PUBKEY: {}".format(
+            signer_public_key.public_bytes(
+                encoding=Encoding.PEM, format=PublicFormat.SubjectPublicKeyInfo
+            ).decode("ascii")
+        )
+    )
 
     try:
         decoded = jwt.decode(
@@ -276,7 +314,7 @@ def rewrap_v2(data, context, plugin_runner, key_master):
         dataJson = json.loads(json_string)
     except ValueError as e:
         raise BadRequestError(f"Error in jwt or content [{e}]") from e
-    except Exception:
+    except Exception as e:
         raise UnauthorizedError("Not authorized") from e
 
     algorithm = dataJson.get("algorithm", None)
@@ -385,6 +423,7 @@ def _tdf3_rewrap(data, context, plugin_runner, key_master, entity):
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
 
+
 def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
     """
     Handle rewrap request for tdf3 type.
@@ -408,22 +447,11 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
     except ValueError as e:
         raise BadRequestError(f"Error in Policy or Key Binding [{e}]") from e
 
-    #
-    # Run the plugins
-    #
-
-    # Fetch attributes from EAS and create attribute policy cache.
-    attribute_policy_cache = AttributePolicyCache()
-    data_attributes_namespaces = list(
-        original_policy.data_attributes.cluster_namespaces
+    data_attr_defs = _fetch_attribute_definitions_from_authority_plugins(
+        original_policy, plugin_runner
     )
-    if data_attributes_namespaces:
-        config = plugin_runner.fetch_attributes(data_attributes_namespaces)
-        attribute_policy_cache.load_config(config)
 
-    # Create adjudicator from the attributes from EAS.
-    adjudicator = AdjudicatorV2(attribute_policy_cache)
-
+    # Run any rewrap plugins.
     (policy, res) = plugin_runner.update(original_policy, claims, key_access, context)
 
     # Execute a premature bailout if the plugins provide a rewrapped key.
@@ -448,9 +476,14 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
         # A purely KAS operation
         pass
 
+    # We have everything we need to invoke the access PDP
+    # 1. Entity attribute instances
+    # 2. Data attribute instances
+    # 3. Attribute definitions for every data attribute instance
+    access_pdp = AccessPDP()
     # Check to see if the policy will grant the entity access.
     # Raises an informative error if access is denied.
-    allowed = adjudicator.can_access(policy, claims)
+    allowed = access_pdp.can_access(policy, claims, data_attr_defs)
 
     client_public_key = serialization.load_pem_public_key(
         str.encode(data["clientPublicKey"]), backend=default_backend()
@@ -458,28 +491,32 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
 
     if allowed is True:
         logger.debug("========= Rewrap allowed = %s", allowed)
+        logger.debug(
+            f"Claims: {claims.user_id=}, {claims.entity_attributes=} is allowed access to data with policy {policy}"
+        )
+
         # Re-wrap the kas-wrapped key with the entity's public key.
         if key_access.wrapped_key is not None:
             wrapped_key = WrappedKey.from_raw(key_access.wrapped_key, kas_private)
             res["entityWrappedKey"] = wrapped_key.rewrap_key(client_public_key)
             logger.debug("REWRAP SERVICE FINISH")
-            return res
+            return res, policy, claims
         else:
             logger.error("Wrapped key missing from %s", key_access)
             raise KeyAccessError("No wrapped key in key access model")
 
     else:
         # should never get to here. Bug in adjudicator.
-        m = f"Adjudicator returned {allowed} without raising an error"
+        m = f"AccessPDP returned {allowed} without raising an error"
         logger.error(m)
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
+
 
 def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     """
     Handle rewrap request for tdf3 type.
     """
-    Timing.start("_nano_tdf_rewrap")
     try:
         key_access = data["keyAccess"]
 
@@ -562,29 +599,24 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         policy_data_as_byte.decode("utf-8")
     )
 
-    #
-    # Run the plugins
-    #
-
-    # Fetch attributes from EAS and create attribute policy cache.
-    attribute_policy_cache = AttributePolicyCache()
-    data_attributes_namespaces = list(
-        original_policy.data_attributes.cluster_namespaces
+    data_attr_defs = _fetch_attribute_definitions_from_authority_plugins(
+        original_policy, plugin_runner
     )
-    if data_attributes_namespaces:
-        config = plugin_runner.fetch_attributes(data_attributes_namespaces)
-        attribute_policy_cache.load_config(config)
 
-    # Create adjudicator from the attributes from EAS.
-    adjudicator = AdjudicatorV2(attribute_policy_cache)
-
+    # Run any rewrap plugins.
     (policy, res) = plugin_runner.update(original_policy, claims, key_access, context)
 
+    # We have everything we need to invoke the access PDP
+    # 1. Entity attribute instances
+    # 2. Data attribute instances
+    # 3. Attribute definitions for every data attribute instance
+    access_pdp = AccessPDP()
     # Check to see if the policy will grant the entity access.
     # Raises an informative error if access is denied.
-    allowed = adjudicator.can_access(policy, claims)
+    allowed = access_pdp.can_access(policy, claims, data_attr_defs)
+
     if allowed is False:
-        m = "Adjudicator returned {} without raising an error".format(allowed)
+        m = "AccessPDP returned {} without raising an error".format(allowed)
         logger.error(m)
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
@@ -621,8 +653,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
         "entityWrappedKey": encrypted_symmetric_kak_base64,
         "sessionPublicKey": ephemeral_rewrap_public_key,
     }
-    Timing.stop("_nano_tdf_rewrap")
-    return res
+    return res, policy, claims
 
 
 def upsert(data, context, plugin_runner, key_master):
@@ -645,7 +676,7 @@ def upsert(data, context, plugin_runner, key_master):
             raise AuthorizationError("Entity not authorized")
         authorized(entity.public_key, data["authToken"])
     except AuthorizationError:
-        logger.warning("Unauthorized access on behalf of [%s]", entity.userId)
+        logger.warning("Unauthorized access on behalf of [%s]", entity.user_id)
         raise
 
     # Unpack the policy.
@@ -723,7 +754,7 @@ def upsert_v2(data, context, plugin_runner, key_master):
     )
 
     # TODO BML fix
-	# entity = Entity(claims.user_id, client_public_key, claims.attributes)
+    # entity = Entity(claims.user_id, client_public_key, claims.attributes)
 
     # Unpack the policy.
     if "policy" not in dataJson:
@@ -745,7 +776,9 @@ def upsert_v2(data, context, plugin_runner, key_master):
     )
 
     # Run the plugins
-    messages = plugin_runner.upsert(original_policy, claims.entity_attributes, key_access, context)
+    messages = plugin_runner.upsert(
+        original_policy, claims.entity_attributes, key_access, context
+    )
 
     logger.debug("UPSERTV2 SERVICE FINISH: Upsert Status Messages = [%s]", messages)
 

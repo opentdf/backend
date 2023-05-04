@@ -1,5 +1,5 @@
 ARG PY_VERSION=3.10
-ARG ALPINE_VERSION=3.15
+ARG ALPINE_VERSION=3.17
 
 # stage - build
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
@@ -10,7 +10,6 @@ RUN apk add --no-cache --upgrade \
     build-base \
     postgresql-dev \
     postgresql-client \
-    libressl-dev \
     musl-dev \
     zlib-dev \
     jpeg-dev \

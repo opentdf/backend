@@ -38,6 +38,7 @@ Output in json format:
 ```
 
 ## docker-compose
+
 ```shell script
 docker-compose up --build --exit-code-from performance-test performance-test
 docker-compose logs
@@ -45,9 +46,11 @@ docker-compose down
 ```
 
 ## K6
+
 reference: https://github.com/loadimpact/k6
 
 ### local development testing
+
 ```shell script
 brew install k6
 # EAS
@@ -57,7 +60,9 @@ k6 run --vus 10 --iterations 10 performance-test/kas/script.js
 ```
 
 ### Docker
+
 To be used in a CI
+
 ```shell script
 docker pull loadimpact/k6
 
@@ -65,6 +70,7 @@ docker run -i loadimpact/k6 run - <script.js
 ```
 
 ### OpenAPI generate for python
+
 reference: https://github.com/triaxtec/openapi-python-client
 
 ```shell
@@ -72,6 +78,7 @@ openapi-python-client update --url http://pflynn.local:4030/openapi.json
 ```
 
 ### OpenAPI generate for K6 (beta)
+
 reference: https://openapi-generator.tech/
 
 Generate a performance client code.  
@@ -79,6 +86,7 @@ The code generated requires modification to run.
 If openapi.yml changes, run command below, and merge changes.
 
 #### EAS
+
 ```shell script
 # run from project root
 docker run --rm \
@@ -90,8 +98,11 @@ docker run --rm \
       -o /local/performance-test/eas/ \
       --additional-properties ensureUniqueParams=true
 ```
+
 #### KAS
+
 https://openapi-generator.tech/
+
 ```shell script
 # run from project root
 docker run --rm \
@@ -103,4 +114,3 @@ docker run --rm \
       -o /local/performance-test/kas/ \
       --additional-properties ensureUniqueParams=true
 ```
-

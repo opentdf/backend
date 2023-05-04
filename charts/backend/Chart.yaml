@@ -1,0 +1,46 @@
+apiVersion: v2
+appVersion: main
+description: Minimal deployment of OpenTDF backend services
+icon: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
+maintainers:
+  - name: OpenTDF
+    email: support@opentdf.io
+    url: opentdf.io
+name: backend
+type: application
+version: 0.0.1
+dependencies:
+  - name: attributes
+    repository: file://../attributes
+    version: 0.0.1
+  - name: entitlement-pdp
+    repository: file://../entitlement-pdp
+    version: 0.0.10
+  - name: entitlement-store
+    repository: file://../entitlement-store
+    version: 0.0.1
+  - name: entitlements
+    repository: file://../entitlements
+    version: 0.0.1
+  - name: entity-resolution
+    repository: file://../entity-resolution
+    version: 0.0.1
+  - name: kas
+    repository: file://../kas
+    version: 0.0.1
+  - name: postgresql
+    repository: https://charts.bitnami.com/bitnami
+    version: 12.1.8
+    condition: embedded.postgresql
+    tags: ["third-party"]
+  - name: keycloakx
+    alias: keycloak
+    repository: https://codecentric.github.io/helm-charts
+    version: 2.1.1
+    condition: embedded.keycloak
+    tags: ["third-party", "identity"]
+  - name: keycloak-bootstrap
+    repository: file://../keycloak-bootstrap
+    version: 0.4.4
+    condition: bootstrapKeycloak
+    tags: ["utility"]

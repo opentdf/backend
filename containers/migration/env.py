@@ -6,27 +6,33 @@ from sqlalchemy import pool
 
 from alembic import context
 import os, sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 import attributes.main as service_atribute_authority
 import entitlements.main as entitlements
-import service_entity.main as service_entity
-import claims.main as claims
+import entitlement_store.main as entitlement_store
 
 
 sys.path.append(os.getcwd())
+sys.path.append("../")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
 section = config.config_ini_section
-config.set_section_option(section, "POSTGRES_USER", claims.POSTGRES_USER)
 config.set_section_option(
-    section, "POSTGRES_PASSWORD", claims.POSTGRES_PASSWORD
+    section, "POSTGRES_USER", str(entitlement_store.POSTGRES_USER)
 )
 config.set_section_option(
-    section, "POSTGRES_DATABASE", claims.POSTGRES_DATABASE
+    section, "POSTGRES_PASSWORD", str(entitlement_store.POSTGRES_PASSWORD)
 )
-config.set_section_option(section, "POSTGRES_HOST", claims.POSTGRES_HOST)
+config.set_section_option(
+    section, "POSTGRES_DATABASE", str(entitlement_store.POSTGRES_DATABASE)
+)
+config.set_section_option(
+    section, "POSTGRES_HOST", str(entitlement_store.POSTGRES_HOST)
+)
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 fileConfig(config.config_file_name)
@@ -38,8 +44,7 @@ fileConfig(config.config_file_name)
 target_metadata = [
     service_atribute_authority.metadata,
     entitlements.metadata,
-    service_entity.metadata,
-    claims.metadata,
+    entitlement_store.metadata,
 ]
 
 # other values from the config, defined by the needs of env.py,

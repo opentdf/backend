@@ -48,7 +48,11 @@ class AbstractHealthzPlugin(AbstractPlugin):
 
     def healthz(self, *, probe):
         """Override this method."""
-        logger.error("AbstractHealthzPlugin method was called with (probe=[%s])", probe)
+        logger.warning(
+            "AbstractHealthzPlugin method was called with (probe=[%s]) on [%s]",
+            probe,
+            self.__class__.__name__,
+        )
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
 
 
@@ -57,13 +61,30 @@ class AbstractRewrapPlugin(AbstractPlugin):
 
     def update(self, req, res):
         """Override this method."""
-        logger.error("AbstractRewrapPlugin update method was called.")
+        logger.warning(
+            "AbstractRewrapPlugin update method was called on [%s]",
+            self.__class__.__name__,
+        )
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         return (req, res)
 
     def fetch_attributes(self, namespaces):
-        """Override this method."""
-        logger.warning("AbstractUpsertPlugin fetch_attributes method was called.")
+        """Override this method. Overriders are expected to return a List of
+        objects like the following:
+
+         class Attribute:
+             authorityNamespace: AnyUrl
+             name: str
+             order: list
+             rule: RuleEnum
+             state: Optional[str]
+             group_by: Optional[AnyUrl]
+
+        """
+        logger.warning(
+            "AbstractUpsertPlugin fetch_attributes method was called on [%s]",
+            self.__class__.__name__,
+        )
         logger.debug("namespaces = %s", namespaces)
         return {}
 
@@ -73,6 +94,9 @@ class AbstractUpsertPlugin(AbstractPlugin):
 
     def upsert(self, **kwargs):
         """Override this method."""
-        logger.warning("AbstractUpsertPlugin upsert method was called.")
+        logger.warning(
+            "AbstractUpsertPlugin upsert method was called on [%s]",
+            self.__class__.__name__,
+        )
         logger.debug("kwargs = %s", kwargs)
         return ""

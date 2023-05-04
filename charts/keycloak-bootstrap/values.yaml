@@ -1,0 +1,169 @@
+# -- Select a specific name for the resource, instead of the default, keycloak-bootstrap
+nameOverride: ""
+
+# -- Sets the default number of pod replicas in the deployment.
+# Ignored if `autoscaling.enabled` == true
+replicaCount: 1
+job:
+  # -- number of retries before considering a Job as failed
+  backoffLimit: 25
+# Configure the container image to use in the deployment.
+image:
+  # -- The image selector, also called the 'image name' in k8s documentation
+  # and 'image repository' in docker's guides.
+  repo: ghcr.io/opentdf/keycloak-bootstrap
+  # -- Chart.AppVersion will be used for image tag, override here if needed
+  tag:
+  # -- Defaults to `IfNotPresent` to skip lookup of newer versions.
+  pullPolicy: IfNotPresent
+
+pki:
+  # -- X.509 Client Certificate Authentication to a Direct Grant Flow enabled
+  directGrantEnable: "true"
+  # -- # X.509 Client Certificate Authentication to a Browser Flow enabled
+  browserEnable: "true"
+
+# Global values that may be overridden by a parent chart.
+global:
+  opentdf:
+    common:
+      # -- Base internal k8s url of OIDC provider
+      oidcInternalBaseUrl: http://keycloak-http
+      # -- Base external url of OIDC provider
+      oidcExternalBaseUrl: http://localhost:65432
+      # -- Optional path added to base OIDC url
+      oidcUrlPath: auth
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
+      imagePullSecrets: []
+
+# -- Is istio in place and requires a wait on the sidecar.
+istioTerminationHack: false
+
+# -- Deprecated. Use `opentdf.externalUrl`
+externalUrl:
+
+opentdf:
+  # -- Base URL for clients. Defaults to `oidcExternalBaseUrl`. A client app's homepage
+  # Defaults to OIDC url without path attached.
+  externalUrl:
+  # -- A list of valid redirect paths. Defaults to `externalUrl`
+  redirectUris:
+
+# -- Expect a secret with following keys:
+# - keycloak_admin_username:
+# - keycloak_admin_password:
+# - CLIENT_SECRET:
+# - ATTRIBUTES_USERNAME:
+# - ATTRIBUTES_PASSWORD:
+secretRef: |-
+  name: {{ template "keycloak-bootstrap.fullname" . }}-secret
+
+# The name of an existing secret containing configuration file keys values.
+existingConfigSecret:
+
+keycloak:
+  # -- override for `global.opentdf.common.oidcExternalBaseUrl`
+  hostname:
+  # -- if provided, will use custom configuration instead
+  customConfig: null
+  # -- Comma seperated list of users to be created with default password "testuser123"
+  passwordUsers: testuser@virtru.com,user1,user2
+  # -- Create test clients configured for clientcreds auth flow (list)
+  npeClients: null
+  # -- Create clients in list with given client id and secret.
+  # In the form [{clientId:"id", clientSecret:"secret"}]
+  preloadedClients:
+    null
+    # - clientId: test-client-1
+    #   clientSecret: test-client-secret
+    # - clientId: test-client-2
+    #   clientSecret: 123-456-789
+  # -- Create user in list with given properties.  See https://www.keycloak.org/docs-api/19.0.1/rest-api/#_userrepresentation.
+  # In the form [UserRepresentation1, UserRepresentation2}]
+  preloadedUsers:
+    null
+    # - username: user3
+    #   enabled: true
+    #   email: user3@example.org
+    #   credentials:
+    #     - type: password
+    #       value: testuser12345
+attributes:
+  # -- Internal attributes service url
+  hostname: http://attributes
+  # -- Realm of keycloak client used to create attributes
+  realm: tdf
+  # -- Keycloak client id used to create attributes
+  clientId: dcr-test
+  # -- List of authorities to create
+  preloadedAuthorities:
+    null
+    # - http://example.fun
+    # - http://testing123.fun
+  # -- List of attributes to create in the form:
+  #  [{authority:"", name:"", rule:"", state:"", order:[]}]
+  preloadedAttributes: null
+  # - authority: http://example.fun
+  #   name: number
+  #   rule: anyOf
+  #   state: published
+  #   order:
+  #   - '00'
+  #   - '01'
+  #   - '02'
+  #   - '03'
+  #   - '04'
+  #   - '05'
+  # - authority: http://testing123.fun
+  #   name: letter
+  #   rule: allOf
+  #   state: published
+  #   order:
+  #   - A
+  #   - B
+  #   - C
+  #   - D
+entitlements:
+  # -- Internal entitlements service url
+  hostname: http://entitlements
+  realms: null
+    # entitlements.realms[0].name -- Name of realm for which creating entitlements
+#    - name: tdf
+#       -- OIDC client ID used to create entitlements
+#      clientId: dcr-test
+#       -- OIDC username used to create entitlements
+#      username: user1
+#       -- Password for given username used to create entitlements
+#      password: testuser123
+#       -- Entitlements to create, in the form
+#       {client: ["attribute"]}
+#      preloadedClaims:
+#              {}
+#         tdf-user:
+#           - https://example.com/attr/Classification/value/C
+#           - https://example.com/attr/COI/value/PRX
+#         tdf-client:
+#           - https://example.com/attr/Classification/value/S
+#           - https://example.com/attr/COI/value/PRX
+#           - https://example.com/attr/Env/value/CleanRoom
+#         user1:
+#           - https://example.com/attr/Classification/value/S
+#           - https://example.com/attr/COI/value/PRX
+#         browsertest:
+#           - https://example.com/attr/Classification/value/C
+#           - https://example.com/attr/COI/value/PRA
+#         service-account-tdf-client:
+#           - https://example.com/attr/Classification/value/C
+#           - https://example.com/attr/COI/value/PRB
+#         bob_1234:
+#           - https://example.com/attr/Classification/value/C
+#           - https://example.com/attr/COI/value/PRC
+#         alice_1234:
+#           - https://example.com/attr/Classification/value/C
+#           - https://example.com/attr/COI/value/PRD
+#         client_x509:
+#           - https://example.com/attr/Classification/value/S
+#           - https://example.com/attr/COI/value/PRX
+#         dcr-test:
+#           - https://example.com/attr/Classification/value/C
+#           - https://example.com/attr/COI/value/PRF

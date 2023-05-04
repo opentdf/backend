@@ -4,7 +4,6 @@ import logging
 
 from tdf3_kas_core.kas import Kas
 from tdf3_kas_core.schema import get_schema
-from tdf3_kas_core.server_timing import Timing
 
 from .create_context import create_context
 from .run_service_with_exceptions import run_service_with_exceptions
@@ -20,7 +19,6 @@ def rewrap_helper(body, session_rewrap):
     data keys as needed to provide access for enties with a TDF that they
     would like to open.
     """
-    Timing.start("rewrap")
     logger.debug("+=+=+=+=+=+ Rewrap service runner starting")
 
     # Data validation performed by Connexion library against openapi.yaml
@@ -35,15 +33,18 @@ def rewrap_helper(body, session_rewrap):
     # package up the response and send it.
 
     logger.debug("+=+=+=+=+=+ Rewrap request complete")
-    Timing.stop("rewrap")
     return res
 
 
 @run_service_with_exceptions
-def rewrap(body):
+def rewrap(body, *, dpop=None, userId=None):
+    if userId:
+        logger.info("Legacy user logging in")
+    Kas.get_instance().get_middleware()(dpop, Kas.get_instance()._key_master)
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap())
 
 
 @run_service_with_exceptions
-def rewrap_v2(body):
+def rewrap_v2(body, *, dpop=None):
+    Kas.get_instance().get_middleware()(dpop, Kas.get_instance()._key_master)
     return rewrap_helper(body, Kas.get_instance().get_session_rewrap_v2())

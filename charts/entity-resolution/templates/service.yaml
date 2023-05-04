@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "entity-resolution.fullname" . }}
+  labels:
+    {{- include "entity-resolution.labels" . | nindent 4 }}
+spec:
+  ports:
+  - port: {{ .Values.config.listenPort }}
+    name: {{ include "entity-resolution.fullname" . }}
+    appProtocol: http
+    targetPort: {{ .Values.config.listenPort }}
+  selector:
+    {{- include "entity-resolution.selectorLabels" . | nindent 4 }}

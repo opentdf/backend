@@ -5,7 +5,6 @@ import logging
 import os
 import re
 
-from cryptography.hazmat.primitives import serialization
 from datetime import datetime, timedelta
 
 from tdf3_kas_core.errors import AuthorizationError
@@ -44,11 +43,14 @@ try:
         leeway = suggested_leeway
         logger.info("KAS_JWT_LEEWAY set to [%s]", suggested_leeway)
     else:
-        logger.error("KAS_JWT_LEEWAY out of bounds [%s] [%s]", suggested_leeway, max_leeway)
+        logger.error(
+            "KAS_JWT_LEEWAY out of bounds [%s] [%s]", suggested_leeway, max_leeway
+        )
 except KeyError:
     pass
 except TypeError:
     logger.error("Invalid KAS_JWT_LEEWAY", exc_info=True)
+
 
 def unpack_rs256_jwt(jwt_string, public_key):
     """Unpack asymmetric JWT using RSA 256 public key."""
@@ -102,19 +104,26 @@ def authorized(public_key, auth_token):
     try:
         unpack_rs256_jwt(auth_token, public_key)
         return True
-
     except Exception as e:
         raise AuthorizationError("Not authorized") from e
 
 
 def authorized_v2(public_key, auth_token):
     decoded = unsafe_decode_jwt(auth_token)
-    audience = decoded["aud"]
     try:
         decoded = jwt.decode(
-            auth_token, public_key, audience=audience, algorithms=["RS256", "ES256", "ES384", "ES512"], leeway=leeway
+            auth_token,
+            public_key,
+            algorithms=["RS256", "ES256", "ES384", "ES512"],
+            leeway=leeway,
+            options={"verify_aud": False},
         )
     except jwt.exceptions.PyJWTError as e:
-        logger.warning("Unverifiable claims [%s] found in [%s], public_key=[%s]", decoded, auth_token, public_key)
+        logger.warning(
+            "Unverifiable claims [%s] found in [%s], public_key=[%s]",
+            decoded,
+            auth_token,
+            public_key,
+        )
         raise UnauthorizedError("Not authorized") from e
     return decoded

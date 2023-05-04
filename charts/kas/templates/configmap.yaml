@@ -3,16 +3,22 @@ kind: ConfigMap
 metadata:
   name: {{ include "kas.name" . }}-cm
   labels:
-    app.kubernetes.io/name: {{ include "kas.name" . }}-cm
-    helm.sh/chart: {{ include "kas.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "kas.labels" . | nindent 4 }}
     app.kubernetes.io/part-of: kas
 data:
-  EAS_HOST: {{ .Values.endpoints.easHost }}
+  {{- with (coalesce .Values.endpoints.attrHost .Values.endpoints.easHost) }}
+  ATTR_AUTHORITY_HOST: {{ tpl . $ | quote  }}
+  {{- end }}
   FLASK_DEBUG: {{ .Values.flaskDebug | quote }}
   GUNICORN_WORKERS: {{ .Values.gunicornWorkers | default 1 | quote }}
-  KEYCLOAK_HOST: {{ .Values.endpoints.oidcPubkeyEndpoint }}
-  LOGLEVEL: {{ .Values.logLevel }}
-  STATSD_HOST: {{ .Values.endpoints.statsdHost }}
-  USE_KEYCLOAK: "1"
+  OIDC_SERVER_URL: {{ include "kas.oidcPubkeyEndpoint" . | quote }}
+  LOGLEVEL: {{ .Values.logLevel | quote }}
+  VERBOSE: {{ .Values.pdp.verbose | quote }}
+  {{- with .Values.endpoints.statsdHost }}
+  STATSD_HOST: {{ tpl . $ | quote  }}
+  {{- end }}
+  DISABLE_TRACING: {{ .Values.pdp.disableTracing | quote }}
+  JSON_LOGGER: {{ .Values.jsonLogger | default "true" | quote }}
+  AUDIT_ENABLED: {{ .Values.global.opentdf.common.auditLogEnabled | quote  }}
+  SWAGGER_UI: {{ .Values.swaggerUIEnabled | quote }}
+  USE_OIDC: "1"

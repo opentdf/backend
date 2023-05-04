@@ -1,0 +1,23 @@
+{{- if not .Values.existingConfigSecret }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "keycloak-bootstrap.fullname" . }}-cm
+  labels:
+    {{- include "keycloak-bootstrap.labels" . | nindent 4 }}
+data:
+  config.yaml: |-
+{{ toYaml .Values.keycloak.customConfig | indent 4 }}
+  entitlements.yaml: |-
+{{ toYaml .Values.entitlements.realms | indent 4 }}
+  authorities.yaml: |-
+{{ toYaml .Values.attributes.preloadedAuthorities | indent 4 }}
+  attributes.yaml: |-
+{{ toYaml .Values.attributes.preloadedAttributes | indent 4 }}
+  clients.yaml: |-
+{{ toYaml .Values.keycloak.preloadedClients | indent 4 }}
+  users.yaml: |-
+{{ toYaml .Values.keycloak.preloadedUsers | indent 4 }}
+{{- else if or .Values.attributes.preloadedAttributes .Values.attributes.preloadedAuthorities .Values.entitlements.realms .Values.keycloak.customConfig .Values.keycloak.preloadedClients .Values.keycloak.preloadedUsers }}
+{{- fail "Conflicting values: setting `existingConfigSecret` ignores other configuration input" }}
+{{- end }}

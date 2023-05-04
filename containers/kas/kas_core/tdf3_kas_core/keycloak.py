@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 def _get_keycloak_host():
-    kc_host = os.environ.get("KEYCLOAK_HOST")
+    kc_host = os.environ.get("OIDC_SERVER_URL")
     if not kc_host:
-        raise AuthorizationError("KEYCLOAK_HOST not set! Can't fetch keys")
+        raise AuthorizationError("OIDC_SERVER_URL not set! Can't fetch keys")
 
     return kc_host
 
@@ -42,6 +42,13 @@ def get_retryable_request():
 # Keycloak exposes: `/auth/realms/{realm-name}/.well-known/openid-configuration`
 # This is a low priority though since it doesn't save us from having to get the
 # realmId first and so is a largely cosmetic difference
+# See: https://pyjwt.readthedocs.io/en/latest/usage.html#retrieve-rsa-signing-keys-from-a-jwks-endpoint
+# def lookup_jwk(jwt, oidc_server):
+#     oidc_config = requests.get(
+#         f"https://{oidc_server}/.well-known/openid-configuration"
+#     ).json()
+#     jwks_client = PyJWKClient(oidc_config["jwks_uri"])
+#     return jwks_client.get_signing_key_from_jwt(jwt)
 def get_keycloak_public_key(realmId):
     KEYCLOAK_HOST = _get_keycloak_host()
     url = f"{KEYCLOAK_HOST}/auth/realms/{realmId}"
@@ -99,12 +106,12 @@ def try_extract_realm(unverified_jwt):
 # a cached pubkey if one exists - this (and key_master itself) could stand to be
 # more robust in terms of key validity checks, rotations, refreshes, etc.
 def load_realm_key(realmId, key_master):
-    KEYCLOAK_HOST = _get_keycloak_host()
     realmKey = {}
     try:
         realmKey = key_master.get_key(f"KEYCLOAK-PUBLIC-{realmId}")
     except KeyNotFoundError:
         try:
+            KEYCLOAK_HOST = _get_keycloak_host()
             realmKey = get_keycloak_public_key(realmId)
         except Exception:
             logger.warning(

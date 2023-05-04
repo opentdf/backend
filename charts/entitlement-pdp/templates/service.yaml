@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "entitlement-pdp.fullname" . }}
+  labels:
+    {{- include "entitlement-pdp.labels" . | nindent 4 }}
+spec:
+  ports:
+  - port: {{ .Values.config.listenPort }}
+    name: {{ include "entitlement-pdp.fullname" . }}
+    appProtocol: http
+    targetPort: {{ .Values.config.listenPort }}
+  selector:
+    {{- include "entitlement-pdp.selectorLabels" . | nindent 4 }}

@@ -31,13 +31,17 @@ from fastapi.security import OAuth2AuthorizationCodeBearer
 from keycloak import KeycloakOpenID
 from pydantic import AnyUrl, BaseSettings, Field, HttpUrl, Json, validator
 from pydantic.main import BaseModel
-from python_base import Pagination, get_query
+from python_base import Pagination, get_query, hook_into, HttpMethod
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
 
-logging.basicConfig(
-    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL")
+from .hooks import (
+    audit_hook,
+    err_audit_hook,
 )
+
+logging.basicConfig(stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL"))
+
 logger = logging.getLogger(__package__)
 
 swagger_ui_init_oauth = {
@@ -46,11 +50,12 @@ swagger_ui_init_oauth = {
     "realm": os.getenv("OIDC_REALM"),
     "appName": os.getenv("SERVER_PUBLIC_NAME"),
     "scopes": [os.getenv("OIDC_SCOPES")],
+    "authorizationUrl": os.getenv("OIDC_AUTHORIZATION_URL"),
 }
 
 
 class Settings(BaseSettings):
-    openapi_url: str = "/openapi.json"
+    openapi_url: str = os.getenv("SERVER_ROOT_PATH", "") + "/openapi.json"
     base_path: str = os.getenv("SERVER_ROOT_PATH", "")
 
 
@@ -62,6 +67,9 @@ app = FastAPI(
     servers=[{"url": settings.base_path}],
     swagger_ui_init_oauth=swagger_ui_init_oauth,
     openapi_url=settings.openapi_url,
+    swagger_ui_parameters={
+        "url": os.getenv("SERVER_ROOT_PATH", "") + settings.openapi_url
+    },
 )
 
 # OpenAPI
@@ -78,14 +86,18 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="OpenTDF",
-        version="0.9.0",
-        license_info={"name": "BSD 3-Clause Clear", "url": "https://github.com/opentdf/backend/blob/main/LICENSE"},
+        version="1.2.1",
+        license_info={
+            "name": "BSD 3-Clause Clear",
+            "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
+        },
         routes=app.routes,
         tags=tags_metadata,
     )
     openapi_schema["info"]["x-logo"] = {
         "url": "https://avatars.githubusercontent.com/u/90051847?s=200&v=4"
     }
+    openapi_schema["servers"] = [{"url": os.getenv("SERVER_ROOT_PATH", "")}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
@@ -107,14 +119,6 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
     tokenUrl=os.getenv("OIDC_TOKEN_URL", ""),
 )
 
-keycloak_openid = KeycloakOpenID(
-    # trailing / is required
-    server_url=os.getenv("OIDC_SERVER_URL"),
-    client_id=os.getenv("OIDC_CLIENT_ID"),
-    realm_name=os.getenv("OIDC_REALM"),
-    client_secret_key=os.getenv("OIDC_CLIENT_SECRET"),
-    verify=True,
-)
 
 def get_retryable_request():
     retry_strategy = Retry(total=3, backoff_factor=1)
@@ -146,9 +150,7 @@ async def get_idp_public_key(realm_id):
 
     if not response.ok:
         logger.warning("No public key found for Keycloak realm %s", realm_id)
-        raise RuntimeError(
-            f"Failed to download Keycloak public key: [{response.text}]"
-        )
+        raise RuntimeError(f"Failed to download Keycloak public key: [{response.text}]")
 
     try:
         resp_json = response.json()
@@ -162,8 +164,11 @@ async def get_idp_public_key(realm_id):
 {resp_json['public_key']}
 -----END PUBLIC KEY-----"""
 
-    logger.debug("Keycloak public key for realm %s: [%s]", realm_id, keycloak_public_key)
+    logger.debug(
+        "Keycloak public key for realm %s: [%s]", realm_id, keycloak_public_key
+    )
     return keycloak_public_key
+
 
 # Looks as `iss` header field of token - if this is a Keycloak-issued token,
 # `iss` will have a value like 'https://<KEYCLOAK_SERVER>/auth/realms/<REALMID>
@@ -180,6 +185,7 @@ def try_extract_realm(unverified_jwt):
     # the realm name for a keycloak-issued token.
     return urlparse(issuer_url).path.rsplit("/", 1)[-1]
 
+
 def has_aud(unverified_jwt, audience):
     aud = unverified_jwt["aud"]
     if not aud:
@@ -192,15 +198,26 @@ def has_aud(unverified_jwt, audience):
         return False
     return True
 
+
 async def get_auth(token: str = Security(oauth2_scheme)) -> Json:
+    keycloak_openid = KeycloakOpenID(
+        # trailing / is required
+        server_url=os.getenv("OIDC_SERVER_URL"),
+        client_id=os.getenv("OIDC_CLIENT_ID"),
+        realm_name=os.getenv("OIDC_REALM"),
+        client_secret_key=os.getenv("OIDC_CLIENT_SECRET"),
+        verify=True,
+    )
     try:
         unverified_decode = keycloak_openid.decode_token(
             token,
-            key='',
+            key="",
             options={"verify_signature": False, "verify_aud": False, "exp": True},
         )
-        if not has_aud(unverified_decode, "tdf-entitlement"):
-            raise Exception("Invalid audience, should be tdf-entitlement")
+        if not has_aud(unverified_decode, os.getenv("OIDC_CLIENT_ID")):
+            raise Exception(
+                "Invalid audience, should be %s", os.getenv("OIDC_CLIENT_ID")
+            )
         return keycloak_openid.decode_token(
             token,
             key=await get_idp_public_key(try_extract_realm(unverified_decode)),
@@ -238,12 +255,12 @@ table_entity_attribute = sqlalchemy.Table(
     sqlalchemy.Column("value", sqlalchemy.VARCHAR),
 )
 
-engine = sqlalchemy.create_engine(DATABASE_URL)
-dbase = sessionmaker(bind=engine)
+engine = sqlalchemy.create_engine(DATABASE_URL, pool_pre_ping=True)
+dbase_session = sessionmaker(bind=engine)
 
 
-def get_db() -> Session:
-    session = dbase()
+def get_db_session() -> Session:
+    session = dbase_session()
     try:
         yield session
     finally:
@@ -364,9 +381,9 @@ class Entitlements(BaseModel):
         }
     },
 )
-async def read_relationship(auth_token=Depends(get_auth)):
-    query = (
-        table_entity_attribute.select()
+async def read_relationship(auth_token=Depends(get_auth), name: Optional[str] = "test"):
+    query = table_entity_attribute.select().where(
+        table_entity_attribute.c.name == name
     )  # .where(entity_attribute.c.userid == request.userId)
     result = await database.fetch_all(query)
     relationships: List[EntityAttributeRelationship] = []
@@ -402,6 +419,7 @@ async def read_relationship(auth_token=Depends(get_auth)):
     },
 )
 async def read_entitlements(
+    request: Request,
     auth_token=Depends(get_auth),
     authority: Optional[AuthorityUrl] = None,
     name: Optional[str] = None,
@@ -411,7 +429,7 @@ async def read_entitlements(
         "",
         regex="^(-*((id)|(state)|(rule)|(name)|(values)),)*-*((id)|(state)|(rule)|(name)|(values))$",
     ),
-    db: Session = Depends(get_db),
+    session: Session = Depends(get_db_session),
     pager: Pagination = Depends(Pagination),
 ):
     filter_args = {}
@@ -426,20 +444,16 @@ async def read_entitlements(
 
     sort_args = sort.split(",") if sort else []
 
-    results = await read_entitlements_crud(
-        EntityAttributeSchema, db, filter_args, sort_args
-    )
+    results = await read_entitlements_crud(session, filter_args, sort_args)
 
     return pager.paginate(results)
 
 
-async def read_entitlements_crud(schema, db, filter_args, sort_args):
-    results = get_query(schema, db, filter_args, sort_args)
-    # logger.debug(query)
-    # results = query.all()
-    # query = table_entity_attribute.select().order_by(table_entity_attribute.c.entity_id)
-    # result = await database.fetch_all(query)
-    # must be ordered by entity_id
+async def read_entitlements_crud(session, filter_args, sort_args):
+    table_to_query = metadata.tables["tdf_entitlement.entity_attribute"]
+    filters, sorters = get_query(table_to_query, filter_args, sort_args)
+    results = session.query(table_to_query).filter(*filters).order_by(*sorters)
+
     entitlements: List[Entitlements] = []
     previous_entity_id: str = ""
     previous_attributes: List[str] = []
@@ -478,6 +492,12 @@ def parse_attribute_uri(attribute_uri):
             "name": path_split_name[1],
             "value": path_split_value[1],
         }
+    else:
+        logger.error(f"Invalid attribute format: '{attribute_uri}'")
+        raise HTTPException(
+            status_code=BAD_REQUEST,
+            detail=f"Invalid attribute format: '{attribute_uri}'",
+        )
 
 
 @app.get(
@@ -543,6 +563,7 @@ async def read_entity_attribute_relationship(
         }
     },
 )
+@hook_into(HttpMethod.POST, post=audit_hook, err=err_audit_hook)
 async def add_entitlements_to_entity(
     entityId: str = Path(
         ...,
@@ -560,10 +581,10 @@ async def add_entitlements_to_entity(
     ),
     auth_token=Depends(get_auth),
 ):
-    return await add_entitlements_to_entity_crud(entityId, request)
+    return await add_entitlements_to_entity_crud(entityId, request, auth_token)
 
 
-async def add_entitlements_to_entity_crud(entityId, request):
+async def add_entitlements_to_entity_crud(entityId, request, auth_token=None):
     rows = []
     for attribute_uri in request:
         attribute = parse_attribute_uri(attribute_uri)
@@ -614,6 +635,7 @@ async def get_attribute_entity_relationship(
     "/v1/attribute/{attributeURI:path}/entity/",
     include_in_schema=False,
 )
+@hook_into(HttpMethod.PUT, post=audit_hook, err=err_audit_hook)
 async def create_attribute_entity_relationship(
     attributeURI: HttpUrl, request: List[str], auth_token=Depends(get_auth)
 ):
@@ -644,6 +666,7 @@ async def create_attribute_entity_relationship(
         }
     },
 )
+@hook_into(HttpMethod.DELETE, post=audit_hook, err=err_audit_hook)
 async def remove_entitlement_from_entity(
     entityId: str = Path(
         ...,
@@ -662,10 +685,10 @@ async def remove_entitlement_from_entity(
     auth_token=Depends(get_auth),
 ):
 
-    return await remove_entitlement_from_entity_crud(entityId, request)
+    return await remove_entitlement_from_entity_crud(entityId, request, auth_token)
 
 
-async def remove_entitlement_from_entity_crud(entityId, request):
+async def remove_entitlement_from_entity_crud(entityId, request, auth_token=None):
     attribute_conjunctions = []
     try:
         for item in request:

@@ -1,13 +1,8 @@
-# Keycloak Identity Provider (IdP)
+# Keycloak Protocol Mapper
 
-Keycloak is our Identity Provider (IdP) software.
+The OpenTDF example backend uses Keycloak as our reference Identity Provider (IdP) software.
 
-We build a custom image off of the upstream [Keycloak image](https://github.com/keycloak/keycloak-containers) and [Keycloak Helm chart](https://codecentric.github.io/helm-charts) - it is identical to the upstream image, just built for both `arm64` and `amd64` - upstream currently just builds for `amd64`
-
-The custom OpenTDF Keycloak image that builds on that simply contains a custom OpenTDF claims mapper JAR file, copied into a folder in the Keycloak image.
-
-We can stop building the custom upstream base image if we PR a fix to their repo to build both `arm64` and `amd64` images,
-their tooling supports this and they are doing it for other images, they just aren't doing it for the Keycloak image yet.
+We build a custom image off of the upstream [Keycloak image](https://github.com/keycloak/keycloak-containers) and [Keycloak Helm chart](https://codecentric.github.io/helm-charts) - it is identical to the upstream image, just built for both `arm64` and `amd64` - upstream currently just builds for `amd64`, and includes a custom protocol mapper extension.
 
 ## Build and Setup
 
@@ -33,7 +28,7 @@ make dockerbuildpush
 > and we can drop it entirely if we make a PR to [Keycloak image](https://github.com/keycloak/keycloak-containers)
 > enabling an `arm64` image build in upstream in the same manner we do here.
 
-``` sh
+```sh
 make keycloak-base-buildpush
 ```
 

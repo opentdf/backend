@@ -60,3 +60,31 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+
+{{/*
+Create oidc endpoint from a common value
+*/}}
+{{- define "kas.oidcPubkeyEndpoint" }}
+{{- $t := coalesce .Values.endpoints.oidcPubkeyEndpoint .Values.global.opentdf.common.oidcInternalBaseUrl }}
+{{- tpl $t $ | nindent 16 }}
+{{- end }}
+
+{{- define "kas.secretName" -}}
+{{- if .Values.externalSecretName }}
+{{- .Values.externalSecretName }}
+{{- else }}
+{{- printf "%s-secrets" ( include "kas.name" . ) }}
+{{- end }}
+{{- end }}
+
+{{/*
+Backend Ingress gateway name
+*/}}
+{{- define "kas.ingress.gateway" -}}
+{{- if .Values.global.opentdf.common.istio.ingress.existingGateway -}}
+{{ .Values.global.opentdf.common.istio.ingress.existingGateway }}
+{{- else -}}
+{{ .Values.global.opentdf.common.istio.ingress.name }}
+{{- end }}
+{{- end }}

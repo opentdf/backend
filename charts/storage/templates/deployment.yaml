@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "storage.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -28,15 +28,15 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ include "storage.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.image }}"
+          image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           envFrom:
             {{- with .Values.secretRef }}
             - secretRef:
-                {{- toYaml . | nindent 16 }}
+                {{- tpl . $ | nindent 16 }}
             {{- end }}
             - configMapRef:
                 name: {{ include "storage.name" . }}-cm

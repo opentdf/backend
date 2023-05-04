@@ -1,7 +1,6 @@
 import pytest  # noqa: F401
 
 import os
-import sys
 import json
 import jwt
 import functools
@@ -12,10 +11,7 @@ import tdf3_kas_core
 
 from unittest.mock import MagicMock, patch
 
-from tdf3_kas_core.models import ClaimsAttributes
 from tdf3_kas_core.models import Context
-from tdf3_kas_core.models import EntityAttributes
-from tdf3_kas_core.models import KeyAccess
 from tdf3_kas_core.models import KeyMaster
 from tdf3_kas_core.models import Claims
 
@@ -115,39 +111,39 @@ def jwt_decode_no_expiration(*args, **kwargs):
 
 def test_claims_object():
     TDF_CLAIMS = {
-        "sub":"user@virtru.com",
-        "tdf_claims":{
+        "sub": "user@virtru.com",
+        "tdf_claims": {
             "client_public_signing_key": CLIENT_SIGNING_PUBLIC_KEY,
-            "entitlements":[
-            {
-                "entity_identifier":"clientsubjectId1-14443434-1111343434-asdfdffff",
-                "entity_attributes":[
+            "entitlements": [
                 {
-                    "attribute":"https://example.com/attr/Classification/value/S",
-                    "displayName":"classification"
+                    "entity_identifier": "clientsubjectId1-14443434-1111343434-asdfdffff",
+                    "entity_attributes": [
+                        {
+                            "attribute": "https://example.com/attr/Classification/value/S",
+                            "displayName": "classification",
+                        },
+                        {
+                            "attribute": "https://example.com/attr/COI/value/PRX",
+                            "displayName": "category of intent",
+                        },
+                    ],
                 },
                 {
-                    "attribute":"https://example.com/attr/COI/value/PRX",
-                    "displayName":"category of intent"
-                }
-                ]
-            },
-            {
-                "entity_identifier":"user@virtru.com",
-                "entity_attributes":[
-                {
-                    "attribute":"https://example.com/attr/Classification/value/S",
-                    "displayName":"classification"
+                    "entity_identifier": "user@virtru.com",
+                    "entity_attributes": [
+                        {
+                            "attribute": "https://example.com/attr/Classification/value/S",
+                            "displayName": "classification",
+                        },
+                        {
+                            "attribute": "https://example.com/attr/COI/value/PRX",
+                            "displayName": "category of intent",
+                        },
+                    ],
                 },
-                {
-                    "attribute":"https://example.com/attr/COI/value/PRX",
-                    "displayName":"category of intent"
-                }
-                ]
-            }
-            ]
+            ],
         },
-        "tdf_spec_version":"4.0.0"
+        "tdf_spec_version": "4.0.0",
     }
 
     return Claims.load_from_raw_data(TDF_CLAIMS)
@@ -197,7 +193,7 @@ def test_ping():
 )
 def test_rewrap_v2(entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp):
     """Test the rewrap_v2 service."""
-    os.environ["KEYCLOAK_HOST"] = "https://keycloak.dev"
+    os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
     expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
     expected_canonical = "This is a canonical string"
     attributes = [

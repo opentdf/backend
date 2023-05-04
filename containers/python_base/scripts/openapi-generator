@@ -7,7 +7,7 @@ export PATH="$PATH:$APP_DIR"
 
 monolog TRACE "Running [$0${1+ }$*]"
 
-: "${ALPINE_VERSION:="3.15"}"
+: "${ALPINE_VERSION:="3.17"}"
 : "${PY_VERSION:="3.10"}"
 
 if ! cd "$PROJECT_ROOT"; then
@@ -31,7 +31,7 @@ if ! docker build \
   exit 1
 fi
 
-for mservice in attributes claims entitlements; do
+for mservice in attributes entitlement_store entitlements; do
   tag=opentdf/${mservice}:${suffix}
   monolog TRACE "Building [${tag}]"
   if ! docker build \

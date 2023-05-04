@@ -1,0 +1,15 @@
+attributes:
+  ingress:
+    enabled: true
+entitlements:
+  ingress:
+    enabled: true
+entitlement-store:
+  ingress:
+    enabled: true
+keycloak:
+  ingress:
+    enabled: true
+kas:
+  ingress:
+    enabled: true

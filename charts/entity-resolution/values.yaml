@@ -1,0 +1,70 @@
+# -- Optionally override the fully qualified name
+fullnameOverride: ""
+
+# -- Optionally override the name
+nameOverride: ""
+
+# Global values that may be overridden by a parent chart.
+global:
+  opentdf:
+    common:
+      # -- Base internal url of OIDC provider
+      oidcInternalBaseUrl: "http://keycloak-http"
+      # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
+      imagePullSecrets: []
+
+# -- Sets the default number of pod replicas in the deployment.
+# Ignored if `autoscaling.enabled` == true
+replicaCount: 1
+
+# Configure the container image to use in the deployment.
+image:
+  # -- The image selector, also called the 'image name' in k8s documentation
+  # and 'image repository' in docker's guides.
+  repo: ghcr.io/opentdf/entity-resolution
+  # -- `Chart.AppVersion` will be used for image tag, override here if needed
+  tag:
+  # -- The container's `imagePullPolicy`
+  pullPolicy: IfNotPresent
+
+# -- JSON passed to the deployment's `template.spec.imagePullSecrets`.
+# Overrides `global.opentdf.common.imagePullSecrets`
+imagePullSecrets:
+
+# A service account to create
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- Create a secret for the ERS clientSecret
+createKeycloakClientSecret: true
+secret:
+  keycloak:
+    # -- OIDC Client Secret used by Entity Resolution Service
+    clientSecret: "REPLACE_AT_INSTALL_TIME"
+
+config:
+  # -- Port the server will listen on
+  listenPort: 7070
+  # -- External endpoint the server will be accessed from (used for OpenAPI endpoint serving)
+  externalHost: ""
+  # -- Enable verbose logging
+  verbose: "false"
+  # -- Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)
+  disableTracing: "false"
+  # -- Open telemetry collector endpoint
+  otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
+  keycloak:
+    # -- Override for `global.opentdf.common.oidcInternalBaseUrl`
+    url:
+    # -- Keycloak Realm used for integration
+    realm: "tdf"
+    # -- OIDC Client ID used by Entity Resolution Service
+    clientId: "tdf-entity-resolution-service"
+    # -- Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346
+    legacy: false
