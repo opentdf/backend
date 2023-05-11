@@ -12,9 +12,9 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /api/kas/
+            prefix: /api/{{ include "kas.fullname" . }}/
         - uri:
-            prefix: /api/kas
+            prefix: /api/{{ include "kas.fullname" . }}
       name: {{ include "kas.fullname" . }}
       rewrite:
         uri: /
