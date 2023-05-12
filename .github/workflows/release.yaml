@@ -21,6 +21,7 @@ jobs:
       SHA_TAG: "${{ steps.info.outputs.SHA }}"
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v3
       - name: Validate published release is on main (reviewed) branch
         run: |
           git fetch origin main:main
@@ -29,8 +30,6 @@ jobs:
             echo "# Invalid release tag [$RELEASE_TAG] - must be on `main` branch" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
-      - uses: actions/checkout@v3
       - run: echo -e "$EVENT_CONTEXT\n"
         env:
           EVENT_CONTEXT: ${{ toJson(github.event) }}
