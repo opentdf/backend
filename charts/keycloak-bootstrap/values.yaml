@@ -52,7 +52,9 @@ opentdf:
 # -- Expect a secret with following keys:
 # - keycloak_admin_username:
 # - keycloak_admin_password:
-# - CLIENT_SECRET:
+# - CLIENT_SECRET
+# - <client_id>_CLIENT_SECRET: Override for CLIENT_SECRET for specific client.
+# -
 # - ATTRIBUTES_USERNAME:
 # - ATTRIBUTES_PASSWORD:
 secretRef: |-

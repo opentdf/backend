@@ -33,7 +33,7 @@ kc_internal_url = os.getenv(
 ).rstrip("/")
 pki_browser = os.getenv("ENABLE_PKI_BROWSER", "")
 pki_direct = os.getenv("ENABLE_PKI_DIRECTGRANT", "")
-
+default_client_secret = os.getenv("CLIENT_SECRET", "123-456")
 
 def check_matched(pattern, allData):
     filtered_item = [
@@ -207,7 +207,7 @@ def createTestClientForX509Flow(keycloak_admin):
 def createTestClientForClientCredentialsFlow(
     keycloak_admin, keycloak_auth_url, client_id
 ):
-    client_secret = os.getenv("CLIENT_SECRET", "123-456")
+    client_secret = os.getenv(client_id + "_CLIENT_SECRET", default_client_secret)
     logger.debug("Creating client %s configured for clientcreds flow", client_id)
     keycloak_admin.create_client(
         payload={
@@ -384,7 +384,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
 
 def createTestClientTDFEntityResolution(keycloak_admin):
     client_id = "tdf-entity-resolution-service"
-    client_secret = "123-456"
+    client_secret = os.getenv(client_id + "_CLIENT_SECRET", default_client_secret)
     logger.debug("Creating client %s configured for entity resolution", client_id)
     keycloak_admin.create_client(
         payload={
