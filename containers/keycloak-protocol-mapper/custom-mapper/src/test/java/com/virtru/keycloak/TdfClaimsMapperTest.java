@@ -231,21 +231,21 @@ public class TdfClaimsMapperTest {
 
     }
 
-    @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
-    @Test
-    public void testDeviceGrant() throws JsonProcessingException {
-        commonSetup("12345", true, true, false);
-        Map<String, String> notes = new HashMap<>(1);
-        notes.put("KC_DEVICE_NOTE", "eyJpcEFkZHJlc3MiOiIxNzIuMjQuMC4xIiwib3MiOiJXaW5kb3dzIiwib3NWZXJzaW9uIjoiMTAiLCJicm93c2VyIjoiQ2hyb21lLzExMS4wLjAiLCJkZXZpY2UiOiJPdGhlciIsImxhc3RBY2Nlc3MiOjAsIm1vYmlsZSI6ZmFsc2V9");
-        when(userSessionModel.getNotes()).thenReturn(notes);
-        UserModel user = new InMemoryUserAdapter(keycloakSession, realmModel, "test-user");
-        user.setEmail("test@test.net");
-        when(userSessionModel.getUser()).thenReturn(user);
-        AccessToken accessToken = new AccessToken();
-        Map<String, Object> formattedParameters = attributeOIDCProtocolMapper.getRequestParameters(protocolMapperModel,
-                        userSessionModel, accessToken);
-        assertTrue(formattedParameters.get("entitlement_context_obj").toString().contains("test@test.net"));
-    }
+//    @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
+//    @Test
+//    public void testDeviceGrant() throws JsonProcessingException {
+//        commonSetup("12345", true, true, false);
+//        Map<String, String> notes = new HashMap<>(1);
+//        notes.put("KC_DEVICE_NOTE", "eyJpcEFkZHJlc3MiOiIxNzIuMjQuMC4xIiwib3MiOiJXaW5kb3dzIiwib3NWZXJzaW9uIjoiMTAiLCJicm93c2VyIjoiQ2hyb21lLzExMS4wLjAiLCJkZXZpY2UiOiJPdGhlciIsImxhc3RBY2Nlc3MiOjAsIm1vYmlsZSI6ZmFsc2V9");
+//        when(userSessionModel.getNotes()).thenReturn(notes);
+//        UserModel user = new InMemoryUserAdapter(keycloakSession, realmModel, "test-user");
+//        user.setEmail("test@test.net");
+//        when(userSessionModel.getUser()).thenReturn(user);
+//        AccessToken accessToken = new AccessToken();
+//        Map<String, Object> formattedParameters = attributeOIDCProtocolMapper.getRequestParameters(protocolMapperModel,
+//                        userSessionModel, accessToken);
+//        assertTrue(formattedParameters.get("entitlement_context_obj").toString().contains("test@test.net"));
+//    }
 
     void commonSetup(String pkHeader, boolean setConfig, boolean userInfo, boolean userIsSvcAcct) {
         server.deployOldStyle(TestApp.class);

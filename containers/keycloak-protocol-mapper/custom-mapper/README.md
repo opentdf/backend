@@ -31,3 +31,15 @@ Build and deploy your Extension
 Build a jar File of the Extension (mvn clean package) - and place the jar in /opt/jboss/keycloak/standalone/deployments/ and restart keycloak
 
 create a Mapper in keycloak admin ui and select getDisplayType given in the code
+
+## Test
+
+Device Authorization Grant
+
+see https://github.com/keycloak/keycloak-community/blob/main/design/oauth2-device-authorization-grant.md#how-to-try-it
+
+```shell
+curl -X POST \
+    -d "client_id=foo" \
+    "http://localhost:65432/auth/realms/tdf/protocol/openid-connect/auth/device"
+```

@@ -204,15 +204,12 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // String claimReqType = "min_claims";
         // Right now, for back compat, ALWAYS return full claims by default - later,
         // when/if a reduced claimset is needed, we can default to minClaims
-        logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
+        logger.debug("USERNAME: [{}], User ID: [{}], Auth method [{}]", userSession.getLoginUsername(), userSession.getUser().getId(), userSession.getAuthMethod());
 
         logger.debug("userSession.getNotes CONTENT IS: ");
         // check notes to see if device grant flow
-        boolean isDeviceGrant = false;
+        boolean isDeviceGrant = "device_authorization".equals(userSession.getAuthMethod());
         for (Map.Entry<String, String> entry : userSession.getNotes().entrySet()) {
-            if ("KC_DEVICE_NOTE".equals(entry.getKey())) {
-                isDeviceGrant = true;
-            }
             logger.debug("ENTRY IS: {}", entry);
         }
 

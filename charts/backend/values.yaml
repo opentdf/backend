@@ -276,7 +276,7 @@ keycloak:
     - name: KC_DB_URL_PORT
       value: "5432"
     - name: KC_LOG_LEVEL
-      value: INFO
+      value: DEBUG
     - name: KC_HOSTNAME_ADMIN
       value: {{ ( include "backend.keycloak.externalHostname" . ) | quote }}
     - name: KC_HOSTNAME_STRICT
