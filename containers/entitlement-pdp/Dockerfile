@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine AS builder
+FROM golang:1.20-alpine AS builder
 
 ARG GOLANGCI_VERSION=v1.49.0
 ARG COVERAGE_THRESH_PCT=19
@@ -59,7 +59,7 @@ RUN policy build entitlement-policy -t local:$(cat <VERSION) \
     && cp bundle.tar.gz /dist/bundle.tar.gz
 
 # Create the minimal runtime image
-FROM golang:1.19-alpine AS emptyfinal
+FROM golang:1.20-alpine AS emptyfinal
 
 ENV HOME=/opt/entitlement-pdp
 ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
