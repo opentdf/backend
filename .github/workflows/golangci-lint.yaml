@@ -1,0 +1,31 @@
+# https://github.com/golangci/golangci-lint-action
+# act --container-architecture linux/amd64 --workflows .github/workflows/golangci-lint.yaml
+name: golangci-lint
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+  # Optional: allow read access to pull request. Use with `only-new-issues` option.
+  pull-requests: read
+jobs:
+  golangci:
+    strategy:
+      matrix:
+        go: ['1.20']
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    name: lint
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: containers/entitlement-pdp
+          # Optional: show only new issues if it's a pull request. The default value is `false`.
+          only-new-issues: true
