@@ -11,14 +11,19 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	ErrPayloadUnmarshal = Error("payload json unmarshal failure")
+	ErrPayloadInvalid   = Error("payload json invalid")
+)
+
 var tracer = otel.Tracer("handlers")
 
-// Entity attribute model
+// EntityAttribute model
 // @Description Represents a single entity attribute.
 type EntityAttribute struct {
-	//Attribute, in URI format, e.g.: "https://example.org/attr/Classification/value/COI"
+	// A ttribute, in URI format, e.g.: "https://example.org/attr/Classification/value/COI"
 	Attribute string `json:"attribute" example:"https://example.org/attr/OPA/value/AddedByOPA"`
-	//Optional display name for the attribute
+	// Optional display name for the attribute
 	DisplayName string `json:"displayName" example:"Added By OPA"`
 }
 
@@ -27,24 +32,24 @@ type EntityEntitlement struct {
 	EntityAttributes []EntityAttribute `json:"entity_attributes"`
 }
 
-// Entitlements request model
+// EntitlementsRequest request model
 // @Description Request containing entity identifiers seeking entitlement.
 // @Description At least one entity (primary requestor) is required
 // @Description The Entitlements PDP is expected to be invoked directly by an identity provider
 // @Description and with contextual entity information attested to and possessed by that identity provider
 type EntitlementsRequest struct {
-	//The identifier for the primary entity seeking entitlement.
+	// The identifier for the primary entity seeking entitlement.
 	// For PE auth, this will be a PE ID. For NPE/direct grant auth, this will be an NPE ID.
 	PrimaryEntityId string `json:"primary_entity_id" example:"bc03f40c-a7af-4507-8198-d5334e2823e6"`
-	//Optional, may be left empty.
-	//For PE auth, this will be one or more NPE IDs (client-on-behalf-of-user).
-	//For NPE/direct grant auth,
-	//this may be either empty (client-on-behalf-of-itself) or populated with one
-	//or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
+	// Optional, may be left empty.
+	// For PE auth, this will be one or more NPE IDs (client-on-behalf-of-user).
+	// For NPE/direct grant auth,
+	// this may be either empty (client-on-behalf-of-itself) or populated with one
+	// or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
 	SecondaryEntityIds []string `json:"secondary_entity_ids" example:"4f6636ca-c60c-40d1-9f3f-015086303f74"`
-	//Optional, may be left empty.
-	//A free-form, (valid, escaped) JSON object in string format, containing any additional IdP/input context around and from
-	//the entity authentication process. This JSON object will be checked as a valid, generic JSON document,
+	// Optional, may be left empty.
+	// A free-form, (valid, escaped) JSON object in string format, containing any additional IdP/input context around and from
+	// the entity authentication process. This JSON object will be checked as a valid, generic JSON document,
 	// and then passed to the PDP engine as-is, as an input document.
 	EntitlementContextObject string `json:"entitlement_context_obj,omitempty" example:"{\"somekey\":\"somevalue\"}"`
 }
@@ -53,7 +58,7 @@ type PDPEngine interface {
 	ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, entitlementContextJSON string, parentCtx ctx.Context) ([]EntityEntitlement, error)
 }
 
-// GetEntitlements godoc
+// GetEntitlementsHandler godoc
 // @Summary      Request an entitlements set from the PDP
 // @Description  Provide entity identifiers to the entitlement PDP
 // @Description  and receive an array of attribute sets for each entity involved in the entitlement decisions
@@ -80,7 +85,7 @@ func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handl
 
 		logger.Debug("GetEntitlementsHandler - reading request body")
 
-		//Read + consume body
+		// Read + consume body
 		bodBytes, err := io.ReadAll(req.Body)
 		defer req.Body.Close()
 		if err != nil {
@@ -131,17 +136,23 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	err := json.Unmarshal(bodBytes, &payload)
 	if err != nil {
 		logger.Warn("Error parsing Exchange request body")
-		return nil, err
+		return nil, errors.Join(ErrPayloadUnmarshal, err)
 	}
 
-	//If context supplied, must be in JSON format
+	// If context supplied, must be in JSON format
 	if payload.EntitlementContextObject != "" {
 		if !json.Valid([]byte(payload.EntitlementContextObject)) {
-			err := errors.New("Context object is not valid JSON")
+			err := errors.Join(ErrPayloadInvalid, err)
 			logger.Warn(err)
 			return nil, err
 		}
 	}
 
 	return &payload, nil
+}
+
+type Error string
+
+func (err Error) Error() string {
+	return string(err)
 }
