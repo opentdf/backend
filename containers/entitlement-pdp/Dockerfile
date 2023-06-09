@@ -35,9 +35,6 @@ RUN go mod vendor
 # Later, it will be copied as the / (root) of the output image.
 RUN mkdir /dist
 
-# TODO this is very slow on `arm64` - like 5x slower
-RUN golangci-lint --version && golangci-lint run --timeout 20m
-
 # Run tests
 RUN go test --coverprofile cover.out ./...
 
