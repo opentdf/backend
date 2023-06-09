@@ -22,7 +22,7 @@ var svcName = "entitlement-pdp"
 
 var cfg EnvConfig
 
-//Env config
+// Env config
 type EnvConfig struct {
 	ListenPort          string `env:"LISTEN_PORT" envDefault:"3355"`
 	ExternalHost        string `env:"EXTERNAL_HOST" envDefault:""`
