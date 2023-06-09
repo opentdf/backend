@@ -6,3 +6,5 @@ linters:
     - gosec
     - misspell
     - exportloopref
+    - typecheck
+    - gofmt
