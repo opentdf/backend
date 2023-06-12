@@ -34,7 +34,7 @@ type EntityEntitlement struct {
 	EntityAttributes []EntityAttribute `json:"entity_attributes"`
 }
 
-// EntitlementsRequest request model
+// EntitlementRequest defines the body for the /entitlements endpoint
 // @Description Request containing entity identifiers seeking entitlement.
 // @Description At least one entity (primary requestor) is required
 // @Description The Entitlements PDP is expected to be invoked directly by an identity provider
@@ -48,7 +48,7 @@ type EntitlementsRequest struct {
 	// For NPE/direct grant auth,
 	// this may be either empty (client-on-behalf-of-itself) or populated with one
 	// or more NPE IDs (client-on-behalf-of-other-clients, aka chaining flow)
-	SecondaryEntityIds []string `json:"secondary_entity_ids" example:"4f6636ca-c60c-40d1-9f3f-015086303f74"`
+	SecondaryEntityIds []string `json:"secondary_entity_ids,omitempty" example:"4f6636ca-c60c-40d1-9f3f-015086303f74"`
 	// Optional, may be left empty.
 	// A free-form, (valid, escaped) JSON object in string format, containing any additional IdP/input context around and from
 	// the entity authentication process. This JSON object will be checked as a valid, generic JSON document,
