@@ -60,6 +60,11 @@ type PDPEngine interface {
 	ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, entitlementContextJSON string, parentCtx ctx.Context) ([]EntityEntitlement, error)
 }
 
+type Entitlements struct {
+	Pdp    PDPEngine
+	Logger *zap.SugaredLogger
+}
+
 // GetEntitlementsHandler godoc
 // @Summary      Request an entitlements set from the PDP
 // @Description  Provide entity identifiers to the entitlement PDP
@@ -73,64 +78,60 @@ type PDPEngine interface {
 // @Failure      404 {string} http.StatusNotFound
 // @Failure      500 {string} http.StatusServerError
 // @Router       /entitlements [post]
-func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handler {
-	entitlementsHandler := func(w http.ResponseWriter, req *http.Request) {
-		spanCtx := req.Context()
-		handlerCtx, span := tracer.Start(spanCtx, "GetEntitlementsHandler")
-		defer span.End()
+func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	spanCtx := req.Context()
+	handlerCtx, span := tracer.Start(spanCtx, "GetEntitlementsHandler")
+	defer span.End()
 
-		if req.Method != http.MethodPost {
-			logger.Error("Rejected request, invalid HTTP verb")
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		logger.Debug("GetEntitlementsHandler - reading request body")
-
-		// Read + consume body
-		bodBytes, err := io.ReadAll(req.Body)
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(req.Body)
-		if err != nil {
-			logger.Errorf("Couldn't read client request! Error was %s", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		payload, err := getRequestPayload(bodBytes, handlerCtx, logger)
-		if err != nil {
-			logger.Errorf("Couldn't deserialize client request! Error was %s", err)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		entitlements, err := pdp.ApplyEntitlementPolicy(
-			payload.PrimaryEntityId,
-			payload.SecondaryEntityIds,
-			payload.EntitlementContextObject,
-			handlerCtx)
-
-		if err != nil {
-			logger.Errorf("Policy engine returned error! Error was %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		err = json.NewEncoder(w).Encode(entitlements)
-		if err != nil {
-			logger.Errorf("Error encoding entitlements in response! Error was %s", err)
-			http.Error(w, "Server Error", http.StatusInternalServerError)
-			return
-		}
+	if req.Method != http.MethodPost {
+		e.Logger.Error("Rejected request, invalid HTTP verb")
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	return http.HandlerFunc(entitlementsHandler)
+	e.Logger.Debug("GetEntitlementsHandler - reading request body")
+
+	// Read + consume body
+	bodBytes, err := io.ReadAll(req.Body)
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(req.Body)
+	if err != nil {
+		e.Logger.Errorf("Couldn't read client request! Error was %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	payload, err := getRequestPayload(bodBytes, handlerCtx, e.Logger)
+	if err != nil {
+		e.Logger.Errorf("Couldn't deserialize client request! Error was %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	entitlements, err := e.Pdp.ApplyEntitlementPolicy(
+		payload.PrimaryEntityId,
+		payload.SecondaryEntityIds,
+		payload.EntitlementContextObject,
+		handlerCtx)
+
+	if err != nil {
+		e.Logger.Errorf("Policy engine returned error! Error was %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(entitlements)
+	if err != nil {
+		e.Logger.Errorf("Error encoding entitlements in response! Error was %s", err)
+		http.Error(w, "Server Error", http.StatusInternalServerError)
+		return
+	}
 }
 
 func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.SugaredLogger) (*EntitlementsRequest, error) {

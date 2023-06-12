@@ -95,10 +95,15 @@ func main() {
 	healthz := new(handlers.Healthz)
 	// This otel HTTP handler middleware simply traces all handled request for you - DD needs it
 	http.Handle("/healthz", otelhttp.NewHandler(healthz, "HealthZHandler"))
-	entitlements := handlers.GetEntitlementsHandler(&opaPDP, logger)
+	entitlements := handlers.Entitlements{
+		Pdp:    &opaPDP,
+		Logger: logger,
+	}
 	http.Handle("/entitlements", otelhttp.NewHandler(entitlements, "EntitlementsHandler"))
-
-	http.Handle("/docs/", handlers.GetSwaggerHandler(server.Addr))
+	swagger := handlers.Swagger{
+		Address: server.Addr,
+	}
+	http.Handle("/docs/", swagger)
 
 	logger.Info("Starting server", zap.String("address", server.Addr))
 	healthz.MarkHealthy()

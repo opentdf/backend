@@ -62,7 +62,10 @@ func Test_GetEntitlementsHandler_CallsPDP_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 	testReq := httptest.NewRequest(http.MethodPost, "http://test", strings.NewReader(entitlementsReq))
 
-	handler := GetEntitlementsHandler(testPDP, zapLog.Sugar())
+	handler := Entitlements{
+		Pdp:    testPDP,
+		Logger: zapLog.Sugar(),
+	}
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
@@ -96,7 +99,10 @@ func Test_GetEntitlementsHandler_CallsPDP_Error(t *testing.T) {
 	w := httptest.NewRecorder()
 	testReq := httptest.NewRequest(http.MethodPost, "http://test", strings.NewReader(entitlementsReq))
 
-	handler := GetEntitlementsHandler(testPDP, zapLog.Sugar())
+	handler := Entitlements{
+		Pdp:    testPDP,
+		Logger: zapLog.Sugar(),
+	}
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()
@@ -116,7 +122,10 @@ func Test_GetEntitlementsHandler_RejectsNonPOST(t *testing.T) {
 
 	testReq := httptest.NewRequest(http.MethodGet, "http://test", strings.NewReader(entitlementsReq))
 
-	handler := GetEntitlementsHandler(testPDP, zapLog.Sugar())
+	handler := Entitlements{
+		Pdp:    testPDP,
+		Logger: zapLog.Sugar(),
+	}
 	handler.ServeHTTP(w, testReq)
 
 	resp := w.Result()

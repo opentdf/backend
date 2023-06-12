@@ -8,8 +8,10 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"   // http-swagger middleware
 )
 
-func GetSwaggerHandler(address string) http.Handler {
-	return httpSwagger.Handler(
-		httpSwagger.URL(fmt.Sprintf("http://%s/docs/doc.json", address)), // The url pointing to API definition
-	)
+type Swagger struct {
+	Address string
+}
+
+func (s Swagger) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
+	httpSwagger.URL(fmt.Sprintf("http://%s/docs/doc.json", s.Address)) // The url pointing to API definition
 }
