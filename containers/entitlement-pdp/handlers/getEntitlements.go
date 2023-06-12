@@ -165,6 +165,7 @@ func (err Error) Error() string {
 	return string(err)
 }
 
+// Join needed for Go 1.19, replace with errors.Join
 func (err Error) Join(errs ...error) error {
 	if len(errs) == 0 {
 		return nil
