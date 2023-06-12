@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"bytes"
 	ctx "context"
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"go.opentelemetry.io/otel"
@@ -21,10 +23,10 @@ var tracer = otel.Tracer("handlers")
 // EntityAttribute model
 // @Description Represents a single entity attribute.
 type EntityAttribute struct {
-	// A ttribute, in URI format, e.g.: "https://example.org/attr/Classification/value/COI"
+	// Attribute, in URI format, e.g.: "https://example.org/attr/Classification/value/COI"
 	Attribute string `json:"attribute" example:"https://example.org/attr/OPA/value/AddedByOPA"`
 	// Optional display name for the attribute
-	DisplayName string `json:"displayName" example:"Added By OPA"`
+	DisplayName string `json:"displayName,omitempty" example:"Added By OPA"`
 }
 
 type EntityEntitlement struct {
@@ -87,7 +89,12 @@ func GetEntitlementsHandler(pdp PDPEngine, logger *zap.SugaredLogger) http.Handl
 
 		// Read + consume body
 		bodBytes, err := io.ReadAll(req.Body)
-		defer req.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}(req.Body)
 		if err != nil {
 			logger.Errorf("Couldn't read client request! Error was %s", err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -136,13 +143,13 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	err := json.Unmarshal(bodBytes, &payload)
 	if err != nil {
 		logger.Warn("Error parsing Exchange request body")
-		return nil, errors.Join(ErrPayloadUnmarshal, err)
+		return nil, Error.Join(ErrPayloadUnmarshal, err)
 	}
 
 	// If context supplied, must be in JSON format
 	if payload.EntitlementContextObject != "" {
 		if !json.Valid([]byte(payload.EntitlementContextObject)) {
-			err := errors.Join(ErrPayloadInvalid, err)
+			err := Error.Join(ErrPayloadInvalid, err)
 			logger.Warn(err)
 			return nil, err
 		}
@@ -155,4 +162,18 @@ type Error string
 
 func (err Error) Error() string {
 	return string(err)
+}
+
+func (err Error) Join(errs ...error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	var buf bytes.Buffer
+	for _, err := range errs {
+		if err != nil {
+			buf.WriteString(err.Error())
+			buf.WriteString("\n")
+		}
+	}
+	return errors.New(buf.String())
 }

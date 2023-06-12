@@ -132,13 +132,13 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 	result, err := pdp.opa.Decision(evalCtx, decisionReq)
 	if err != nil {
 		pdp.logger.Errorf("Got OPA decision error: %s", err)
-		return nil, errors.Join(ErrOpaDecision, err)
+		return nil, Error.Join(ErrOpaDecision, err)
 	}
 
 	decis, err := pdp.deserializeEntitlementsFromResult(result)
 	if err != nil {
 		pdp.logger.Errorf("Error deserializing OPA result, error was %s", err)
-		return nil, errors.Join(ErrOpaResultDeserialize, err)
+		return nil, Error.Join(ErrOpaResultDeserialize, err)
 	}
 
 	pdp.logger.Debug("Got unmarshalled entitlements: %+v", decis.Result)
@@ -153,7 +153,7 @@ func (pdp *OPAPDPEngine) deserializeEntitlementsFromResult(rawResult *sdk.Decisi
 	resDoc, err := json.Marshal(rawResult)
 	if err != nil {
 		pdp.logger.Errorf("Error re-marshalling result doc! Error was %s", err)
-		return nil, errors.Join(ErrResultDocumentMarshal, err)
+		return nil, Error.Join(ErrResultDocumentMarshal, err)
 	}
 
 	pdp.logger.Debug("Tmp string result is %s", string(resDoc))
@@ -162,7 +162,7 @@ func (pdp *OPAPDPEngine) deserializeEntitlementsFromResult(rawResult *sdk.Decisi
 	err = json.Unmarshal(resDoc, &decis)
 	if err != nil {
 		pdp.logger.Errorf("Could not deserialize final JSON result document! Error was %s", err)
-		return nil, errors.Join(ErrFinalJson, err)
+		return nil, Error.Join(ErrFinalJson, err)
 	}
 
 	return &decis, nil
@@ -184,7 +184,7 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 	err := json.Unmarshal([]byte(entitlementContextJSON), &entitlementContext)
 	if err != nil {
 		pdp.logger.Errorf("Could not deserialize generic entitlement context JSON input document! Error was %s", err)
-		return nil, errors.Join(ErrInputDocumentUnmarshal, err)
+		return nil, Error.Join(ErrInputDocumentUnmarshal, err)
 	}
 
 	// Build the toplevel input doc.
@@ -194,7 +194,7 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 	tmpDoc, err := json.Marshal(inputDoc)
 	if err != nil {
 		pdp.logger.Errorf("Error re-marshalling input doc! Error was %s", err)
-		return nil, errors.Join(ErrInputDocumentMarshal, err)
+		return nil, Error.Join(ErrInputDocumentMarshal, err)
 	}
 
 	pdp.logger.Debug("Tmp result is %s", string(tmpDoc))
@@ -205,7 +205,7 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 	err = json.Unmarshal(tmpDoc, &inputUnstructured)
 	if err != nil {
 		pdp.logger.Errorf("Could not deserialize final JSON input document! Error was %s", err)
-		return nil, errors.Join(ErrFinalDocumentUnmarshal, err)
+		return nil, Error.Join(ErrFinalDocumentUnmarshal, err)
 	}
 
 	pdp.logger.Debug("Final doc is %+v", inputUnstructured)
@@ -217,4 +217,18 @@ type Error string
 
 func (err Error) Error() string {
 	return string(err)
+}
+
+func (err Error) Join(errs ...error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	var buf bytes.Buffer
+	for _, err := range errs {
+		if err != nil {
+			buf.WriteString(err.Error())
+			buf.WriteString("\n")
+		}
+	}
+	return errors.New(buf.String())
 }
