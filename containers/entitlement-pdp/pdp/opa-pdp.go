@@ -4,7 +4,6 @@ import (
 	"bytes"
 	ctx "context"
 	"encoding/json"
-	"errors"
 	"os"
 	"strings"
 	"time"
@@ -132,13 +131,13 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 	result, err := pdp.opa.Decision(evalCtx, decisionReq)
 	if err != nil {
 		pdp.logger.Errorf("Got OPA decision error: %s", err)
-		return nil, Error.Join(ErrOpaDecision, err)
+		return nil, ErrJoin(ErrOpaDecision, err)
 	}
 
 	decis, err := pdp.deserializeEntitlementsFromResult(result)
 	if err != nil {
 		pdp.logger.Errorf("Error deserializing OPA result, error was %s", err)
-		return nil, Error.Join(ErrOpaResultDeserialize, err)
+		return nil, ErrJoin(ErrOpaResultDeserialize, err)
 	}
 
 	pdp.logger.Debug("Got unmarshalled entitlements: %+v", decis.Result)
@@ -153,7 +152,7 @@ func (pdp *OPAPDPEngine) deserializeEntitlementsFromResult(rawResult *sdk.Decisi
 	resDoc, err := json.Marshal(rawResult)
 	if err != nil {
 		pdp.logger.Errorf("Error re-marshalling result doc! Error was %s", err)
-		return nil, Error.Join(ErrResultDocumentMarshal, err)
+		return nil, ErrJoin(ErrResultDocumentMarshal, err)
 	}
 
 	pdp.logger.Debug("Tmp string result is %s", string(resDoc))
@@ -162,7 +161,7 @@ func (pdp *OPAPDPEngine) deserializeEntitlementsFromResult(rawResult *sdk.Decisi
 	err = json.Unmarshal(resDoc, &decis)
 	if err != nil {
 		pdp.logger.Errorf("Could not deserialize final JSON result document! Error was %s", err)
-		return nil, Error.Join(ErrFinalJson, err)
+		return nil, ErrJoin(ErrFinalJson, err)
 	}
 
 	return &decis, nil
@@ -184,7 +183,7 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 	err := json.Unmarshal([]byte(entitlementContextJSON), &entitlementContext)
 	if err != nil {
 		pdp.logger.Errorf("Could not deserialize generic entitlement context JSON input document! Error was %s", err)
-		return nil, Error.Join(ErrInputDocumentUnmarshal, err)
+		return nil, ErrJoin(ErrInputDocumentUnmarshal, err)
 	}
 
 	// Build the toplevel input doc.
@@ -194,7 +193,7 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 	tmpDoc, err := json.Marshal(inputDoc)
 	if err != nil {
 		pdp.logger.Errorf("Error re-marshalling input doc! Error was %s", err)
-		return nil, Error.Join(ErrInputDocumentMarshal, err)
+		return nil, ErrJoin(ErrInputDocumentMarshal, err)
 	}
 
 	pdp.logger.Debug("Tmp result is %s", string(tmpDoc))
@@ -205,7 +204,7 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 	err = json.Unmarshal(tmpDoc, &inputUnstructured)
 	if err != nil {
 		pdp.logger.Errorf("Could not deserialize final JSON input document! Error was %s", err)
-		return nil, Error.Join(ErrFinalDocumentUnmarshal, err)
+		return nil, ErrJoin(ErrFinalDocumentUnmarshal, err)
 	}
 
 	pdp.logger.Debug("Final doc is %+v", inputUnstructured)
@@ -219,16 +218,44 @@ func (err Error) Error() string {
 	return string(err)
 }
 
-func (err Error) Join(errs ...error) error {
-	if len(errs) == 0 {
-		return nil
-	}
-	var buf bytes.Buffer
+// ErrJoin needed for Go 1.19, replace with errors.Join
+// code from https://cs.opensource.google/go/go/+/master:src/errors/join.go
+func ErrJoin(errs ...error) error {
+	n := 0
 	for _, err := range errs {
 		if err != nil {
-			buf.WriteString(err.Error())
-			buf.WriteString("\n")
+			n++
 		}
 	}
-	return errors.New(buf.String())
+	if n == 0 {
+		return nil
+	}
+	e := &joinError{
+		errs: make([]error, 0, n),
+	}
+	for _, err := range errs {
+		if err != nil {
+			e.errs = append(e.errs, err)
+		}
+	}
+	return e
+}
+
+type joinError struct {
+	errs []error
+}
+
+func (e *joinError) Error() string {
+	var b []byte
+	for i, err := range e.errs {
+		if i > 0 {
+			b = append(b, '\n')
+		}
+		b = append(b, err.Error()...)
+	}
+	return string(b)
+}
+
+func (e *joinError) Unwrap() []error {
+	return e.errs
 }

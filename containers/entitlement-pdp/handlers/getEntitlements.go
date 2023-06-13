@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"bytes"
 	ctx "context"
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -34,7 +32,7 @@ type EntityEntitlement struct {
 	EntityAttributes []EntityAttribute `json:"entity_attributes"`
 }
 
-// EntitlementRequest defines the body for the /entitlements endpoint
+// EntitlementsRequest EntitlementRequest defines the body for the /entitlements endpoint
 // @Description Request containing entity identifiers seeking entitlement.
 // @Description At least one entity (primary requestor) is required
 // @Description The Entitlements PDP is expected to be invoked directly by an identity provider
@@ -144,13 +142,13 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	err := json.Unmarshal(bodBytes, &payload)
 	if err != nil {
 		logger.Warn("Error parsing Exchange request body")
-		return nil, Error.Join(ErrPayloadUnmarshal, err)
+		return nil, ErrJoin(ErrPayloadUnmarshal, err)
 	}
 
 	// If context supplied, must be in JSON format
 	if payload.EntitlementContextObject != "" {
 		if !json.Valid([]byte(payload.EntitlementContextObject)) {
-			err := Error.Join(ErrPayloadInvalid, err)
+			err := ErrJoin(ErrPayloadInvalid, err)
 			logger.Warn(err)
 			return nil, err
 		}
@@ -165,17 +163,44 @@ func (err Error) Error() string {
 	return string(err)
 }
 
-// Join needed for Go 1.19, replace with errors.Join
-func (err Error) Join(errs ...error) error {
-	if len(errs) == 0 {
-		return nil
-	}
-	var buf bytes.Buffer
+// ErrJoin needed for Go 1.19, replace with errors.Join
+// code from https://cs.opensource.google/go/go/+/master:src/errors/join.go
+func ErrJoin(errs ...error) error {
+	n := 0
 	for _, err := range errs {
 		if err != nil {
-			buf.WriteString(err.Error())
-			buf.WriteString("\n")
+			n++
 		}
 	}
-	return errors.New(buf.String())
+	if n == 0 {
+		return nil
+	}
+	e := &joinError{
+		errs: make([]error, 0, n),
+	}
+	for _, err := range errs {
+		if err != nil {
+			e.errs = append(e.errs, err)
+		}
+	}
+	return e
+}
+
+type joinError struct {
+	errs []error
+}
+
+func (e *joinError) Error() string {
+	var b []byte
+	for i, err := range e.errs {
+		if i > 0 {
+			b = append(b, '\n')
+		}
+		b = append(b, err.Error()...)
+	}
+	return string(b)
+}
+
+func (e *joinError) Unwrap() []error {
+	return e.errs
 }
