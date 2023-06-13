@@ -4,15 +4,13 @@ ARG NODE_VERSION=18
 ARG PY_OSS_VERSION=1.1.1
 ARG PY_TEST_VERSION=3.10
 
-FROM node:${NODE_VERSION}
+FROM python:${PY_TEST_VERSION}
 
 RUN apt-get update || : && apt-get -y install \
   curl \
   default-jdk \
   jq \
-  python:${PY_TEST_VERSION} \
-  python3-pip \
-  python3-venv
+  nodjs:${NODE_VERSION}
 RUN pip3 install --upgrade pip
 RUN python3 --version
 
