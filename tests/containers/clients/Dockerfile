@@ -1,4 +1,3 @@
-# docker build -t ct1 -f xtest/Dockerfile . && docker run --net=host ct1
 # We need `node` for the test harness and node tests, and python pysdk testing
 ARG NODE_VERSION=18
 ARG PY_OSS_VERSION=1.1.1
