@@ -32,7 +32,7 @@ type EntityEntitlement struct {
 	EntityAttributes []EntityAttribute `json:"entity_attributes"`
 }
 
-// EntitlementsRequest EntitlementRequest defines the body for the /entitlements endpoint
+// EntitlementsRequest defines the body for the /entitlements endpoint
 // @Description Request containing entity identifiers seeking entitlement.
 // @Description At least one entity (primary requestor) is required
 // @Description The Entitlements PDP is expected to be invoked directly by an identity provider
