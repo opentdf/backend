@@ -12,7 +12,7 @@ jobs:
       matrix:
         go: ['1.20','1.19']
 #        bug in goimports on windows-latest
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
     name: lint
     runs-on: ${{ matrix.os }}
     steps:
