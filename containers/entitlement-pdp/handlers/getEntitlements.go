@@ -4,7 +4,6 @@ import (
 	ctx "context"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 
 	"go.opentelemetry.io/otel"
@@ -94,7 +93,7 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			log.Println(err)
+			e.Logger.Error(err)
 		}
 	}(req.Body)
 	if err != nil {
