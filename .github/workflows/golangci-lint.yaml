@@ -1,0 +1,28 @@
+# https://github.com/golangci/golangci-lint-action
+# act --container-architecture linux/amd64 --workflows .github/workflows/golangci-lint.yaml
+name: golangci-lint
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  golangci:
+    strategy:
+      matrix:
+        go: ['1.20','1.19']
+#        bug in goimports on windows-latest
+        os: [ubuntu-latest]
+    name: lint
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: containers/entitlement-pdp

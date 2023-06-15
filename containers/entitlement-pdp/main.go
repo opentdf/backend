@@ -22,7 +22,7 @@ var svcName = "entitlement-pdp"
 
 var cfg EnvConfig
 
-//Env config
+// EnvConfig environment variable struct.
 type EnvConfig struct {
 	ListenPort          string `env:"LISTEN_PORT" envDefault:"3355"`
 	ExternalHost        string `env:"EXTERNAL_HOST" envDefault:""`
@@ -51,10 +51,10 @@ func main() {
 	}
 
 	if cfg.Verbose {
-		fmt.Print("Enabling verbose logging")
+		log.Print("Enabling verbose logging")
 		zapLog, logErr = zap.NewDevelopment() // or NewProduction, or NewDevelopment
 	} else {
-		fmt.Print("Enabling production logging")
+		log.Print("Enabling production logging")
 		zapLog, logErr = zap.NewProduction()
 	}
 
@@ -84,22 +84,31 @@ func main() {
 	opaPDP, opaPDPCancel := pdp.InitOPAPDP(cfg.OPAConfigPath, cfg.OPAPolicyPullSecret, logger, context.Background())
 	defer opaPDPCancel()
 
+	const timeout = 30
 	server := &http.Server{
 		Addr:              fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
-		ReadTimeout:       time.Second * 30,
-		WriteTimeout:      time.Second * 30,
-		ReadHeaderTimeout: time.Second * 30,
+		ReadTimeout:       time.Second * timeout,
+		WriteTimeout:      time.Second * timeout,
+		ReadHeaderTimeout: time.Second * timeout,
 	}
 
-	//This otel HTTP handler middleware simply traces all handled request for you - DD needs it
-	http.Handle("/healthz", otelhttp.NewHandler(handlers.GetHealthzHandler(), "HealthZHandler"))
-
-	http.Handle("/entitlements", otelhttp.NewHandler(handlers.GetEntitlementsHandler(&opaPDP, logger), "EntitlementsHandler"))
-
-	http.Handle("/docs/", handlers.GetSwaggerHandler(server.Addr))
+	healthz := handlers.Healthz{
+		ZapLog: zapLog,
+	}
+	// This otel HTTP handler middleware simply traces all handled request for you - DD needs it
+	http.Handle("/healthz", otelhttp.NewHandler(&healthz, "HealthZHandler"))
+	entitlements := handlers.Entitlements{
+		Pdp:    &opaPDP,
+		Logger: logger,
+	}
+	http.Handle("/entitlements", otelhttp.NewHandler(&entitlements, "EntitlementsHandler"))
+	swagger := handlers.Swagger{
+		Address: server.Addr,
+	}
+	http.Handle("/docs/", &swagger)
 
 	logger.Info("Starting server", zap.String("address", server.Addr))
-	handlers.MarkHealthy()
+	healthz.MarkHealthy()
 	if err := server.ListenAndServe(); err != nil {
 		logger.Fatal("Error on serve!", zap.Error(err))
 	}
