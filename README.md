@@ -186,7 +186,7 @@ To run a subset of unit tests (e.g. just the `kas_core` tests from the [kas_core
 scripts/monotest containers/kas/kas_core
 ```
 
-### Security test
+### Security tests
 
 Once a cluster is running, run `tests/security-test/helm-test.sh`
 
