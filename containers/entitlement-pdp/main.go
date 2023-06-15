@@ -8,13 +8,11 @@ import (
 	"time"
 
 	"github.com/opentdf/v2/entitlement-pdp/handlers"
-
 	"github.com/opentdf/v2/entitlement-pdp/pdp"
 
+	"github.com/caarlos0/env"
 	"github.com/virtru/oteltracer"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-
-	"github.com/caarlos0/env"
 	"go.uber.org/zap"
 )
 
