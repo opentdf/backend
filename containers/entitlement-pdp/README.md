@@ -18,8 +18,8 @@ However, the example Rego policy bundle can be replaced entirely without changin
 as long as the following is also true of the Rego policy bundle it is replaced with:
 
 1. The Rego policy bundle has a `opentdf.entitlement` package.
-1. The `opentdf.entitlement` package has a rule named `generated_entitlements`
-1. `generated_entitlements` evaluates to an array of objects in the following schema:
+2. The `opentdf.entitlement` package has a rule named `generated_entitlements`
+3. `generated_entitlements` evaluates to an array of objects in the following schema:
 
 ```json
 [

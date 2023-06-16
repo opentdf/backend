@@ -107,6 +107,10 @@ github.com/stretchr/testify v1.8.3 h1:RP3t2pwF7cMEbC1dqtB6poj3niw/9gnV4Cjg5oW5gt
 github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/tchap/go-patricia/v2 v2.3.1 h1:6rQp39lgIYZ+MHmdEq4xzuk1t7OdC35z/xm0BGhTkes=
 github.com/tchap/go-patricia/v2 v2.3.1/go.mod h1:VZRHKAb53DLaG+nA9EaYYiaEx6YztwDlLElMsnSHD4k=
+github.com/uptrace/opentelemetry-go-extra/otellogrus v0.2.1 h1:klz16Hi1ydcI/AkFCbgxXvqwfKNPb+/EVHMlu1PdEKo=
+github.com/uptrace/opentelemetry-go-extra/otellogrus v0.2.1/go.mod h1:CufwvpLoGqj/uJFKsxBy09MKEM/o9QqaWjkB4RnFVdI=
+github.com/uptrace/opentelemetry-go-extra/otelutil v0.2.1 h1:qjljyY//UH064+gQDHh5U7M1Jh6b+iQpJUWVAuRJ04A=
+github.com/uptrace/opentelemetry-go-extra/otelutil v0.2.1/go.mod h1:7YSrHCmYPHIXjTWnKSU7EGT0TFEcm3WwSeQquwCGg38=
 github.com/virtru/oteltracer v1.1.6 h1:bzlmLPLR+jJFQpRxhsQKxFD7XS1d5wK8cqQSwL5wV+E=
 github.com/virtru/oteltracer v1.1.6/go.mod h1:pU9KxTOVj3mVp/HEdJKmkSwkWDST34AoDgbkOSKasQQ=
 github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb h1:zGWFAtiMcyryUHoUjUJX0/lt1H2+i2Ka2n+D3DImSNo=

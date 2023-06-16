@@ -8,11 +8,10 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
-
 	"github.com/opentdf/v2/entitlement-pdp/handlers"
 	"github.com/opentdf/v2/entitlement-pdp/pdp"
-
 	log "github.com/sirupsen/logrus"
+	"github.com/uptrace/opentelemetry-go-extra/otellogrus"
 	"github.com/virtru/oteltracer"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -25,6 +24,13 @@ const (
 
 func init() {
 	log.SetOutput(os.Stdout)
+	// Instrument logrus.
+	log.AddHook(otellogrus.NewHook(otellogrus.WithLevels(
+		log.PanicLevel,
+		log.FatalLevel,
+		log.ErrorLevel,
+		log.WarnLevel,
+	)))
 	if os.Getenv("SERVER_LOG_JSON") == "true" {
 		log.SetFormatter(&log.JSONFormatter{
 			TimestampFormat:   "",
@@ -59,10 +65,8 @@ type EnvConfig struct {
 // @title entitlement-pdp
 // @version 0.0.1
 // @description An implementation of a Policy Decision Point
-
 // @contact.name OpenTDF
 // @contact.url https://www.opentdf.io
-
 // @license.name BSD 3-Clause
 // @license.url https://opensource.org/licenses/BSD-3-Clause
 func main() {

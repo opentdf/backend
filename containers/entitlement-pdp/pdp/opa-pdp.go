@@ -13,10 +13,9 @@ import (
 
 	opalog "github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/sdk"
+	"github.com/opentdf/v2/entitlement-pdp/handlers"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
-
-	"github.com/opentdf/v2/entitlement-pdp/handlers"
 )
 
 const (
@@ -50,10 +49,6 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context
 	initOpaCtx, span := tracer.Start(parentCtx, "InitOPAPDP")
 	defer span.End()
 
-	var shutdownFunc func()
-	const timeout = 10
-	opaCtx, opaCtxCancel := ctx.WithTimeout(initOpaCtx, time.Second*timeout)
-
 	log.Debugf("Loading config file from from %s", opaConfigPath)
 	opaConfig, err := os.ReadFile(opaConfigPath)
 	if err != nil {
@@ -62,18 +57,17 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context
 
 	// TODO HACK
 	// OPA in SDK mode doesn't support env-var substitution or overrides for the config file
-	// BOO
 	// so inject env secrets by hand with this nonsense
 	configString := string(opaConfig)
 	configString = strings.Replace(configString, "${CR_PAT}", opaPolicyPullSecret, 1)
 	opaConfig = []byte(configString)
 
-	// Annoyingly, OPA defines its own (incompatible with both Zap AND Go std logger)
-	// logging interface - so for now just create a second logger and match logging level with zap.
-	logger := log.New()
-	logger.Out = os.Stdout
-	opaLogger := &Logger{
-		logger: logger,
+	var shutdownFunc func()
+	const timeout = 2 * time.Second
+	opaCtx, opaCtxCancel := ctx.WithTimeout(initOpaCtx, timeout)
+	// Annoyingly, OPA defines its own logging interface - so for now just wrap logger
+	opaLogger := &OtelLogger{
+		ctx: opaCtx,
 	}
 	opaOptions := sdk.Options{
 		Config:        bytes.NewReader(opaConfig),
@@ -85,14 +79,14 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context
 	}
 	opa, err := sdk.New(opaCtx, opaOptions)
 	if err != nil {
-		log.Debug(err)
+		log.WithContext(opaCtx).Debug(err)
 	}
 
-	log.Info("OPA Engine successfully started")
+	log.WithContext(opaCtx).Info("OPA Engine successfully started")
 
 	// Return a shutdown func the caller can use to dispose OPA engine
 	shutdownFunc = func() {
-		log.Info("Shutting down OPA engine")
+		log.WithContext(opaCtx).Info("Shutting down OPA engine")
 		opa.Stop(opaCtx)
 		// Cancel context - probably redundant in most cases
 		opaCtxCancel()
@@ -260,29 +254,30 @@ func (e *joinError) Unwrap() []error {
 	return e.errs
 }
 
-type Logger struct {
-	logger *log.Logger
+// OtelLogger with context for otel
+type OtelLogger struct {
+	ctx ctx.Context
 }
 
-func (l *Logger) Debug(fmt string, a ...interface{}) {
-	log.Debug(fmt, a)
+func (l *OtelLogger) Debug(fmt string, a ...interface{}) {
+	log.WithContext(l.ctx).Debug(fmt, a)
 }
-func (l *Logger) Info(fmt string, a ...interface{}) {
-	log.Debug(fmt, a)
+func (l *OtelLogger) Info(fmt string, a ...interface{}) {
+	log.WithContext(l.ctx).Info(fmt, a)
 }
-func (l *Logger) Error(fmt string, a ...interface{}) {
-	log.Debug(fmt, a)
+func (l *OtelLogger) Error(fmt string, a ...interface{}) {
+	log.WithContext(l.ctx).Error(fmt, a)
 }
-func (l *Logger) Warn(fmt string, a ...interface{}) {
-	log.Debug(fmt, a)
+func (l *OtelLogger) Warn(fmt string, a ...interface{}) {
+	log.WithContext(l.ctx).Warn(fmt, a)
 }
-func (l *Logger) WithFields(fields map[string]interface{}) opalog.Logger {
-	l.logger.WithFields(fields)
+func (l *OtelLogger) WithFields(fields map[string]interface{}) opalog.Logger {
+	log.WithContext(l.ctx).WithFields(fields)
 	return l
 }
-func (l *Logger) GetLevel() opalog.Level {
+func (l *OtelLogger) GetLevel() opalog.Level {
 	return opalog.Level(log.GetLevel())
 }
-func (l *Logger) SetLevel(level opalog.Level) {
+func (l *OtelLogger) SetLevel(level opalog.Level) {
 	log.Debugf("SetLevel %v", level)
 }
