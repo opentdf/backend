@@ -3,17 +3,16 @@ package handlers
 import (
 	"net/http"
 
-	"go.uber.org/zap"
+	log "github.com/sirupsen/logrus"
 )
 
 type Healthz struct {
-	ready  bool
-	ZapLog *zap.Logger
+	ready bool
 }
 
 func (h *Healthz) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
 	if !h.ready {
-		h.ZapLog.Info("service not ready!")
+		log.Info("service not ready!")
 		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}
@@ -21,6 +20,6 @@ func (h *Healthz) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (h *Healthz) MarkHealthy() {
-	h.ZapLog.Info("Marking service healthy")
+	log.Info("Marking service healthy")
 	h.ready = true
 }

@@ -3,31 +3,57 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/caarlos0/env"
 
 	"github.com/opentdf/v2/entitlement-pdp/handlers"
 	"github.com/opentdf/v2/entitlement-pdp/pdp"
 
-	"github.com/caarlos0/env"
+	log "github.com/sirupsen/logrus"
 	"github.com/virtru/oteltracer"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
-	"go.uber.org/zap"
 )
 
-var svcName = "entitlement-pdp"
+const (
+	svcName = "entitlement-pdp"
 
-var cfg EnvConfig
+	ErrOpenapiNotFound = "openapi not found"
+)
+
+func init() {
+	log.SetOutput(os.Stdout)
+	if os.Getenv("SERVER_LOG_JSON") == "true" {
+		log.SetFormatter(&log.JSONFormatter{
+			TimestampFormat:   "",
+			DisableTimestamp:  false,
+			DisableHTMLEscape: false,
+			DataKey:           "",
+			FieldMap:          nil,
+			CallerPrettyfier:  nil,
+			PrettyPrint:       false,
+		})
+	}
+	if os.Getenv("VERBOSE") == "true" {
+		log.SetLevel(log.TraceLevel)
+	}
+}
+
+var (
+	Version string
+	cfg     EnvConfig
+)
 
 // EnvConfig environment variable struct.
 type EnvConfig struct {
-	ListenPort          string `env:"LISTEN_PORT" envDefault:"3355"`
-	ExternalHost        string `env:"EXTERNAL_HOST" envDefault:""`
+	Port                string `env:"SERVER_PORT" envDefault:"3355"`
+	PublicName          string `env:"SERVER_PUBLIC_NAME" envDefault:""`
 	Verbose             bool   `env:"VERBOSE" envDefault:"false"`
 	DisableTracing      bool   `env:"DISABLE_TRACING" envDefault:"false"`
 	OPAConfigPath       string `env:"OPA_CONFIG_PATH" envDefault:"/etc/opa/config/opa-config.yaml"`
-	OPAPolicyPullSecret string `env:"OPA_POLICYBUNDLE_PULLCRED" envDefault:"YOURPATHERE"`
+	OPAPolicyPullSecret string `env:"OPA_POLICYBUNDLE_PULLCRED" envDefault:""`
 }
 
 // @title entitlement-pdp
@@ -40,74 +66,83 @@ type EnvConfig struct {
 // @license.name BSD 3-Clause
 // @license.url https://opensource.org/licenses/BSD-3-Clause
 func main() {
-	var zapLog *zap.Logger
-	var logErr error
-
+	log.WithFields(log.Fields{
+		svcName: Version,
+	}).Info("starting")
 	// Parse env
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err.Error())
 	}
 
-	if cfg.Verbose {
-		log.Print("Enabling verbose logging")
-		zapLog, logErr = zap.NewDevelopment() // or NewProduction, or NewDevelopment
-	} else {
-		log.Print("Enabling production logging")
-		zapLog, logErr = zap.NewProduction()
+	// load openapi
+	openapi, err := os.ReadFile("./openapi.json")
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	if logErr != nil {
-		log.Fatalf("Logger initialization failed!")
-	}
-
-	defer func() {
-		err := zapLog.Sync()
-		if err != nil {
-			log.Fatal("Error flushing zap log!")
-		}
-	}()
-
-	logger := zapLog.Sugar()
-
-	logger.Infof("%s init", svcName)
 
 	if !cfg.DisableTracing {
 		tracerCancel, err := oteltracer.InitTracer(svcName)
 		if err != nil {
-			logger.Errorf("Error initializing tracer: %v", err)
+			log.Errorf("Error initializing tracer: %v", err)
 		}
 		defer tracerCancel()
 	}
-
-	opaPDP, opaPDPCancel := pdp.InitOPAPDP(cfg.OPAConfigPath, cfg.OPAPolicyPullSecret, logger, context.Background())
+	opaPDP, opaPDPCancel := pdp.InitOPAPDP(cfg.OPAConfigPath, cfg.OPAPolicyPullSecret, context.Background())
 	defer opaPDPCancel()
 
 	const timeout = 30
 	server := &http.Server{
-		Addr:              fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
+		Addr:              fmt.Sprintf("%s:%s", cfg.PublicName, cfg.Port),
 		ReadTimeout:       time.Second * timeout,
 		WriteTimeout:      time.Second * timeout,
 		ReadHeaderTimeout: time.Second * timeout,
 	}
 
-	healthz := handlers.Healthz{
-		ZapLog: zapLog,
-	}
+	healthz := handlers.Healthz{}
 	// This otel HTTP handler middleware simply traces all handled request for you - DD needs it
 	http.Handle("/healthz", otelhttp.NewHandler(&healthz, "HealthZHandler"))
 	entitlements := handlers.Entitlements{
-		Pdp:    &opaPDP,
-		Logger: logger,
+		Pdp: &opaPDP,
 	}
 	http.Handle("/entitlements", otelhttp.NewHandler(&entitlements, "EntitlementsHandler"))
-	swagger := handlers.Swagger{
+	swagger := OpenapiHandler{
 		Address: server.Addr,
+		Openapi: openapi,
 	}
 	http.Handle("/docs/", &swagger)
+	http.Handle("/openapi.json", &swagger)
 
-	logger.Info("Starting server", zap.String("address", server.Addr))
+	log.WithFields(log.Fields{"address": server.Addr}).Infof("Starting server")
 	healthz.MarkHealthy()
 	if err := server.ListenAndServe(); err != nil {
-		logger.Fatal("Error on serve!", zap.Error(err))
+		log.Panic("Error on serve!", err)
+	}
+}
+
+type OpenapiHandler struct {
+	Address string
+	Openapi []byte
+}
+
+func (h OpenapiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debugf("openapi request %s", r.URL)
+	// FIXME replace OpenAPI server with this
+	// .URL(fmt.Sprintf("http://%s/docs/doc.json", h.Address)) // The url pointing to API definition
+	if h.Openapi == nil {
+		log.Error(ErrOpenapiNotFound)
+		w.WriteHeader(http.StatusNotFound)
+		_, err := w.Write([]byte(http.StatusText(http.StatusNotFound)))
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_, err := w.Write(h.Openapi)
+	if err != nil || h.Openapi == nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }

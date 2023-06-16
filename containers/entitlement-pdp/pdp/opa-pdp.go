@@ -8,10 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/open-policy-agent/opa/metrics"
+	"github.com/open-policy-agent/opa/profiler"
+
 	opalog "github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/sdk"
+	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
-	"go.uber.org/zap"
 
 	"github.com/opentdf/v2/entitlement-pdp/handlers"
 )
@@ -29,8 +32,7 @@ const (
 var tracer = otel.Tracer("pdp")
 
 type OPAPDPEngine struct {
-	logger *zap.SugaredLogger
-	opa    *sdk.OPA
+	opa *sdk.OPA
 }
 
 type entitlementDecisionInputDocument struct {
@@ -44,7 +46,7 @@ type Decision struct {
 	Result []handlers.EntityEntitlement `json:"Result"`
 }
 
-func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, logger *zap.SugaredLogger, parentCtx ctx.Context) (OPAPDPEngine, func()) {
+func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context) (OPAPDPEngine, func()) {
 	initOpaCtx, span := tracer.Start(parentCtx, "InitOPAPDP")
 	defer span.End()
 
@@ -52,10 +54,10 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, logger *zap.SugaredLo
 	const timeout = 10
 	opaCtx, opaCtxCancel := ctx.WithTimeout(initOpaCtx, time.Second*timeout)
 
-	logger.Debugf("Loading config file from from %s", opaConfigPath)
+	log.Debugf("Loading config file from from %s", opaConfigPath)
 	opaConfig, err := os.ReadFile(opaConfigPath)
 	if err != nil {
-		logger.Fatalf("Error loading config file from from %s! Error was %s", opaConfigPath, err)
+		log.Panicf("Error loading config file from from %s! Error was %s", opaConfigPath, err)
 	}
 
 	// TODO HACK
@@ -68,13 +70,11 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, logger *zap.SugaredLo
 
 	// Annoyingly, OPA defines its own (incompatible with both Zap AND Go std logger)
 	// logging interface - so for now just create a second logger and match logging level with zap.
-	// TODO redirect this into zap logger stream for structured logging.
-	logLevel := opalog.Info
-	if zapDebug := logger.Desugar().Check(zap.DebugLevel, "debugging"); zapDebug != nil {
-		logLevel = opalog.Debug
+	logger := log.New()
+	logger.Out = os.Stdout
+	opaLogger := &Logger{
+		logger: logger,
 	}
-	opaLogger := opalog.New()
-	opaLogger.SetLevel(logLevel)
 	opaOptions := sdk.Options{
 		Config:        bytes.NewReader(opaConfig),
 		Logger:        opaLogger,
@@ -85,36 +85,36 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, logger *zap.SugaredLo
 	}
 	opa, err := sdk.New(opaCtx, opaOptions)
 	if err != nil {
-		logger.Fatal(err)
+		log.Debug(err)
 	}
 
-	logger.Info("OPA Engine successfully started")
+	log.Info("OPA Engine successfully started")
 
 	// Return a shutdown func the caller can use to dispose OPA engine
 	shutdownFunc = func() {
-		logger.Info("Shutting down OPA engine")
+		log.Info("Shutting down OPA engine")
 		opa.Stop(opaCtx)
 		// Cancel context - probably redundant in most cases
 		opaCtxCancel()
 	}
 
-	return OPAPDPEngine{logger, opa}, shutdownFunc
+	return OPAPDPEngine{opa}, shutdownFunc
 }
 
 func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, entitlementContextJSON string, parentCtx ctx.Context) ([]handlers.EntityEntitlement, error) {
-	pdp.logger.Debug("ApplyEntitlementPolicy")
+	log.Debug("ApplyEntitlementPolicy")
 	evalCtx, evalSpan := tracer.Start(parentCtx, "ApplyEntitlementPolicy")
 	defer evalSpan.End()
 
-	pdp.logger.Debug("ENTITLEMENT CONTEXT JSON: %s", entitlementContextJSON)
+	log.Debugf("ENTITLEMENT CONTEXT JSON: %s", entitlementContextJSON)
 
 	inputDoc, err := pdp.buildInputDoc(primaryEntity, secondaryEntities, entitlementContextJSON)
 	if err != nil {
-		pdp.logger.Errorf("Error constructing input document, error was %s", err)
+		log.Errorf("Error constructing input document, error was %s", err)
 		return nil, err
 	}
 
-	pdp.logger.Debug("INPUT DOC is %s", inputDoc)
+	log.Debugf("INPUT DOC is %s", inputDoc)
 
 	decisionReq := sdk.DecisionOptions{
 		Now:                 time.Now(),
@@ -123,44 +123,44 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 		NDBCache:            nil,
 		StrictBuiltinErrors: false,
 		Tracer:              nil,
-		Metrics:             nil,
-		Profiler:            nil,
+		Metrics:             metrics.New(),
+		Profiler:            profiler.New(),
 		Instrument:          false,
 	}
 
 	result, err := pdp.opa.Decision(evalCtx, decisionReq)
 	if err != nil {
-		pdp.logger.Errorf("Got OPA decision error: %s", err)
+		log.Errorf("Got OPA decision error: %s", err)
 		return nil, ErrJoin(ErrOpaDecision, err)
 	}
 
 	decis, err := pdp.deserializeEntitlementsFromResult(result)
 	if err != nil {
-		pdp.logger.Errorf("Error deserializing OPA result, error was %s", err)
+		log.Errorf("Error deserializing OPA result, error was %s", err)
 		return nil, ErrJoin(ErrOpaResultDeserialize, err)
 	}
 
-	pdp.logger.Debug("Got unmarshalled entitlements: %+v", decis.Result)
+	log.Debugf("Got unmarshalled entitlements: %+v", decis.Result)
 
 	return decis.Result, err
 }
 
 func (pdp *OPAPDPEngine) deserializeEntitlementsFromResult(rawResult *sdk.DecisionResult) (*Decision, error) {
-	pdp.logger.Debugf("Got OPA raw result: %s", rawResult)
+	log.Debugf("Got OPA raw result: %s", rawResult)
 
 	// Marshal that entire doc BACK to a string.
 	resDoc, err := json.Marshal(rawResult)
 	if err != nil {
-		pdp.logger.Errorf("Error re-marshalling result doc! Error was %s", err)
+		log.Errorf("Error re-marshalling result doc! Error was %s", err)
 		return nil, ErrJoin(ErrResultDocumentMarshal, err)
 	}
 
-	pdp.logger.Debug("Tmp string result is %s", string(resDoc))
+	log.Debugf("Tmp string result is %s", string(resDoc))
 
 	var decis Decision
 	err = json.Unmarshal(resDoc, &decis)
 	if err != nil {
-		pdp.logger.Errorf("Could not deserialize final JSON result document! Error was %s", err)
+		log.Errorf("Could not deserialize final JSON result document! Error was %s", err)
 		return nil, ErrJoin(ErrFinalJson, err)
 	}
 
@@ -182,7 +182,7 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 
 	err := json.Unmarshal([]byte(entitlementContextJSON), &entitlementContext)
 	if err != nil {
-		pdp.logger.Errorf("Could not deserialize generic entitlement context JSON input document! Error was %s", err)
+		log.Errorf("Could not deserialize generic entitlement context JSON input document! Error was %s", err)
 		return nil, ErrJoin(ErrInputDocumentUnmarshal, err)
 	}
 
@@ -192,22 +192,22 @@ func (pdp *OPAPDPEngine) buildInputDoc(primaryEntity string, secondaryEntities [
 	// Marshal that entire doc BACK to a string.
 	tmpDoc, err := json.Marshal(inputDoc)
 	if err != nil {
-		pdp.logger.Errorf("Error re-marshalling input doc! Error was %s", err)
+		log.Errorf("Error re-marshalling input doc! Error was %s", err)
 		return nil, ErrJoin(ErrInputDocumentMarshal, err)
 	}
 
-	pdp.logger.Debug("Tmp result is %s", string(tmpDoc))
+	log.Debugf("Tmp result is %s", string(tmpDoc))
 	// OPA wants this as a generic map[string]interface{} and will not handle
 	// deserializing to concrete structs
 	// So, we deserialize the whole thing again into a generic `map[string]interface{}`
 	var inputUnstructured map[string]interface{}
 	err = json.Unmarshal(tmpDoc, &inputUnstructured)
 	if err != nil {
-		pdp.logger.Errorf("Could not deserialize final JSON input document! Error was %s", err)
+		log.Errorf("Could not deserialize final JSON input document! Error was %s", err)
 		return nil, ErrJoin(ErrFinalDocumentUnmarshal, err)
 	}
 
-	pdp.logger.Debug("Final doc is %+v", inputUnstructured)
+	log.Debugf("Final doc is %+v", inputUnstructured)
 
 	return inputUnstructured, nil
 }
@@ -258,4 +258,31 @@ func (e *joinError) Error() string {
 
 func (e *joinError) Unwrap() []error {
 	return e.errs
+}
+
+type Logger struct {
+	logger *log.Logger
+}
+
+func (l *Logger) Debug(fmt string, a ...interface{}) {
+	log.Debug(fmt, a)
+}
+func (l *Logger) Info(fmt string, a ...interface{}) {
+	log.Debug(fmt, a)
+}
+func (l *Logger) Error(fmt string, a ...interface{}) {
+	log.Debug(fmt, a)
+}
+func (l *Logger) Warn(fmt string, a ...interface{}) {
+	log.Debug(fmt, a)
+}
+func (l *Logger) WithFields(fields map[string]interface{}) opalog.Logger {
+	l.logger.WithFields(fields)
+	return l
+}
+func (l *Logger) GetLevel() opalog.Level {
+	return opalog.Level(log.GetLevel())
+}
+func (l *Logger) SetLevel(level opalog.Level) {
+	log.Debugf("SetLevel %v", level)
 }

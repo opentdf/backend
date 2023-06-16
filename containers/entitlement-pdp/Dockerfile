@@ -8,12 +8,11 @@ COPY go.mod go.sum ./
 RUN go mod download
 # copy Go files - add new package to this list
 COPY *.go ./
-COPY /docs/ ./docs/
 COPY /handlers/ ./handlers/
 COPY /pdp/ ./pdp/
 COPY VERSION .
 # build
-RUN CGO_ENABLED=0 GOOS=linux go build
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X main.Version=$(cat <VERSION)"
 # END AS builder
 
 FROM golang:${GOLANG_VERSION}-alpine${ALPINE_VERSION} AS policy-builder
@@ -34,12 +33,15 @@ RUN policy build entitlement-policy -t local:$(cat <VERSION) \
 
 # Create the minimal runtime image
 FROM alpine:${ALPINE_VERSION} AS production
+# openapi
+COPY openapi.json .
 # policy bundle
-ENV OPA_POLICY_BUNDLE_PATH=/opt/app-root/src/entitlement-pdp/policycache/bundles/entitlement-policy/bundle.tar.gz
+ENV OPA_POLICYBUNDLE_PATH=/etc/opa/bundles/entitlement-policy/bundle.tar.gz
 ENV OPA_CONFIG_PATH=/etc/opa/config/opa-config.yaml
-COPY --from=policy-builder /build/bundle.tar.gz $OPA_POLICY_BUNDLE_PATH
+COPY --from=policy-builder /build/bundle.tar.gz $OPA_POLICYBUNDLE_PATH
 COPY --from=policy-builder /build/opa-config.yaml $OPA_CONFIG_PATH
 # service
 COPY --from=builder /build/entitlement-pdp /entitlement-pdp
 ENTRYPOINT ["/entitlement-pdp"]
 # END AS production
+

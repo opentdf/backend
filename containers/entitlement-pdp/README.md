@@ -29,7 +29,8 @@ as long as the following is also true of the Rego policy bundle it is replaced w
       {
         "attribute": "xx",
         "displayName": "xx"
-      },
+      }
+      ]
     }
 ]
 ```
@@ -49,7 +50,7 @@ This requires disabling automatic policy bundle updates/fetches and is not suita
 
 ## REST API endpoints
 
-See [OpenAPI definition](docs/swagger.json)
+See [OpenAPI definition](openapi.json)
 
 If service is running, it will also expose a live OpenAPI endpoint on `https://<service>:<port>/docs`
 
@@ -87,3 +88,28 @@ make dockerbuildpush
 ```
 
 Published to `oci://ghcr.io/opentdf/entitlement-pdp`
+
+## Development
+
+### Environment Variables
+
+```dotenv
+OPA_CONFIG_PATH=./offline-config-example/opa-config.yaml
+VERBOSE=true
+LISTEN_PORT=3355
+```
+
+### Build
+
+```shell
+go build github.com/opentdf/v2/entitlement-pdp
+```
+
+### Endpoints
+
+OpenAPI GET
+```shell
+curl -v http://localhost:3355/openapi.json
+# deprecated
+curl -v http://localhost:3355/docs/doc.json
+```
