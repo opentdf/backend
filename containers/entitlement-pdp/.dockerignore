@@ -22,3 +22,4 @@ vendor/
 go.work
 # No test files in image. hopefully test dependencies are pruned
 *_test*.go
+/policy-cache/

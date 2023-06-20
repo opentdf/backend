@@ -54,11 +54,20 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context
 	if err != nil {
 		log.Panicf("Error loading config file from from %s! Error was %s", opaConfigPath, err)
 	}
-
-	// TODO HACK
-	// OPA in SDK mode doesn't support env-var substitution or overrides for the config file
-	// so inject env secrets by hand with this nonsense
+	// Get all environment variables that begin with OPA_
+	var opaEnvVars []string
+	for _, key := range os.Environ() {
+		if strings.HasPrefix(key, "OPA_") {
+			opaEnvVars = append(opaEnvVars, key)
+		}
+	}
+	// Replace the environment variables in the string
 	configString := string(opaConfig)
+	for _, key := range opaEnvVars {
+		envVarValue := os.Getenv(key)
+		configString = strings.Replace(configString, "${"+key+"}", envVarValue, -1)
+	}
+	// backwards compatible
 	configString = strings.Replace(configString, "${CR_PAT}", opaPolicyPullSecret, 1)
 	opaConfig = []byte(configString)
 
@@ -80,6 +89,10 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context
 	opa, err := sdk.New(opaCtx, opaOptions)
 	if err != nil {
 		log.WithContext(opaCtx).Debug(err)
+	}
+	// assert opa state manager is setup and return nil
+	if opa.Plugin("") != nil {
+		log.Panic(ErrOpaDecision)
 	}
 
 	log.WithContext(opaCtx).Info("OPA Engine successfully started")

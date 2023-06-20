@@ -36,8 +36,9 @@ FROM alpine:${ALPINE_VERSION} AS production
 # openapi
 COPY openapi.json .
 # policy bundle
-ENV OPA_POLICYBUNDLE_PATH=/etc/opa/bundles/entitlement-policy/bundle.tar.gz
-ENV OPA_CONFIG_PATH=/etc/opa/config/opa-config.yaml
+RUN mkdir /policy-cache/
+ENV OPA_POLICYBUNDLE_PATH=/bundle.tar.gz
+ENV OPA_CONFIG_PATH=/opa-config.yaml
 COPY --from=policy-builder /build/bundle.tar.gz $OPA_POLICYBUNDLE_PATH
 COPY --from=policy-builder /build/opa-config.yaml $OPA_CONFIG_PATH
 # service
