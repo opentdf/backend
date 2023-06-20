@@ -75,6 +75,7 @@ type Entitlements struct {
 // @Failure      500 {string} http.StatusServerError
 // @Router       /entitlements [post]
 func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	log.Debugf("entitlemnts request %s", req.URL)
 	spanCtx := req.Context()
 	handlerCtx, span := tracer.Start(spanCtx, "GetEntitlementsHandler")
 	defer span.End()
