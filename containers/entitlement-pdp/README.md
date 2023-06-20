@@ -52,16 +52,56 @@ This requires disabling automatic policy bundle updates/fetches and is not suita
 
 See [OpenAPI definition](openapi.json)
 
-If service is running, it will also expose a live OpenAPI endpoint on `https://<service>:<port>/docs`
+If service is running, it will also expose a live OpenAPI endpoint on `http://localhost:3355/openapi.json`
+
+Use Postman client from https://www.postman.com/downloads/ 
+- Set `baseUrl` under Variables tab to `http://localhost:3355`
+
+JSON is bundled and published.  YAML and JSON version are available.  work with one and then convert the other. don't run the wrong one ;)
+
+YAML --> JSON
+```shell
+yq eval openapi.yaml --input-format yaml --output-format json > openapi.json
+```
+
+JSON --> YAML
+```shell
+# the other is preferred
+yq eval openapi.json --input-format json --output-format yaml
+```
 
 > NOTE: If you get an error about `not being able to fetch doc.json`, make sure you've set `EXTERNAL_HOST` to the hostname the service is exposed on (`localhost`, etc), or just manually type in the service host in the OpenAPI URL box.
+
+### healthz endpoint
+
+This endpoint is not exposed in openapi because it is internal
+
+```shell
+curl -v http://localhost:3355/healthz
+```
+
+### entitlements endpoint
+
+```shell
+curl -X 'POST' \
+  'http://localhost:3355/entitlements' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "entitlement_context_obj": "{\"somekey\":\"somevalue\"}",
+  "primary_entity_id": "bc03f40c-a7af-4507-8198-d5334e2823e6",
+  "secondary_entity_ids": [
+    "4f6636ca-c60c-40d1-9f3f-015086303f74"
+  ]
+}'
+```
 
 ## Environment variables
 
 | Name                      | Default                           | Description                                                                                                                                                                                                           |
 | ------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LISTEN_PORT               | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
-| EXTERNAL_HOST             | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
+| SERVER_PORT               | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
+| SERVER_PUBLIC_NAME             | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
 | VERBOSE                   | "false"                           | Enable verbose/debug logging                                                                                                                                                                                          |
 | DISABLE_TRACING           | "false"                           | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)                                                                                                                       |
 | OPA_CONFIG_PATH           | "/etc/opa/config/opa-config.yaml" | Path to OPA config yaml - valid OPA config must exist here or service will not start. Normally this should be left alone                                                                                              |
@@ -112,4 +152,38 @@ OpenAPI GET
 curl -v http://localhost:3355/openapi.json
 # deprecated
 curl -v http://localhost:3355/docs/doc.json
+```
+
+### OpenTelemetry
+
+#### Jaegar
+
+https://www.jaegertracing.io/docs/1.46/getting-started/#all-in-one
+
+```shell
+docker run -d --name jaeger \
+  -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 \
+  -e COLLECTOR_OTLP_ENABLED=true \
+  -p 6831:6831/udp \
+  -p 6832:6832/udp \
+  -p 5778:5778 \
+  -p 16686:16686 \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -p 14250:14250 \
+  -p 14268:14268 \
+  -p 14269:14269 \
+  -p 9411:9411 \
+  jaegertracing/all-in-one:1.46
+
+```
+
+Jaegar Front end http://localhost:16686
+
+#### Prometheus
+
+https://prometheus.io/docs/prometheus/latest/getting_started/
+
+```shell
+docker run --name prometheus -d -p 127.0.0.1:9090:9090 prom/prometheus
 ```
