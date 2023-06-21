@@ -3,7 +3,6 @@ module github.com/opentdf/v2/entitlement-pdp
 go 1.19
 
 require (
-	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/open-policy-agent/opa v0.53.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.3

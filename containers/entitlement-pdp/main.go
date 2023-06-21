@@ -3,7 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/caarlos0/env"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
+
 	"github.com/opentdf/v2/entitlement-pdp/handlers"
 	"github.com/opentdf/v2/entitlement-pdp/pdp"
 	log "github.com/sirupsen/logrus"
@@ -19,10 +23,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"net/http"
-	"os"
-	"os/signal"
-	"time"
 )
 
 const (
@@ -58,24 +58,12 @@ func init() {
 
 var (
 	Version string
-	cfg     EnvConfig
 )
-
-// EnvConfig environment variable struct.
-type EnvConfig struct {
-	DisableTracing      bool   `env:"DISABLE_TRACING" envDefault:"false"`
-	OPAConfigPath       string `env:"OPA_CONFIG_PATH" envDefault:"/etc/opa/config/opa-config.yaml"`
-	OPAPolicyPullSecret string `env:"OPA_POLICYBUNDLE_PULLCRED" envDefault:""`
-}
 
 func main() {
 	log.WithFields(log.Fields{
 		service: Version,
 	}).Info("starting")
-	// Parse env
-	if err := env.Parse(&cfg); err != nil {
-		log.Fatal(err.Error())
-	}
 	// load openapi
 	openapi, err := os.ReadFile("./openapi.json")
 	if err != nil {
@@ -101,6 +89,9 @@ func main() {
 	}
 	// Register our TracerProvider as the global so any imported
 	// instrumentation in the future will default to using it.
+	if os.Getenv("DISABLE_TRACING") != "true" {
+
+	}
 	otel.SetTracerProvider(tp)
 	// otel meter
 	mp, err := initMeter()
@@ -123,7 +114,7 @@ func main() {
 	http.Handle("/docs/", &openapiHandler)
 	http.Handle("/openapi.json", &openapiHandler)
 	// opa
-	opaPDP, opaPDPCancel := pdp.InitOPAPDP(cfg.OPAConfigPath, cfg.OPAPolicyPullSecret, context.Background())
+	opaPDP, opaPDPCancel := pdp.InitOPAPDP(context.Background())
 	// entitlements
 	entitlements := handlers.Entitlements{
 		Pdp: &opaPDP,

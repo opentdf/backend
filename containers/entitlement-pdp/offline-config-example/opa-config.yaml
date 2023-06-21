@@ -1,10 +1,11 @@
+#
 services:
   policy-registry:
     url: https://ghcr.io
     type: oci
     credentials:
       bearer:
-        token: "${CR_PAT}"
+        token: "${OPA_POLICYBUNDLE_PULLCRED}"
 bundles:
   entitlement-policy:
     service: policy-registry

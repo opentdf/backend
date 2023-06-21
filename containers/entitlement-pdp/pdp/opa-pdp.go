@@ -45,31 +45,17 @@ type Decision struct {
 	Result []handlers.EntityEntitlement `json:"Result"`
 }
 
-func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context) (OPAPDPEngine, func()) {
+func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func()) {
 	initOpaCtx, span := tracer.Start(parentCtx, "InitOPAPDP")
 	defer span.End()
 
+	opaConfigPath := os.Getenv("OPA_CONFIG_PATH")
 	log.Debugf("Loading config file from from %s", opaConfigPath)
 	opaConfig, err := os.ReadFile(opaConfigPath)
 	if err != nil {
 		log.Panicf("Error loading config file from from %s! Error was %s", opaConfigPath, err)
 	}
-	// Get all environment variables that begin with OPA_
-	var opaEnvVars []string
-	for _, key := range os.Environ() {
-		if strings.HasPrefix(key, "OPA_") {
-			opaEnvVars = append(opaEnvVars, key)
-		}
-	}
-	// Replace the environment variables in the string
-	configString := string(opaConfig)
-	for _, key := range opaEnvVars {
-		envVarValue := os.Getenv(key)
-		configString = strings.Replace(configString, "${"+key+"}", envVarValue, -1)
-	}
-	// backwards compatible
-	configString = strings.Replace(configString, "${CR_PAT}", opaPolicyPullSecret, 1)
-	opaConfig = []byte(configString)
+	opaConfig = replaceOpaEnvVar(opaConfig)
 
 	var shutdownFunc func()
 	const timeout = 2 * time.Second
@@ -106,6 +92,26 @@ func InitOPAPDP(opaConfigPath, opaPolicyPullSecret string, parentCtx ctx.Context
 	}
 
 	return OPAPDPEngine{opa}, shutdownFunc
+}
+
+// replaceOpaEnvVar replace environment variables that begin with OPA_
+func replaceOpaEnvVar(opaConfig []byte) []byte {
+	// Get all environment variables that begin with OPA_
+	var opaEnvVars []string
+	for _, key := range os.Environ() {
+		if strings.HasPrefix(key, "OPA_") {
+			opaEnvVars = append(opaEnvVars, key)
+		}
+	}
+	// Replace the environment variables in the string
+	configString := string(opaConfig)
+	for _, key := range opaEnvVars {
+		envVarValue := os.Getenv(key)
+		configString = strings.ReplaceAll(configString, "${"+key+"}", envVarValue)
+	}
+	// backwards compatible
+	configString = strings.ReplaceAll(configString, "${CR_PAT}", os.Getenv("OPA_POLICYBUNDLE_PULLCRED"))
+	return []byte(configString)
 }
 
 func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryEntities []string, entitlementContextJSON string, parentCtx ctx.Context) ([]handlers.EntityEntitlement, error) {
