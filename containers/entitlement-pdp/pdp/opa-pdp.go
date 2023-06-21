@@ -8,10 +8,9 @@ import (
 	"strings"
 	"time"
 
+	opalog "github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/metrics"
 	"github.com/open-policy-agent/opa/profiler"
-
-	opalog "github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/sdk"
 	"github.com/opentdf/v2/entitlement-pdp/handlers"
 	log "github.com/sirupsen/logrus"
@@ -105,9 +104,10 @@ func replaceOpaEnvVar(opaConfig []byte) []byte {
 	}
 	// Replace the environment variables in the string
 	configString := string(opaConfig)
-	for _, key := range opaEnvVars {
-		envVarValue := os.Getenv(key)
-		configString = strings.ReplaceAll(configString, "${"+key+"}", envVarValue)
+	for _, keyVal := range opaEnvVars {
+		kv := strings.Split(keyVal, "=")
+		envVarValue := os.Getenv(kv[0])
+		configString = strings.ReplaceAll(configString, "${"+kv[0]+"}", envVarValue)
 	}
 	// backwards compatible
 	configString = strings.ReplaceAll(configString, "${CR_PAT}", os.Getenv("OPA_POLICYBUNDLE_PULLCRED"))
