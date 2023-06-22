@@ -26,9 +26,11 @@ import (
 )
 
 const (
-	service = "entitlement-pdp"
-
-	ErrOpenapiNotFound = "openapi not found"
+	service            = "entitlement-pdp"
+	trueEmv            = "true"
+	ErrOpenapiNotFound = Error("openapi not found")
+	ErrTracer          = Error("tracer issue")
+	ErrMeter           = Error("meter issue")
 )
 
 func init() {
@@ -40,7 +42,7 @@ func init() {
 		log.ErrorLevel,
 		log.WarnLevel,
 	)))
-	if os.Getenv("SERVER_LOG_JSON") == "true" {
+	if os.Getenv("SERVER_LOG_JSON") == trueEmv {
 		log.SetFormatter(&log.JSONFormatter{
 			TimestampFormat:   "",
 			DisableTimestamp:  false,
@@ -51,7 +53,7 @@ func init() {
 			PrettyPrint:       false,
 		})
 	}
-	if os.Getenv("VERBOSE") == "true" {
+	if os.Getenv("VERBOSE") == trueEmv {
 		log.SetLevel(log.TraceLevel)
 	}
 }
@@ -89,10 +91,9 @@ func main() {
 	}
 	// Register our TracerProvider as the global so any imported
 	// instrumentation in the future will default to using it.
-	if os.Getenv("DISABLE_TRACING") != "true" {
-
+	if os.Getenv("DISABLE_TRACING") != trueEmv {
+		otel.SetTracerProvider(tp)
 	}
-	otel.SetTracerProvider(tp)
 	// otel meter
 	mp, err := initMeter()
 	if err != nil {
@@ -120,7 +121,6 @@ func main() {
 		Pdp: &opaPDP,
 	}
 	http.Handle("/entitlements", otelhttp.NewHandler(&entitlements, "Entitlements"))
-	//http.Handle("/entitlements", &entitlements)
 	// ready - TODO don't block above on OPA startup, but once complete mark healthy
 	healthz.MarkHealthy()
 	// os interrupt
@@ -187,7 +187,7 @@ func initTracer() (*sdktrace.TracerProvider, error) {
 	// the collected spans.
 	exporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
 	if err != nil {
-		return nil, err
+		return nil, ErrJoin(ErrTracer, err)
 	}
 
 	//prv, err := sdktrace.NewProvider(sdktrace.ProviderConfig{
@@ -210,13 +210,13 @@ func initTracer() (*sdktrace.TracerProvider, error) {
 	)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-	return tp, err
+	return tp, ErrJoin(ErrTracer, err)
 }
 
 func initMeter() (*sdkmetric.MeterProvider, error) {
 	exp, err := stdoutmetric.New()
 	if err != nil {
-		return nil, err
+		return nil, ErrJoin(ErrMeter, err)
 	}
 
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exp)))
@@ -237,7 +237,7 @@ func tracerProvider(url string) (*sdktrace.TracerProvider, error) {
 	// Create the Jaeger exporter
 	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
 	if err != nil {
-		return nil, err
+		return nil, ErrJoin(ErrTracer, err)
 	}
 	tp := sdktrace.NewTracerProvider(
 		// Always be sure to batch in production.
@@ -251,4 +251,52 @@ func tracerProvider(url string) (*sdktrace.TracerProvider, error) {
 		)),
 	)
 	return tp, nil
+}
+
+type Error string
+
+func (err Error) Error() string {
+	return string(err)
+}
+
+// ErrJoin needed for Go 1.19, replace with errors.Join
+// code from https://cs.opensource.google/go/go/+/master:src/errors/join.go
+func ErrJoin(errs ...error) error {
+	n := 0
+	for _, err := range errs {
+		if err != nil {
+			n++
+		}
+	}
+	if n == 0 {
+		return nil
+	}
+	e := &joinError{
+		errs: make([]error, 0, n),
+	}
+	for _, err := range errs {
+		if err != nil {
+			e.errs = append(e.errs, err)
+		}
+	}
+	return e
+}
+
+type joinError struct {
+	errs []error
+}
+
+func (e *joinError) Error() string {
+	var b []byte
+	for i, err := range e.errs {
+		if i > 0 {
+			b = append(b, '\n')
+		}
+		b = append(b, err.Error()...)
+	}
+	return string(b)
+}
+
+func (e *joinError) Unwrap() []error {
+	return e.errs
 }
