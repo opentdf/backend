@@ -18,7 +18,8 @@ import (
 )
 
 const (
-	ErrOpaDecision            = Error("OPA decision")
+	ErrOpaIntialization       = Error("opa initialization error")
+	ErrOpaDecision            = Error("opa decision")
 	ErrOpaResultDeserialize   = Error("deserializing OPA result")
 	ErrFinalJson              = Error("deserialize final JSON result document")
 	ErrInputDocumentUnmarshal = Error("deserialize generic entitlement context JSON input document")
@@ -44,24 +45,27 @@ type Decision struct {
 	Result []handlers.EntityEntitlement `json:"Result"`
 }
 
-func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func()) {
-	initOpaCtx, span := tracer.Start(parentCtx, "InitOPAPDP")
-	defer span.End()
-
+func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func(), error) {
+	initCtx, initSpan := tracer.Start(parentCtx, "opa-initialize")
+	defer initSpan.End()
+	_, loadSpan := tracer.Start(initCtx, "opa-config-load")
 	opaConfigPath := os.Getenv("OPA_CONFIG_PATH")
 	log.Debugf("Loading config file from from %s", opaConfigPath)
 	opaConfig, err := os.ReadFile(opaConfigPath)
 	if err != nil {
 		log.Panicf("Error loading config file from from %s! Error was %s", opaConfigPath, err)
 	}
+	loadSpan.End()
+	_, replaceSpan := tracer.Start(initCtx, "opa-config-replace")
 	opaConfig = replaceOpaEnvVar(opaConfig)
-
+	replaceSpan.End()
+	_, optionsSpan := tracer.Start(initCtx, "opa-config-options")
 	var shutdownFunc func()
-	const timeout = 2 * time.Second
-	opaCtx, opaCtxCancel := ctx.WithTimeout(initOpaCtx, timeout)
+	const timeout = 20 * time.Second
+	engineCtx, opaCtxCancel := ctx.WithTimeout(initCtx, timeout)
 	// Annoyingly, OPA defines its own logging interface - so for now just wrap logger
 	opaLogger := &OtelLogger{
-		ctx: opaCtx,
+		ctx: engineCtx,
 	}
 	opaOptions := sdk.Options{
 		Config:        bytes.NewReader(opaConfig),
@@ -71,26 +75,34 @@ func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func()) {
 		Plugins:       nil,
 		ID:            "EP-0",
 	}
-	opa, err := sdk.New(opaCtx, opaOptions)
+	optionsSpan.End()
+	_, engineSpan := tracer.Start(engineCtx, "opa-engine")
+	opa, err := sdk.New(engineCtx, opaOptions)
 	if err != nil {
-		log.WithContext(opaCtx).Debug(err)
+		log.WithContext(engineCtx).Debug(err)
+		engineSpan.End()
+		opaCtxCancel()
+		return OPAPDPEngine{opa}, nil, ErrJoin(ErrOpaIntialization, err)
 	}
-	// assert opa state manager is setup and return nil
+	// assert opa state manager is set up and return nil
 	if opa.Plugin("") != nil {
-		log.Panic(ErrOpaDecision)
+		log.WithContext(engineCtx).Error(ErrOpaIntialization)
+		engineSpan.End()
+		opaCtxCancel()
+		return OPAPDPEngine{opa}, nil, ErrOpaIntialization
 	}
-
-	log.WithContext(opaCtx).Info("OPA Engine successfully started")
+	engineSpan.End()
+	log.WithContext(engineCtx).Info("OPA Engine successfully started")
 
 	// Return a shutdown func the caller can use to dispose OPA engine
 	shutdownFunc = func() {
-		log.WithContext(opaCtx).Info("Shutting down OPA engine")
-		opa.Stop(opaCtx)
+		log.WithContext(engineCtx).Info("Shutting down OPA engine")
+		opa.Stop(engineCtx)
 		// Cancel context - probably redundant in most cases
 		opaCtxCancel()
 	}
 
-	return OPAPDPEngine{opa}, shutdownFunc
+	return OPAPDPEngine{opa}, shutdownFunc, nil
 }
 
 // replaceOpaEnvVar replace environment variables that begin with OPA_

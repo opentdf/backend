@@ -14,7 +14,6 @@ import (
 	"github.com/uptrace/opentelemetry-go-extra/otellogrus"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
@@ -72,23 +71,15 @@ func main() {
 		log.Fatal(err)
 	}
 	// otel tracer
-	// TODO if no OTEL_JAEGER or OTEL_PROMETHEUS
-	// TODO ref https://github.com/open-telemetry/opentelemetry-go/tree/main/exporters
-	// TODO https://docs.datadoghq.com/tracing/trace_collection/opentracing/go/
-	//tp, err := initTracer()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer func() {
-	//	if err := tp.Shutdown(context.Background()); err != nil {
-	//		log.Printf("Error shutting down tracer provider: %v", err)
-	//	}
-	//}()
-	// TODO if os.Getenv("OTEL_JAEGER") then
-	tp, err := tracerProvider("http://localhost:14268/api/traces")
+	tp, err := initTracer()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			log.Printf("Error shutting down tracer provider: %v", err)
+		}
+	}()
 	// Register our TracerProvider as the global so any imported
 	// instrumentation in the future will default to using it.
 	if os.Getenv("DISABLE_TRACING") != trueEmv {
@@ -97,7 +88,7 @@ func main() {
 	// otel meter
 	mp, err := initMeter()
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 	defer func() {
 		if err := mp.Shutdown(context.Background()); err != nil {
@@ -115,7 +106,10 @@ func main() {
 	http.Handle("/docs/", &openapiHandler)
 	http.Handle("/openapi.json", &openapiHandler)
 	// opa
-	opaPDP, opaPDPCancel := pdp.InitOPAPDP(context.Background())
+	opaPDP, opaPDPCancel, err := pdp.InitOPAPDP(context.Background())
+	if err != nil {
+		log.Panic(err)
+	}
 	// entitlements
 	entitlements := handlers.Entitlements{
 		Pdp: &opaPDP,
@@ -182,35 +176,37 @@ func (h OpenapiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// initTracer creates otel tracer based on env vars
+// TODO if no OTEL_EXPORTER_JAEGER_AGENT_HOST or OTEL_PROMETHEUS
+// TODO ref https://github.com/open-telemetry/opentelemetry-go/tree/main/exporters
+// TODO https://docs.datadoghq.com/tracing/trace_collection/opentracing/go/
 func initTracer() (*sdktrace.TracerProvider, error) {
-	// Create stdout exporter to be able to retrieve
-	// the collected spans.
-	exporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
-	if err != nil {
-		return nil, ErrJoin(ErrTracer, err)
+	var exporter sdktrace.SpanExporter
+	var err error
+	jaegerHost := os.Getenv("OTEL_EXPORTER_JAEGER_AGENT_HOST")
+	if jaegerHost != "" {
+		exporter, err = jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(jaegerHost)))
+		if err != nil {
+			return nil, ErrJoin(ErrTracer, err)
+		}
+	} else {
+		// Create stdout exporter to be able to retrieve
+		// the collected spans.
+		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
+		if err != nil {
+			return nil, ErrJoin(ErrTracer, err)
+		}
 	}
-
-	//prv, err := sdktrace.NewProvider(sdktrace.ProviderConfig{
-	//	JaegerEndpoint: "http://localhost:14268/api/traces",
-	//	ServiceName:    "server",
-	//	ServiceVersion: "2.0.0",
-	//	Environment:    "dev",
-	//	Disabled:       false,
-	//})
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
-	//defer prv.Close(ctx)
 	// For the demonstration, use sdktrace.AlwaysSample sampler to sample all traces.
 	// In a production application, use sdktrace.ProbabilitySampler with a desired probability.
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceName("ExampleService"))),
+		sdktrace.WithResource(resource.NewWithAttributes(semconv.SchemaURL, semconv.ServiceName(service))),
 	)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-	return tp, ErrJoin(ErrTracer, err)
+	return tp, nil
 }
 
 func initMeter() (*sdkmetric.MeterProvider, error) {
@@ -222,35 +218,6 @@ func initMeter() (*sdkmetric.MeterProvider, error) {
 	mp := sdkmetric.NewMeterProvider(sdkmetric.WithReader(sdkmetric.NewPeriodicReader(exp)))
 	otel.SetMeterProvider(mp)
 	return mp, nil
-}
-
-const (
-	environment = "production"
-	id          = 1
-)
-
-// tracerProvider returns an OpenTelemetry TracerProvider configured to use
-// the Jaeger exporter that will send spans to the provided url. The returned
-// TracerProvider will also use a Resource configured with all the information
-// about the application.
-func tracerProvider(url string) (*sdktrace.TracerProvider, error) {
-	// Create the Jaeger exporter
-	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
-	if err != nil {
-		return nil, ErrJoin(ErrTracer, err)
-	}
-	tp := sdktrace.NewTracerProvider(
-		// Always be sure to batch in production.
-		sdktrace.WithBatcher(exp),
-		// Record information about this application in a Resource.
-		sdktrace.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.ServiceName(service),
-			attribute.String("environment", environment),
-			attribute.Int64("ID", id),
-		)),
-	)
-	return tp, nil
 }
 
 type Error string
