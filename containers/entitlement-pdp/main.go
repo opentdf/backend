@@ -105,18 +105,21 @@ func main() {
 	}
 	http.Handle("/docs/", &openapiHandler)
 	http.Handle("/openapi.json", &openapiHandler)
-	// opa
-	opaPDP, opaPDPCancel, err := pdp.InitOPAPDP(context.Background())
-	if err != nil {
-		log.Panic(err)
-	}
-	// entitlements
-	entitlements := handlers.Entitlements{
-		Pdp: &opaPDP,
-	}
-	http.Handle("/entitlements", otelhttp.NewHandler(&entitlements, "Entitlements"))
-	// ready - TODO don't block above on OPA startup, but once complete mark healthy
-	healthz.MarkHealthy()
+	go func() {
+		// opa
+		opaPDP, opaPDPCancel, err := pdp.InitOPAPDP(context.Background())
+		if err != nil {
+			log.Panic(err)
+		}
+		defer opaPDPCancel()
+		// entitlements
+		entitlements := handlers.Entitlements{
+			Pdp: &opaPDP,
+		}
+		http.Handle("/entitlements", otelhttp.NewHandler(&entitlements, "Entitlements"))
+		// ready - TODO don't block above on OPA startup, but once complete mark healthy
+		healthz.MarkHealthy()
+	}()
 	// os interrupt
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -137,7 +140,6 @@ func main() {
 		log.Printf("listening on http://%s", server.Addr)
 		if err := server.ListenAndServe(); err != nil {
 			log.Printf("shutting on http://%s", server.Addr)
-			opaPDPCancel()
 			log.Fatal(err)
 		}
 	}()

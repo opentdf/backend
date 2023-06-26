@@ -12,7 +12,7 @@ type Healthz struct {
 
 func (h *Healthz) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
 	if !h.ready {
-		log.Info("service not ready!")
+		log.Info(http.StatusText(http.StatusServiceUnavailable))
 		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
 		return
 	}
