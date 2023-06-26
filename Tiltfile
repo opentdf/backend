@@ -35,6 +35,8 @@ cors_origins = {
 
 
 backend(
+    # if not CI then run in developer mode, see env var https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+    devmode=os.getenv("CI") != "true",
     set=dict(
         ingress_enable.items()
         + openapi_enable.items()
