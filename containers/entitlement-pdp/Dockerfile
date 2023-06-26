@@ -33,16 +33,15 @@ RUN policy build entitlement-policy -t local:$(cat <VERSION) \
 
 # Create the minimal runtime image
 FROM alpine:${ALPINE_VERSION} AS production
+ENV HOME=/opt/entitlement-pdp
+ENV CACHEDIR=$HOME/policycache/bundles/entitlement-policy
+RUN mkdir -p $CACHEDIR
+RUN chmod -R 777 /opt/entitlement-pdp
+WORKDIR $HOME
 # openapi
-COPY openapi.json .
-# policy bundle
-RUN mkdir /policy-cache/
-ENV OPA_POLICYBUNDLE_PATH=/bundle.tar.gz
-ENV OPA_CONFIG_PATH=/opa-config.yaml
-COPY --from=policy-builder /build/bundle.tar.gz $OPA_POLICYBUNDLE_PATH
-COPY --from=policy-builder /build/opa-config.yaml $OPA_CONFIG_PATH
-# service
-COPY --from=builder /build/entitlement-pdp /entitlement-pdp
+COPY --chown=root:root openapi.json .
+COPY --chown=root:root --from=builder /build/entitlement-pdp /entitlement-pdp
+COPY --chown=root:root --chmod=777 --from=policy-builder /build/bundle.tar.gz $CACHEDIR/bundle.tar.gz
 ENTRYPOINT ["/entitlement-pdp"]
 # END AS production
 
