@@ -1,20 +1,19 @@
-# docker build -t ct1 -f xtest/Dockerfile . && docker run --net=host ct1
 # We need `node` for the test harness and node tests, and python pysdk testing
-ARG NODE_VERSION=18
 ARG PY_OSS_VERSION=1.1.1
 ARG PY_TEST_VERSION=3.10
 
-FROM node:${NODE_VERSION}
+FROM python:${PY_TEST_VERSION}
 
 RUN apt-get update || : && apt-get -y install \
   curl \
   default-jdk \
-  jq \
-  python:${PY_TEST_VERSION} \
-  python3-pip \
-  python3-venv
+  jq
 RUN pip3 install --upgrade pip
-RUN python3 --version
+ENV NODE_VERSION 18
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - &&\
+    apt-get install -y nodejs
+RUN npm install -g npm
+RUN python3 --version && pip3 --version && node --version && npm --version
 
 # test
 WORKDIR /wrk
