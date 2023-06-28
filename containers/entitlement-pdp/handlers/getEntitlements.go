@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
-	"go.uber.org/zap"
 )
 
 const (
@@ -58,8 +58,7 @@ type PDPEngine interface {
 }
 
 type Entitlements struct {
-	Pdp    PDPEngine
-	Logger *zap.SugaredLogger
+	Pdp PDPEngine
 }
 
 // GetEntitlementsHandler godoc
@@ -76,35 +75,36 @@ type Entitlements struct {
 // @Failure      500 {string} http.StatusServerError
 // @Router       /entitlements [post]
 func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	log.Debugf("entitlemnts request %s", req.URL)
 	spanCtx := req.Context()
 	handlerCtx, span := tracer.Start(spanCtx, "GetEntitlementsHandler")
 	defer span.End()
 
 	if req.Method != http.MethodPost {
-		e.Logger.Error("Rejected request, invalid HTTP verb")
+		log.Error("Rejected request, invalid HTTP verb")
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	e.Logger.Debug("GetEntitlementsHandler - reading request body")
+	log.Debug("GetEntitlementsHandler - reading request body")
 
 	// Read + consume body
 	bodBytes, err := io.ReadAll(req.Body)
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-			e.Logger.Error(err)
+			log.Error(err)
 		}
 	}(req.Body)
 	if err != nil {
-		e.Logger.Errorf("Couldn't read client request! Error was %s", err)
+		log.Errorf("Couldn't read client request! Error was %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	payload, err := getRequestPayload(bodBytes, handlerCtx, e.Logger)
+	payload, err := getRequestPayload(handlerCtx, bodBytes)
 	if err != nil {
-		e.Logger.Errorf("Couldn't deserialize client request! Error was %s", err)
+		log.Errorf("Couldn't deserialize client request! Error was %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -116,7 +116,7 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		handlerCtx)
 
 	if err != nil {
-		e.Logger.Errorf("Policy engine returned error! Error was %s", err)
+		log.Errorf("Policy engine returned error! Error was %s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -125,22 +125,22 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(entitlements)
 	if err != nil {
-		e.Logger.Errorf("Error encoding entitlements in response! Error was %s", err)
+		log.Errorf("Error encoding entitlements in response! Error was %s", err)
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
-func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.SugaredLogger) (*EntitlementsRequest, error) {
+func getRequestPayload(parentCtx ctx.Context, bodBytes []byte) (*EntitlementsRequest, error) {
 	_, span := tracer.Start(parentCtx, "getRequestPayload")
 	defer span.End()
 
-	logger.Debugf("Parsing request payload: %s", string(bodBytes))
+	log.Debugf("Parsing request payload: %s", string(bodBytes))
 	// Unmarshal
 	var payload EntitlementsRequest
 	err := json.Unmarshal(bodBytes, &payload)
 	if err != nil {
-		logger.Warn("Error parsing Exchange request body")
+		log.Warn("Error parsing Exchange request body")
 		return nil, ErrJoin(ErrPayloadUnmarshal, err)
 	}
 
@@ -148,7 +148,7 @@ func getRequestPayload(bodBytes []byte, parentCtx ctx.Context, logger *zap.Sugar
 	if payload.EntitlementContextObject != "" {
 		if !json.Valid([]byte(payload.EntitlementContextObject)) {
 			err := ErrJoin(ErrPayloadInvalid, err)
-			logger.Warn(err)
+			log.Warn(err)
 			return nil, err
 		}
 	}

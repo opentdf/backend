@@ -1,0 +1,131 @@
+openapi: 3.0.0
+info:
+  title: entitlement-pdp
+  description: Entitlement Policy Decision Point
+  contact:
+    name: OpenTDF
+    url: https://www.opentdf.io
+  license:
+    name: BSD 3-Clause Clear
+    url: https://github.com/opentdf/backend/blob/main/LICENSE
+  x-logo:
+    url: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
+  version: 2.0.0
+paths:
+  /entitlements:
+    post:
+      description: >-
+        Provide entity identifiers to the entitlement PDP and receive an array of attribute sets for each entity involved in the         entitlement decisions
+      tags:
+        - Entitlements
+      summary: Request an entitlements set from the PDP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/handlers.EntitlementsRequest'
+        description: List of primary and secondary entity identifiers to entitle
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/handlers.EntityEntitlement'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: string
+components:
+  schemas:
+    handlers.EntitlementsRequest:
+      description: >-
+        Request containing entity identifiers seeking entitlement. At least one
+        entity (primary requestor) is required The Entitlements PDP is expected
+        to be invoked directly by an identity provider and with contextual
+        entity information attested to and possessed by that identity provider
+      type: object
+      properties:
+        entitlement_context_obj:
+          description: >-
+            Optional, may be left empty.
+
+            A free-form, (valid, escaped) JSON object in string format,
+            containing any additional IdP/input context around and from
+
+            the entity authentication process. This JSON object will be checked
+            as a valid, generic JSON document,
+
+            and then passed to the PDP engine as-is, as an input document.
+          type: string
+          example: '{"somekey":"somevalue"}'
+        primary_entity_id:
+          description: >-
+            The identifier for the primary entity seeking entitlement.
+
+            For PE auth, this will be a PE ID. For NPE/direct grant auth, this
+            will be an NPE ID.
+          type: string
+          example: bc03f40c-a7af-4507-8198-d5334e2823e6
+        secondary_entity_ids:
+          description: >-
+            Optional, may be left empty.
+
+            For PE auth, this will be one or more NPE IDs
+            (client-on-behalf-of-user).
+
+            For NPE/direct grant auth,
+
+            this may be either empty (client-on-behalf-of-itself) or populated
+            with one
+
+            or more NPE IDs (client-on-behalf-of-other-clients, aka chaining
+            flow)
+          type: array
+          items:
+            type: string
+          example:
+            - 4f6636ca-c60c-40d1-9f3f-015086303f74
+    handlers.EntityAttribute:
+      description: Represents a single entity attribute.
+      type: object
+      properties:
+        attribute:
+          description: >-
+            Attribute, in URI format, e.g.:
+            "https://example.org/attr/Classification/value/COI"
+          type: string
+          example: https://example.org/attr/OPA/value/AddedByOPA
+        displayName:
+          description: Optional display name for the attribute
+          type: string
+          example: Added By OPA
+    handlers.EntityEntitlement:
+      type: object
+      properties:
+        entity_attributes:
+          type: array
+          items:
+            $ref: '#/components/schemas/handlers.EntityAttribute'
+        entity_identifier:
+          type: string
+          example: bc03f40c-a7af-4507-8198-d5334e2823e6
+servers:
+  - url: http://localhost:3355

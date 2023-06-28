@@ -1,3 +1,4 @@
+### Go template
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
@@ -8,9 +9,6 @@
 *.so
 *.dylib
 
-# Ever-present macOS garbaje
-*.DS_Store
-
 # Test binary, built with `go test -c`
 *.test
 
@@ -20,15 +18,8 @@
 # Dependency directories (remove the comment below to include it)
 vendor/
 
-# Autogen swagger files
-# docs/
-
 # Go workspace file
 go.work
-
-# Local binary if any
-entitlement-pdp
-
-# VSCode is currently used for editing OPA policy, but we want to hide the workspace file
-entitlement-policy/workspace.code-workspace
-!/policy-cache/
+# No test files in image. hopefully test dependencies are pruned
+*_test*.go
+/policy-cache/

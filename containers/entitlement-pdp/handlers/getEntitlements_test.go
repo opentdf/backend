@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	ctx "context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -12,8 +13,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
-	"go.uber.org/zap"
 )
 
 const entitlementsReq string = `
@@ -49,8 +48,6 @@ var secondaryEntityEntitlement1 EntityEntitlement = EntityEntitlement{
 }
 
 func Test_GetEntitlementsHandler_CallsPDP_Success(t *testing.T) {
-	zapLog, _ := zap.NewDevelopment()
-
 	primaryUID := "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"
 	secondaryUIDs := []string{"4f6636ca-c60c-40d1-9f3f-015086303f74"}
 	//Mocked spire GRPC client
@@ -64,8 +61,7 @@ func Test_GetEntitlementsHandler_CallsPDP_Success(t *testing.T) {
 	testReq := httptest.NewRequest(http.MethodPost, "http://test", strings.NewReader(entitlementsReq))
 
 	handler := Entitlements{
-		Pdp:    testPDP,
-		Logger: zapLog.Sugar(),
+		Pdp: testPDP,
 	}
 	handler.ServeHTTP(w, testReq)
 
@@ -86,7 +82,6 @@ func Test_GetEntitlementsHandler_CallsPDP_Success(t *testing.T) {
 }
 
 func Test_GetEntitlementsHandler_CallsPDP_Error(t *testing.T) {
-	zapLog, _ := zap.NewDevelopment()
 
 	primaryUID := "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"
 	secondaryUIDs := []string{"4f6636ca-c60c-40d1-9f3f-015086303f74"}
@@ -101,8 +96,7 @@ func Test_GetEntitlementsHandler_CallsPDP_Error(t *testing.T) {
 	testReq := httptest.NewRequest(http.MethodPost, "http://test", strings.NewReader(entitlementsReq))
 
 	handler := Entitlements{
-		Pdp:    testPDP,
-		Logger: zapLog.Sugar(),
+		Pdp: testPDP,
 	}
 	handler.ServeHTTP(w, testReq)
 
@@ -115,7 +109,6 @@ func Test_GetEntitlementsHandler_CallsPDP_Error(t *testing.T) {
 }
 
 func Test_GetEntitlementsHandler_RejectsNonPOST(t *testing.T) {
-	zapLog, _ := zap.NewDevelopment()
 
 	//Mocked spire GRPC client
 	testPDP := new(MockPDPEngine)
@@ -124,8 +117,7 @@ func Test_GetEntitlementsHandler_RejectsNonPOST(t *testing.T) {
 	testReq := httptest.NewRequest(http.MethodGet, "http://test", strings.NewReader(entitlementsReq))
 
 	handler := Entitlements{
-		Pdp:    testPDP,
-		Logger: zapLog.Sugar(),
+		Pdp: testPDP,
 	}
 	handler.ServeHTTP(w, testReq)
 
@@ -198,4 +190,17 @@ func TestJoinErrorMethod(t *testing.T) {
 			t.Errorf("Join(%v).Error() = %q; want %q", test.errs, got, test.want)
 		}
 	}
+}
+
+type MockPDPEngine struct {
+	mock.Mock
+}
+
+func (t *MockPDPEngine) ApplyEntitlementPolicy(
+	primaryEntity string,
+	secondaryEntities []string,
+	entitlementContextJSON string,
+	parentCtx ctx.Context) ([]EntityEntitlement, error) {
+	args := t.Called(primaryEntity, secondaryEntities, entitlementContextJSON, parentCtx)
+	return args.Get(0).([]EntityEntitlement), args.Error(1)
 }
