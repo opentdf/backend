@@ -28,7 +28,6 @@ pycparser~=2.21
 PyJWT~=2.7.0
 pyparsing~=3.1.0
 pyrsistent~=0.19.3
-#egg=attributes&subdirectory=clients/python/attributes
 pytest~=7.4.0
 PyYAML~=6.0
 requests~=2.31.0
