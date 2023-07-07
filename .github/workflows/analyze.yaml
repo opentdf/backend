@@ -1,8 +1,7 @@
 # act --container-architecture linux/amd64 --workflows .github/workflows/analyze.yaml
 name: analyze
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
 permissions:
   contents: read
 jobs:
