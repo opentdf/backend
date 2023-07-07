@@ -1,7 +1,7 @@
 # OpenAPI Spec https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md
 openapi: 3.0.0
 info:
-  version: 1.3.1
+  version: 1.3.2
   title: Key Access Service
   termsOfService: https://github.com/opentdf/backend/blob/master/LICENSE
   license:
