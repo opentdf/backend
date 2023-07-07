@@ -1,19 +1,28 @@
-# https://github.com/golangci/golangci-lint-action
-# act --container-architecture linux/amd64 --workflows .github/workflows/golangci-lint.yaml
-name: golangci-lint
+# act --container-architecture linux/amd64 --workflows .github/workflows/analyze.yaml
+name: analyze
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 permissions:
   contents: read
 jobs:
-  golangci:
+  # https://github.com/ChartBoost/ruff-action
+  python-lint:
+    name: python-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: chartboost/ruff-action@v1
+        with:
+          src: "./containers/kas/kas_core"
+  # https://github.com/golangci/golangci-lint-action
+  go-lint:
+    name: go-lint
     strategy:
       matrix:
         go: ['1.20','1.19']
 #        bug in goimports on windows-latest
         os: [ubuntu-latest]
-    name: lint
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
