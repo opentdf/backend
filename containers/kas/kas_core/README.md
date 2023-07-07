@@ -12,6 +12,10 @@ It's super easy to use.
 brew install ruff
 ```
 
+```shell
+ruff check .
+```
+
 Ruff configuration is in `pyproject.toml` under `tool.ruff` sections
 
 ## Use
