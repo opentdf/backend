@@ -61,7 +61,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="OpenTDF",
-        version="1.3.0",
+        version="1.4.0",
         license_info={
             "name": "BSD 3-Clause Clear",
             "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
