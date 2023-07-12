@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
 
     <properties>
+        <!-- this value should become golden, for now keep in-sync containers/keycloak-protocol-mapper/VERSION -->
         <keycloak.version>21.1.2</keycloak.version>
         <resteasy.version>4.7.7.Final</resteasy.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
