@@ -60,3 +60,14 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Backend Ingress gateway name
+*/}}
+{{- define "entitlements.ingress.gateway" -}}
+{{- if .Values.global.opentdf.common.istio.ingress.existingGateway -}}
+{{ .Values.global.opentdf.common.istio.ingress.existingGateway }}
+{{- else -}}
+{{ .Values.global.opentdf.common.istio.ingress.name }}
+{{- end }}
+{{- end }}
