@@ -99,6 +99,11 @@ class AccessPDP(object):
         logger.debug(f"Requesting decision - request is {MessageToJson(req)}")
         responses = stub.DetermineAccess(req)
         entity_responses = []
+
+        if not responses:
+            # when accesspdp returns empty response list, do not allow access
+            access = False
+
         for response in responses:
             logger.debug(
                 "Received response for entity %s with access decision %s"
