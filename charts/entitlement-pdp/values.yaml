@@ -13,7 +13,7 @@ global:
         enabled: false
         ingress:
           # -- Allow traffic for specific hosts
-          hosts: [ ]
+          hosts: []
           # -- (string) Use an existing istio gateway
           # (format if in different namespace: namespace/gateway-name)
           existingGateway:
