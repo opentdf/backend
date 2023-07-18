@@ -22,5 +22,5 @@ spec:
         - destination:
             host: {{ include "entitlement-pdp.fullname" . }}
             port:
-              number: {{ .Values.service.port }}
+              number: {{ .Values.config.listenPort }}
 {{- end -}}

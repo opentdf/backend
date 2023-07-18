@@ -64,7 +64,7 @@ Create the name of the service account to use
 {{/*
 Backend Ingress gateway name
 */}}
-{{- define "entitlements.ingress.gateway" -}}
+{{- define "entitlement-pdp.ingress.gateway" -}}
 {{- if .Values.global.opentdf.common.istio.ingress.existingGateway -}}
 {{ .Values.global.opentdf.common.istio.ingress.existingGateway }}
 {{- else -}}
