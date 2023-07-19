@@ -73,7 +73,6 @@ class AccessPDP(object):
     def _check_attributes(
         self, data_attributes, entity_attributes, data_attribute_definitions
     ):
-        access = True
         """Invoke the PDP over gRPC and obtain decisions.
 
         We should obtain 1 Decision per entity in the `entity_attributes` dict
@@ -100,9 +99,7 @@ class AccessPDP(object):
         responses = stub.DetermineAccess(req)
         entity_responses = []
 
-        if not responses:
-            # when accesspdp returns empty response list, do not allow access
-            access = False
+        access = None
 
         for response in responses:
             logger.debug(
@@ -110,7 +107,7 @@ class AccessPDP(object):
                 % (response.entity, response.access)
             )
             # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
-            access = access and response.access
+            access = (access if access is not None else True) and response.access
             # Capture the per-data-attribute result details for each entity decision, for logging/etc
             logger.debug(
                 f"Detailed data attribute results for entity {response.entity}: \n"
