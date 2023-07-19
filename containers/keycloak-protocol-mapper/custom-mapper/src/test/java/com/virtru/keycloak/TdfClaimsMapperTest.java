@@ -121,6 +121,7 @@ public class TdfClaimsMapperTest {
 
     private void assertTransformAccessToken_WithPKHeader() throws Exception {
         AccessToken accessToken = new AccessToken();
+        accessToken.setPreferredUsername("my_preferred_username");
         attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
                 keycloakSession, userSessionModel, clientSessionContext);
         Object customClaims = accessToken.getOtherClaims().get("customAttrs");
@@ -147,6 +148,7 @@ public class TdfClaimsMapperTest {
     // secondary clientId list
     private void assertTransformAccessToken_WithPKHeader_DirectGrantSvcAccount() throws Exception {
         AccessToken accessToken = new AccessToken();
+        accessToken.setPreferredUsername("my_preferred_username");
         attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
                 keycloakSession, userSessionModel, clientSessionContext);
         Object customClaims = accessToken.getOtherClaims().get("customAttrs");
@@ -167,6 +169,7 @@ public class TdfClaimsMapperTest {
 
     private void assertTransformUserInfo_WithPKHeader() throws Exception {
         AccessToken accessToken = new AccessToken();
+        accessToken.setPreferredUsername("my_preferred_username");
         attributeOIDCProtocolMapper.transformUserInfoToken(accessToken, protocolMapperModel,
                 keycloakSession, userSessionModel, clientSessionContext);
         Object customClaims = accessToken.getOtherClaims().get("customAttrs");
