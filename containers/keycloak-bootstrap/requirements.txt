@@ -9,4 +9,4 @@
 pyjwt==2.6.0
 python-jose==3.3.0
 python-keycloak==2.6.0
-pyyaml==6.0
+pyyaml==6.0.1
