@@ -204,13 +204,16 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // String claimReqType = "min_claims";
         // Right now, for back compat, ALWAYS return full claims by default - later,
         // when/if a reduced claimset is needed, we can default to minClaims
-        logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
+        logger.info("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
 
         logger.debug("userSession.getNotes CONTENT IS: ");
         for (Map.Entry<String, String> entry : userSession.getNotes().entrySet()) {
             logger.debug("ENTRY IS: {}", entry);
         }
-
+        if (token.getPreferredUsername() == null) {
+            logger.error(IDToken.PREFERRED_USERNAME + " is null");
+            throw new BadRequestException(IDToken.PREFERRED_USERNAME + " is null");
+        }
         // AZP == clientID (always present)
         // SUB = subject (always present, might be == AZP, might not be )
         // Get client ID (or IDs plural, if this is a token that has been exchanged for

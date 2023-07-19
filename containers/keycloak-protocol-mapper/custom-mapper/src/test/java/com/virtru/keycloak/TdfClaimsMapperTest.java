@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.keycloak.models.*;
 import org.keycloak.models.session.PersistentAuthenticatedClientSessionAdapter;
 import org.keycloak.models.session.PersistentClientSessionModel;
@@ -102,6 +103,20 @@ public class TdfClaimsMapperTest {
     public void testTransformUserInfo_WithPKHeader_ConfigVar() throws Exception {
         commonSetup("12345", true, true, false);
         assertTransformUserInfo_WithPKHeader();
+    }
+
+    @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "config")
+    @Test
+    public void testTransformAccessToken_WithPreferredUsernameNull() throws Exception {
+        commonSetup("12345", true, false, false);
+        AccessToken accessToken = new AccessToken();
+        assertThrows(BadRequestException.class, new Executable() {
+            @Override
+            public void execute() throws Throwable {
+                attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
+                        keycloakSession, userSessionModel, clientSessionContext);
+            }
+        });
     }
 
     private void assertTransformAccessToken_WithPKHeader() throws Exception {
