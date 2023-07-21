@@ -104,6 +104,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: "ls"
+        run: |-
+          find . -name 'coverage.xml'
 
   pytest:
     runs-on: ubuntu-latest
