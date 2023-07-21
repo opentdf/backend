@@ -97,6 +97,7 @@ jobs:
         run: |-
           pwd
           ls -al
+          find . -name 'coverage.xml'
       - name: SonarCloud Scan
         if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master
