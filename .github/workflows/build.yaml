@@ -96,7 +96,6 @@ jobs:
       - name: "ls"
         run: |-
           pwd
-#          cd /home/runner/work/repo
           ls -al
       - name: SonarCloud Scan
         if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
