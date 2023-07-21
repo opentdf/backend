@@ -93,6 +93,10 @@ jobs:
         run: echo "$(cat containers/kas/kas_core/coverage-reports/coverage.xml)"
       - name: "coverage2"
         run: echo "$(cat containers/kas/kas_core/coverage-reports/coverage.xml)"
+#      - name: "ls"
+#        run: |-
+#          cd /home/runner/work/repo
+#          ls -al
       - name: SonarCloud Scan
         if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master
