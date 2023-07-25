@@ -80,7 +80,21 @@ kubectl create namespace istio-ingress
 kubectl label namespace istio-ingress istio-injection=enabled
 helm install istio-ingress istio/gateway -n istio-ingress
 
-helm upgrade --install --create-namespace -n backend \
+kubectl create namespace backend
+kubectl label namespace backend istio-injection=enabled
+
+## Enable mTLS
+kubectl apply -n istio-system -f - <<EOF
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+spec:
+  mtls:
+    mode: STRICT
+EOF
+
+helm upgrade --install -n backend \
 backend -f values.yaml -f testing/deployment.yaml \
 -f testing/ingress.yaml -f testing/backend-istio.yaml \
 --set kas.envConfig.attrAuthorityCert=$ATTR_AUTHORITY_CERTIFICATE \
