@@ -79,6 +79,8 @@ class AccessPDP(object):
 
         If all entity-level Decisions are True, then return True, else return false.
         """
+        access = True
+
         # BEGIN grpc
         logger.debug(f"Invoking local PDP: {local_pdp}")
         channel = grpc.insecure_channel(local_pdp)
@@ -99,7 +101,9 @@ class AccessPDP(object):
         responses = stub.DetermineAccess(req)
         entity_responses = []
 
-        access = None
+        # if claims are empty
+        if not entity_attributes and data_attributes:
+            access=False
 
         for response in responses:
             logger.debug(
@@ -107,7 +111,7 @@ class AccessPDP(object):
                 % (response.entity, response.access)
             )
             # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
-            access = (access if access is not None else True) and response.access
+            access = access and response.access
             # Capture the per-data-attribute result details for each entity decision, for logging/etc
             logger.debug(
                 f"Detailed data attribute results for entity {response.entity}: \n"
