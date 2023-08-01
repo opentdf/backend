@@ -20,7 +20,7 @@ Ruff configuration is in `pyproject.toml` under `tool.ruff` sections
 
 ## Use
 
-The KAS core code has not been released and is not yet available on PyPI. Explore the script files in [etheria](https://github.com/opentdf/backendd) for examples of how to import the repo from git.
+The KAS core code has not been released and is not yet available on PyPI. Explore the script files in [etheria](https://github.com/opentdf/backend) for examples of how to import the repo from git.
 
 The KAS class is a builder for a [WSGI-compliant](https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface) [Flask app](http://flask.pocoo.org/) that implements the TDF3 KAS protocol. Construct a Kas instance, configure it, and have it build the app:
 
