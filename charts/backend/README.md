@@ -82,7 +82,7 @@ helm install istio-ingress istio/gateway -n istio-ingress
 
 helm upgrade --install --create-namespace -n backend \
 backend -f values.yaml -f testing/deployment.yaml \
--f testing/ingress.yaml -f testing/istio.yaml \
+-f testing/ingress.yaml -f testing/backend-istio.yaml \
 --set kas.envConfig.attrAuthorityCert=$ATTR_AUTHORITY_CERTIFICATE \
 --set kas.envConfig.ecCert=$KAS_EC_SECP256R1_CERTIFICATE \
 --set kas.envConfig.cert=$KAS_CERTIFICATE \
