@@ -60,4 +60,9 @@ line-length = 88
 
 [tool.ruff.mccabe]
 # Flag errors (`C901`) whenever the complexity level exceeds 8.
-max-complexity = 39
+max-complexity = 8
+
+[tool.ruff.per-file-ignores]
+"tdf3_kas_core/web/run_service_with_exceptions.py" = ["C901"]
+"tdf3_kas_core/dpop.py" = ["C901"]
+"tdf3_kas_core/services.py" = ["C901"]
