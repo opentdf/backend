@@ -1,0 +1,26 @@
+{{- if and .Values.global.opentdf.common.istio.enabled .Values.ingress.enabled -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "entitlement-pdp.fullname" . }}-vsvc
+  labels:
+    {{- include "entitlement-pdp.labels" . | nindent 4 }}
+spec:
+  gateways:
+    - {{ ( include "entitlement-pdp.ingress.gateway" . ) }}
+  hosts: {{ .Values.global.opentdf.common.istio.ingress.hosts | toYaml | nindent 4 }}
+  http:
+    - match:
+        - uri:
+            prefix: /api/entitlement-pdp/
+        - uri:
+            prefix: /api/entitlement-pdp
+      name: {{ include "entitlement-pdp.fullname" . }}
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: {{ include "entitlement-pdp.fullname" . }}
+            port:
+              number: {{ .Values.config.listenPort }}
+{{- end -}}
