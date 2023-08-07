@@ -41,3 +41,10 @@ data:
     {{ if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /opt/entitlement-pdp/policycache{{ end }}
 
 {{ toYaml .Values.opaConfig.extraConfigYaml | indent 4 }}
+
+{{- if .Values.additionalConfigMapData }}
+{{- range $index, $content := .Values.additionalConfigMapData }}
+  {{ $index }}: |-
+{{ $content | indent 4 }}
+{{- end }}
+{{- end }}
