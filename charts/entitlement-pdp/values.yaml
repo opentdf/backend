@@ -129,7 +129,7 @@ config:
 
 # -- Specify additional volumes to mount, this can be used to specify additional
 # storage materials used in the opa config such as trust stores
-additionalVolumes: 
+additionalVolumes:
   # []
   - name: custom-opa-config
     configMap:
@@ -140,7 +140,7 @@ additionalVolumes:
         path: "custom-opa-config.yaml"
 
 # -- Specify where the additional volumes are mounted
-additionalVolumeMounts: 
+additionalVolumeMounts:
   # []
   - name: custom-opa-config
     mountPath: "/etc/opa/custom-config"
@@ -150,7 +150,7 @@ additionalConfigMap:
   # -- The name of the additional config map
   name: "custom-opa-config-map"
   # -- The data to add to the additional config map
-  data: 
+  data:
   # {}
     custom-opa-config.yaml: |-
       services:
