@@ -125,50 +125,28 @@ config:
   # -- Open telemetry collector endpoint
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   # -- Path to opa config yaml
-  opaConfigPath: "/etc/opa/custom-config/custom-opa-config.yaml"
+  opaConfigPath: "/etc/opa/config/opa-config.yaml"
 
 # -- Specify additional volumes to mount, this can be used to specify additional
 # storage materials used in the opa config such as trust stores
-additionalVolumes:
-  # []
-  - name: custom-opa-config
-    configMap:
-      name: custom-opa-config-map
-      # An array of keys from the ConfigMap to create as files
-      items:
-      - key: "custom-opa-config.yaml"
-        path: "custom-opa-config.yaml"
+additionalVolumes: []
+  # Custom opa config example
+  # - name: custom-opa-config
+  #   configMap:
+  #     name: custom-opa-config-map
+  #     # An array of keys from the ConfigMap to create as files
+  #     items:
+  #     - key: "custom-opa-config.yaml"
+  #       path: "custom-opa-config.yaml"
 
 # -- Specify where the additional volumes are mounted
-additionalVolumeMounts:
-  # []
-  - name: custom-opa-config
-    mountPath: "/etc/opa/custom-config"
-    readOnly: true
+additionalVolumeMounts: []
+  # - name: custom-opa-config
+  #   mountPath: "/etc/opa/custom-config"
+  #   readOnly: true
 
 additionalConfigMap:
   # -- The name of the additional config map
-  name: "custom-opa-config-map"
+  name: ""
   # -- The data to add to the additional config map
-  data:
-  # {}
-    custom-opa-config.yaml: |-
-      services:
-        policy-registry:
-          url: https://ghcr.io
-          type: oci
-          credentials:
-            bearer:
-              token: "${OPA_POLICYBUNDLE_PULLCRED}"
-      bundles:
-        entitlement-policy:
-          service: policy-registry
-          resource: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle:main
-          trigger: "manual"
-          persist: true
-          polling:
-            min_delay_seconds: 60
-            max_delay_seconds: 60
-      persistence_directory: ./policy-cache/
-      decision_logs:
-        console: true
+  data: {}
