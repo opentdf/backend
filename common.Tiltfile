@@ -179,8 +179,8 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
     helm_remote(
         "ingress-nginx",
         repo_url="https://kubernetes.github.io/ingress-nginx",
-        set=["controller.config.large-client-header-buffers=20 32k"],
-        version="4.2.1",
+        set=["controller.config.large-client-header-buffers=20 32k", "controller.admissionWebhooks.enabled=false"],
+        version="4.0.16",
     )
 
     k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
