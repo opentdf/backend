@@ -73,6 +73,9 @@ spec:
           - name: opa-config
             mountPath: {{ .Values.opaConfigMountPath }}
             readOnly: true
+        {{- if .Values.additionalVolumeMounts }}
+          {{- toYaml .Values.additionalVolumeMounts | nindent 10 }} 
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /healthz
@@ -99,6 +102,9 @@ spec:
             items:
             - key: "opa-config.yaml"
               path: "opa-config.yaml"
+      {{- if .Values.additionalVolumes }}
+        {{- toYaml .Values.additionalVolumes | nindent 8}}
+      {{- end }}
       {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

@@ -1,0 +1,15 @@
+{{ if .Values.additionalConfigMap.data -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.additionalConfigMap.name | quote }}
+  labels:
+    {{- include "entitlement-pdp.labels" . | nindent 4 }}
+data:
+{{- if .Values.additionalConfigMap.data }}
+{{- range $index, $content := .Values.additionalConfigMap.data }}
+  {{ $index }}: |-
+{{ $content | indent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
