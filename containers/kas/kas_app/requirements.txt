@@ -1,6 +1,6 @@
 -i https://pypi.org/simple
 -e ./../kas_core
-cryptography~=41.0.1
+cryptography~=41.0.2
 grpcio~=1.56.0
 gunicorn~=20.1.0
 PyJWT~=2.7.0
