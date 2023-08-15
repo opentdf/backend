@@ -1,6 +1,6 @@
 {{- if and .Values.ingress.enabled (not .Values.global.opentdf.common.istio.enabled) -}}
 {{- $fullName := include "entitlement-pdp.fullname" . -}}
-{{- $servicePort := .Values.config.listenPort -}}
+{{- $servicePort := .Values.config.serverPort -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

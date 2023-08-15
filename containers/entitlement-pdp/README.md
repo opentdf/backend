@@ -100,7 +100,7 @@ curl -X 'POST' \
 
 | Name                      | Default                           | Description                                                                                                                                                                                                           |
 | ------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LISTEN_PORT               | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
+| SERVER_PORT               | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
 | SERVER_PUBLIC_NAME             | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
 | VERBOSE                   | "false"                           | Enable verbose/debug logging                                                                                                                                                                                          |
 | DISABLE_TRACING           | "false"                           | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)                                                                                                                       |
@@ -138,7 +138,7 @@ Published to `oci://ghcr.io/opentdf/entitlement-pdp`
 ```dotenv
 OPA_CONFIG_PATH=./offline-config-example/opa-config.yaml
 VERBOSE=true
-LISTEN_PORT=3355
+SERVER_PORT=3355
 ```
 
 ### Build

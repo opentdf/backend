@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "entity-resolution.labels" . | nindent 4 }}
 data:
-  listenPort: {{ .Values.config.listenPort | quote }}
+  serverPort: {{ .Values.config.serverPort | quote }}
   externalHost: {{ .Values.config.externalHost | quote }}
   verbose: {{ .Values.config.verbose | quote }}
   disableTracing: {{ .Values.config.disableTracing | quote }}

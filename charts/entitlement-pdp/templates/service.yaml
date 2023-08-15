@@ -6,9 +6,9 @@ metadata:
     {{- include "entitlement-pdp.labels" . | nindent 4 }}
 spec:
   ports:
-  - port: {{ .Values.config.listenPort }}
+  - port: {{ .Values.config.serverPort }}
     name: {{ include "entitlement-pdp.fullname" . }}
     appProtocol: http
-    targetPort: {{ .Values.config.listenPort }}
+    targetPort: {{ .Values.config.serverPort }}
   selector:
     {{- include "entitlement-pdp.selectorLabels" . | nindent 4 }}

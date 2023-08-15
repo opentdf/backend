@@ -50,7 +50,7 @@ secret:
 
 config:
   # -- Port the server will listen on
-  listenPort: 7070
+  serverPort: 7070
   # -- External endpoint the server will be accessed from (used for OpenAPI endpoint serving)
   externalHost: ""
   # -- Enable verbose logging

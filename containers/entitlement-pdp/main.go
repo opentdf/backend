@@ -125,7 +125,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt)
 	// server
 	const timeout = 30 * time.Second
-	port := os.Getenv("LISTEN_PORT")
+	port := os.Getenv("SERVER_PORT")
 	if port == "" {
 		port = "3355"
 	}
