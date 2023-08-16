@@ -68,3 +68,6 @@ config:
     clientId: "tdf-entity-resolution-service"
     # -- Using a legacy keycloak version. See https://github.com/Nerzal/gocloak/issues/346
     legacy: false
+
+# -- Values for the deployment `spec.template.metadata.annotations` field
+podAnnotations: {}
