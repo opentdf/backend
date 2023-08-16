@@ -25,7 +25,7 @@ type EnvConfig struct {
 	KeycloakClientSecret string `env:"KEYCLOAK_CLIENT_SECRET"`
 	//See https://github.com/Nerzal/gocloak/issues/346
 	LegacyKeycloak bool   `env:"KEYCLOAK_LEGACY" envDefault:"false"`
-	ListenPort     string `env:"LISTEN_PORT" envDefault:"7070"`
+	ServerPort     string `env:"SERVER_PORT" envDefault:"7070"`
 	ExternalHost   string `env:"EXTERNAL_HOST" envDefault:""`
 	Verbose        bool   `env:"VERBOSE" envDefault:"false"`
 	DisableTracing bool   `env:"DISABLE_TRACING" envDefault:"false"`
@@ -80,7 +80,7 @@ func main() {
 	}
 
 	server := &http.Server{
-		Addr:              fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ListenPort),
+		Addr:              fmt.Sprintf("%s:%s", cfg.ExternalHost, cfg.ServerPort),
 		ReadTimeout:       time.Second * 30,
 		WriteTimeout:      time.Second * 30,
 		ReadHeaderTimeout: time.Second * 30,

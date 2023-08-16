@@ -138,7 +138,7 @@ Published to `oci://ghcr.io/opentdf/entitlement-pdp`
 ```dotenv
 OPA_CONFIG_PATH=./offline-config-example/opa-config.yaml
 VERBOSE=true
-LISTEN_PORT=3355
+SERVER_PORT=3355
 ```
 
 ### Build

@@ -6,9 +6,9 @@ metadata:
     {{- include "entity-resolution.labels" . | nindent 4 }}
 spec:
   ports:
-  - port: {{ .Values.config.listenPort }}
+  - port: {{ .Values.config.serverPort }}
     name: {{ include "entity-resolution.fullname" . }}
     appProtocol: http
-    targetPort: {{ .Values.config.listenPort }}
+    targetPort: {{ .Values.config.serverPort }}
   selector:
     {{- include "entity-resolution.selectorLabels" . | nindent 4 }}

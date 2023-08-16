@@ -115,7 +115,7 @@ opaConfig:
 
 config:
   # -- Port the server will listen on
-  listenPort: 3355
+  serverPort: 3355
   # -- External endpoint the server will be accessed from (used for OpenAPI endpoint serving)
   externalHost: ""
   # -- Enable verbose logging
