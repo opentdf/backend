@@ -150,3 +150,6 @@ additionalConfigMap:
   name: ""
   # -- The data to add to the additional config map
   data: {}
+
+# -- Values for the deployment `spec.template.metadata.annotations` field
+podAnnotations: {}
