@@ -42,6 +42,7 @@ import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.protocol.oidc.mappers.OIDCIDTokenMapper;
 import org.keycloak.protocol.oidc.mappers.UserInfoTokenMapper;
+import org.keycloak.protocol.ProtocolMapperUtils;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.representations.IDToken;
 import org.keycloak.representations.JsonWebToken;
@@ -135,6 +136,11 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     @Override
+    public int getPriority() {
+        return ProtocolMapperUtils.PRIORITY_SCRIPT_MAPPER;
+    }
+
+    @Override
     protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession,
             KeycloakSession keycloakSession,
             ClientSessionContext clientSessionCtx) {
@@ -144,6 +150,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // do this is because of how legacy code expects `dissems` to work.
         //
         // We will have to fix `dissems` to properly get rid of this hack.
+        
+        ObjectMapper objectMapper = new ObjectMapper();
+        logger.info("Mapper token [{}]", objectMapper.writeValueAsString(token));
         token.setSubject(userSession.getUser().getId());
         logger.info("TDF claims mapper triggered");
 
