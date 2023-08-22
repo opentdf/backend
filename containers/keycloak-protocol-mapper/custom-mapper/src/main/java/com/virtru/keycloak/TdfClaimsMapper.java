@@ -151,8 +151,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         //
         // We will have to fix `dissems` to properly get rid of this hack.
         
-        // ObjectMapper objectMapper = new ObjectMapper();
-        // logger.info("Mapper token [{}]", objectMapper.writeValueAsString(token));
         token.setSubject(userSession.getUser().getId());
         logger.info("TDF claims mapper triggered");
 
