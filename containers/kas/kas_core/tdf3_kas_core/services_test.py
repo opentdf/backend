@@ -175,12 +175,36 @@ def test_kas_public_rsa_key(public_key_path):
     assert actual == expected
 
 
-def test_kas_public_ec_key(public_key_path):
+def test_kas_ec_cert(ec_cert):
     """Test the getter for the KAS public key."""
     km = KeyMaster()
-    km.set_key_path("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", public_key_path)
+    km.set_key_pem("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", ec_cert)
     expected = km.get_export_string("KAS-EC-SECP256R1-PUBLIC")
     actual = kas_public_key(km, "ec:secp256r1")
+    assert actual == expected
+
+
+def test_kas_public_key_v2_rsa(public_key):
+    """Test the getter for the KAS public key."""
+    km = KeyMaster()
+    km.set_key_pem("KAS-PUBLIC", "PUBLIC", public_key)
+    expected = {
+        "kid": b"nxO623BNDCXfI+t/OGwCTcZ70vwJcuyYyniKQxmrbEQ=",
+        "public_key": km.get_export_string("KAS-PUBLIC"),
+    }
+    actual = kas_public_key_v2(km, algorithm="rsa:2048", fmt="pkcs8")
+    assert actual == expected
+
+
+def test_kas_public_key_v2_ec(ec_cert):
+    """Test the getter for the KAS public key."""
+    km = KeyMaster()
+    km.set_key_pem("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", ec_cert)
+    expected = {
+        "kid": b"NQWzlLx8oNFRTxkkvKAXDiEwHtDlRmhQE2AMC7xa7i0=",
+        "public_key": km.get_export_string("KAS-EC-SECP256R1-PUBLIC"),
+    }
+    actual = kas_public_key_v2(km, algorithm="ec:secp256r1", fmt="pkcs8")
     assert actual == expected
 
 

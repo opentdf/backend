@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 @run_service_with_exceptions
-def get(algorithm: str = "rsa:2048"):
+def get(algorithm: str = "rsa:2048", fmt: str = "pkcs8", v: str = "1"):
     """Handle the '/kas_public_key' route.
 
     This endpoint provides a public key for the private key that the
@@ -20,5 +20,9 @@ def get(algorithm: str = "rsa:2048"):
     key in clientside config, and if an alternate key endpoint is not defined
     in Virtru custom claims.
     """
-    logger.debug(f"web.kas_public_key.get(algorithm=${algorithm})")
+    logger.debug(
+        "web.kas_public_key.get(algorithm=[%s], fmt=[%s], v=[%s])", algorithm, fmt, v
+    )
+    if fmt != "pkcs8" or v == "2":
+        return (Kas.get_instance().get_session_public_key_v2())(algorithm, fmt)
     return (Kas.get_instance().get_session_public_key())(algorithm)

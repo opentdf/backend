@@ -6,10 +6,7 @@ import connexion
 import importlib_resources
 import logging
 
-from .services import ping
-from .services import rewrap, rewrap_v2
-from .services import upsert, upsert_v2
-from .services import kas_public_key
+from . import services
 
 from .models import HealthzPluginRunner
 from .models import RewrapPluginRunner
@@ -40,7 +37,7 @@ def create_session_ping(version):
     """Create a session ping callable."""
 
     def session_ping(request=None):
-        return ping(version)
+        return services.ping(version)
 
     return session_ping
 
@@ -65,7 +62,7 @@ def create_session_rewrap(key_master, plugins):
     plugin_runner = RewrapPluginRunner(plugins)
 
     def session_rewrap(data, options):
-        return rewrap(data, options, plugin_runner, key_master)
+        return services.rewrap(data, options, plugin_runner, key_master)
 
     return session_rewrap
 
@@ -80,9 +77,10 @@ def create_session_rewrap_v2(key_master, plugins):
     plugin_runner = RewrapPluginRunnerV2(plugins)
 
     def session_rewrap(data, options):
-        return hook_into(post=Kas.get_instance()._post_rewrap_hook,
-                    err=Kas.get_instance()._err_rewrap_hook)(rewrap_v2)(
-                        data, options, plugin_runner, key_master)
+        return hook_into(
+            post=Kas.get_instance()._post_rewrap_hook,
+            err=Kas.get_instance()._err_rewrap_hook,
+        )(services.rewrap_v2)(data, options, plugin_runner, key_master)
 
     return session_rewrap
 
@@ -97,7 +95,7 @@ def create_session_upsert(key_master, plugins):
     plugin_runner = UpsertPluginRunner(plugins)
 
     def session_upsert(data, options):
-        return upsert(data, options, plugin_runner, key_master)
+        return services.upsert(data, options, plugin_runner, key_master)
 
     return session_upsert
 
@@ -114,7 +112,7 @@ def create_session_upsert_v2(key_master, plugins):
     plugin_runner = UpsertPluginRunnerV2(plugins)
 
     def session_upsert(data, options):
-        return upsert_v2(data, options, plugin_runner, key_master)
+        return services.upsert_v2(data, options, plugin_runner, key_master)
 
     return session_upsert
 
@@ -126,9 +124,21 @@ def create_session_public_key(key_master):
     """
 
     def session_kas_public_key(algorithm):
-        return kas_public_key(key_master, algorithm)
+        return services.kas_public_key(key_master, algorithm)
 
     return session_kas_public_key
+
+
+def create_session_public_key_v2(key_master):
+    """Create a session callable for getting the public key.
+
+    The keymaster is carried in the closure of this function.
+    """
+
+    def session_kas_public_key_v2(algorithm, fmt):
+        return services.kas_public_key_v2(key_master, algorithm, fmt)
+
+    return session_kas_public_key_v2
 
 
 class Kas(object):
@@ -171,6 +181,7 @@ class Kas(object):
         self._session_upsert = None
         self._session_upsert_v2 = None
         self._session_kas_public_key = None
+        self._session_kas_public_key_v2 = None
         self._app = None
 
         Kas.__instance = self
@@ -250,25 +261,25 @@ class Kas(object):
             raise PluginIsBadError("plugin is not a decendent of AbstractHealthzPlugin")
 
     def use_post_rewrap_hook(self, hook):
-        """ Add a hook called after rewrap completes """
+        """Add a hook called after rewrap completes"""
         if not callable(hook):
             raise MiddlewareIsBadError("Provided error hook is not callable")
         self._post_rewrap_hook = hook
 
     def use_err_rewrap_hook(self, hook):
-        """ Add a hook called when rewrap returns an error """
+        """Add a hook called when rewrap returns an error"""
         if not callable(hook):
             raise MiddlewareIsBadError("Provided error hook is not callable")
         self._err_rewrap_hook = hook
 
     def add_middleware(self, middleware):
-        """ add middleware called with upsert and rewrap """
-        if not(callable(middleware) or None):
+        """add middleware called with upsert and rewrap"""
+        if not (callable(middleware) or None):
             raise MiddlewareIsBadError("Provided middleware is not callable")
         self._middleware = middleware
 
     def get_middleware(self):
-        """ return the callable middleare """
+        """return the callable middleare"""
         if self._middleware is not None:
             return self._middleware
         return lambda *args: None
@@ -300,6 +311,10 @@ class Kas(object):
     def get_session_public_key(self):
         """return the callable to process public key requests."""
         return self._session_kas_public_key
+
+    def get_session_public_key_v2(self):
+        """return the callable to process public key requests."""
+        return self._session_kas_public_key_v2
 
     def app(self):
         """Produce a wsgi-callable app.
@@ -333,12 +348,13 @@ class Kas(object):
         )
 
         self._session_kas_public_key = create_session_public_key(self._key_master)
+        self._session_kas_public_key = create_session_public_key_v2(self._key_master)
 
         flask_options = {"swagger_url": "/docs"}
         app = connexion.FlaskApp(
             self._root_name, specification_dir="api/", options=flask_options
         )
-        
+
         # Allow swagger_ui to be disabled
         options = {"swagger_ui": False}
         if swagger_enabled():

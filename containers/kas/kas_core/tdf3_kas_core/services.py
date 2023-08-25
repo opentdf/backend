@@ -28,16 +28,19 @@ import base64
 import os
 import hashlib
 import json
+import typing
 
 import tdf3_kas_core.keycloak as keycloak
 
+from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import PublicFormat
 
 from pkg_resources import packaging
 
+from tdf3_kas_core.models.key_master.key_master import KeyMaster
 from tdf3_kas_core.errors import AdjudicatorError
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import BadRequestError
@@ -77,8 +80,12 @@ flags = {
     "idp": os.environ.get("USE_OIDC") == "1",
 }
 
+PublicKeyAlgorithmTypes = typing.Literal["ec:secp256r1", "rsa:2048"]
+PublicKeyFormats = typing.Literal["jwks", "pkcs8"]
+PublicKeyVersions = typing.Literal["1", "2"]
 
-def kas_public_key(key_master, algorithm):
+
+def kas_public_key(key_master: KeyMaster, algorithm: PublicKeyAlgorithmTypes) -> str:
     """Serve the current KAS public key.
 
     OIDC flow removes EOs and EAS calls, and so uses this to dynamically
@@ -102,6 +109,46 @@ def kas_public_key(key_master, algorithm):
 
     logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
     return public_key
+
+
+def kas_public_key_v2(
+    key_master: KeyMaster, algorithm: PublicKeyAlgorithmTypes, fmt: PublicKeyFormats
+) -> str:
+    """Serve the current KAS public key and key identifier, in the requested format."""
+    logger.debug("===== KAS PUBLIC KEY SERVICE v2 START ====")
+
+    public_key = None
+    if algorithm == "rsa:2048":
+        public_key = key_master.public_key("KAS-PUBLIC")
+    elif algorithm == "ec:secp256r1":
+        public_key = key_master.public_key("KAS-EC-SECP256R1-PUBLIC")
+
+    if public_key is None:
+        msg = "Could not produce a public key"
+        logger.error(msg)
+        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        raise KeyNotFoundError(msg)
+
+    logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
+    if isinstance(public_key, x509.Certificate):
+        # TODO Replace with JWK.thumbprint
+        kid = base64.b64encode(public_key.fingerprint(hashes.SHA256()))
+        public_key_bytes = public_key.public_bytes(encoding=serialization.Encoding.PEM)
+    else:
+        public_key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        # TODO Replace with JWK.thumbprint
+        digest = hashes.Hash(hashes.SHA256())
+        digest.update(public_key_bytes)
+        digest.update(b"123")
+        kid = base64.b64encode(digest.finalize())
+
+    return {
+        "kid": kid,
+        "public_key": public_key_bytes.decode("ascii"),
+    }
 
 
 def ping(version):
