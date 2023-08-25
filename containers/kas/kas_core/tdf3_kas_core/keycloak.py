@@ -3,6 +3,7 @@
 import os
 import logging
 import requests
+from cryptography import hazmat
 from urllib.parse import urlparse
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -73,9 +74,12 @@ def get_keycloak_public_key(realmId):
         )
         raise
 
-    keycloak_public_key = f"""-----BEGIN PUBLIC KEY-----
+    keycloak_public_key = hazmat.primitives.serialization.load_pem_public_key(
+        f"""-----BEGIN PUBLIC KEY-----
 {resp_json['public_key']}
------END PUBLIC KEY-----""".encode()
+-----END PUBLIC KEY-----""".encode(),
+        backend=hazmat.backends.default_backend(),
+    )
 
     logger.debug("Keycloak public key for realm %s: [%s]", realmId, keycloak_public_key)
     return keycloak_public_key
