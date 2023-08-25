@@ -19,11 +19,31 @@ from .util import get_public_key_from_disk
 from .util import get_private_key_from_disk
 from .util import generate_hmac_digest
 
-public_key = get_public_key_from_disk("test")
-private_key = get_private_key_from_disk("test")
+__public_key = get_public_key_from_disk("test")
+__private_key = get_private_key_from_disk("test")
 
-entity_public_key = get_public_key_from_disk("test_alt")
-entity_private_key = get_private_key_from_disk("test_alt")
+__entity_public_key = get_public_key_from_disk("test_alt")
+__entity_private_key = get_private_key_from_disk("test_alt")
+
+
+@pytest.fixture
+def public_key():
+    return __public_key
+
+
+@pytest.fixture
+def private_key():
+    return __private_key
+
+
+@pytest.fixture
+def entity_public_key():
+    return __entity_public_key
+
+
+@pytest.fixture
+def entity_private_key():
+    return __entity_private_key
 
 
 @pytest.fixture
@@ -42,7 +62,7 @@ def policy():
 
 
 @pytest.fixture
-def entity():
+def entity(public_key):
     """Construct an entity object."""
     user_id = "coyote@acme.com"
     attribute1 = (
@@ -73,7 +93,7 @@ def key_access_remote():
 
 
 @pytest.fixture
-def key_access_wrapped():
+def key_access_wrapped(public_key, private_key):
     """Generate an access key for a wrapped type."""
     plain_key = b"This-is-the-good-key"
     wrapped_key = aes_encrypt_sha1(plain_key, public_key)
