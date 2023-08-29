@@ -17,9 +17,6 @@ from tdf3_kas_core.models import Claims
 
 from tdf3_kas_core.services import *
 
-from tdf3_kas_core.util import get_private_key_from_disk
-from tdf3_kas_core.util import get_public_key_from_disk
-
 
 KEYCLOAK_ACCESS_TOKEN = """eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5a3VoOTdoakRXX2IyQkNmM243b1lTRXo5bUVaVGtmMllrMDRaR2dlN3lNIn0.eyJleHAiOjE2MTkxMTc1NzMsImlhdCI6MTYxOTExNzI3MywianRpIjoiYjJiZWQxMzktMDkzYy00NTFlLWJkNjUtY2JiNjI1ZDQ4NzBlIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2F1dGgvcmVhbG1zL3RkZiIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJiYTUxNjJjNC0wNmUxLTRjM2EtYTYwYy1jYTk1MjcyZjQ0ZTMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ0ZGYtY2xpZW50Iiwic2Vzc2lvbl9zdGF0ZSI6IjBkOGJmODA0LTQ1ZjktNDliNS05NzUyLWFjNzFlNjkzN2ZmNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDgwIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJ2aXJ0cnVfZW50aXR5X29iamVjdCI6eyJhbGlhc2VzIjpbXSwiYXR0cmlidXRlcyI6W3sib2JqIjp7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DbGFzc2lmaWNhdGlvbi92YWx1ZS9TIn19LHsib2JqIjp7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DT0kvdmFsdWUvUFJYIn19XSwicHVibGljS2V5IjoiLS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBek1hQXJaN1VwV3VaMWt6aVVvT1NcblU1RmVmaXVxN2UyZUpIaWF0Z2RMNk9WeER3UjhDM09KTDMwR0JQN0JaWVIxYWczSkNlOW11TURnd2xIY1p1NDlcbmhManZJc2ZFcGQ5ZlpKdTExL3RocnljbXhBZ2p6OEdKcExCRnJBSHpPLzRwUVdNdkpXQkppOHlNVm9abnVMTE1cbmhNUnlLZ3ZFRUU3ZVVzcjNHT0RUMlZYUEoyYlJMOHZnTTJNcURFVnhycDFUZVBISEkza2VpeWVGVGM1aDA5RThcblFvZ3A3ME1YMVRkdURzZVRKNmR5V1o3TkwySmFPenZFNmFmSk1kZCtJSVRCMmpuRm4xejdFaDVOKy96TnB3cmJcbjFJK29ranpmS1hHL3MrYVVyNWFiMnZGRmlNbWhmWWlyMm9OckhwTXRFcFhnclFycmxoOUpxUE4xQzZST0FiZ3pcbnVRSURBUUFCXG4tLS0tLUVORCBQVUJMSUMgS0VZLS0tLS1cbiIsInNjaGVtYVZlcnNpb246IjoiMS4yLjMiLCJ1c2VySWQiOiJ1c2VyMUB2aXJ0cnUuY29tIn0sInByZWZlcnJlZF91c2VybmFtZSI6InVzZXIxIn0.NzhxhaV0z41Sz_f1ID5Fn3j7FmGZizTtZ0GbpX3AeE7tBFJpgMOWbcQdJ9F-OYXipP_Q7sutK0jpBaUEhy9HY-ozJfJqADjqDAFYzcUkmbNg4T_4PCOZL1Bv5w61Ftu0i7NYcXLGtRZaACTByVQyUTByDY7eOvWtMnEGZ9aC7o9iV2sMHp9W632EDmv-OlzDME3VTmmIazhdLYmMQG0lFtC_qf5dXwT0l8LhuoMCs8g3e_j6OKBOo0uaDrxZ584JD9amvcIZ6CjeWCfSFghlxVQFdrE7Dn5SmWnqdp682qWS3aBylfjgx8sdgX05YK93pE-MHUVhu12swWpkjh1oYA"""
 
@@ -150,14 +147,25 @@ def test_claims_object():
 
 
 class FakeKeyMaster:
+    def __init__(self, private_key) -> None:
+        self.private_key = private_key
+
     def get_key(self, name):
-        public_key = get_public_key_from_disk("test", as_pem=True)
-        private_key = get_private_key_from_disk("test", as_pem=True)
         if name == "KEYCLOAK-PUBLIC-tdf":
             return KEYCLOAK_PUBLIC_KEY
         elif name == "KAS-PRIVATE":
-            return private_key
-        raise Exception(f"Unknown test key: {name}")
+            return self.private_key
+        raise KeyNotFoundError(f"Unknown test key: {name}")
+
+
+@pytest.fixture
+def key_master(private_key):
+    return FakeKeyMaster(private_key)
+
+
+@pytest.fixture
+def key_master(private_key):
+    return FakeKeyMaster(private_key)
 
 
 def test_kas_public_rsa_key():
@@ -191,7 +199,9 @@ def test_ping():
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
 )
-def test_rewrap_v2(entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp):
+def test_rewrap_v2(
+    entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp, key_master
+):
     """Test the rewrap_v2 service."""
     os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
     expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
@@ -223,7 +233,6 @@ def test_rewrap_v2(entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp):
     context = Context()
     context.add("Authorization", f"Bearer {KEYCLOAK_ACCESS_TOKEN}")
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
     rewrap_v2(request_data, context, plugin_runner, key_master)
     assert True
 
@@ -233,7 +242,9 @@ def test_rewrap_v2(entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp):
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )
-def test_rewrap_v2_expired_token(entity_load_mock, tdf3_mock, nano_mock, with_idp):
+def test_rewrap_v2_expired_token(
+    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
+):
     expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
     expected_canonical = "This is a canonical string"
     attributes = [
@@ -258,7 +269,6 @@ def test_rewrap_v2_expired_token(entity_load_mock, tdf3_mock, nano_mock, with_id
     context = Context()
     context.add("Authorization", f"Bearer {KEYCLOAK_ACCESS_TOKEN}")
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
 
     signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
     request_data = {"signedRequestToken": signedToken}
@@ -275,7 +285,9 @@ def test_rewrap_v2_expired_token(entity_load_mock, tdf3_mock, nano_mock, with_id
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )
-def test_rewrap_v2_no_auth_header(entity_load_mock, tdf3_mock, nano_mock, with_idp):
+def test_rewrap_v2_no_auth_header(
+    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
+):
     expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
     expected_canonical = "This is a canonical string"
     attributes = [
@@ -303,7 +315,6 @@ def test_rewrap_v2_no_auth_header(entity_load_mock, tdf3_mock, nano_mock, with_i
     context = Context()
     # Skip context.add("Authorization", ...)
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
     # This token is expired, should fail.
     # Actual exception is:  jwt.exceptions.ExpiredSignatureError
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
@@ -317,7 +328,7 @@ def test_rewrap_v2_no_auth_header(entity_load_mock, tdf3_mock, nano_mock, with_i
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )
 def test_rewrap_v2_invalid_auth_header(
-    entity_load_mock, tdf3_mock, nano_mock, with_idp
+    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
 ):
     expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
     expected_canonical = "This is a canonical string"
@@ -347,7 +358,6 @@ def test_rewrap_v2_invalid_auth_header(
     context = Context()
     context.add("Authorization", f"Chair-er Token:{KEYCLOAK_ACCESS_TOKEN}")
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
     # This token is expired, should fail.
     # Actual exception is:  jwt.exceptions.ExpiredSignatureError
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
@@ -360,7 +370,9 @@ def test_rewrap_v2_invalid_auth_header(
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
 )
-def test_rewrap_v2_invalid_auth_jwt(entity_load_mock, tdf3_mock, nano_mock, with_idp):
+def test_rewrap_v2_invalid_auth_jwt(
+    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
+):
     expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
     expected_canonical = "This is a canonical string"
     attributes = [
@@ -386,7 +398,6 @@ def test_rewrap_v2_invalid_auth_jwt(entity_load_mock, tdf3_mock, nano_mock, with
     context = Context()
     context.add("Authorization", "Bearer DO I LOOK LIKE A JWT TO YOU?")
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
 
     signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
     request_data = {"signedRequestToken": signedToken}
@@ -403,10 +414,8 @@ def test_rewrap_v2_invalid_auth_jwt(entity_load_mock, tdf3_mock, nano_mock, with
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
 )
-def test_upsert_v2(entity_load_mock, jwt_mock, ka_mock):
+def test_upsert_v2(entity_load_mock, jwt_mock, ka_mock, key_master):
     """Test the upsert_v2 service."""
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
     attributes = [
         {"attribute": "https://example.com/attr/Classification/value/S"},
         {"attribute": "https://example.com/attr/COI/value/PRX"},
@@ -447,7 +456,6 @@ def test_upsert_v2(entity_load_mock, jwt_mock, ka_mock):
     context = Context()
     context.add("Authorization", f"Bearer {KEYCLOAK_ACCESS_TOKEN}")
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
     upsert_v2(request_data, context, plugin_runner, key_master)
     assert True
 
@@ -457,10 +465,10 @@ def test_upsert_v2(entity_load_mock, jwt_mock, ka_mock):
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
 )
-def test_upsert_v2_no_auth_header(entity_load_mock, jwt_mock, ka_mock, with_idp):
+def test_upsert_v2_no_auth_header(
+    entity_load_mock, jwt_mock, ka_mock, with_idp, key_master
+):
     """Test the upsert_v2 service."""
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
     attributes = [
         {"attribute": "https://example.com/attr/Classification/value/S"},
         {"attribute": "https://example.com/attr/COI/value/PRX"},
@@ -501,7 +509,6 @@ def test_upsert_v2_no_auth_header(entity_load_mock, jwt_mock, ka_mock, with_idp)
     context = Context()
     # context.add("Authorization", "Bearer {0}".format(KEYCLOAK_ACCESS_TOKEN))
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
         upsert_v2(request_data, context, plugin_runner, key_master)
     assert True
@@ -512,10 +519,10 @@ def test_upsert_v2_no_auth_header(entity_load_mock, jwt_mock, ka_mock, with_idp)
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
 )
-def test_upsert_v2_invalid_auth_header(entity_load_mock, jwt_mock, ka_mock, with_idp):
+def test_upsert_v2_invalid_auth_header(
+    entity_load_mock, jwt_mock, ka_mock, with_idp, key_master
+):
     """Test the upsert_v2 service."""
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
     attributes = [
         {"attribute": "https://example.com/attr/Classification/value/S"},
         {"attribute": "https://example.com/attr/COI/value/PRX"},
@@ -556,7 +563,6 @@ def test_upsert_v2_invalid_auth_header(entity_load_mock, jwt_mock, ka_mock, with
     context = Context()
     context.add("Authorization", f"Terr-or Token {KEYCLOAK_ACCESS_TOKEN}")
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
         upsert_v2(request_data, context, plugin_runner, key_master)
     assert True
@@ -567,10 +573,10 @@ def test_upsert_v2_invalid_auth_header(entity_load_mock, jwt_mock, ka_mock, with
 @patch(
     "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
 )
-def test_upsert_v2_invalid_auth_jwt(entity_load_mock, jwt_mock, ka_mock, with_idp):
+def test_upsert_v2_invalid_auth_jwt(
+    entity_load_mock, jwt_mock, ka_mock, with_idp, key_master
+):
     """Test the upsert_v2 service."""
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
     attributes = [
         {"attribute": "https://example.com/attr/Classification/value/S"},
         {"attribute": "https://example.com/attr/COI/value/PRX"},
@@ -612,7 +618,6 @@ def test_upsert_v2_invalid_auth_jwt(entity_load_mock, jwt_mock, ka_mock, with_id
     context = Context()
     context.add("Authorization", "Bearer DO I LOOK LIKE A JWT TO YOU?")
     plugin_runner = MagicMock()
-    key_master = FakeKeyMaster()
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
         upsert_v2(request_data, context, plugin_runner, key_master)
     assert True

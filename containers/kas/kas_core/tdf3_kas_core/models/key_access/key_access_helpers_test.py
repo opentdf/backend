@@ -11,8 +11,6 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from tdf3_kas_core.models import WrappedKey
 from tdf3_kas_core.models.wrapped_keys import aes_encrypt_sha1
 
-from tdf3_kas_core.util import get_public_key_from_disk
-from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
 from tdf3_kas_core.util import aes_gcm_encrypt
 
@@ -26,20 +24,21 @@ from .key_access_helpers import add_wrapped_values
 from .key_access_helpers import decrypt_metadata_string
 from .key_access_helpers import decrypt_encrypted_metadata
 
-public_key = get_public_key_from_disk("test")
-private_key = get_private_key_from_disk("test")
-
-entity_public_key = get_public_key_from_disk("test_alt")
-entity_private_key = get_private_key_from_disk("test_alt")
-
 plain_key = b"This-is-the-good-key"
-wrapped_key = aes_encrypt_sha1(plain_key, public_key)
 msg = b"This message is valid"
 binding = str.encode(generate_hmac_digest(msg, plain_key))
-
-raw_wrapped_key = bytes.decode(base64.b64encode(wrapped_key))
 raw_binding = bytes.decode(base64.b64encode(binding))
 canonical_policy = bytes.decode(msg)
+
+
+@pytest.fixture
+def wrapped_key(public_key):
+    return aes_encrypt_sha1(plain_key, public_key)
+
+
+@pytest.fixture
+def raw_wrapped_key(wrapped_key):
+    return bytes.decode(base64.b64encode(wrapped_key))
 
 
 # =========== Test add_required_values ===========================
@@ -140,7 +139,7 @@ def test_add_remote_values():
 # =========== Test add_wrapped_values ===========================
 
 
-def test_add_wrapped_values():
+def test_add_wrapped_values(raw_wrapped_key, private_key):
     """Test add_wrapped_values."""
     kao = KeyAccess()
     pprint(binding)
@@ -156,7 +155,7 @@ def test_add_wrapped_values():
 # =========== Test decrypt_metadata_string ===========================
 
 
-def test_decrypt_metadata_string_with_metadata_in_raw_dict():
+def test_decrypt_metadata_string_with_metadata_in_raw_dict(public_key, private_key):
     """Test add metadata values."""
     expected = {"foo": "bar"}
     print(expected)
@@ -194,7 +193,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict():
     assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
 
 
-def test_add_metadata_values_without_metadata_in_raw_dict():
+def test_add_metadata_values_without_metadata_in_raw_dict(public_key, private_key):
     """Test add metadata values with no encrypted metadata field."""
 
     secret = AESGCM.generate_key(bit_length=128)
@@ -211,7 +210,7 @@ def test_add_metadata_values_without_metadata_in_raw_dict():
     assert kao.metadata is None
 
 
-def test_exception_on_not_providing_wrapped_key():
+def test_exception_on_not_providing_wrapped_key(private_key):
     """Should throw expected error if wrapped_key absent."""
     try:
         decrypt_metadata_string(

@@ -3,18 +3,15 @@
 import pytest
 from cryptography.hazmat.primitives import serialization
 
-from tdf3_kas_core.util import get_public_key_from_disk
-
 from tdf3_kas_core.errors import ClaimsError
 from tdf3_kas_core.models import ClaimsAttributes
 
 from .claims import Claims
 
 
-def test_claims_constructor():
+def test_claims_constructor(public_key):
     """Test the basic constructor."""
     user_id = "Hey It's Me"
-    public_key = get_public_key_from_disk("test")
     attributes = {}
     attributes[user_id] = ClaimsAttributes()
     actual = Claims(user_id, public_key, attributes)
@@ -23,16 +20,15 @@ def test_claims_constructor():
     assert actual.entity_attributes == attributes
 
 
-def test_claims_constructor_bad_id():
+def test_claims_constructor_bad_id(public_key):
     """Test the basic constructor."""
     user_id = {}
-    public_key = get_public_key_from_disk("test")
     attributes = ClaimsAttributes()
     with pytest.raises(ClaimsError):
         Claims(user_id, public_key, attributes)
 
 
-def test_claims_constructor_bad_key():
+def test_claims_constructor_bad_key(public_key):
     """Test the basic constructor."""
     user_id = "Hey It's Me"
     public_key = "Public key String"
@@ -41,19 +37,17 @@ def test_claims_constructor_bad_key():
         Claims(user_id, public_key, attributes)
 
 
-def test_claims_no_attributes():
+def test_claims_no_attributes(public_key):
     """Test the basic constructor."""
     user_id = "Hey It's Me"
-    public_key = get_public_key_from_disk("test")
     attributes = ["one", "two"]
     with pytest.raises(ClaimsError):
         Claims(user_id, public_key, attributes)
 
 
-def test_claims_constructor_with_attributes():
+def test_claims_constructor_with_attributes(public_key):
     """Test the basic constructor."""
     user_id = "Hey It's Me"
-    public_key = get_public_key_from_disk("test")
     attribute1 = (
         "https://aa.virtru.com/attr/unique-identifier"
         "/value/7b738968-131a-4de9-b4a1-c922f60583e3"
@@ -88,8 +82,7 @@ def test_claims_constructor_with_attributes():
     assert attr2.value == "7b738968-131a-4de9-b4a1-c922f60583e3"
 
 
-def make_claims_object():
-    public_key = get_public_key_from_disk("test")
+def make_claims_object(public_key):
     data = {
         "sub": "user@virtru.com",
         "tdf_claims": {
@@ -131,7 +124,8 @@ def make_claims_object():
     return data
 
 
-def test_load_from_raw_data_as_dict():
+def test_load_from_raw_data_as_dict(public_key):
     """Test load_from_raw_data.  Raw data as a dict."""
-    data = make_claims_object()
+    data = make_claims_object(public_key)
     actual = Claims.load_from_raw_data(data)
+    assert actual.user_id == "user@virtru.com"
