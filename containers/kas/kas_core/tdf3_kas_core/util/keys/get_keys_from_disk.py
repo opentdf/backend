@@ -89,27 +89,3 @@ def get_private_key_from_disk(path, as_pem=False):
 
     except Exception as e:
         raise KeyNotFoundError("private key File not found") from e
-
-
-def get_symmetric_key_from_disk(path, as_string=False):
-    """Get a symmetric key from disk.
-
-    The path string is absolute.
-
-    If path=='test' then produces an insecure but representative key.
-    """
-    logger.info("Getting symmetric key from disk with path = %s", path)
-    curr_dir = os.path.dirname(__file__)
-    if path == "test":
-        path = os.path.join(curr_dir, "./keys_for_tests/symmetric_key.txt")
-
-    elif path == "test_alt":
-        path = os.path.join(curr_dir, "./keys_for_tests/symmetric_key_alt.txt")
-    logger.debug("Key file final path = %s", path)
-
-    try:
-        with open(path, "rb") as key_file:
-            return key_file.read()
-
-    except Exception as e:
-        raise KeyNotFoundError("symmetric key file not found") from e

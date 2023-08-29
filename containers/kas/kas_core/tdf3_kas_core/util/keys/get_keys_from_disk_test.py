@@ -8,7 +8,6 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
 from tdf3_kas_core.util import get_public_key_from_disk
 from tdf3_kas_core.util import get_private_key_from_disk
-from tdf3_kas_core.util import get_symmetric_key_from_disk
 from tdf3_kas_core.errors import KeyNotFoundError
 
 
@@ -84,24 +83,3 @@ def test_get_private_key_from_disk_bad_path():
     """Test the get_private_key_from_disk with bad path."""
     with pytest.raises(KeyNotFoundError):
         get_private_key_from_disk("/bad/path")
-
-
-# //////// Symmetric Key //////////
-
-
-def test_get_symmetric_key_from_disk():
-    """Test the get_symmetric_key_from_disk function."""
-    symmetric_key = get_symmetric_key_from_disk("test")
-    assert symmetric_key == b"This-is-a-symmetric-key\n"
-
-
-def test_get_symmetric_key_from_disk_alt():
-    """Test the get_symmetric_key_from_disk function."""
-    symmetric_key = get_symmetric_key_from_disk("test_alt")
-    assert symmetric_key == b"This-is-a-different-symmetric-key\n"
-
-
-def test_get_symmetric_key_from_disk_bad_path():
-    """Test the get_symmetric_key_from_disk with bad path."""
-    with pytest.raises(KeyNotFoundError):
-        get_symmetric_key_from_disk("/bad/path")

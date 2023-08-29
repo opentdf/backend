@@ -5,7 +5,6 @@ import logging
 
 from tdf3_kas_core.util import get_public_key_from_disk
 from tdf3_kas_core.util import get_private_key_from_disk
-from tdf3_kas_core.util import get_symmetric_key_from_disk
 from tdf3_kas_core.util import get_public_key_from_pem
 from tdf3_kas_core.util import get_private_key_from_pem
 
@@ -14,7 +13,7 @@ from tdf3_kas_core.errors import KeyNotFoundError
 logger = logging.getLogger(__name__)
 
 
-KEY_TYPES = ["PUBLIC", "PRIVATE", "SYMMETRIC"]
+KEY_TYPES = ["PUBLIC", "PRIVATE"]
 
 
 def get_key_from_pem(type, pem):
@@ -23,8 +22,6 @@ def get_key_from_pem(type, pem):
         return get_public_key_from_pem(pem)
     elif type == "PRIVATE":
         return get_private_key_from_pem(pem)
-    elif type == "SYMMETRIC":
-        return pem
     else:
         raise KeyNotFoundError("Wrong key type")
 
@@ -35,20 +32,6 @@ def get_key_from_disk(type, path):
         return get_public_key_from_disk(path)
     elif type == "PRIVATE":
         return get_private_key_from_disk(path)
-    elif type == "SYMMETRIC":
-        return get_symmetric_key_from_disk(path)
-    else:
-        raise KeyNotFoundError("Wrong key type")
-
-
-def get_export_bytes_from_disk(type, path):
-    """Get an exportable string from disk."""
-    if type == "PUBLIC":
-        return get_public_key_from_disk(path, as_pem=True)
-    elif type == "PRIVATE":
-        return get_private_key_from_disk(path, as_pem=True)
-    elif type == "SYMMETRIC":
-        return get_symmetric_key_from_disk(path)  # already exportable
     else:
         raise KeyNotFoundError("Wrong key type")
 
@@ -111,7 +94,7 @@ class KeyMaster(object):
             logger.warning(msg)
             raise KeyNotFoundError(msg)
 
-    def get_export_string(self, key_name):
+    def get_export_string(self, key_name: str) -> str:
         """Get an exportable key string."""
         if key_name in self.__keys:
             key_obj = self.__keys[key_name]

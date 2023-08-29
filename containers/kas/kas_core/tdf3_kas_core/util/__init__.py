@@ -7,7 +7,6 @@ from .cipher import aes_gcm_decrypt  # noqa: F401
 
 from .keys import get_public_key_from_disk  # noqa: F401
 from .keys import get_private_key_from_disk  # noqa: F401
-from .keys import get_symmetric_key_from_disk  # noqa: F401
 from .keys import get_public_key_from_pem  # noqa: F401
 from .keys import get_private_key_from_pem  # noqa: F401
 
