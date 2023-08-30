@@ -112,7 +112,7 @@ def try_extract_realm(unverified_jwt):
 def load_realm_key(realmId, key_master):
     realmKey = {}
     try:
-        realmKey = key_master.get_key(f"KEYCLOAK-PUBLIC-{realmId}")
+        realmKey = key_master.public_key(f"KEYCLOAK-PUBLIC-{realmId}")
     except KeyNotFoundError:
         try:
             KEYCLOAK_HOST = _get_keycloak_host()

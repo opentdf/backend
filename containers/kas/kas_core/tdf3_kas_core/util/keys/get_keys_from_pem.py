@@ -4,6 +4,11 @@ import logging
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ec import (
+    EllipticCurvePrivateKey,
+    EllipticCurvePublicKey,
+)
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from cryptography import x509
 
 from tdf3_kas_core.errors import KeyNotFoundError
@@ -13,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 def get_public_key_from_pem(pem):
     """Deserialize a public key from a pem string."""
+    if isinstance(pem, EllipticCurvePublicKey) or isinstance(pem, RSAPublicKey):
+        return pem
     try:
         try:
             logger.debug("Attempting to returndeserialize key")
@@ -31,6 +38,8 @@ def get_public_key_from_pem(pem):
 
 def get_private_key_from_pem(pem):
     """Deserialize a private key from a PEM string."""
+    if isinstance(pem, EllipticCurvePrivateKey) or isinstance(pem, RSAPrivateKey):
+        return pem
     try:
         logger.debug("Attempting to return deserialized key")
         return serialization.load_pem_private_key(

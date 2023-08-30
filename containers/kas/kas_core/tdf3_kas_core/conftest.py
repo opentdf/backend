@@ -3,6 +3,7 @@
 Pytest searches for conftest.py files to harvest these fixtures.
 """
 
+import os
 import pytest
 
 import json
@@ -15,15 +16,51 @@ from .models import KeyAccess
 from .models import Context
 from .models.wrapped_keys import aes_encrypt_sha1
 
-from .util import get_public_key_from_disk
-from .util import get_private_key_from_disk
+from .util import get_public_key_from_pem
+from .util import get_private_key_from_pem
 from .util import generate_hmac_digest
 
-__public_key = get_public_key_from_disk("test")
-__private_key = get_private_key_from_disk("test")
 
-__entity_public_key = get_public_key_from_disk("test_alt")
-__entity_private_key = get_private_key_from_disk("test_alt")
+def test_key_path(type):
+    return os.path.join(
+        os.path.dirname(__file__), f"util/keys/keys_for_tests/rsa_{type}.pem"
+    )
+
+
+@pytest.fixture
+def public_key_path():
+    return test_key_path("public")
+
+
+@pytest.fixture
+def private_key_path():
+    return test_key_path("private")
+
+
+@pytest.fixture
+def entity_public_key_path():
+    return test_key_path("public_alt")
+
+
+@pytest.fixture
+def entity_private_path():
+    return test_key_path("private_alt")
+
+
+def read_test_file(path):
+    with open(path, "rb") as test_file:
+        return test_file.read()
+
+
+__public_key = get_public_key_from_pem(read_test_file(test_key_path("public")))
+__private_key = get_private_key_from_pem(read_test_file(test_key_path("private")))
+
+__entity_public_key = get_public_key_from_pem(
+    read_test_file(test_key_path("public_alt"))
+)
+__entity_private_key = get_private_key_from_pem(
+    read_test_file(test_key_path("private_alt"))
+)
 
 
 @pytest.fixture

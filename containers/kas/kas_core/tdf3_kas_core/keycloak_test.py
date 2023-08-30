@@ -53,16 +53,19 @@ fakeDecodedToken = """
 
 class FakeKeyMaster:
     def __init__(self, private_key) -> None:
-        self.private_key = private_key
+        self._private_key = private_key
 
     def set_key_pem(self, key_name, key_type, pem_key):
         """Set a key directly with a PEM encoded string."""
 
-    def get_key(self, name):
+    def private_key(self, name):
+        if name == "KAS-PRIVATE":
+            return self._private_key
+        raise KeyNotFoundError(f"Unknown test key: {name}")
+
+    def public_key(self, name):
         if name == "KEYCLOAK-PUBLIC-tdf":
             return KEYCLOAK_PUBLIC_KEY
-        elif name == "KAS-PRIVATE":
-            return self.private_key
         raise KeyNotFoundError(f"Unknown test key: {name}")
 
 

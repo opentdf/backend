@@ -148,13 +148,16 @@ def test_claims_object():
 
 class FakeKeyMaster:
     def __init__(self, private_key) -> None:
-        self.private_key = private_key
+        self._private_key = private_key
 
-    def get_key(self, name):
+    def private_key(self, name):
+        if name == "KAS-PRIVATE":
+            return self._private_key
+        raise KeyNotFoundError(f"Unknown test key: {name}")
+
+    def public_key(self, name):
         if name == "KEYCLOAK-PUBLIC-tdf":
             return KEYCLOAK_PUBLIC_KEY
-        elif name == "KAS-PRIVATE":
-            return self.private_key
         raise KeyNotFoundError(f"Unknown test key: {name}")
 
 
@@ -168,19 +171,19 @@ def key_master(private_key):
     return FakeKeyMaster(private_key)
 
 
-def test_kas_public_rsa_key():
+def test_kas_public_rsa_key(public_key_path):
     """Test the getter for the KAS public key."""
     km = KeyMaster()
-    km.set_key_path("KAS-PUBLIC", "PUBLIC", "test")
+    km.set_key_path("KAS-PUBLIC", "PUBLIC", public_key_path)
     expected = km.get_export_string("KAS-PUBLIC")
     actual = kas_public_key(km, "rsa:2048")
     assert actual == expected
 
 
-def test_kas_public_ec_key():
+def test_kas_public_ec_key(public_key_path):
     """Test the getter for the KAS public key."""
     km = KeyMaster()
-    km.set_key_path("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", "test")
+    km.set_key_path("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", public_key_path)
     expected = km.get_export_string("KAS-EC-SECP256R1-PUBLIC")
     actual = kas_public_key(km, "ec:secp256r1")
     assert actual == expected
