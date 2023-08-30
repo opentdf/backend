@@ -186,7 +186,7 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
         version="4.0.16",
     )
 
-    k8s_resource("ingress-nginx-controller", port_forwards="5432:80")
+    k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
 
     # TODO not sure why this needs to be installed separately, but
     # our ingress config won't work without it.
