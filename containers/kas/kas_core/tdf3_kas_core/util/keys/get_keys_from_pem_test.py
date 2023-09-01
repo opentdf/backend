@@ -3,6 +3,7 @@
 import os
 import pytest  # noqa: F401
 
+from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
@@ -33,7 +34,7 @@ def test_get_public_key_from_pem_cert():
     with open(path, "rb") as test_file:
         public_key_cert = test_file.read()
         public_key = get_public_key_from_pem(public_key_cert)
-        assert isinstance(public_key, RSAPublicKey)
+        assert isinstance(public_key, x509.Certificate)
 
 
 # //////// Private Key //////////

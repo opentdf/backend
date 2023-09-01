@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.asymmetric.types import (
     PrivateKeyTypes,
     PublicKeyTypes,
 )
+from cryptography import x509
 
 from tdf3_kas_core.util import get_public_key_from_pem
 from tdf3_kas_core.util import get_private_key_from_pem
@@ -35,7 +36,7 @@ class PrivateKey(Key):
 
 @dataclasses.dataclass
 class PublicKey(Key):
-    v_public: PublicKeyTypes
+    v_public: PublicKeyTypes | x509.Certificate
 
 
 class KeyMaster(object):
@@ -80,6 +81,10 @@ class KeyMaster(object):
         """Get an exportable key string."""
         if key_name in self.__keys:
             key_obj = self.__keys[key_name]
+            if isinstance(key_obj.v_public, x509.Certificate):
+                return key_obj.v_public.public_bytes(
+                    encoding=serialization.Encoding.PEM
+                ).decode("ascii")
             return key_obj.v_public.public_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PublicFormat.SubjectPublicKeyInfo,

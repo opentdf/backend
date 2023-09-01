@@ -16,9 +16,15 @@ from tdf3_kas_core.errors import KeyNotFoundError
 logger = logging.getLogger(__name__)
 
 
-def get_public_key_from_pem(pem):
+def get_public_key_from_pem(
+    pem,
+) -> x509.Certificate | EllipticCurvePrivateKey | RSAPublicKey:
     """Deserialize a public key from a pem string."""
-    if isinstance(pem, EllipticCurvePublicKey) or isinstance(pem, RSAPublicKey):
+    if (
+        isinstance(pem, EllipticCurvePublicKey)
+        or isinstance(pem, RSAPublicKey)
+        or isinstance(pem, x509.Certificate)
+    ):
         return pem
     try:
         try:
@@ -27,8 +33,8 @@ def get_public_key_from_pem(pem):
         except Exception:
             logger.debug("Deserialization failed; loading cert")
             cert = x509.load_pem_x509_certificate(pem, default_backend())
-            logger.debug("Cert check passed, returning key")
-            return cert.public_key()
+            logger.debug("Cert check passed, returning cert")
+            return cert
 
     except Exception as err:
         raise KeyNotFoundError(
