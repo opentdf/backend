@@ -319,9 +319,6 @@ def rewrap_v2(data, context, plugin_runner, key_master):
 
     algorithm = dataJson.get("algorithm", None)
     if algorithm is None:
-        logger.warning(
-            "'algorithm' is missing; defaulting to TDF3 rewrap standard, RSA-2048."
-        )
         algorithm = "rsa:2048"
 
     # entity = Entity(claims.user_id, client_public_key, claims.attributes)
