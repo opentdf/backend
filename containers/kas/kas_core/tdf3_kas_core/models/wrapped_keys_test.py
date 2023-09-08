@@ -7,8 +7,6 @@ from cryptography.hazmat.backends.openssl.rsa import _RSAPrivateKey, _RSAPublicK
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from tdf3_kas_core.errors import CryptoError
-from tdf3_kas_core.util import get_public_key_from_disk
-from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
 from tdf3_kas_core.util.cipher.aes_gcm import aes_gcm_encrypt
 
@@ -96,20 +94,10 @@ def test_aes_gcm_mode():
     assert actual == expected
 
 
-public_key_pem = get_public_key_from_disk("test", as_pem=True)
-private_key_pem = get_private_key_from_disk("test", as_pem=True)
-
-
 def test_assure_public_key_key(public_key):
     """Test assure_public_key passes through RSAPublicKeys."""
     actual = assure_public_key(public_key)
     assert actual == public_key
-
-
-def test_assure_public_key_pem():
-    """Test assure_public_key converts PEM encoded bytes."""
-    actual = assure_public_key(public_key_pem)
-    assert isinstance(actual, _RSAPublicKey)
 
 
 def test_assure_public_key_fail_str():
@@ -136,12 +124,6 @@ def test_assure_private_key_key(private_key):
     assert actual == private_key
 
 
-def test_assure_private_key_pem():
-    """Test assure_private_key converts PEM encoded bytes."""
-    actual = assure_private_key(private_key_pem)
-    assert isinstance(actual, _RSAPrivateKey)
-
-
 def test_assure_private_key_fail_bad_input():
     """Test assure_private_key raises error on bad input."""
     with pytest.raises(CryptoError):
@@ -152,9 +134,3 @@ def test_assure_private_key_fail_public(public_key):
     """Test assure_private_key raises error on public key."""
     with pytest.raises(CryptoError):
         assure_private_key(public_key)
-
-
-def test_assure_private_key_fail_public_pem():
-    """Test assure_private_key raises error on bad input."""
-    with pytest.raises(CryptoError):
-        assure_private_key(public_key_pem)

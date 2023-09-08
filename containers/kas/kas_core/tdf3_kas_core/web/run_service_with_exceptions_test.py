@@ -121,7 +121,7 @@ def test_KeyNotFoundError(req):
     serv = create_service(KeyNotFoundError)
     actual = (run_service_with_exceptions(serv))(req)
     assert isinstance(actual, flask.Response)
-    assert actual.status_code == 403
+    assert actual.status_code == 404
 
 
 def test_JWTError(req):

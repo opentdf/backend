@@ -149,7 +149,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                dataJson["entity"], key_master.get_key("AA-PUBLIC")
+                dataJson["entity"], key_master.public_key("AA-PUBLIC")
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -162,7 +162,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                data["entity"], key_master.get_key("AA-PUBLIC")
+                data["entity"], key_master.public_key("AA-PUBLIC")
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -200,9 +200,14 @@ def rewrap(data, context, plugin_runner, key_master):
 def _get_bearer_token_from_header(context):
     # Get bearer token
     try:
-        authToken = (context.data["X-Tdf-Claims"]
-                     if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED") == "true")
-                     else context.data["Authorization"])
+        authToken = (
+            context.data["X-Tdf-Claims"]
+            if (
+                context.has("X-Tdf-Claims")
+                and os.environ.get("V2_SAAS_ENABLED") == "true"
+            )
+            else context.data["Authorization"]
+        )
         bearer, _, idpJWT = authToken.partition(" ")
     except KeyError as e:
         raise UnauthorizedError("Missing auth header") from e
@@ -221,9 +226,11 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     then returns the JSON
     """
     idpJWT = _get_bearer_token_from_header(context)
-    realmKey = (key_master.get_key("AA-PUBLIC")
-                if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
-                else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master))
+    realmKey = (
+        key_master.public_key("AA-PUBLIC")
+        if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
+        else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
+    )
     return authorized_v2(realmKey, idpJWT)
 
 
@@ -326,7 +333,6 @@ def rewrap_v2(data, context, plugin_runner, key_master):
     if algorithm == "ec:secp256r1":
         return _nano_tdf_rewrap(dataJson, context, plugin_runner, key_master, claims)
     else:
-
         if "keyAccess" not in dataJson:
             logger.error("Key Access missing from %s", dataJson)
             raise KeyAccessError("No key access object")
@@ -347,7 +353,7 @@ def _tdf3_rewrap(data, context, plugin_runner, key_master, entity):
         canonical_policy = data["policy"]
         original_policy = Policy.construct_from_raw_canonical(canonical_policy)
 
-        kas_private = key_master.get_key("KAS-PRIVATE")
+        kas_private = key_master.private_key("KAS-PRIVATE")
         key_access = KeyAccess.from_raw(
             data["keyAccess"],
             private_key=kas_private,
@@ -434,7 +440,7 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
         canonical_policy = data["policy"]
         original_policy = Policy.construct_from_raw_canonical(canonical_policy)
 
-        kas_private = key_master.get_key("KAS-PRIVATE")
+        kas_private = key_master.private_key("KAS-PRIVATE")
         key_access = KeyAccess.from_raw(
             data["keyAccess"],
             private_key=kas_private,
@@ -552,7 +558,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
 
     # NOTE: The KAS and EAS only support secp256r1 curve for now.
     # generate a symmetric key.
-    kas_private = key_master.get_key("KAS-EC-SECP256R1-PRIVATE")
+    kas_private = key_master.private_key("KAS-EC-SECP256R1-PRIVATE")
     private_key_bytes = kas_private.private_bytes(
         serialization.Encoding.DER,
         serialization.PrivateFormat.PKCS8,
@@ -665,7 +671,9 @@ def upsert(data, context, plugin_runner, key_master):
     if "entity" not in data:
         raise AuthorizationError("No Entity object")
 
-    entity = Entity.load_from_raw_data(data["entity"], key_master.get_key("AA-PUBLIC"))
+    entity = Entity.load_from_raw_data(
+        data["entity"], key_master.public_key("AA-PUBLIC")
+    )
 
     # Check the auth token.
     try:
@@ -690,7 +698,7 @@ def upsert(data, context, plugin_runner, key_master):
     if "keyAccess" not in data:
         raise KeyAccessError("No key access object")
 
-    kas_private = key_master.get_key("KAS-PRIVATE")
+    kas_private = key_master.private_key("KAS-PRIVATE")
     try:
         key_access = KeyAccess.from_raw(
             data["keyAccess"],
@@ -764,7 +772,7 @@ def upsert_v2(data, context, plugin_runner, key_master):
     if "keyAccess" not in dataJson:
         raise KeyAccessError("No key access object")
 
-    kas_private = key_master.get_key("KAS-PRIVATE")
+    kas_private = key_master.private_key("KAS-PRIVATE")
     key_access = KeyAccess.from_raw(
         dataJson["keyAccess"],
         private_key=kas_private,
