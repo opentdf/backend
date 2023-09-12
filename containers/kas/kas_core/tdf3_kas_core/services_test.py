@@ -166,11 +166,6 @@ def key_master(private_key):
     return FakeKeyMaster(private_key)
 
 
-@pytest.fixture
-def key_master(private_key):
-    return FakeKeyMaster(private_key)
-
-
 def test_kas_public_rsa_key(public_key_path):
     """Test the getter for the KAS public key."""
     km = KeyMaster()
