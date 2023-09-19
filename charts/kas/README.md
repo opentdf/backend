@@ -28,10 +28,10 @@ helm upgrade --install kas .
 
 If you wish to provide and manage your own KAS keys (recommended), you may do so by either:
 
-2. Creating/managing your own named K8S Secret in the chart namespace in the form described by [](./templates/secrets.yaml), and setting `kas.externalEnvSecretName` accordingly:
+2. Creating/managing your own named K8S Secret in the chart namespace in the form described by [](./templates/secrets.yaml), and setting `kas.externalSecretName` accordingly:
 
 ```sh
-helm upgrade --install kas --set externalEnvSecretName=<Secret-with-rsa-and-ec-keypairs> .
+helm upgrade --install kas --set externalSecretName=<Secret-with-rsa-and-ec-keypairs> .
 ```
 
 3. Supplying each private/public key as a values override, e.g:

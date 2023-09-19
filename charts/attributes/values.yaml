@@ -12,6 +12,8 @@ global:
       imagePullSecrets: []
       # -- Enable audit logging
       auditLogEnabled: false
+      # -- Audit Org Id
+      auditOrgId:
       istio:
         # -- Enable istio ingress
         enabled: false
@@ -32,6 +34,8 @@ global:
         port: 5432
         # -- The database name within the given server
         database: tdf_database
+      # -- Enable the swagger UI
+      swaggerUiEnabled: "false"
 
 # -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
@@ -52,6 +56,8 @@ serverRootPath: /
 # -- Allowed origins for CORS
 serverCorsOrigins: ""
 
+# -- (string) Override for `global.opentdf.common.swaggerUiEnabled`
+swaggerUiEnabled:
 # -- Set to enable openapi endpoint
 openapiUrl: ""
 
