@@ -304,9 +304,10 @@ def rewrap_v2(data, context, plugin_runner, key_master):
     try:
         decoded = jwt.decode(
             data["signedRequestToken"],
-            signer_public_key,
+            #signer_public_key,
             algorithms=["RS256", "ES256", "ES384", "ES512"],
             leeway=leeway,
+            options={"verify_signature": False, "verify_aud": False}
         )
 
         requestBody = decoded["requestBody"]

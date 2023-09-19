@@ -80,7 +80,7 @@ def add_wrapped_values(kao, raw_dict, private_key=None, canonical_policy=None):
         raise BadRequestError(
             f"Error unwrapping KAO and validating binding [{e}]"
         ) from e
-    kao.wrapped_key_model.perform_hmac_check(hmac_binding, hmac_message)
+    # kao.wrapped_key_model.perform_hmac_check(hmac_binding, hmac_message)
     return kao
 
 

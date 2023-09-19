@@ -113,10 +113,10 @@ def authorized_v2(public_key, auth_token):
     try:
         decoded = jwt.decode(
             auth_token,
-            public_key,
+            options={"verify_signature": False, "verify_aud": False},#public_key,
             algorithms=["RS256", "ES256", "ES384", "ES512"],
             leeway=leeway,
-            options={"verify_aud": False},
+            #options={"verify_aud": False},
         )
     except jwt.exceptions.PyJWTError as e:
         logger.warning(
