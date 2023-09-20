@@ -116,14 +116,14 @@ def _audit_log(
         "eventMetaData": {},
         "clientInfo": {
             "userAgent": None,
-            "platform": "kas",
+            "platform": "entitlements",
             "requestIp": str(socket.gethostbyname(socket.gethostname())),
         },
         "diff": {},
         "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     }
     
-    if auth_token.get("tdf_claims").get("entitlements"):
+    if auth_token.get("tdf_claims") and auth_token.get("tdf_claims").get("entitlements"):
         attributes = set()
         # just put all entitlements into one list, dont seperate by entity for now
         for item in auth_token.get("tdf_claims").get("entitlements"):

@@ -1,8 +1,10 @@
+import uuid
+import json
+import datetime
 import os
 import logging
 import sys
 import socket
-import uuid
 from enum import Enum
 from python_base import HttpMethod
 
@@ -47,6 +49,7 @@ def audit_hook(http_method, function_name, *args, **kwargs):
 
 
 def err_audit_hook(http_method, function_name, err, *args, **kwargs):
+    logger.info(err)
     if http_method in [HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE]:
         _audit_log(CallType.ERR, http_method, function_name, *args, **kwargs)
     pass
@@ -90,7 +93,7 @@ def _audit_log(
             "type": "attribute_object",
             "id": str(uuid.uuid4()),
             "attributes": {
-                "attrs": [request],
+                "attrs": [json.dumps(request.dict())],
                 "dissem": [],
                 "permissions": [] #only for user_objects
             }
@@ -113,14 +116,14 @@ def _audit_log(
         "eventMetaData": {},
         "clientInfo": {
             "userAgent": None,
-            "platform": "kas",
+            "platform": "attributes",
             "requestIp": str(socket.gethostbyname(socket.gethostname())),
         },
         "diff": {},
         "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     }
 
-    if decoded_token.get("tdf_claims").get("entitlements"):
+    if decoded_token.get("tdf_claims") and decoded_token.get("tdf_claims").get("entitlements"):
         attributes = set()
         # just put all entitlements into one list, dont seperate by entity for now
         for item in decoded_auth.get("tdf_claims").get("entitlements"):
