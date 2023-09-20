@@ -2,6 +2,7 @@ import os
 import logging
 import sys
 import socket
+import uuid
 from enum import Enum
 from python_base import HttpMethod
 
@@ -87,9 +88,9 @@ def _audit_log(
         "id": str(uuid.uuid4()),
         "object": {
             "type": "attribute_object",
-            "id": "",
+            "id": str(uuid.uuid4()),
             "attributes": {
-                "attrs": [],
+                "attrs": [request],
                 "dissem": [],
                 "permissions": [] #only for user_objects
             }

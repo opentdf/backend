@@ -60,7 +60,7 @@ def err_audit_hook(http_method, function_name, err, *args, **kwargs):
 
 
 def _audit_log(
-    call_type, http_method, function_name, request, decoded_token, *args, **kwargs
+    call_type, http_method, function_name, request, auth_token, *args, **kwargs
 ):
     # not currently configured for attribute audit logging
     if http_method == HttpMethod.POST:
@@ -91,7 +91,7 @@ def _audit_log(
         "id": str(uuid.uuid4()),
         "object": {
             "type": "entity_object",
-            "id": "",
+            "id": str(uuid.uuid4()),
             "attributes": {
                 "attrs": request,
                 "dissem": [],
@@ -103,11 +103,11 @@ def _audit_log(
             "result": transaction_result,
         },
         "owner": {
-            "id": decoded_token.get("sub") if type(decoded_token) is dict else None,
+            "id": auth_token.get("sub") if type(auth_token) is dict else None,
             "orgId": ORG_ID
         },
         "actor": {
-            "id": decoded_token.get("azp") if type(decoded_token) is dict else None,
+            "id": auth_token.get("azp") if type(auth_token) is dict else None,
             "attributes": {
                 "attrs": [],
                 "permissions": [] #only for user_objects
@@ -123,10 +123,10 @@ def _audit_log(
         "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     }
     
-    if decoded_token.get("tdf_claims").get("entitlements"):
+    if auth_token.get("tdf_claims").get("entitlements"):
         attributes = set()
         # just put all entitlements into one list, dont seperate by entity for now
-        for item in decoded_auth.get("tdf_claims").get("entitlements"):
+        for item in auth_token.get("tdf_claims").get("entitlements"):
             for attribute in item.get("entity_attributes"):
                 attributes.add(attribute.get("attribute"))
         audit_log["actor"]["attributes"]["attrs"] = list(attributes)
