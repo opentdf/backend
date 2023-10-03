@@ -123,22 +123,10 @@ def create_session_public_key(key_master):
     The keymaster is carried in the closure of this function.
     """
 
-    def session_kas_public_key(algorithm):
-        return services.kas_public_key(key_master, algorithm)
+    def session_kas_public_key(algorithm, fmt, v):
+        return services.kas_public_key(key_master, algorithm, fmt, v)
 
     return session_kas_public_key
-
-
-def create_session_public_key_v2(key_master):
-    """Create a session callable for getting the public key.
-
-    The keymaster is carried in the closure of this function.
-    """
-
-    def session_kas_public_key_v2(algorithm, fmt):
-        return services.kas_public_key_v2(key_master, algorithm, fmt)
-
-    return session_kas_public_key_v2
 
 
 class Kas(object):
@@ -181,7 +169,6 @@ class Kas(object):
         self._session_upsert = None
         self._session_upsert_v2 = None
         self._session_kas_public_key = None
-        self._session_kas_public_key_v2 = None
         self._app = None
 
         Kas.__instance = self
@@ -312,10 +299,6 @@ class Kas(object):
         """return the callable to process public key requests."""
         return self._session_kas_public_key
 
-    def get_session_public_key_v2(self):
-        """return the callable to process public key requests."""
-        return self._session_kas_public_key_v2
-
     def app(self):
         """Produce a wsgi-callable app.
 
@@ -348,7 +331,6 @@ class Kas(object):
         )
 
         self._session_kas_public_key = create_session_public_key(self._key_master)
-        self._session_kas_public_key = create_session_public_key_v2(self._key_master)
 
         flask_options = {"swagger_url": "/docs"}
         app = connexion.FlaskApp(

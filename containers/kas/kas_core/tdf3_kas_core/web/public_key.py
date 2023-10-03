@@ -23,6 +23,4 @@ def get(algorithm: str = "rsa:2048", fmt: str = "pkcs8", v: str = "1"):
     logger.debug(
         "web.kas_public_key.get(algorithm=[%s], fmt=[%s], v=[%s])", algorithm, fmt, v
     )
-    if fmt != "pkcs8" or v == "2":
-        return (Kas.get_instance().get_session_public_key_v2())(algorithm, fmt)
-    return (Kas.get_instance().get_session_public_key())(algorithm)
+    return (Kas.get_instance().get_session_public_key())(algorithm, fmt, v)

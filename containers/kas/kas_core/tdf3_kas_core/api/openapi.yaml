@@ -74,7 +74,7 @@ paths:
           description: response format
           in: query
           schema:
-            default: spki
+            default: pkcs8
             type: string
             enum:
               - jwk

@@ -85,38 +85,16 @@ PublicKeyFormats = typing.Literal["jwks", "pkcs8"]
 PublicKeyVersions = typing.Literal["1", "2"]
 
 
-def kas_public_key(key_master: KeyMaster, algorithm: PublicKeyAlgorithmTypes) -> str:
-    """Serve the current KAS public key.
-
-    OIDC flow removes EOs and EAS calls, and so uses this to dynamically
-    fetch the KAS public key, if the client not explicitly set a KAS public
-    key in clientside config, and if an alternate key endpoint is not defined
-    in Virtru custom claims.
-    """
+def kas_public_key(
+    key_master: KeyMaster,
+    algorithm: PublicKeyAlgorithmTypes,
+    fmt: PublicKeyFormats = "pkcs8",
+    version: PublicKeyVersions = "1",
+) -> str | dict:
+    """Serve the current KAS public key and key identifier, in the requested format."""
     logger.debug("===== KAS PUBLIC KEY SERVICE START ====")
 
-    public_key = None
-    if algorithm == "rsa:2048":
-        public_key = key_master.get_export_string("KAS-PUBLIC")
-    elif algorithm == "ec:secp256r1":
-        public_key = key_master.get_export_string("KAS-EC-SECP256R1-PUBLIC")
-
-    if public_key is None:
-        msg = "Could not produce a public key"
-        logger.error(msg)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
-        raise KeyNotFoundError(msg)
-
-    logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
-    return public_key
-
-
-def kas_public_key_v2(
-    key_master: KeyMaster, algorithm: PublicKeyAlgorithmTypes, fmt: PublicKeyFormats
-) -> str:
-    """Serve the current KAS public key and key identifier, in the requested format."""
-    logger.debug("===== KAS PUBLIC KEY SERVICE v2 START ====")
-
+    with_kid = version == "2"
     public_key = None
     if algorithm == "rsa:2048":
         public_key = key_master.public_key("KAS-PUBLIC")
@@ -129,26 +107,30 @@ def kas_public_key_v2(
         logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise KeyNotFoundError(msg)
 
-    logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
     if isinstance(public_key, x509.Certificate):
         # TODO Replace with JWK.thumbprint
-        kid = base64.b64encode(public_key.fingerprint(hashes.SHA256()))
         public_key_bytes = public_key.public_bytes(encoding=serialization.Encoding.PEM)
+        if with_kid:
+            kid = base64.b64encode(public_key.fingerprint(hashes.SHA256()))
     else:
         public_key_bytes = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
-        # TODO Replace with JWK.thumbprint
-        digest = hashes.Hash(hashes.SHA256())
-        digest.update(public_key_bytes)
-        digest.update(b"123")
-        kid = base64.b64encode(digest.finalize())
+        if with_kid:
+            # TODO Replace with JWK.thumbprint
+            digest = hashes.Hash(hashes.SHA256())
+            digest.update(public_key_bytes)
+            digest.update(b"123")
+            kid = base64.b64encode(digest.finalize())
 
-    return {
-        "kid": kid,
-        "public_key": public_key_bytes.decode("ascii"),
-    }
+    logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
+    if with_kid:
+        return {
+            "kid": kid.decode("ascii"),
+            "public_key": public_key_bytes.decode("ascii"),
+        }
+    return public_key_bytes.decode("ascii")
 
 
 def ping(version):
@@ -581,7 +563,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     legacy_wrapping = flags[
         "default_to_small_iv"
     ] and client_version < packaging.version.parse("0.0.1")
-    logger.info(
+    logger.warning(
         f"virtru-ntdf-version: [{client_version}]; legacy_wrapping: {legacy_wrapping}"
     )
 
@@ -760,7 +742,7 @@ def upsert(data, context, plugin_runner, key_master):
     messages = plugin_runner.upsert(original_policy, entity, key_access, context)
 
     if messages:
-        logger.info("Upsert Status Messages = %s", messages)
+        logger.warning("Upsert Status Messages = %s", messages)
     logger.debug("UPSERT SERVICE FINISH")
 
     return messages  # XXX: Don't return internals!!

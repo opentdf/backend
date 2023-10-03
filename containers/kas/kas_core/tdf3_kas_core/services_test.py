@@ -189,10 +189,10 @@ def test_kas_public_key_v2_rsa(public_key):
     km = KeyMaster()
     km.set_key_pem("KAS-PUBLIC", "PUBLIC", public_key)
     expected = {
-        "kid": b"nxO623BNDCXfI+t/OGwCTcZ70vwJcuyYyniKQxmrbEQ=",
+        "kid": "nxO623BNDCXfI+t/OGwCTcZ70vwJcuyYyniKQxmrbEQ=",
         "public_key": km.get_export_string("KAS-PUBLIC"),
     }
-    actual = kas_public_key_v2(km, algorithm="rsa:2048", fmt="pkcs8")
+    actual = kas_public_key(km, algorithm="rsa:2048", fmt="pkcs8", version="2")
     assert actual == expected
 
 
@@ -201,10 +201,10 @@ def test_kas_public_key_v2_ec(ec_cert):
     km = KeyMaster()
     km.set_key_pem("KAS-EC-SECP256R1-PUBLIC", "PUBLIC", ec_cert)
     expected = {
-        "kid": b"NQWzlLx8oNFRTxkkvKAXDiEwHtDlRmhQE2AMC7xa7i0=",
+        "kid": "NQWzlLx8oNFRTxkkvKAXDiEwHtDlRmhQE2AMC7xa7i0=",
         "public_key": km.get_export_string("KAS-EC-SECP256R1-PUBLIC"),
     }
-    actual = kas_public_key_v2(km, algorithm="ec:secp256r1", fmt="pkcs8")
+    actual = kas_public_key(km, algorithm="ec:secp256r1", fmt="pkcs8", version="2")
     assert actual == expected
 
 
