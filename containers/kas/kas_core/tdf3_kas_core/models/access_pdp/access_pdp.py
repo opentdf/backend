@@ -123,4 +123,4 @@ class AccessPDP(object):
 
         # Final check - KAS wants an error thrown if access == false
         if not access:
-            raise AuthorizationError(f"Access Denied")
+            raise AuthorizationError("Access Denied")
