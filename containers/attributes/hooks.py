@@ -6,7 +6,7 @@ import logging
 import sys
 import socket
 from enum import Enum
-from python_base import HttpMethod
+from python_base import HttpMethod, enable_json_logging
 
 ##### Set Up Logger ########
 
@@ -15,12 +15,10 @@ AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "
 
 ORG_ID = os.getenv("CONFIG_ORG_ID", str(uuid.uuid4()))
 
-logging.basicConfig(
-    stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
-)
+if AUDIT_ENABLED:
+    enable_json_logging()
 
 logging.addLevelName(AUDIT_LEVEL_NUM, "AUDIT")
-
 
 def audit(self, message, *args, **kws):
     if self.isEnabledFor(AUDIT_LEVEL_NUM) and AUDIT_ENABLED:
@@ -29,7 +27,7 @@ def audit(self, message, *args, **kws):
 
 logging.Logger.audit = audit
 logger = logging.getLogger(__package__)
-
+    
 ##### Custom Enums #########
 
 
@@ -74,19 +72,6 @@ def _audit_log(
     else:
         transaction_result = "success"
 
-    # audit_log = {
-    #     "id": str(uuid.uuid4()),
-    #     "transaction_timestamp": str(datetime.datetime.now()),
-    #     "tdf_id": None,
-    #     "tdf_name": None,
-    #     # this will be the clientid or user
-    #     "owner_id": decoded_token.get("azp") if type(decoded_token) is dict else None,
-    #     # who created the token: http://localhost:65432/auth/realms/tdf
-    #     "owner_org_id": decoded_token.get("iss") if type(decoded_token) is dict else None,
-    #     "transaction_type": transaction_type,
-    #     "action_type": "access_modified",
-    #     "tdf_attributes": request.dict(),
-    # }
     audit_log = {
         "id": str(uuid.uuid4()),
         "object": {

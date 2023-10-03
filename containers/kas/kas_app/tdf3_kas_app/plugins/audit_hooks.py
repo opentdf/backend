@@ -28,19 +28,6 @@ def audit_hook(function_name, return_value, data, context, *args, **kwargs):
 
     # wrap in try except to prevent unnecessary 500s
     try:
-        # audit_log = {
-        #     "id": str(uuid.uuid4()),
-        #     "transactionId": str(uuid.uuid4()), ##TODO
-        #     "transactionTimestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        #     "tdfId": "",
-        #     "tdfName": None,
-        #     "ownerId": "",
-        #     "ownerOrganizationId": ORG_ID,
-        #     "transactionType": "create",
-        #     "eventType": "decrypt",
-        #     "tdfAttributes": {"dissem": [], "attrs": []},
-        #     "actorAttributes": {"npe": True, "actorId": "", "attrs": []},
-        # }
         audit_log = {
             "id": str(uuid.uuid4()),
             "object": {
@@ -103,20 +90,6 @@ def err_audit_hook(
         # not yet auditing other errors, only access denied
         if not (type(err) is AuthorizationError) and ("Access Denied" in str(err)):
             return
-
-        # audit_log = {
-        #     "id": str(uuid.uuid4()),
-        #     "transactionId": str(uuid.uuid4()),
-        #     "transactionTimestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        #     "tdfId": "",
-        #     "tdfName": None,
-        #     "ownerId": "",
-        #     "ownerOrganizationId": ORG_ID,
-        #     "transactionType": "create_error",
-        #     "eventType": "access_denied",
-        #     "tdfAttributes": {"dissem": [], "attrs": []},
-        #     "actorAttributes": {"npe": True, "actorId": "", "attrs": []},
-        # }
 
         audit_log = {
             "id": str(uuid.uuid4()),
