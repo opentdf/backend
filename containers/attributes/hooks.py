@@ -13,7 +13,7 @@ from python_base import HttpMethod, enable_json_logging
 AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
 AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
 
-ORG_ID = os.getenv("CONFIG_ORG_ID", str(uuid.uuid4()))
+ORG_ID = os.getenv("AUDIT_ORG_ID", str(uuid.uuid4()))
 
 if AUDIT_ENABLED:
     enable_json_logging()

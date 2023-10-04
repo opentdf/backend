@@ -20,7 +20,7 @@ from tdf3_kas_core.errors import AuthorizationError
 
 logger = logging.getLogger(__name__)
 
-ORG_ID = os.getenv("CONFIG_ORG_ID", str(uuid.uuid4()))
+ORG_ID = os.getenv("AUDIT_ORG_ID", str(uuid.uuid4()))
 
 
 def audit_hook(function_name, return_value, data, context, *args, **kwargs):
