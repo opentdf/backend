@@ -22,3 +22,4 @@ data:
   AUDIT_ENABLED: {{ .Values.global.opentdf.common.auditLogEnabled | quote  }}
   SWAGGER_UI: {{ .Values.swaggerUIEnabled | quote }}
   USE_OIDC: "1"
+  AUDIT_ORG_ID: {{ .Values.global.opentdf.common.auditOrgId | quote }}

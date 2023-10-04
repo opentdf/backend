@@ -4,7 +4,8 @@ import datetime
 import os
 import logging
 import sys
-from python_base import HttpMethod
+import socket
+from python_base import HttpMethod, enable_json_logging
 from enum import Enum
 
 
@@ -13,6 +14,10 @@ from enum import Enum
 AUDIT_LEVEL_NUM = os.getenv("AUDIT_LEVEL_NUM", 45)
 AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
 
+ORG_ID = os.getenv("AUDIT_ORG_ID", str(uuid.uuid4()))
+
+if AUDIT_ENABLED:
+    enable_json_logging()
 
 logging.basicConfig(
     stream=sys.stdout, level=os.getenv("SERVER_LOG_LEVEL", "CRITICAL").upper()
@@ -57,7 +62,64 @@ def err_audit_hook(http_method, function_name, err, *args, **kwargs):
 
 
 def _audit_log(
-    call_type, http_method, function_name, request, auth_token, *args, **kwargs
+    call_type, http_method, function_name, entityId, request, auth_token, *args, **kwargs
 ):
-    # not currently configured for entity audit logging
-    pass
+    # not currently configured for attribute audit logging
+    if http_method == HttpMethod.POST:
+        transaction_type = "create"
+    elif http_method == HttpMethod.DELETE:
+        transaction_type = "delete"
+    else:
+        transaction_type = "update"
+
+    if call_type == CallType.ERR:
+        transaction_result = "error"
+    else:
+        transaction_result = "success"
+
+    audit_log = {
+        "id": str(uuid.uuid4()),
+        "object": {
+            "type": "entity_object",
+            "id": str(uuid.uuid4()),
+            "attributes": {
+                "attrs": request,
+                "entity": entityId,
+                "dissem": [],
+                "permissions": [] #only for user_objects
+            }
+        },
+        "action": {
+            "type": transaction_type,
+            "result": transaction_result,
+        },
+        "owner": {
+            "id": auth_token.get("sub") if type(auth_token) is dict else None,
+            "orgId": ORG_ID
+        },
+        "actor": {
+            "id": auth_token.get("azp") if type(auth_token) is dict else None,
+            "attributes": {
+                "attrs": [],
+                "permissions": [] #only for user_objects
+            }
+        },
+        "eventMetaData": {},
+        "clientInfo": {
+            "userAgent": None,
+            "platform": "entitlements",
+            "requestIp": str(socket.gethostbyname(socket.gethostname())),
+        },
+        "diff": {},
+        "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    }
+    
+    if auth_token.get("tdf_claims") and auth_token.get("tdf_claims").get("entitlements"):
+        attributes = set()
+        # just put all entitlements into one list, dont seperate by entity for now
+        for item in auth_token.get("tdf_claims").get("entitlements"):
+            for attribute in item.get("entity_attributes"):
+                attributes.add(attribute.get("attribute"))
+        audit_log["actor"]["attributes"]["attrs"] = list(attributes)
+
+    logger.audit(json.dumps(audit_log))
