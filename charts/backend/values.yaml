@@ -32,7 +32,7 @@ global:
       # -- Enable audit logging
       auditLogEnabled: false
       # -- Audit Org Id
-      auditOrgId:
+      auditOrgId: ""
       istio:
         # -- Enable istio ingress
         enabled: false
