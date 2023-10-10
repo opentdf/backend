@@ -82,5 +82,4 @@ class AttributePolicyCache(object):
             return self.__policies[namespace]
         except Exception as e:
             logger.exception(e)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
             return None

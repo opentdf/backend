@@ -37,10 +37,9 @@ class ClaimsAttributes(AttributeSet):
                     logger.warning("DEPRECATED - attribute 'url' should be 'attribute'")
                     entity_attribute_set.add(AttributeValue(attributeObj["url"]))
                 else:
-                    msg = f"'attribute' field missing = {attributeObj}"
-                    logger.error(msg)
-                    logger.setLevel(logging.DEBUG)  # dynamically escalate level
-                    raise InvalidAttributeError(msg)
+                    raise InvalidAttributeError(
+                        f"'attribute' field missing = {attributeObj}"
+                    )
             entitlements[entityname] = entity_attribute_set
 
         return entitlements

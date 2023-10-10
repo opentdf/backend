@@ -95,10 +95,7 @@ def kas_public_key(key_master, algorithm):
         public_key = key_master.get_export_string("KAS-EC-SECP256R1-PUBLIC")
 
     if public_key is None:
-        msg = "Could not produce a public key"
-        logger.error(msg)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
-        raise KeyNotFoundError(msg)
+        raise KeyNotFoundError("Could not produce a public key")
 
     logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
     return public_key
@@ -182,13 +179,12 @@ def rewrap(data, context, plugin_runner, key_master):
             raise AuthorizationError("Not authorized") from e
 
         if "keyAccess" not in data:
-            logger.error("Key Access missing from %s", data)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
+            logger.warning("Key Access missing from %s", data)
             raise KeyAccessError("No key access object")
 
         algorithm = data.get("algorithm", None)
         if algorithm is None:
-            logger.warning("'algorithm' is missing and defaulting to TDF3 rewrap.")
+            logger.info("'algorithm' is missing and defaulting to TDF3 rewrap.")
             algorithm = "rsa:2048"
 
         if algorithm == "ec:secp256r1":
@@ -421,10 +417,10 @@ def _tdf3_rewrap(data, context, plugin_runner, key_master, entity):
 
     else:
         # should never get to here. Bug in adjudicator.
-        m = f"Adjudicator returned {allowed} without raising an error"
-        logger.error(m)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
-        raise AdjudicatorError(m)
+        logger.error("invalid adjudicator response [%s]", allowed)
+        raise AdjudicatorError(
+            f"Adjudicator returned {allowed} without raising an error"
+        )
 
 
 def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
@@ -510,9 +506,8 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
 
     else:
         # should never get to here. Bug in adjudicator.
+        logger.error("invalid adjudicator response [%s]", allowed)
         m = f"AccessPDP returned {allowed} without raising an error"
-        logger.error(m)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
 
 
@@ -619,9 +614,8 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     allowed = access_pdp.can_access(policy, claims, data_attr_defs)
 
     if allowed is False:
-        m = "AccessPDP returned {} without raising an error".format(allowed)
+        m = f"AccessPDP returned {allowed} without raising an error"
         logger.error(m)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
 
     # Generate ephemeral rewrap key-pair

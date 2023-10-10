@@ -96,14 +96,12 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
             requests.exceptions.ConnectTimeout,
             requests.exceptions.ReadTimeout,
         ) as err:
-            logger.exception(err)
-            logger.setLevel(logging.DEBUG)
+            logger.warning("attr auth: timeout [%s]", uri, exc_info=err)
             raise RequestTimeoutError(
                 "Fetch attributes request connect timed out"
             ) from err
         except requests.exceptions.RequestException as err:
-            logger.exception(err)
-            logger.setLevel(logging.DEBUG)
+            logger.warning("attr auth: request exception [%s]", uri, exc_info=err)
             raise InvalidAttributeError("Unable to be fetch attributes") from err
 
         if resp.status_code != 200:

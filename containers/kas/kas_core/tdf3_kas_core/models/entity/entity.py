@@ -33,9 +33,7 @@ class Entity(object):
         # Ensure the cert is valid
         try:
             entity_cert_obj = unpack_rs256_jwt(raw_data["cert"], aa_public_key)
-
         except Exception as e:
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
             raise AuthorizationError("Cert not valid") from e
 
         # Unpack the raw data

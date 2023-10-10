@@ -27,7 +27,6 @@ class AbstractPluginRunner(object):
                 logger.debug("Plugin %s is valid, appending", plugin)
                 self._plugins.append(plugin)
             else:
-                logger.error("Plugin %s is invalid", plugin)
-                logger.setLevel(logging.DEBUG)  # dynamically escalate level
+                logger.warning("Plugin %s is invalid", plugin)
                 raise PluginIsBadError(error_msg)
         logger.debug(" -- Abstract plugin (super) constructor complete")

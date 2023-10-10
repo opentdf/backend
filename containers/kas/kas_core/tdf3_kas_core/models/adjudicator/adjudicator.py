@@ -74,10 +74,7 @@ class Adjudicator(object):
 
             entity_cluster = entity_attributes.cluster(namespace)
             if entity_cluster is None:
-                msg = f"Not authorized; entity fails on {namespace}"
-                logger.error(msg)
-                logger.setLevel(logging.DEBUG)  # dynamically escalate level
-                raise AuthorizationError(msg)
+                raise AuthorizationError(f"Not authorized; entity fails on {namespace}")
 
             entity_values = entity_cluster.values
             logger.debug("Attribute entity values = %s", entity_values)
