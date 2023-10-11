@@ -3,6 +3,7 @@
 import dataclasses
 import enum
 import logging
+from typing import Union
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.types import (
@@ -55,7 +56,7 @@ class KeyMaster(object):
         """
         self.__keys = {}
 
-    def public_key(self, key_name):
+    def public_key(self, key_name) -> PublicKeyTypes | x509.Certificate:
         """Get a PUBLIC key object that can be used to encrypt or verify things."""
         if key_name in self.__keys:
             key_obj = self.__keys[key_name]

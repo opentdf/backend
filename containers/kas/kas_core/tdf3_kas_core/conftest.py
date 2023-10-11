@@ -21,10 +21,12 @@ from .util import get_private_key_from_pem
 from .util import generate_hmac_digest
 
 
+def test_path(fname):
+    return os.path.join(os.path.dirname(__file__), f"util/keys/keys_for_tests/{fname}")
+
+
 def test_key_path(type):
-    return os.path.join(
-        os.path.dirname(__file__), f"util/keys/keys_for_tests/rsa_{type}.pem"
-    )
+    return test_path(f"rsa_{type}.pem")
 
 
 @pytest.fixture
@@ -35,6 +37,16 @@ def public_key_path():
 @pytest.fixture
 def private_key_path():
     return test_key_path("private")
+
+
+@pytest.fixture
+def ec_cert_path():
+    return test_path("ec_cert.crt")
+
+
+@pytest.fixture
+def ec_private_key_path():
+    return test_path("ec_private.key")
 
 
 @pytest.fixture
@@ -54,6 +66,9 @@ def read_test_file(path):
 
 __public_key = get_public_key_from_pem(read_test_file(test_key_path("public")))
 __private_key = get_private_key_from_pem(read_test_file(test_key_path("private")))
+
+__ec_cert = get_public_key_from_pem(read_test_file(test_path("ec_cert.crt")))
+__ec_private_key = get_private_key_from_pem(read_test_file(test_path("ec_private.key")))
 
 __entity_public_key = get_public_key_from_pem(
     read_test_file(test_key_path("public_alt"))
@@ -81,6 +96,16 @@ def entity_public_key():
 @pytest.fixture
 def entity_private_key():
     return __entity_private_key
+
+
+@pytest.fixture
+def ec_cert():
+    return __ec_cert
+
+
+@pytest.fixture
+def ec_private_key():
+    return __ec_private_key
 
 
 @pytest.fixture

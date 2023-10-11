@@ -13,7 +13,7 @@ from .plugins import (
     opentdf_attr_authority_plugin,
     revocation_plugin,
     access_pdp_healthz_plugin,
-    audit_hooks
+    audit_hooks,
 )
 
 logger = logging.getLogger(__name__)
@@ -147,7 +147,7 @@ def app(name):
     # Configure compatibility with EO mode
     aa_certificate = load_key_bytes("ATTR_AUTHORITY_CERTIFICATE", missing_variables)
     if not aa_certificate:
-        logger.warn(
+        logger.warning(
             "KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode"
         )
     else:
