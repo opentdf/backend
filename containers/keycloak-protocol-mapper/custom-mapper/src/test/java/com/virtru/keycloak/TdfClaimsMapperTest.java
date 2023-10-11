@@ -191,6 +191,7 @@ public class TdfClaimsMapperTest {
             config.put(REMOTE_URL, url);
         }
         config.put(CLAIM_NAME, "customAttrs");
+        config.put(CLAIM_LIMIT, "50");
         config.put(DPOP_ENABLED, "true");
         config.put(PUBLIC_KEY_HEADER, "testPK");
         config.put(REMOTE_PARAMETERS_USERNAME, "true");

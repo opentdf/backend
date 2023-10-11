@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -75,6 +76,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     static final String REMOTE_PARAMETERS_USERNAME = "remote.parameters.username";
     static final String REMOTE_PARAMETERS_CLIENTID = "remote.parameters.clientid";
     static final String CLAIM_NAME = "claim.name";
+    static final String CLAIM_LIMIT = "claim.limit";
     static final String DPOP_ENABLED = "client.dpop";
     static final String PUBLIC_KEY_HEADER = "client.publickey";
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
@@ -108,6 +110,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         configProperties.add(new ProviderConfigProperty(DPOP_ENABLED, "Enable DPoP Extension",
                 "Support registering proof of possession with DPoP confirmation token",
                 ProviderConfigProperty.BOOLEAN_TYPE, "true"));
+
+        configProperties.add(new ProviderConfigProperty(CLAIM_LIMIT, "Claim Count Limit",
+                "If the claim count for all entities exceeds this limit then it becomes distributed claims",
+                ProviderConfigProperty.BOOLEAN_TYPE, "50"));
     }
 
     @Override
@@ -167,13 +173,38 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
             logger.debug("Getting remote authorizations");
             JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
-            claims = buildClaimsObject(entitlements, clientPK);
+            // TODO if entitlements count over claims.limit then distrubted claims
+            // FIXME add correct condition
+            if (true) {
+                final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
+                JsonNode distributedClaims = buildDistrubtedClaimsObject(remoteUrl, entitlements);
+                OIDCAttributeMapperHelper.mapClaim(token, mappingModel, distributedClaims);
+            }
+            else {
+                claims = buildClaimsObject(entitlements, clientPK);
+                OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
+            }
             // Cache for next callback
             clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
         } else {
             logger.debug("Using cached remote authorizations: [{}]", claims);
         }
-        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
+        // FIXME handle cache or not use cache
+    }
+
+    private JsonNode buildDistrubtedClaimsObject(String entitlementURl, JsonNode entitlements) {
+        // TODO create JSON
+        // {
+        //    "_claim_names": {
+        //        "tdf_claims": "src1",
+        //    },
+        //    "_claim_sources": {
+        //        "src1": {
+        //            "endpoint": "http://internalcluster/entitlements?primary_entity_id=bc03f40c-a7af-4507-8198-d5334e2823e6&secondary_entity_ids=4f6636ca-c60c-40d1-9f3f-015086303f74"
+        //        }
+        //    }
+        // }
+        return entitlements;
     }
 
     private Map<String, Object> getHeaders(ProtocolMapperModel mappingModel, UserSessionModel userSession) {
