@@ -91,6 +91,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
         configProperties.get(configProperties.size() - 1).setDefaultValue("tdf_claims");
 
+        configProperties.add(new ProviderConfigProperty(CLAIM_LIMIT, "Claim Count Limit",
+                "If the claim count for all entities exceeds this limit then it becomes distributed claims",
+                ProviderConfigProperty.STRING_TYPE, "50"));
+
         configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Attribute Provider URL",
                 "Full URL of the remote attribute provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
                 ProviderConfigProperty.STRING_TYPE, null));
@@ -111,9 +115,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 "Support registering proof of possession with DPoP confirmation token",
                 ProviderConfigProperty.BOOLEAN_TYPE, "true"));
 
-        configProperties.add(new ProviderConfigProperty(CLAIM_LIMIT, "Claim Count Limit",
-                "If the claim count for all entities exceeds this limit then it becomes distributed claims",
-                ProviderConfigProperty.BOOLEAN_TYPE, "50"));
     }
 
     @Override
@@ -190,6 +191,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             logger.debug("Using cached remote authorizations: [{}]", claims);
         }
         // FIXME handle cache or not use cache
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
     }
 
     private JsonNode buildDistrubtedClaimsObject(String entitlementURl, JsonNode entitlements) {
