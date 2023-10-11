@@ -1,6 +1,7 @@
 """Utility functions to get public and private keys from pem strings."""
 
 import logging
+from typing import Union
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_public_key_from_pem(
-    pem,
+    pem: Union[str, x509.Certificate, EllipticCurvePrivateKey, RSAPublicKey],
 ) -> x509.Certificate | EllipticCurvePrivateKey | RSAPublicKey:
     """Deserialize a public key from a pem string."""
     if (
@@ -28,7 +29,7 @@ def get_public_key_from_pem(
         return pem
     try:
         try:
-            logger.debug("Attempting to returndeserialize key")
+            logger.debug("Attempting to return deserialized key")
             return serialization.load_pem_public_key(pem, backend=default_backend())
         except Exception:
             logger.debug("Deserialization failed; loading cert")
@@ -42,7 +43,9 @@ def get_public_key_from_pem(
         ) from err
 
 
-def get_private_key_from_pem(pem):
+def get_private_key_from_pem(
+    pem: Union[str, EllipticCurvePrivateKey, RSAPrivateKey]
+) -> EllipticCurvePrivateKey | RSAPrivateKey:
     """Deserialize a private key from a PEM string."""
     if isinstance(pem, EllipticCurvePrivateKey) or isinstance(pem, RSAPrivateKey):
         return pem

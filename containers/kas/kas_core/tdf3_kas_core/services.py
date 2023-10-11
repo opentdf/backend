@@ -28,16 +28,19 @@ import base64
 import os
 import hashlib
 import json
+import typing
 
 import tdf3_kas_core.keycloak as keycloak
 
+from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import PublicFormat
 
 from pkg_resources import packaging
 
+from tdf3_kas_core.models.key_master.key_master import KeyMaster
 from tdf3_kas_core.errors import AdjudicatorError
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import BadRequestError
@@ -77,28 +80,54 @@ flags = {
     "idp": os.environ.get("USE_OIDC") == "1",
 }
 
+PublicKeyAlgorithmTypes = typing.Literal["ec:secp256r1", "rsa:2048"]
+PublicKeyFormats = typing.Literal["jwks", "pkcs8"]
+PublicKeyVersions = typing.Literal["1", "2"]
 
-def kas_public_key(key_master, algorithm):
-    """Serve the current KAS public key.
 
-    OIDC flow removes EOs and EAS calls, and so uses this to dynamically
-    fetch the KAS public key, if the client not explicitly set a KAS public
-    key in clientside config, and if an alternate key endpoint is not defined
-    in Virtru custom claims.
-    """
+def kas_public_key(
+    key_master: KeyMaster,
+    algorithm: PublicKeyAlgorithmTypes,
+    fmt: PublicKeyFormats = "pkcs8",
+    version: PublicKeyVersions = "1",
+) -> str | dict:
+    """Serve the current KAS public key and key identifier, in the requested format."""
     logger.debug("===== KAS PUBLIC KEY SERVICE START ====")
 
+    with_kid = version == "2"
     public_key = None
     if algorithm == "rsa:2048":
-        public_key = key_master.get_export_string("KAS-PUBLIC")
+        public_key = key_master.public_key("KAS-PUBLIC")
     elif algorithm == "ec:secp256r1":
-        public_key = key_master.get_export_string("KAS-EC-SECP256R1-PUBLIC")
+        public_key = key_master.public_key("KAS-EC-SECP256R1-PUBLIC")
 
     if public_key is None:
         raise KeyNotFoundError("Could not produce a public key")
 
+    if isinstance(public_key, x509.Certificate):
+        # TODO Replace with JWK.thumbprint
+        public_key_bytes = public_key.public_bytes(encoding=serialization.Encoding.PEM)
+        if with_kid:
+            kid = base64.b64encode(public_key.fingerprint(hashes.SHA256()))
+    else:
+        public_key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        if with_kid:
+            # TODO Replace with JWK.thumbprint
+            digest = hashes.Hash(hashes.SHA256())
+            digest.update(public_key_bytes)
+            digest.update(b"123")
+            kid = base64.b64encode(digest.finalize())
+
     logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
-    return public_key
+    if with_kid:
+        return {
+            "kid": kid.decode("ascii"),
+            "public_key": public_key_bytes.decode("ascii"),
+        }
+    return public_key_bytes.decode("ascii")
 
 
 def ping(version):
@@ -529,7 +558,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     legacy_wrapping = flags[
         "default_to_small_iv"
     ] and client_version < packaging.version.parse("0.0.1")
-    logger.info(
+    logger.warning(
         f"virtru-ntdf-version: [{client_version}]; legacy_wrapping: {legacy_wrapping}"
     )
 
@@ -707,7 +736,7 @@ def upsert(data, context, plugin_runner, key_master):
     messages = plugin_runner.upsert(original_policy, entity, key_access, context)
 
     if messages:
-        logger.info("Upsert Status Messages = %s", messages)
+        logger.warning("Upsert Status Messages = %s", messages)
     logger.debug("UPSERT SERVICE FINISH")
 
     return messages  # XXX: Don't return internals!!
