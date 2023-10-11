@@ -18,16 +18,13 @@ PROTOCOL_TYPES = ("kas",)
 def add_required_values(kao, raw_dict):
     """Unpack the required values."""
     if "type" not in raw_dict:
-        logger.error("No type value in %s", raw_dict)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        logger.warning("No type value in %s", raw_dict)
         raise KeyAccessError("No type value")
     if "url" not in raw_dict:
-        logger.error("No url value in %s", raw_dict)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        logger.warning("No url value in %s", raw_dict)
         raise KeyAccessError("No url value")
     if "protocol" not in raw_dict:
-        logger.error("No protocol value in %s", raw_dict)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        logger.warning("No protocol value in %s", raw_dict)
         raise KeyAccessError("No protocol value")
 
     logger.debug("KeyAccessObject.type = %s", raw_dict["type"])
@@ -52,16 +49,13 @@ def add_wrapped_values(kao, raw_dict, private_key=None, canonical_policy=None):
     """Add the mandatory fields for 'wrapped' type key access objects."""
     # Check the inputs
     if "wrappedKey" not in raw_dict:
-        logger.error("No wrapped Key in %s", raw_dict)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        logger.warning("No wrapped Key in %s", raw_dict)
         raise KeyAccessError("No wrapped Key")
     if "policyBinding" not in raw_dict:
-        logger.error("No policy binding in %s", raw_dict)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        logger.warning("No policy binding in %s", raw_dict)
         raise KeyAccessError("No policy bindings")
     if canonical_policy is None:
-        logger.error("No canonical policy for hmac check")
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        logger.warning("No canonical policy for hmac check")
         raise KeyAccessError("Canonical policy provided")
 
     try:
@@ -101,12 +95,11 @@ def decrypt_metadata_string(raw_dict, wrapped_key=None, private_key=None):
         return None
 
     if private_key is None:
-        logger.error("No private key in %s", raw_dict)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
+        logger.warning("No private key in %s", raw_dict)
         raise KeyAccessError("No private key provided")
 
     if wrapped_key is None:
-        logger.error("No wrapped key, can't read Metadata")
+        logger.warning("No wrapped key, can't read Metadata")
         raise KeyAccessError("No wrapped key provided")
 
     raw_metadata = raw_dict["encryptedMetadata"]
