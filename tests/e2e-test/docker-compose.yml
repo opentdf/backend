@@ -8,7 +8,7 @@ services:
   eas:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.12}
       context: ../containers/entitlement_store
     depends_on:
       - migration
@@ -34,7 +34,7 @@ services:
   attributes:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.12}
       context: ../containers/attributes
     depends_on:
       - migration
@@ -59,7 +59,7 @@ services:
   entitlements:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.12}
       context: ../containers/entitlements
     depends_on:
       - migration
@@ -82,7 +82,7 @@ services:
   kas:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.12}
       context: ../containers/kas
       dockerfile: Dockerfile
     command: ["gunicorn", "--config", "gunicorn.conf.py", "wsgi:app"]
@@ -119,7 +119,7 @@ services:
       context: ..
       dockerfile: e2e-test/Dockerfile
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.12}
         - PY_OSS_VERSION=${PY_OSS_VERSION:-==1.1.1}
     depends_on:
       - eas
@@ -146,7 +146,7 @@ services:
     build:
       args:
         - PY_OSS_VERSION=${PY_OSS_VERSION:-==1.1.1}
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.12}
       context: ..
       dockerfile: containers/migration/Dockerfile
     environment:

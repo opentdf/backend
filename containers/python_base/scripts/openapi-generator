@@ -7,8 +7,8 @@ export PATH="$PATH:$APP_DIR"
 
 monolog TRACE "Running [$0${1+ }$*]"
 
-: "${ALPINE_VERSION:="3.17"}"
-: "${PY_VERSION:="3.10"}"
+: "${ALPINE_VERSION:="3.18"}"
+: "${PY_VERSION:="3.12"}"
 
 if ! cd "$PROJECT_ROOT"; then
   monolog ERROR "Unable to find project root [${PROJECT_ROOT}] from APP_DIR=[${APP_DIR}]"

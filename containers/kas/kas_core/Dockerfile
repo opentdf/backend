@@ -1,4 +1,4 @@
-ARG PY_VERSION=3.10
+ARG PY_VERSION=3.12
 FROM python:${PY_VERSION}
 
 # Set up the environment

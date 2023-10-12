@@ -12,7 +12,7 @@ min_tilt_version("0.30")
 BACKEND_DIR = os.getcwd()
 
 ALPINE_VERSION = os.environ.get("ALPINE_VERSION", "3.17")
-PY_VERSION = os.environ.get("PY_VERSION", "3.10")
+PY_VERSION = os.environ.get("PY_VERSION", "3.12")
 KEYCLOAK_BASE_VERSION = str(
     local(
         'cut -d- -f1 < "{}/{}"'.format(
