@@ -1,6 +1,6 @@
 # We need `node` for the test harness and node tests, and python pysdk testing
 ARG PY_OSS_VERSION=1.1.1
-ARG PY_TEST_VERSION=3.10
+ARG PY_TEST_VERSION=3.11
 
 FROM python:${PY_TEST_VERSION}
 

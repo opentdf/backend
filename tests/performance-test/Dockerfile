@@ -6,9 +6,8 @@ RUN pip3 install --upgrade pip
 WORKDIR /test/
 # Install pip dependencies
 RUN pip3 install --upgrade pip setuptools pipenv
-COPY performance-test/Pipfile .
-COPY performance-test/Pipfile.lock .
-RUN pipenv install --dev --system --deploy --ignore-pipfile
+COPY performance-test/requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 ENV PYTHONPATH .
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1

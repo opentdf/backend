@@ -1,5 +1,5 @@
 # NOTE - The version is also needed in the site-packages COPY command below
-ARG PY_VERSION=3.10
+ARG PY_VERSION=3.11
 ARG ALPINE_VERSION=3.17
 ARG CONTAINER_REGISTRY=docker.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
@@ -8,10 +8,8 @@ ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 WORKDIR /build
 # Install application dependencies
-COPY Pipfile .
-COPY Pipfile.lock .
-RUN pipenv lock --keep-outdated --requirements > requirements.txt && \
-    pip3 install --no-cache-dir -r requirements.txt
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 # Install application into WORKDIR
 COPY *.py ./
 COPY VERSION VERSION

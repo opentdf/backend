@@ -37,7 +37,7 @@ services:
   aa:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       context: ../containers/attributes
     depends_on:
       - statsd
@@ -65,7 +65,7 @@ services:
   eas:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       context: ../containers/entitlement_store
     depends_on:
       - statsd
@@ -95,7 +95,7 @@ services:
   kas:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       context: ../containers/kas
       dockerfile: Dockerfile
     depends_on:
@@ -133,7 +133,7 @@ services:
     build:
       args:
         - PY_OSS_VERSION=${PY_OSS_VERSION:-==1.1.1}
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       context: ..
       dockerfile: performance-test/Dockerfile
     depends_on:
@@ -161,7 +161,7 @@ services:
     build:
       args:
         - PY_OSS_VERSION=${PY_OSS_VERSION:-==1.1.1}
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       context: ..
       dockerfile: containers/migration/Dockerfile
     environment:
