@@ -155,24 +155,45 @@ def key_access_remote():
 
 
 @pytest.fixture
-def key_access_wrapped(public_key, private_key):
+def faux_policy():
+    attributes = [
+        {"attribute": "https://example.com/attr/Classification/value/S"},
+        {"attribute": "https://example.com/attr/COI/value/PRX"},
+    ]
+    return {
+        "uuid": "1111-2222-33333-44444-abddef-timestamp",
+        "body": {"dataAttributes": attributes},
+    }
+
+
+@pytest.fixture
+def faux_policy_bytes(faux_policy):
+    return base64.b64encode(str.encode(json.dumps(faux_policy)))
+
+
+@pytest.fixture
+def key_access_wrapped_raw(faux_policy_bytes, public_key):
     """Generate an access key for a wrapped type."""
     plain_key = b"This-is-the-good-key"
     wrapped_key = aes_encrypt_sha1(plain_key, public_key)
-    msg = b"This message is valid"
-    binding = str.encode(generate_hmac_digest(msg, plain_key))
+    binding = str.encode(generate_hmac_digest(faux_policy_bytes, plain_key))
 
     raw_wrapped_key = bytes.decode(base64.b64encode(wrapped_key))
     raw_binding = bytes.decode(base64.b64encode(binding))
-    canonical_policy = bytes.decode(msg)
-    raw = {
+    return {
         "type": "wrapped",
         "url": "http://127.0.0.1:4000",
         "protocol": "kas",
         "wrappedKey": raw_wrapped_key,
         "policyBinding": raw_binding,
     }
-    yield KeyAccess.from_raw(raw, private_key, canonical_policy)
+
+
+@pytest.fixture
+def key_access_wrapped(key_access_wrapped_raw, private_key, faux_policy_bytes):
+    """Generate an access key for a wrapped type."""
+    canonical_policy = bytes.decode(faux_policy_bytes)
+    yield KeyAccess.from_raw(key_access_wrapped_raw, private_key, canonical_policy)
 
 
 @pytest.fixture

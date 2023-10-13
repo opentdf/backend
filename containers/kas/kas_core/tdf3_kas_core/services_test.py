@@ -1,5 +1,6 @@
 import pytest  # noqa: F401
 
+import datetime
 import os
 import json
 import jwt
@@ -13,64 +14,8 @@ from unittest.mock import MagicMock, patch
 
 from tdf3_kas_core.models import Context
 from tdf3_kas_core.models import KeyMaster
-from tdf3_kas_core.models import Claims
 
 from tdf3_kas_core.services import *
-
-
-KEYCLOAK_ACCESS_TOKEN = """eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5a3VoOTdoakRXX2IyQkNmM243b1lTRXo5bUVaVGtmMllrMDRaR2dlN3lNIn0.eyJleHAiOjE2MTkxMTc1NzMsImlhdCI6MTYxOTExNzI3MywianRpIjoiYjJiZWQxMzktMDkzYy00NTFlLWJkNjUtY2JiNjI1ZDQ4NzBlIiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2F1dGgvcmVhbG1zL3RkZiIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJiYTUxNjJjNC0wNmUxLTRjM2EtYTYwYy1jYTk1MjcyZjQ0ZTMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ0ZGYtY2xpZW50Iiwic2Vzc2lvbl9zdGF0ZSI6IjBkOGJmODA0LTQ1ZjktNDliNS05NzUyLWFjNzFlNjkzN2ZmNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDo4MDgwIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJ2aXJ0cnVfZW50aXR5X29iamVjdCI6eyJhbGlhc2VzIjpbXSwiYXR0cmlidXRlcyI6W3sib2JqIjp7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DbGFzc2lmaWNhdGlvbi92YWx1ZS9TIn19LHsib2JqIjp7ImF0dHJpYnV0ZSI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYXR0ci9DT0kvdmFsdWUvUFJYIn19XSwicHVibGljS2V5IjoiLS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBek1hQXJaN1VwV3VaMWt6aVVvT1NcblU1RmVmaXVxN2UyZUpIaWF0Z2RMNk9WeER3UjhDM09KTDMwR0JQN0JaWVIxYWczSkNlOW11TURnd2xIY1p1NDlcbmhManZJc2ZFcGQ5ZlpKdTExL3RocnljbXhBZ2p6OEdKcExCRnJBSHpPLzRwUVdNdkpXQkppOHlNVm9abnVMTE1cbmhNUnlLZ3ZFRUU3ZVVzcjNHT0RUMlZYUEoyYlJMOHZnTTJNcURFVnhycDFUZVBISEkza2VpeWVGVGM1aDA5RThcblFvZ3A3ME1YMVRkdURzZVRKNmR5V1o3TkwySmFPenZFNmFmSk1kZCtJSVRCMmpuRm4xejdFaDVOKy96TnB3cmJcbjFJK29ranpmS1hHL3MrYVVyNWFiMnZGRmlNbWhmWWlyMm9OckhwTXRFcFhnclFycmxoOUpxUE4xQzZST0FiZ3pcbnVRSURBUUFCXG4tLS0tLUVORCBQVUJMSUMgS0VZLS0tLS1cbiIsInNjaGVtYVZlcnNpb246IjoiMS4yLjMiLCJ1c2VySWQiOiJ1c2VyMUB2aXJ0cnUuY29tIn0sInByZWZlcnJlZF91c2VybmFtZSI6InVzZXIxIn0.NzhxhaV0z41Sz_f1ID5Fn3j7FmGZizTtZ0GbpX3AeE7tBFJpgMOWbcQdJ9F-OYXipP_Q7sutK0jpBaUEhy9HY-ozJfJqADjqDAFYzcUkmbNg4T_4PCOZL1Bv5w61Ftu0i7NYcXLGtRZaACTByVQyUTByDY7eOvWtMnEGZ9aC7o9iV2sMHp9W632EDmv-OlzDME3VTmmIazhdLYmMQG0lFtC_qf5dXwT0l8LhuoMCs8g3e_j6OKBOo0uaDrxZ584JD9amvcIZ6CjeWCfSFghlxVQFdrE7Dn5SmWnqdp682qWS3aBylfjgx8sdgX05YK93pE-MHUVhu12swWpkjh1oYA"""
-
-KEYCLOAK_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAian19orjts+wol1BxEXo5hx7OsfqKT2soU+3COG6/WSnphqBI2RRRvI07q0+LGGq9wRpDYPRu01RG0JIIqP3VptLOVmzDH8n6ckctvxPuYDlp1NqjAKOSlxhfaAwpCLOllGn+XkpMBUHduaPRb0fl5vaxWleNT11s9FrYTMJEAJcrf56YoWeQUnp5bBSPQcNlz+UjKuppoTeSl8sxtxT5iF3lYfwq3IL5UHrupm19WNOfw+1GdCgX30hppX0TRxDTpOu99kzL4tzbfOSuG+o2IgYe9Or9GKWkP5Fg2kAYyD/bu6IGAbq3O7VOARL0/t0zm8LxS+sYFMSIndFt82X9wIDAQAB
------END PUBLIC KEY-----"""
-
-CLIENT_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAprXL2d2XLy76hxexI6ye
-jp7/S0e+x84/hMcmNqi2FPw/Oforc9kUoJp7oGgnq72SjrKxXnnFXnnFbQCXRmiz
-FQY1FRGebYfJbNBdPK8eWg2G6DoTH5wRX5spY8nvUyEM5X27Z6DM88nIVhJhVg4e
-4FdCAd0brviaVLYtZq4LFSgjQRzat7GK3IZe4+MIRN/D2YfSFVosmhh3tvsc0BMC
-+mxTZjkykE8OluOkikEPxJBIZ9NY/RptNL0/zaqMoSRVZnDAYloTSKDmTogk146h
-nVmobbyo5m23ZIlqnPrd2wDjfkn578SHG5wxwtBvxaFQnBURvmYZg/jZKcsYxajQ
-4wIDAQAB
------END PUBLIC KEY-----"""
-
-CLIENT_SIGNING_PRIVATE_KEY = """-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEAm1SpwGyP/lMKAYJs9bJxwX35Y2bF3wmKCO4LtGRT1A+eY7mB
-iF0vrVaLSDoiofwF31MtYyMsrU8PgJwD671pN5JftndFJIq4Cw18vMTP7+jSpucj
-4YhxGLWCJbd2Urhsz/KJuhvJJXpmpIrOr+L6wNQPqDk5iDK1qXE/OBN4MQRwOjR0
-ww8RVq2sW3dIr+0oKVeWY5TlLZDyBCa+tsZJoTGr3kosCv5lmx78W93f2nM/Hvgx
-1UQYNL8ZXmCZnh0bm4Z0OLA0RlxeQ3seC8V9AH4B5EaUMzz+j0lw+Qb/wQiRXA+c
-u40miCMreg99N3jtGyjNJV475P1AlQh0nAz4rQIDAQABAoIBAHI5xkNNEm7SHe+S
-PBJKUUEbJIQmlag42ZtLgqv7g3HUsoNfbZQcAu2TUQWiSsmYDbF290+KFFa2Zw4K
-rQ900KUfLOd/ugbvQ/xMxMgEa21fZ1l5bHdz4Mds4vJdgdO+77XUA9gqirbW1hh2
-Qxww7HlU+NaajmZL9C9Qqk7QcniIR1Bcka3N1v2lv7IbX45e6744zLE1jeda8Zyf
-FDn7uZ+42jA35moBhJHXwt1KMYmSKb2QM+Dt6Z1TbeGV25UvxUuvaQQyXxyPQXTp
-lgcpqhiBHYamUo8gGucAo2bluAwoxXG5TYF9pZ6/6Ytq3TpEEWc4FUyYV02A/MAJ
-G+V7FsECgYEA0n0das5eb81bwhy2XNngYZpIneJKqg+qHT39a5VExKEZC4mvtDeh
-KGL4lqX7EEtwuAi/jlpOBMuFAyn+4cFWABdTsO2jHYw6+z0PdZ/odL1qqtIycU73
-fP7H4h2hvCzAuKIb+cwgLCdKKUZkiexTYa0ix/LHytAFU6YBVrpsSXkCgYEAvOp2
-7a8g2xk25wFy8eHkkG97XBo6VPhaWTN/Rt2Oi9sJwOhjvevnx7aytjYmuVBU2sgw
-tKRqh76zK2oxOa3IJWOEFXLUYgtbhRAHi6X3WeeLsjk053G5EiXFnIr3zXyK+uPA
-ilkE+fj18jIHkIo77jv3nJ0wJXlBQoCdus0jz9UCgYAE7HJMtkkVOmuEDeHiKCKM
-hexe7RUsBzPGfVW5N4OlSdNpJq5ae9akODRyaa2Gwwz+8Q1yCgC7MfuJiGjy5O/b
-DrChed2P6mDS0anT6YqpeGjPWB1f8yXs4ZTRYDoRSca0Su52mGTEQ6MDdicR5tpI
-daFTpgUwZE9Llp1/ZtrzmQKBgQCNoIlAb4aGO0T5shBmXh9oWOt2hQMuKHIzZXQJ
-wJfZKYEKai48d9rv0nvwNnCZhSvYSTSaeJiU49aWuanlv+7IeO7Q1aF7T2BxRS8i
-9m2VrQ0Bs/mBebRxcnfPgC9+kdvvc0cpcMtWS9q2k+Mv7TI4zCQ5+W3a6iiOnrWh
-EaHDcQKBgQDL3fjaKZ68TG2/QS/fRGvJvLuZSolN2FhL+qmn0AF7ATHrAh0zt8vF
-pXRw69UoUN8sBz+VwROgFoBm03yZUs1C+8KSd3FIDmVgc9ktD1WMmJn+PZc3ADH4
-iJPjf/RI+tvX9NDoBPmAUwexFXWBIdreHCiR2ucLRnL8lT1XBYyQRg==
------END RSA PRIVATE KEY-----"""
-
-CLIENT_SIGNING_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAm1SpwGyP/lMKAYJs9bJx
-wX35Y2bF3wmKCO4LtGRT1A+eY7mBiF0vrVaLSDoiofwF31MtYyMsrU8PgJwD671p
-N5JftndFJIq4Cw18vMTP7+jSpucj4YhxGLWCJbd2Urhsz/KJuhvJJXpmpIrOr+L6
-wNQPqDk5iDK1qXE/OBN4MQRwOjR0ww8RVq2sW3dIr+0oKVeWY5TlLZDyBCa+tsZJ
-oTGr3kosCv5lmx78W93f2nM/Hvgx1UQYNL8ZXmCZnh0bm4Z0OLA0RlxeQ3seC8V9
-AH4B5EaUMzz+j0lw+Qb/wQiRXA+cu40miCMreg99N3jtGyjNJV475P1AlQh0nAz4
-rQIDAQAB
------END PUBLIC KEY-----"""
 
 
 @pytest.fixture
@@ -98,19 +43,21 @@ def without_idp():
 jwt_decode = functools.partial(jwt.decode)
 
 
-def jwt_decode_no_expiration(*args, **kwargs):
-    kwargs.setdefault("options", {})
-    # if you removed this next line, the access token would fail to
-    # verify due to an expired timestamp.
-    kwargs["options"].update({"verify_exp": False})
-    return jwt_decode(*args, **kwargs)
+@pytest.fixture
+def client_public_key(entity_public_key):
+    return entity_public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode("ascii")
 
 
-def test_claims_object():
-    TDF_CLAIMS = {
+@pytest.fixture
+def jwt_claims(client_public_key):
+    return {
+        "iss": "https://localhost/tdf",
         "sub": "user@virtru.com",
         "tdf_claims": {
-            "client_public_signing_key": CLIENT_SIGNING_PUBLIC_KEY,
+            "client_public_signing_key": client_public_key,
             "entitlements": [
                 {
                     "entity_identifier": "clientsubjectId1-14443434-1111343434-asdfdffff",
@@ -143,12 +90,32 @@ def test_claims_object():
         "tdf_spec_version": "4.0.0",
     }
 
-    return Claims.load_from_raw_data(TDF_CLAIMS)
+
+@pytest.fixture
+def jwt_expired(jwt_claims, private_key):
+    now = datetime.datetime.now()
+    delta = datetime.timedelta(seconds=60)
+    jwt_claims["exp"] = (now - delta).timestamp()
+    return jwt.encode(
+        jwt_claims,
+        private_key,
+        algorithm="RS256",
+    )
+
+
+@pytest.fixture
+def jwt_standard(jwt_claims, private_key):
+    return jwt.encode(
+        jwt_claims,
+        private_key,
+        algorithm="RS256",
+    )
 
 
 class FakeKeyMaster:
-    def __init__(self, private_key) -> None:
+    def __init__(self, public_key, private_key) -> None:
         self._private_key = private_key
+        self._public_key = public_key
 
     def private_key(self, name):
         if name == "KAS-PRIVATE":
@@ -157,13 +124,13 @@ class FakeKeyMaster:
 
     def public_key(self, name):
         if name == "KEYCLOAK-PUBLIC-tdf":
-            return KEYCLOAK_PUBLIC_KEY
+            return self._public_key
         raise KeyNotFoundError(f"Unknown test key: {name}")
 
 
 @pytest.fixture
-def key_master(private_key):
-    return FakeKeyMaster(private_key)
+def key_master(public_key, private_key):
+    return FakeKeyMaster(public_key, private_key)
 
 
 def test_kas_public_rsa_key(public_key_path):
@@ -215,45 +182,38 @@ def test_ping():
     assert actual == expected
 
 
-@patch("jwt.decode", side_effect=jwt_decode_no_expiration)
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
 @patch("tdf3_kas_core.services._tdf3_rewrap_v2", return_value=True)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
-)
 def test_rewrap_v2(
-    entity_load_mock, tdf3_mock, nano_mock, jwt_mock, with_idp, key_master
+    tdf3_mock,
+    nano_mock,
+    with_idp,
+    faux_policy_bytes,
+    key_master,
+    entity_private_key,
+    client_public_key,
+    jwt_standard,
 ):
     """Test the rewrap_v2 service."""
     os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
 
     data = {
         "requestBody": json.dumps(
             {
                 "keyAccess": key_access,
-                "policy": policy,
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
     }
 
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()
-    context.add("Authorization", f"Bearer {KEYCLOAK_ACCESS_TOKEN}")
+    context.add("Authorization", f"Bearer {jwt_standard}")
     plugin_runner = MagicMock()
     rewrap_v2(request_data, context, plugin_runner, key_master)
     assert True
@@ -261,38 +221,32 @@ def test_rewrap_v2(
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
 @patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
-)
 def test_rewrap_v2_expired_token(
-    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
+    tdf3_mock,
+    nano_mock,
+    with_idp,
+    faux_policy_bytes,
+    key_master,
+    client_public_key,
+    entity_private_key,
+    jwt_expired,
 ):
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
     data = {
         "requestBody": json.dumps(
             {
                 "keyAccess": key_access,
-                "policy": policy,
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
     }
     context = Context()
-    context.add("Authorization", f"Bearer {KEYCLOAK_ACCESS_TOKEN}")
+    context.add("Authorization", f"Bearer {jwt_expired}")
     plugin_runner = MagicMock()
 
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     # This token is expired, should fail.
@@ -304,34 +258,27 @@ def test_rewrap_v2_expired_token(
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
 @patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
-)
 def test_rewrap_v2_no_auth_header(
-    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
+    tdf3_mock,
+    nano_mock,
+    with_idp,
+    faux_policy_bytes,
+    key_master,
+    client_public_key,
+    entity_private_key,
 ):
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
     data = {
         "requestBody": json.dumps(
             {
                 "keyAccess": key_access,
-                "policy": policy,
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": "rsa:2048",
             }
         )
     }
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()
@@ -346,39 +293,33 @@ def test_rewrap_v2_no_auth_header(
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
 @patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
-)
 def test_rewrap_v2_invalid_auth_header(
-    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
+    tdf3_mock,
+    nano_mock,
+    with_idp,
+    faux_policy_bytes,
+    key_master,
+    client_public_key,
+    entity_private_key,
+    jwt_standard,
 ):
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
 
     data = {
         "requestBody": json.dumps(
             {
                 "keyAccess": key_access,
-                "policy": policy,
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": "rsa:2048",
             }
         )
     }
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()
-    context.add("Authorization", f"Chair-er Token:{KEYCLOAK_ACCESS_TOKEN}")
+    context.add("Authorization", f"Chair-er Token:{jwt_standard}")
     plugin_runner = MagicMock()
     # This token is expired, should fail.
     # Actual exception is:  jwt.exceptions.ExpiredSignatureError
@@ -389,29 +330,22 @@ def test_rewrap_v2_invalid_auth_header(
 
 @patch("tdf3_kas_core.services._nano_tdf_rewrap")
 @patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object
-)
 def test_rewrap_v2_invalid_auth_jwt(
-    entity_load_mock, tdf3_mock, nano_mock, with_idp, key_master
+    tdf3_mock,
+    nano_mock,
+    with_idp,
+    faux_policy_bytes,
+    key_master,
+    client_public_key,
+    entity_private_key,
 ):
-    expected_uuid = "1111-2222-33333-44444-abddef-timestamp"
-    expected_canonical = "This is a canonical string"
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
     data = {
         "requestBody": json.dumps(
             {
                 "keyAccess": key_access,
-                "policy": policy,
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
@@ -421,7 +355,7 @@ def test_rewrap_v2_invalid_auth_jwt(
     context.add("Authorization", "Bearer DO I LOOK LIKE A JWT TO YOU?")
     plugin_runner = MagicMock()
 
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     # This token is expired, should fail.
@@ -431,101 +365,59 @@ def test_rewrap_v2_invalid_auth_jwt(
     assert True
 
 
-@patch("tdf3_kas_core.models.KeyAccess.from_raw")
-@patch("jwt.decode", side_effect=jwt_decode_no_expiration)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
-)
-def test_upsert_v2(entity_load_mock, jwt_mock, ka_mock, key_master):
+def test_upsert_v2(
+    key_access_wrapped_raw,
+    faux_policy_bytes,
+    key_master,
+    client_public_key,
+    entity_private_key,
+    jwt_standard,
+):
     """Test the upsert_v2 service."""
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
-    key_access = {
-        "type": "remote",
-        "url": "http://127.0.0.1:4000",
-        "protocol": "kas",
-        "type": "wrapped",
-        "policyBinding": bytes.decode(
-            base64.b64encode(str.encode(json.dumps("foo bar baz")))
-        ),
-        # this is not correct, but let's see if it makes the test pass
-        "wrappedKey": bytes.decode(
-            base64.b64encode(str.encode(json.dumps(KEYCLOAK_PUBLIC_KEY)))
-        ),
-    }
     data = {
         "requestBody": json.dumps(
             {
-                "keyAccess": key_access,
-                "policy": bytes.decode(
-                    base64.b64encode(str.encode(json.dumps(policy)))
-                ),
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "keyAccess": key_access_wrapped_raw,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
     }
 
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()
-    context.add("Authorization", f"Bearer {KEYCLOAK_ACCESS_TOKEN}")
+    context.add("Authorization", f"Bearer {jwt_standard}")
     plugin_runner = MagicMock()
     upsert_v2(request_data, context, plugin_runner, key_master)
     assert True
 
 
-@patch("tdf3_kas_core.models.KeyAccess.from_raw")
-@patch("jwt.decode", side_effect=jwt_decode_no_expiration)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
-)
 def test_upsert_v2_no_auth_header(
-    entity_load_mock, jwt_mock, ka_mock, with_idp, key_master
+    key_access_wrapped_raw,
+    faux_policy_bytes,
+    with_idp,
+    key_master,
+    client_public_key,
+    entity_private_key,
+    jwt_standard,
 ):
     """Test the upsert_v2 service."""
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
-    key_access = {
-        "type": "remote",
-        "url": "http://127.0.0.1:4000",
-        "protocol": "kas",
-        "type": "wrapped",
-        "policyBinding": bytes.decode(
-            base64.b64encode(str.encode(json.dumps("foo bar baz")))
-        ),
-        # this is not correct, but let's see if it makes the test pass
-        "wrappedKey": bytes.decode(
-            base64.b64encode(str.encode(json.dumps(KEYCLOAK_PUBLIC_KEY)))
-        ),
-    }
+
     data = {
         "requestBody": json.dumps(
             {
-                "keyAccess": key_access,
-                "policy": bytes.decode(
-                    base64.b64encode(str.encode(json.dumps(policy)))
-                ),
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "keyAccess": key_access_wrapped_raw,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
     }
 
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()
@@ -536,105 +428,59 @@ def test_upsert_v2_no_auth_header(
     assert True
 
 
-@patch("tdf3_kas_core.models.KeyAccess.from_raw")
-@patch("jwt.decode", side_effect=jwt_decode_no_expiration)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
-)
 def test_upsert_v2_invalid_auth_header(
-    entity_load_mock, jwt_mock, ka_mock, with_idp, key_master
+    with_idp,
+    faux_policy_bytes,
+    key_access_wrapped_raw,
+    key_master,
+    client_public_key,
+    entity_private_key,
+    jwt_standard,
 ):
     """Test the upsert_v2 service."""
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
-    key_access = {
-        "type": "remote",
-        "url": "http://127.0.0.1:4000",
-        "protocol": "kas",
-        "type": "wrapped",
-        "policyBinding": bytes.decode(
-            base64.b64encode(str.encode(json.dumps("foo bar baz")))
-        ),
-        # this is not correct, but let's see if it makes the test pass
-        "wrappedKey": bytes.decode(
-            base64.b64encode(str.encode(json.dumps(KEYCLOAK_PUBLIC_KEY)))
-        ),
-    }
     data = {
         "requestBody": json.dumps(
             {
-                "keyAccess": key_access,
-                "policy": bytes.decode(
-                    base64.b64encode(str.encode(json.dumps(policy)))
-                ),
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "keyAccess": key_access_wrapped_raw,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
     }
 
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()
-    context.add("Authorization", f"Terr-or Token {KEYCLOAK_ACCESS_TOKEN}")
+    context.add("Authorization", f"Terr-or Token {jwt_standard}")
     plugin_runner = MagicMock()
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
         upsert_v2(request_data, context, plugin_runner, key_master)
     assert True
 
 
-@patch("tdf3_kas_core.models.KeyAccess.from_raw")
-@patch("jwt.decode", side_effect=jwt_decode_no_expiration)
-@patch(
-    "tdf3_kas_core.models.Claims.load_from_raw_data", return_value=test_claims_object()
-)
 def test_upsert_v2_invalid_auth_jwt(
-    entity_load_mock, jwt_mock, ka_mock, with_idp, key_master
+    with_idp,
+    faux_policy_bytes,
+    key_access_wrapped_raw,
+    key_master,
+    client_public_key,
+    entity_private_key,
 ):
     """Test the upsert_v2 service."""
-    attributes = [
-        {"attribute": "https://example.com/attr/Classification/value/S"},
-        {"attribute": "https://example.com/attr/COI/value/PRX"},
-    ]
-    policy = {
-        "uuid": "1111-2222-33333-44444-abddef-timestamp",
-        "body": {"dataAttributes": attributes},
-    }
-    key_access = {
-        "type": "remote",
-        "url": "http://127.0.0.1:4000",
-        "protocol": "kas",
-        "type": "wrapped",
-        "policyBinding": bytes.decode(
-            base64.b64encode(str.encode(json.dumps("foo bar baz")))
-        ),
-        # this is not correct, but let's see if it makes the test pass
-        "wrappedKey": bytes.decode(
-            base64.b64encode(str.encode(json.dumps(KEYCLOAK_PUBLIC_KEY)))
-        ),
-    }
-
     data = {
         "requestBody": json.dumps(
             {
-                "keyAccess": key_access,
-                "policy": bytes.decode(
-                    base64.b64encode(str.encode(json.dumps(policy)))
-                ),
-                "clientPublicKey": CLIENT_PUBLIC_KEY,
+                "keyAccess": key_access_wrapped_raw,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
     }
 
-    signedToken = jwt.encode(data, CLIENT_SIGNING_PRIVATE_KEY, "RS256")
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()

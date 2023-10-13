@@ -142,9 +142,9 @@ def fetch_realm_key_by_jwt(idpJWT, key_master):
     try:
         realmId = try_extract_realm(unverified_jwt)
     except:
-        logger.warn(
+        logger.warning(
             "Unable to extract realm identifier from JWT, assuming invalid token"
         )
-        return {}
+        return None
 
     return load_realm_key(realmId, key_master)
