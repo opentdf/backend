@@ -1,0 +1,3 @@
+asyncpg
+openapi-python-client
+

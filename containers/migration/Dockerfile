@@ -6,10 +6,8 @@ ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build
 WORKDIR /tool
 # Install tool dependencies
-COPY containers/migration/Pipfile .
-COPY containers/migration/Pipfile.lock .
-RUN pipenv lock --keep-outdated --requirements > requirements.txt && \
-    pip3 install --no-cache-dir -r requirements.txt
+COPY containers/migration/requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 # Install tool into WORKDIR
 COPY alembic.ini .
 COPY containers/migration/entrypoint.sh .
