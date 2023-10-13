@@ -1,8 +1,8 @@
-ARG PY_VERSION=3.9
+ARG PY_VERSION=3.11
 ARG CONTAINER_REGISTRY=ghcr.io
 ARG PYTHON_BASE_IMAGE_SELECTOR=:${PY_VERSION}-ubi9
 ARG PROD_IMAGE_REGISTRY=registry.access.redhat.com/
-ARG PROD_IMAGE=ubi9/python-39
+ARG PROD_IMAGE=ubi9/python-311
 ARG PROD_IMAGE_TAG=1
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP

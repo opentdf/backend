@@ -115,10 +115,10 @@ jobs:
       - name: Checkout working branch
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.10
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -267,7 +267,7 @@ jobs:
         with:
           images: ghcr.io/opentdf/python-base
           tags: |
-            3.10
+            3.11
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v2
@@ -293,7 +293,7 @@ jobs:
           build-args: |-
             ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.10
+            PY_VERSION=3.11
           context: ./containers/python_base
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -343,7 +343,7 @@ jobs:
           build-args: |-
             ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.10
+            PY_VERSION=3.11
           context: ./containers/${{ matrix.repo }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -484,7 +484,7 @@ jobs:
           build-args: |-
             ALPINE_VERSION=3.17
             CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.10
+            PY_VERSION=3.11
             PYTHON_BASE_IMAGE_SELECTOR=@${{ needs.build-base.outputs.digest }}
           context: ./containers
           cache-from: type=gha

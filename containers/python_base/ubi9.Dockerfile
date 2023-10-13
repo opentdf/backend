@@ -1,5 +1,5 @@
 ARG BUILD_IMAGE_REGISTRY=registry.access.redhat.com/
-ARG BUILD_IMAGE=ubi9/python-39
+ARG BUILD_IMAGE=ubi9/python-311
 ARG BUILD_IMAGE_TAG=1
 
 # stage - build

@@ -176,8 +176,8 @@ because of [PLAT-983](https://virtru.atlassian.net/browse/PLAT-983)
 
 ```
 brew install pyenv
-pyenv install 3.10.9
-pyenv global 3.10.9
+pyenv install 3.11.13
+pyenv global 3.11.13
 ```
 
 #### Option 2: I still can't get python to work dangit

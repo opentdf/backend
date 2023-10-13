@@ -7,18 +7,18 @@
 version: "3.8"
 services:
   python-base:
-    image: opentdf/python-base:${PY_VERSION:-3.10}
+    image: opentdf/python-base:${PY_VERSION:-3.11}
     build:
       args:
         - ALPINE_VERSION=${ALPINE_VERSION:-3.17}
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       context: ./containers/python_base
       dockerfile: Dockerfile
 
   kas:
     build:
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       context: ./containers/kas
       dockerfile: Dockerfile
     image: opentdf/kas:${SERVICE_IMAGE_TAG:-head}
@@ -27,7 +27,7 @@ services:
     build:
       context: ./containers/entitlement_store
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       dockerfile: Dockerfile
     image: opentdf/entitlement-store:${SERVICE_IMAGE_TAG:-head}
 
@@ -47,7 +47,7 @@ services:
     build:
       context: ./containers/keycloak-bootstrap
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       dockerfile: Dockerfile
     image: opentdf/keycloak-bootstrap:${SERVICE_IMAGE_TAG:-head}
 
@@ -55,7 +55,7 @@ services:
     build:
       context: ./containers/attributes
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       dockerfile: Dockerfile
     image: opentdf/attributes:${SERVICE_IMAGE_TAG:-head}
 
@@ -63,7 +63,7 @@ services:
     build:
       context: ./containers/entitlements
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       dockerfile: Dockerfile
     image: opentdf/entitlements:${SERVICE_IMAGE_TAG:-head}
 
@@ -71,6 +71,6 @@ services:
     build:
       context: ./containers/storage
       args:
-        - PY_VERSION=${PY_VERSION:-3.10}
+        - PY_VERSION=${PY_VERSION:-3.11}
       dockerfile: Dockerfile
     image: opentdf/storage:${SERVICE_IMAGE_TAG:-head}

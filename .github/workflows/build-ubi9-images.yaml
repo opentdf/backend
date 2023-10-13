@@ -68,7 +68,7 @@ jobs:
         with:
           build-args: |-
             CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.9
+            PY_VERSION=3.11
           context: ./containers/python_base
           file: ./containers/python_base/ubi9.Dockerfile
           cache-from: type=gha
@@ -115,7 +115,7 @@ jobs:
         with:
           build-args: |-
             CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.9
+            PY_VERSION=3.11
           context: ./containers/${{ matrix.repo }}
           file: ./containers/${{ matrix.repo }}/ubi9.Dockerfile
           cache-from: type=gha
@@ -209,7 +209,7 @@ jobs:
         with:
           build-args: |-
             CONTAINER_REGISTRY=ghcr.io
-            PY_VERSION=3.9
+            PY_VERSION=3.11
           context: ./containers
           cache-from: type=gha
           cache-to: type=gha,mode=max
