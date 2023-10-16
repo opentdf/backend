@@ -17,29 +17,6 @@ from tdf3_kas_core.errors import (
 logger = logging.getLogger(__name__)
 
 
-def _translate_otdf_attrdefs(attrdefs):
-    """
-    KAS has an (undocumented) format for attribute definitions
-    that differs from the one OpenTDF uses by two (2) property names
-    so just append those duplicate properties to the dict and
-    call it a day - the schema emitted by the AA shouldn't be
-    tightly coupled to KAS processing and it's not worth maintaining
-    separate serverside handlers for this.
-
-    You might ask why this plugin/kas data model isn't just changed to use the
-    new route/handler.
-
-    Well, that's because the new handler does non-optional pagination and JWT auth,
-    and KAS isn't set up to do the former, and doesn't need to do the latter (E-W traffic)
-    """
-
-    for attr in attrdefs:
-        if "authority" in attr:
-            attr["authorityNamespace"] = attr["authority"]
-        if "order" in attr:
-            attr["values"] = attr["order"]
-
-
 class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
     """Fetch attributes from OpenTDF Attribute authority instance.
     Note that this plugin is expected to return a list of attributes
@@ -47,7 +24,7 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
 
 
      class Attribute:
-         authorityNamespace: AnyUrl
+         authority: AnyUrl
          name: str
          order: list
          rule: RuleEnum
@@ -130,7 +107,6 @@ class OpenTDFAttrAuthorityPlugin(AbstractHealthzPlugin, AbstractRewrapPlugin):
         )
         for namespace in namespaces:
             ns_attrdefs = self._fetch_definition_from_authority_by_ns(namespace)
-            _translate_otdf_attrdefs(ns_attrdefs)
             attrs = attrs + ns_attrdefs
 
         if len(attrs) == 0:

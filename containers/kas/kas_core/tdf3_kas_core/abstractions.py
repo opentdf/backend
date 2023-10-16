@@ -71,7 +71,7 @@ class AbstractRewrapPlugin(AbstractPlugin):
         objects like the following:
 
          class Attribute:
-             authorityNamespace: AnyUrl
+             authority: AnyUrl
              name: str
              order: list
              rule: RuleEnum
