@@ -5,10 +5,10 @@ import os
 import json
 import jwt
 import functools
-import base64
 import pytest
 
 import tdf3_kas_core
+from tdf3_kas_core.abstractions import AbstractRewrapPlugin
 
 from unittest.mock import MagicMock, patch
 
@@ -52,10 +52,8 @@ def client_public_key(entity_public_key):
 
 
 @pytest.fixture
-def jwt_claims(client_public_key):
+def tdf_claims(client_public_key):
     return {
-        "iss": "https://localhost/tdf",
-        "sub": "user@virtru.com",
         "tdf_claims": {
             "client_public_signing_key": client_public_key,
             "entitlements": [
@@ -86,7 +84,16 @@ def jwt_claims(client_public_key):
                     ],
                 },
             ],
-        },
+        }
+    }
+
+
+@pytest.fixture
+def jwt_claims(tdf_claims):
+    return {
+        "iss": "https://localhost/tdf",
+        "sub": "user@virtru.com",
+        "tdf_claims": tdf_claims["tdf_claims"],
         "tdf_spec_version": "4.0.0",
     }
 
@@ -109,6 +116,46 @@ def jwt_standard(jwt_claims, private_key):
         jwt_claims,
         private_key,
         algorithm="RS256",
+    )
+
+
+class MockAuthPlugin(AbstractRewrapPlugin):
+    def fetch_attributes(self, namespaces):
+        return [
+            {
+                "authorityNamespace": "https://example.com",
+                "name": "Classification",
+                "rule": "hierarchy",
+                "state": "published",
+                "order": [
+                    "TS",
+                    "S",
+                    "FOUO",
+                    "OS",
+                ],
+            },
+            {
+                "authorityNamespace": "https://example.com",
+                "name": "COI",
+                "rule": "allOf",
+                "order": [
+                    "PRA",
+                    "PRB",
+                    "PRC",
+                    "PRD",
+                    "PRF",
+                    "PRX",
+                ],
+            },
+        ]
+
+
+@pytest.fixture
+def rewrap_plugins():
+    return (
+        tdf3_kas_core.models.plugin_runner.rewrap_plugin_runner_v2.RewrapPluginRunnerV2(
+            [MockAuthPlugin()]
+        )
     )
 
 
@@ -182,12 +229,10 @@ def test_ping():
     assert actual == expected
 
 
-@patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap_v2", return_value=True)
 def test_rewrap_v2(
-    tdf3_mock,
-    nano_mock,
     with_idp,
+    key_access_wrapped_raw,
+    rewrap_plugins,
     faux_policy_bytes,
     key_master,
     entity_private_key,
@@ -196,34 +241,66 @@ def test_rewrap_v2(
 ):
     """Test the rewrap_v2 service."""
     os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
-    key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
-
     data = {
         "requestBody": json.dumps(
             {
-                "keyAccess": key_access,
+                "keyAccess": key_access_wrapped_raw,
                 "policy": bytes.decode(faux_policy_bytes),
                 "clientPublicKey": client_public_key,
                 "algorithm": None,
             }
         )
     }
-
     signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
 
     context = Context()
     context.add("Authorization", f"Bearer {jwt_standard}")
-    plugin_runner = MagicMock()
-    rewrap_v2(request_data, context, plugin_runner, key_master)
+    rewrap_v2(request_data, context, rewrap_plugins, key_master)
     assert True
 
 
-@patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
+def test_rewrap_distributed_claims(
+    with_idp,
+    key_access_wrapped_raw,
+    rewrap_plugins,
+    faux_policy_bytes,
+    key_master,
+    entity_private_key,
+    client_public_key,
+    jwt_with_distributed_claims,
+    mock_response,
+    tdf_claims,
+):
+    mock_response(v=tdf_claims)
+    """Test the rewrap_v2 service."""
+    os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
+    data = {
+        "requestBody": json.dumps(
+            {
+                "keyAccess": key_access_wrapped_raw,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
+                "algorithm": None,
+            }
+        )
+    }
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
+    request_data = {"signedRequestToken": signedToken}
+
+    context = Context()
+    context.add("Authorization", f"Bearer {jwt_with_distributed_claims}")
+    rewrap_v2(
+        request_data,
+        context,
+        rewrap_plugins,
+        key_master,
+        ["https://nowhere.invalid/claims_here"],
+    )
+    assert True
+
+
 def test_rewrap_v2_expired_token(
-    tdf3_mock,
-    nano_mock,
     with_idp,
     faux_policy_bytes,
     key_master,
@@ -256,11 +333,7 @@ def test_rewrap_v2_expired_token(
     assert True
 
 
-@patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
 def test_rewrap_v2_no_auth_header(
-    tdf3_mock,
-    nano_mock,
     with_idp,
     faux_policy_bytes,
     key_master,
@@ -291,11 +364,7 @@ def test_rewrap_v2_no_auth_header(
     assert True
 
 
-@patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
 def test_rewrap_v2_invalid_auth_header(
-    tdf3_mock,
-    nano_mock,
     with_idp,
     faux_policy_bytes,
     key_master,
@@ -328,11 +397,7 @@ def test_rewrap_v2_invalid_auth_header(
     assert True
 
 
-@patch("tdf3_kas_core.services._nano_tdf_rewrap")
-@patch("tdf3_kas_core.services._tdf3_rewrap", return_value=True)
 def test_rewrap_v2_invalid_auth_jwt(
-    tdf3_mock,
-    nano_mock,
     with_idp,
     faux_policy_bytes,
     key_master,
