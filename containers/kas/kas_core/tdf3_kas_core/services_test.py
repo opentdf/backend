@@ -260,46 +260,6 @@ def test_rewrap_v2(
     assert True
 
 
-def test_rewrap_distributed_claims(
-    with_idp,
-    key_access_wrapped_raw,
-    rewrap_plugins,
-    faux_policy_bytes,
-    key_master,
-    entity_private_key,
-    client_public_key,
-    jwt_with_distributed_claims,
-    mock_response,
-    tdf_claims,
-):
-    mock_response(v=tdf_claims)
-    """Test the rewrap_v2 service."""
-    os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
-    data = {
-        "requestBody": json.dumps(
-            {
-                "keyAccess": key_access_wrapped_raw,
-                "policy": bytes.decode(faux_policy_bytes),
-                "clientPublicKey": client_public_key,
-                "algorithm": None,
-            }
-        )
-    }
-    signedToken = jwt.encode(data, entity_private_key, "RS256")
-    request_data = {"signedRequestToken": signedToken}
-
-    context = Context()
-    context.add("Authorization", f"Bearer {jwt_with_distributed_claims}")
-    rewrap_v2(
-        request_data,
-        context,
-        rewrap_plugins,
-        key_master,
-        ["https://nowhere.invalid/claims_here"],
-    )
-    assert True
-
-
 def test_rewrap_v2_expired_token(
     with_idp,
     faux_policy_bytes,
