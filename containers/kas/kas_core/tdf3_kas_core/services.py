@@ -22,12 +22,12 @@ for refactoring. Following the "one level of abstraction per module" principal,
 only the very simplest of services will contain low-level computations.
 """
 
-import logging
-import jwt
 import base64
-import os
 import hashlib
 import json
+import jwt
+import logging
+import os
 import typing
 
 import tdf3_kas_core.keycloak as keycloak
