@@ -26,7 +26,7 @@ def test_setup():
     response = requests.post(
         f"{attribute_authority_host}/v1/attr",
         json={
-            "authorityNamespace": "https://eas.local",
+            "authority": "https://eas.local",
             "name": "language",
             "rule": "anyOf",
             "state": "published",

@@ -4,13 +4,9 @@ import datetime
 import os
 import json
 import jwt
-import functools
-import pytest
 
 import tdf3_kas_core
 from tdf3_kas_core.abstractions import AbstractRewrapPlugin
-
-from unittest.mock import MagicMock, patch
 
 from tdf3_kas_core.models import Context
 from tdf3_kas_core.models import KeyMaster
@@ -32,15 +28,6 @@ def without_idp():
     flags["idp"] = False
     yield
     flags["idp"] = old_value
-
-
-# This partial is necessary because we're wrapping jwt.decode() and
-# adding an option that turns off checks for token expiration.
-# BUT, we're going to mock.patch() jwt.decode() itself, so we
-# can't call jwt.decode() in the wrapper or we'll have infinite
-# recursion.  So the solution is to save jwt.decode in a partial
-# and call the partial.
-jwt_decode = functools.partial(jwt.decode)
 
 
 @pytest.fixture
@@ -123,7 +110,7 @@ class MockAuthPlugin(AbstractRewrapPlugin):
     def fetch_attributes(self, namespaces):
         return [
             {
-                "authorityNamespace": "https://example.com",
+                "authority": "https://example.com",
                 "name": "Classification",
                 "rule": "hierarchy",
                 "state": "published",
@@ -135,7 +122,7 @@ class MockAuthPlugin(AbstractRewrapPlugin):
                 ],
             },
             {
-                "authorityNamespace": "https://example.com",
+                "authority": "https://example.com",
                 "name": "COI",
                 "rule": "allOf",
                 "order": [
@@ -156,6 +143,13 @@ def rewrap_plugins():
         tdf3_kas_core.models.plugin_runner.rewrap_plugin_runner_v2.RewrapPluginRunnerV2(
             [MockAuthPlugin()]
         )
+    )
+
+
+@pytest.fixture
+def upsert_plugins():
+    return (
+        tdf3_kas_core.models.plugin_runner.upsert_plugin_runner_v2.UpsertPluginRunnerV2()
     )
 
 
@@ -267,6 +261,7 @@ def test_rewrap_v2_expired_token(
     client_public_key,
     entity_private_key,
     jwt_expired,
+    rewrap_plugins,
 ):
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
     data = {
@@ -281,7 +276,6 @@ def test_rewrap_v2_expired_token(
     }
     context = Context()
     context.add("Authorization", f"Bearer {jwt_expired}")
-    plugin_runner = MagicMock()
 
     signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
@@ -289,7 +283,7 @@ def test_rewrap_v2_expired_token(
     # This token is expired, should fail.
     # Actual exception is:  jwt.exceptions.ExpiredSignatureError
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        rewrap_v2(request_data, context, plugin_runner, key_master)
+        rewrap_v2(request_data, context, rewrap_plugins, key_master)
     assert True
 
 
@@ -299,6 +293,7 @@ def test_rewrap_v2_no_auth_header(
     key_master,
     client_public_key,
     entity_private_key,
+    rewrap_plugins,
 ):
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
     data = {
@@ -316,11 +311,10 @@ def test_rewrap_v2_no_auth_header(
 
     context = Context()
     # Skip context.add("Authorization", ...)
-    plugin_runner = MagicMock()
     # This token is expired, should fail.
     # Actual exception is:  jwt.exceptions.ExpiredSignatureError
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        rewrap_v2(request_data, context, plugin_runner, key_master)
+        rewrap_v2(request_data, context, rewrap_plugins, key_master)
     assert True
 
 
@@ -331,6 +325,7 @@ def test_rewrap_v2_invalid_auth_header(
     client_public_key,
     entity_private_key,
     jwt_standard,
+    rewrap_plugins,
 ):
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
 
@@ -349,11 +344,10 @@ def test_rewrap_v2_invalid_auth_header(
 
     context = Context()
     context.add("Authorization", f"Chair-er Token:{jwt_standard}")
-    plugin_runner = MagicMock()
     # This token is expired, should fail.
     # Actual exception is:  jwt.exceptions.ExpiredSignatureError
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        rewrap_v2(request_data, context, plugin_runner, key_master)
+        rewrap_v2(request_data, context, rewrap_plugins, key_master)
     assert True
 
 
@@ -363,6 +357,7 @@ def test_rewrap_v2_invalid_auth_jwt(
     key_master,
     client_public_key,
     entity_private_key,
+    rewrap_plugins,
 ):
     key_access = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
     data = {
@@ -378,7 +373,6 @@ def test_rewrap_v2_invalid_auth_jwt(
 
     context = Context()
     context.add("Authorization", "Bearer DO I LOOK LIKE A JWT TO YOU?")
-    plugin_runner = MagicMock()
 
     signedToken = jwt.encode(data, entity_private_key, "RS256")
     request_data = {"signedRequestToken": signedToken}
@@ -386,7 +380,7 @@ def test_rewrap_v2_invalid_auth_jwt(
     # This token is expired, should fail.
     # Actual exception is:  jwt.exceptions.ExpiredSignatureError
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        rewrap_v2(request_data, context, plugin_runner, key_master)
+        rewrap_v2(request_data, context, rewrap_plugins, key_master)
     assert True
 
 
@@ -397,6 +391,7 @@ def test_upsert_v2(
     client_public_key,
     entity_private_key,
     jwt_standard,
+    upsert_plugins,
 ):
     """Test the upsert_v2 service."""
     data = {
@@ -415,8 +410,7 @@ def test_upsert_v2(
 
     context = Context()
     context.add("Authorization", f"Bearer {jwt_standard}")
-    plugin_runner = MagicMock()
-    upsert_v2(request_data, context, plugin_runner, key_master)
+    upsert_v2(request_data, context, upsert_plugins, key_master)
     assert True
 
 
@@ -427,7 +421,7 @@ def test_upsert_v2_no_auth_header(
     key_master,
     client_public_key,
     entity_private_key,
-    jwt_standard,
+    upsert_plugins,
 ):
     """Test the upsert_v2 service."""
 
@@ -447,9 +441,8 @@ def test_upsert_v2_no_auth_header(
 
     context = Context()
     # context.add("Authorization", "Bearer {0}".format(KEYCLOAK_ACCESS_TOKEN))
-    plugin_runner = MagicMock()
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        upsert_v2(request_data, context, plugin_runner, key_master)
+        upsert_v2(request_data, context, upsert_plugins, key_master)
     assert True
 
 
@@ -461,6 +454,7 @@ def test_upsert_v2_invalid_auth_header(
     client_public_key,
     entity_private_key,
     jwt_standard,
+    upsert_plugins,
 ):
     """Test the upsert_v2 service."""
     data = {
@@ -479,9 +473,8 @@ def test_upsert_v2_invalid_auth_header(
 
     context = Context()
     context.add("Authorization", f"Terr-or Token {jwt_standard}")
-    plugin_runner = MagicMock()
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        upsert_v2(request_data, context, plugin_runner, key_master)
+        upsert_v2(request_data, context, upsert_plugins, key_master)
     assert True
 
 
@@ -492,6 +485,7 @@ def test_upsert_v2_invalid_auth_jwt(
     key_master,
     client_public_key,
     entity_private_key,
+    upsert_plugins,
 ):
     """Test the upsert_v2 service."""
     data = {
@@ -510,7 +504,6 @@ def test_upsert_v2_invalid_auth_jwt(
 
     context = Context()
     context.add("Authorization", "Bearer DO I LOOK LIKE A JWT TO YOU?")
-    plugin_runner = MagicMock()
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        upsert_v2(request_data, context, plugin_runner, key_master)
+        upsert_v2(request_data, context, upsert_plugins, key_master)
     assert True

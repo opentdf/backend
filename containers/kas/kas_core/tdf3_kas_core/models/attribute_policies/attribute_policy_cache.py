@@ -36,7 +36,7 @@ class AttributePolicyCache(object):
         )
         for attribute_object in attribute_policy_config:
             # use the policy constructor to validate the inputs
-            authority_namespace = attribute_object["authorityNamespace"]
+            authority_namespace = attribute_object["authority"]
             attribute_name = attribute_object["name"]
             attribute_name_object = f"{authority_namespace}/attr/{attribute_name}"
             if "rule" in attribute_object:

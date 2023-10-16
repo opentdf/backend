@@ -85,9 +85,7 @@ def test_adjudicator_denies_access_from_dissem(public_key):
 
 # >>>>>>>>>> ALL OF <<<<<<<<<<<<<<<<<<
 
-all_of_config = [
-    {"authorityNamespace": "https://example.com", "name": "NTK", "rule": "allOf"}
-]
+all_of_config = [{"authority": "https://example.com", "name": "NTK", "rule": "allOf"}]
 
 
 def test_adjudicator_grants_access_allof_attribute(public_key):
@@ -134,9 +132,7 @@ def test_adjudicator_denies_access_allof_attribute(public_key):
 
 # >>>>>>>>>> ANY OF <<<<<<<<<<<<<<<<<<
 
-any_of_config = [
-    {"authorityNamespace": "https://example.com", "name": "Rel", "rule": "anyOf"}
-]
+any_of_config = [{"authority": "https://example.com", "name": "Rel", "rule": "anyOf"}]
 
 
 def test_adjudicator_grants_access_anyof_attribute(public_key):
@@ -189,7 +185,7 @@ def test_adjudicator_denies_access_anyof_attribute(public_key):
 
 hierarchy_config = [
     {
-        "authorityNamespace": "https://example.com",
+        "authority": "https://example.com",
         "name": "classif",
         "order": ["TS", "S", "C", "U"],
         "rule": "hierarchy",

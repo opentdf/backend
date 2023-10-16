@@ -32,9 +32,9 @@ def test_attribute_policy_cache_get_with_default_create():
 def test_attribute_policy_cache_load_config():
     """Test config loader."""
     test_config_json = """[
-{"authorityNamespace": "https://example.com", "name": "NTK", "rule": "allOf"},
-{"authorityNamespace": "https://example.com", "name": "Rel", "rule": "anyOf"},
-{"authorityNamespace": "https://example.com", "name": "Classification", "order": ["TS", "S", "C", "U"], "rule": "hierarchy"}
+{"authority": "https://example.com", "name": "NTK", "rule": "allOf"},
+{"authority": "https://example.com", "name": "Rel", "rule": "anyOf"},
+{"authority": "https://example.com", "name": "Classification", "order": ["TS", "S", "C", "U"], "rule": "hierarchy"}
     ]"""
     test_config = json.loads(test_config_json)
 
