@@ -28,9 +28,9 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
       - name: {{ include "entitlement-pdp.fullname" . }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
         securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
           - name: SERVER_PORT
