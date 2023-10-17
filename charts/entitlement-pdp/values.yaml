@@ -153,3 +153,30 @@ additionalConfigMap:
 
 # -- Values for the deployment `spec.template.metadata.annotations` field
 podAnnotations: {}
+
+# -- Values for deployment's `spec.template.spec.securityContext`
+podSecurityContext: {}
+
+# -- Values for deployment's `spec.template.spec.containers.securityContext`
+securityContext: {}
+
+# Autoscaling settings
+autoscaling:
+  # -- Enables autoscaling. When set to `true`, `replicas` is no longer applied.
+  enabled: false
+  # -- Sets minimum replicas for autoscaling.
+  minReplicas: 1
+  # -- Sets maximum replicas for autoscaling.
+  maxReplicas: 100
+  # -- Target average CPU usage across all the pods
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# -- Node labels for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for nodes that have taints on them
+tolerations: []
+
+# -- Pod scheduling preferences
+affinity: {}
