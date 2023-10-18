@@ -1,8 +1,5 @@
 name: X-Test-trigger
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
@@ -13,6 +10,8 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
+      - name: Sleep for 90 minutes (wait for images/charts to publish)
+        run: sleep 90m
       - name: Trigger opentdf/tests
         run: >-
           curl -X POST \
