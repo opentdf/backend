@@ -19,6 +19,10 @@ COPY containers/attributes/ attributes/
 COPY containers/entitlements/ entitlements/
 COPY containers/service_entity/ service_entity/
 COPY containers/entitlement_store/ entitlement_store/
+
+# run as non-root user
+USER 10001
+
 # Postgres
 ENV POSTGRES_HOST ""
 ENV POSTGRES_PORT "5432"
