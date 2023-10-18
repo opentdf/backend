@@ -35,13 +35,17 @@ RUN /opt/app-root/src/go/bin/policy build entitlement-policy -t local:$(cat <VER
 
 # Create the minimal runtime image
 FROM registry.access.redhat.com/ubi9-micro:9.2 AS production
+
+# use non-root user
+USER 10001
+
 # openapi
-COPY openapi.json .
+COPY --chown=10001:10001 openapi.json .
 # policy bundle
 ENV OPA_POLICYBUNDLE_PATH=/opt/app-root/src/entitlement-pdp/policycache/bundles/entitlement-policy/bundle.tar.gz
 ENV OPA_CONFIG_PATH=/etc/opa/config/opa-config.yaml
-COPY --from=policy-builder /opt/app-root/src/bundle.tar.gz $OPA_POLICYBUNDLE_PATH
-COPY --from=policy-builder /opt/app-root/src/opa-config.yaml $OPA_CONFIG_PATH
+COPY --from=policy-builder --chown=10001:10001 /opt/app-root/src/bundle.tar.gz $OPA_POLICYBUNDLE_PATH
+COPY --from=policy-builder --chown=10001:10001 /opt/app-root/src/opa-config.yaml $OPA_CONFIG_PATH
 # service
 COPY --from=builder /opt/app-root/src/entitlement-pdp /entitlement-pdp
 ENTRYPOINT ["/entitlement-pdp"]

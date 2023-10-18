@@ -34,10 +34,13 @@ RUN diff <(python3 -m entitlement_store.main) entitlement_store/openapi.json
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 ARG PY_VERSION
 
+# use non-root user
+USER 10001
+
 WORKDIR /app
-COPY --from=build /build/ .
+COPY --from=build --chown=10001:10001 /build/ .
 # NOTE - the python version needs to be specified in the following COPY command:
-COPY --from=build /opt/app-root/lib/python${PY_VERSION}/site-packages/ /opt/app-root/lib/python${PY_VERSION}/site-packages
+COPY --from=build --chown=10001:10001 /opt/app-root/lib/python${PY_VERSION}/site-packages/ /opt/app-root/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
 
 # Application
