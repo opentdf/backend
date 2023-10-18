@@ -3,6 +3,10 @@ ARG ALPINE_VERSION=3.17
 
 # stage - build
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
+
+# run as non-root user
+USER 10001
+
 # Install apk dependencies
 RUN apk add --no-cache --upgrade \
     gcc \
@@ -23,9 +27,6 @@ WORKDIR /build
 # Install pip dependencies
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 COPY requirements.txt .
-
-# run as non-root user
-USER 10001
 
 RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
     pip3 install --no-cache-dir -r requirements.txt
