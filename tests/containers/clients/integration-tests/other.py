@@ -33,7 +33,7 @@ def no_tdf_claims(client_id, client_secret, org_name, oidc_endpoint, kas_endpoin
     try:
         decrypted_plain_text = client.decrypt_data(sampleEncryptedStringStorageNano)
     except Exception as e:
-        if "Claims absent or invalid" not in str(e) or "401" not in str(e):
+        if "Claims absent" not in str(e) or "401" not in str(e):
             raise Exception("Test without tdf_claims failed with wrong error")
         else:
             logger.info("Test without tdf_claims PASSED")

@@ -12,6 +12,7 @@ from tdf3_kas_core.models import Context
 from tdf3_kas_core.models import KeyMaster
 
 from tdf3_kas_core.services import *
+from tdf3_kas_core import services
 
 
 @pytest.fixture
@@ -83,6 +84,29 @@ def jwt_claims(tdf_claims):
         "tdf_claims": tdf_claims["tdf_claims"],
         "tdf_spec_version": "4.0.0",
     }
+
+
+@pytest.fixture
+def jwt_with_distributed_claims(private_key):
+    claims = {
+        "iss": "https://localhost/tdf",
+        "sub": "user@virtru.com",
+        "_claim_names": {
+            "tdf_spec_version": "a",
+            "tdf_claims": "a",
+        },
+        "_claim_sources": {
+            "a": {
+                "endpoint": "https://nowhere.invalid/claims_here",
+                "access_token": "ksj3n283dke",
+            },
+        },
+    }
+    return jwt.encode(
+        claims,
+        private_key,
+        algorithm="RS256",
+    )
 
 
 @pytest.fixture
@@ -254,6 +278,46 @@ def test_rewrap_v2(
     assert True
 
 
+def test_rewrap_distributed_claims(
+    with_idp,
+    key_access_wrapped_raw,
+    rewrap_plugins,
+    faux_policy_bytes,
+    key_master,
+    entity_private_key,
+    client_public_key,
+    jwt_with_distributed_claims,
+    mock_response,
+    tdf_claims,
+):
+    mock_response(v=tdf_claims)
+    """Test the rewrap_v2 service."""
+    os.environ["OIDC_SERVER_URL"] = "https://keycloak.dev"
+    data = {
+        "requestBody": json.dumps(
+            {
+                "keyAccess": key_access_wrapped_raw,
+                "policy": bytes.decode(faux_policy_bytes),
+                "clientPublicKey": client_public_key,
+                "algorithm": None,
+            }
+        )
+    }
+    signedToken = jwt.encode(data, entity_private_key, "RS256")
+    request_data = {"signedRequestToken": signedToken}
+
+    context = Context()
+    context.add("Authorization", f"Bearer {jwt_with_distributed_claims}")
+    rewrap_v2(
+        request_data,
+        context,
+        rewrap_plugins,
+        key_master,
+        ["https://nowhere.invalid/claims_here"],
+    )
+    assert True
+
+
 def test_rewrap_v2_expired_token(
     with_idp,
     faux_policy_bytes,
@@ -410,7 +474,7 @@ def test_upsert_v2(
 
     context = Context()
     context.add("Authorization", f"Bearer {jwt_standard}")
-    upsert_v2(request_data, context, upsert_plugins, key_master)
+    upsert_v2(request_data, context, upsert_plugins, key_master, [])
     assert True
 
 
@@ -442,7 +506,7 @@ def test_upsert_v2_no_auth_header(
     context = Context()
     # context.add("Authorization", "Bearer {0}".format(KEYCLOAK_ACCESS_TOKEN))
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        upsert_v2(request_data, context, upsert_plugins, key_master)
+        upsert_v2(request_data, context, upsert_plugins, key_master, [])
     assert True
 
 
@@ -474,7 +538,7 @@ def test_upsert_v2_invalid_auth_header(
     context = Context()
     context.add("Authorization", f"Terr-or Token {jwt_standard}")
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        upsert_v2(request_data, context, upsert_plugins, key_master)
+        upsert_v2(request_data, context, upsert_plugins, key_master, [])
     assert True
 
 
@@ -505,5 +569,81 @@ def test_upsert_v2_invalid_auth_jwt(
     context = Context()
     context.add("Authorization", "Bearer DO I LOOK LIKE A JWT TO YOU?")
     with pytest.raises(tdf3_kas_core.errors.UnauthorizedError):
-        upsert_v2(request_data, context, upsert_plugins, key_master)
+        upsert_v2(request_data, context, upsert_plugins, key_master, [])
     assert True
+
+
+class MockResponse:
+    def __init__(self, status_code=200, type="application/json", v=None):
+        self.status_code = status_code
+        self.headers = {"content-type": type}
+        self.v = v
+        if isinstance(v, str):
+            self.text = v
+
+    def json(self):
+        return self.v
+
+
+@pytest.fixture
+def mock_response(monkeypatch):
+    def with_value(**kwargs):
+        response = MockResponse(**kwargs)
+
+        def mock_get(*args, **kwargs):
+            return response
+
+        monkeypatch.setattr(requests, "get", mock_get)
+
+    return with_value
+
+
+def test_fetch_distributed_claims_valid_json(mock_response, tdf_claims):
+    mock_response(v=tdf_claims)
+    actual = services._fetch_distributed_claims(
+        {"tdf_claims": "a"},
+        {"a": {"endpoint": "https://b/"}},
+        "tdf_claims",
+        ["https://b/"],
+    )
+    assert "client_public_signing_key" in actual
+
+
+def test_fetch_distributed_claims_valid_jwt(mock_response, jwt_standard):
+    logger.warning(jwt_standard)
+    mock_response(v=jwt_standard, type="application/jwt")
+    with pytest.raises(tdf3_kas_core.errors.UnauthorizedError) as e:
+        services._fetch_distributed_claims(
+            {"tdf_claims": "a"},
+            {"a": {"endpoint": "https://b/"}},
+            "tdf_claims",
+            ["https://b/"],
+        )
+    assert "not yet implemented" in e.value.message
+
+
+def test_fetch_distributed_claims_404(mock_response):
+    mock_response(status_code=404)
+    with pytest.raises(tdf3_kas_core.errors.UnauthorizedError) as e:
+        services._fetch_distributed_claims(
+            {"a": "a"}, {"a": {"endpoint": "https://b/"}}, "a", ["https://b/"]
+        )
+    assert "404" in e.value.message
+
+
+def test_fetch_distributed_claims_500(mock_response):
+    mock_response(status_code=500)
+    with pytest.raises(tdf3_kas_core.errors.UnauthorizedError) as e:
+        services._fetch_distributed_claims(
+            {"a": "a"}, {"a": {"endpoint": "https://b/"}}, "a", ["https://b/"]
+        )
+    assert "500" in e.value.message
+
+
+def test_fetch_distributed_claims_invalid(mock_response):
+    mock_response()
+    with pytest.raises(tdf3_kas_core.errors.UnauthorizedError) as e:
+        services._fetch_distributed_claims(
+            {"a": "a"}, {"a": {"endpoint": "https://b/"}}, "a", ["https://b/"]
+        )
+    assert "remote claim not returned" in e.value.message
