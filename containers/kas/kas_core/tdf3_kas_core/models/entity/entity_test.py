@@ -5,7 +5,6 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 
 import tdf3_kas_core
-from tdf3_kas_core.util import get_public_key_from_disk, get_private_key_from_disk
 
 from tdf3_kas_core.errors import EntityError
 from tdf3_kas_core.models import EntityAttributes
@@ -13,10 +12,9 @@ from tdf3_kas_core.models import EntityAttributes
 from .entity import Entity
 
 
-def test_entity_constructor():
+def test_entity_constructor(public_key):
     """Test the basic constructor."""
     user_id = "Hey It's Me"
-    public_key = get_public_key_from_disk("test")
     attributes = EntityAttributes()
     actual = Entity(user_id, public_key, attributes)
     assert actual.user_id == user_id
@@ -24,10 +22,9 @@ def test_entity_constructor():
     assert actual.attributes == attributes
 
 
-def test_entity_constructor_bad_id():
+def test_entity_constructor_bad_id(public_key):
     """Test the basic constructor."""
     user_id = {}
-    public_key = get_public_key_from_disk("test")
     attributes = EntityAttributes()
     with pytest.raises(EntityError):
         Entity(user_id, public_key, attributes)
@@ -42,19 +39,17 @@ def test_entity_constructor_bad_key():
         Entity(user_id, public_key, attributes)
 
 
-def test_entity_no_attributes():
+def test_entity_no_attributes(public_key):
     """Test the basic constructor."""
     user_id = "Hey It's Me"
-    public_key = get_public_key_from_disk("test")
     attributes = ["one", "two"]
     with pytest.raises(EntityError):
         Entity(user_id, public_key, attributes)
 
 
-def test_entity_constructor_with_attributes():
+def test_entity_constructor_with_attributes(public_key):
     """Test the basic constructor."""
     user_id = "Hey It's Me"
-    public_key = get_public_key_from_disk("test")
     attribute1 = (
         "https://aa.virtru.com/attr/unique-identifier"
         "/value/7b738968-131a-4de9-b4a1-c922f60583e3"
@@ -88,9 +83,7 @@ def test_entity_constructor_with_attributes():
     assert attr2.value == "7b738968-131a-4de9-b4a1-c922f60583e3"
 
 
-def make_eo():
-    public_key = get_public_key_from_disk("test")
-    private_key = get_private_key_from_disk("test")
+def make_eo(public_key, private_key):
     data = {
         "userId": "user@virtru.com",
         "aliases": [],
@@ -119,18 +112,16 @@ def make_eo():
     return data
 
 
-def test_load_from_raw_data_as_dict():
+def test_load_from_raw_data_as_dict(public_key, private_key):
     """Test load_from_raw_data.  Raw data as a dict."""
-    data = make_eo()
-    public_key = get_public_key_from_disk("test")
+    data = make_eo(public_key, private_key)
     actual = Entity.load_from_raw_data(data, public_key)
 
 
-def test_load_from_raw_data_raises_on_invalid_jwt():
+def test_load_from_raw_data_raises_on_invalid_jwt(public_key, private_key):
     """Test load_from_raw_data.  Raw data as a dict encoded as a jwt."""
-    data = make_eo()
+    data = make_eo(public_key, private_key)
     # invalidate the jwt in the 'cert' field.
     data["cert"] = data["cert"] + "aaaaaaa"
-    public_key = get_public_key_from_disk("test")
     with pytest.raises(tdf3_kas_core.errors.AuthorizationError):
-        actual = Entity.load_from_raw_data(data, public_key)
+        Entity.load_from_raw_data(data, public_key)

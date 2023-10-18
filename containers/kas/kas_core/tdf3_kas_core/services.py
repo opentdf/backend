@@ -22,22 +22,25 @@ for refactoring. Following the "one level of abstraction per module" principal,
 only the very simplest of services will contain low-level computations.
 """
 
-import logging
-import jwt
 import base64
-import os
 import hashlib
 import json
+import jwt
+import logging
+import os
+import typing
 
 import tdf3_kas_core.keycloak as keycloak
 
+from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import PublicFormat
 
 from pkg_resources import packaging
 
+from tdf3_kas_core.models.key_master.key_master import KeyMaster
 from tdf3_kas_core.errors import AdjudicatorError
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import BadRequestError
@@ -47,7 +50,6 @@ from tdf3_kas_core.errors import NanoTDFParseError
 from tdf3_kas_core.errors import PolicyError
 from tdf3_kas_core.errors import PolicyBindingError
 from tdf3_kas_core.errors import UnauthorizedError
-from tdf3_kas_core.errors import RouteNotFoundError
 
 from tdf3_kas_core.models import Adjudicator
 from tdf3_kas_core.models import AccessPDP
@@ -78,31 +80,54 @@ flags = {
     "idp": os.environ.get("USE_OIDC") == "1",
 }
 
+PublicKeyAlgorithmTypes = typing.Literal["ec:secp256r1", "rsa:2048"]
+PublicKeyFormats = typing.Literal["jwks", "pkcs8"]
+PublicKeyVersions = typing.Literal["1", "2"]
 
-def kas_public_key(key_master, algorithm):
-    """Serve the current KAS public key.
 
-    OIDC flow removes EOs and EAS calls, and so uses this to dynamically
-    fetch the KAS public key, if the client not explicitly set a KAS public
-    key in clientside config, and if an alternate key endpoint is not defined
-    in Virtru custom claims.
-    """
+def kas_public_key(
+    key_master: KeyMaster,
+    algorithm: PublicKeyAlgorithmTypes,
+    fmt: PublicKeyFormats = "pkcs8",
+    version: PublicKeyVersions = "1",
+) -> str | dict:
+    """Serve the current KAS public key and key identifier, in the requested format."""
     logger.debug("===== KAS PUBLIC KEY SERVICE START ====")
 
+    with_kid = version == "2"
     public_key = None
     if algorithm == "rsa:2048":
-        public_key = key_master.get_export_string("KAS-PUBLIC")
+        public_key = key_master.public_key("KAS-PUBLIC")
     elif algorithm == "ec:secp256r1":
-        public_key = key_master.get_export_string("KAS-EC-SECP256R1-PUBLIC")
+        public_key = key_master.public_key("KAS-EC-SECP256R1-PUBLIC")
 
     if public_key is None:
-        msg = "Could not produce a public key"
-        logger.error(msg)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
-        raise KeyNotFoundError(msg)
+        raise KeyNotFoundError("Could not produce a public key")
+
+    if isinstance(public_key, x509.Certificate):
+        # TODO Replace with JWK.thumbprint
+        public_key_bytes = public_key.public_bytes(encoding=serialization.Encoding.PEM)
+        if with_kid:
+            kid = base64.b64encode(public_key.fingerprint(hashes.SHA256()))
+    else:
+        public_key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        if with_kid:
+            # TODO Replace with JWK.thumbprint
+            digest = hashes.Hash(hashes.SHA256())
+            digest.update(public_key_bytes)
+            digest.update(b"123")
+            kid = base64.b64encode(digest.finalize())
 
     logger.debug("===== KAS PUBLIC KEY SERVICE FINISH ====")
-    return public_key
+    if with_kid:
+        return {
+            "kid": kid.decode("ascii"),
+            "public_key": public_key_bytes.decode("ascii"),
+        }
+    return public_key_bytes.decode("ascii")
 
 
 def ping(version):
@@ -150,7 +175,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                dataJson["entity"], key_master.get_key("AA-PUBLIC")
+                dataJson["entity"], key_master.public_key("AA-PUBLIC")
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -163,7 +188,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                data["entity"], key_master.get_key("AA-PUBLIC")
+                data["entity"], key_master.public_key("AA-PUBLIC")
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -183,13 +208,12 @@ def rewrap(data, context, plugin_runner, key_master):
             raise AuthorizationError("Not authorized") from e
 
         if "keyAccess" not in data:
-            logger.error("Key Access missing from %s", data)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
+            logger.warning("Key Access missing from %s", data)
             raise KeyAccessError("No key access object")
 
         algorithm = data.get("algorithm", None)
         if algorithm is None:
-            logger.warning("'algorithm' is missing and defaulting to TDF3 rewrap.")
+            logger.info("'algorithm' is missing and defaulting to TDF3 rewrap.")
             algorithm = "rsa:2048"
 
         if algorithm == "ec:secp256r1":
@@ -201,7 +225,14 @@ def rewrap(data, context, plugin_runner, key_master):
 def _get_bearer_token_from_header(context):
     # Get bearer token
     try:
-        authToken = context.data["Authorization"]
+        authToken = (
+            context.data["X-Tdf-Claims"]
+            if (
+                context.has("X-Tdf-Claims")
+                and os.environ.get("V2_SAAS_ENABLED") == "true"
+            )
+            else context.data["Authorization"]
+        )
         bearer, _, idpJWT = authToken.partition(" ")
     except KeyError as e:
         raise UnauthorizedError("Missing auth header") from e
@@ -220,8 +251,11 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     then returns the JSON
     """
     idpJWT = _get_bearer_token_from_header(context)
-
-    realmKey = keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
+    realmKey = (
+        key_master.public_key("AA-PUBLIC")
+        if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
+        else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
+    )
     return authorized_v2(realmKey, idpJWT)
 
 
@@ -317,9 +351,6 @@ def rewrap_v2(data, context, plugin_runner, key_master):
 
     algorithm = dataJson.get("algorithm", None)
     if algorithm is None:
-        logger.warning(
-            "'algorithm' is missing; defaulting to TDF3 rewrap standard, RSA-2048."
-        )
         algorithm = "rsa:2048"
 
     # entity = Entity(claims.user_id, client_public_key, claims.attributes)
@@ -327,7 +358,6 @@ def rewrap_v2(data, context, plugin_runner, key_master):
     if algorithm == "ec:secp256r1":
         return _nano_tdf_rewrap(dataJson, context, plugin_runner, key_master, claims)
     else:
-
         if "keyAccess" not in dataJson:
             logger.error("Key Access missing from %s", dataJson)
             raise KeyAccessError("No key access object")
@@ -348,7 +378,7 @@ def _tdf3_rewrap(data, context, plugin_runner, key_master, entity):
         canonical_policy = data["policy"]
         original_policy = Policy.construct_from_raw_canonical(canonical_policy)
 
-        kas_private = key_master.get_key("KAS-PRIVATE")
+        kas_private = key_master.private_key("KAS-PRIVATE")
         key_access = KeyAccess.from_raw(
             data["keyAccess"],
             private_key=kas_private,
@@ -416,10 +446,10 @@ def _tdf3_rewrap(data, context, plugin_runner, key_master, entity):
 
     else:
         # should never get to here. Bug in adjudicator.
-        m = f"Adjudicator returned {allowed} without raising an error"
-        logger.error(m)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
-        raise AdjudicatorError(m)
+        logger.error("invalid adjudicator response [%s]", allowed)
+        raise AdjudicatorError(
+            f"Adjudicator returned {allowed} without raising an error"
+        )
 
 
 def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
@@ -435,7 +465,7 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
         canonical_policy = data["policy"]
         original_policy = Policy.construct_from_raw_canonical(canonical_policy)
 
-        kas_private = key_master.get_key("KAS-PRIVATE")
+        kas_private = key_master.private_key("KAS-PRIVATE")
         key_access = KeyAccess.from_raw(
             data["keyAccess"],
             private_key=kas_private,
@@ -505,9 +535,8 @@ def _tdf3_rewrap_v2(data, context, plugin_runner, key_master, claims):
 
     else:
         # should never get to here. Bug in adjudicator.
+        logger.error("invalid adjudicator response [%s]", allowed)
         m = f"AccessPDP returned {allowed} without raising an error"
-        logger.error(m)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
 
 
@@ -529,7 +558,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     legacy_wrapping = flags[
         "default_to_small_iv"
     ] and client_version < packaging.version.parse("0.0.1")
-    logger.info(
+    logger.warning(
         f"virtru-ntdf-version: [{client_version}]; legacy_wrapping: {legacy_wrapping}"
     )
 
@@ -553,7 +582,7 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
 
     # NOTE: The KAS and EAS only support secp256r1 curve for now.
     # generate a symmetric key.
-    kas_private = key_master.get_key("KAS-EC-SECP256R1-PRIVATE")
+    kas_private = key_master.private_key("KAS-EC-SECP256R1-PRIVATE")
     private_key_bytes = kas_private.private_bytes(
         serialization.Encoding.DER,
         serialization.PrivateFormat.PKCS8,
@@ -614,9 +643,8 @@ def _nano_tdf_rewrap(data, context, plugin_runner, key_master, claims):
     allowed = access_pdp.can_access(policy, claims, data_attr_defs)
 
     if allowed is False:
-        m = "AccessPDP returned {} without raising an error".format(allowed)
+        m = f"AccessPDP returned {allowed} without raising an error"
         logger.error(m)
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
         raise AdjudicatorError(m)
 
     # Generate ephemeral rewrap key-pair
@@ -666,7 +694,9 @@ def upsert(data, context, plugin_runner, key_master):
     if "entity" not in data:
         raise AuthorizationError("No Entity object")
 
-    entity = Entity.load_from_raw_data(data["entity"], key_master.get_key("AA-PUBLIC"))
+    entity = Entity.load_from_raw_data(
+        data["entity"], key_master.public_key("AA-PUBLIC")
+    )
 
     # Check the auth token.
     try:
@@ -691,7 +721,7 @@ def upsert(data, context, plugin_runner, key_master):
     if "keyAccess" not in data:
         raise KeyAccessError("No key access object")
 
-    kas_private = key_master.get_key("KAS-PRIVATE")
+    kas_private = key_master.private_key("KAS-PRIVATE")
     try:
         key_access = KeyAccess.from_raw(
             data["keyAccess"],
@@ -706,7 +736,7 @@ def upsert(data, context, plugin_runner, key_master):
     messages = plugin_runner.upsert(original_policy, entity, key_access, context)
 
     if messages:
-        logger.info("Upsert Status Messages = %s", messages)
+        logger.warning("Upsert Status Messages = %s", messages)
     logger.debug("UPSERT SERVICE FINISH")
 
     return messages  # XXX: Don't return internals!!
@@ -739,7 +769,7 @@ def upsert_v2(data, context, plugin_runner, key_master):
         dataJson = json.loads(json_string)
     except ValueError as e:
         raise BadRequestError(f"Error in jwt or content [{e}]") from e
-    except Exception:
+    except Exception as e:
         raise UnauthorizedError("Not authorized") from e
 
     algorithm = dataJson.get("algorithm", None)
@@ -765,7 +795,7 @@ def upsert_v2(data, context, plugin_runner, key_master):
     if "keyAccess" not in dataJson:
         raise KeyAccessError("No key access object")
 
-    kas_private = key_master.get_key("KAS-PRIVATE")
+    kas_private = key_master.private_key("KAS-PRIVATE")
     key_access = KeyAccess.from_raw(
         dataJson["keyAccess"],
         private_key=kas_private,

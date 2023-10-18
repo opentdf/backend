@@ -7,12 +7,13 @@ from importlib import metadata
 from importlib.metadata import PackageNotFoundError
 
 from tdf3_kas_core import Kas
+from tdf3_kas_core import validate_dpop
 
 from .plugins import (
     opentdf_attr_authority_plugin,
     revocation_plugin,
     access_pdp_healthz_plugin,
-    audit_hooks
+    audit_hooks,
 )
 
 logger = logging.getLogger(__name__)
@@ -102,6 +103,8 @@ def app(name):
     access_pdp_health = access_pdp_healthz_plugin.AccessPDPHealthzPlugin()
     kas.use_healthz_plugin(access_pdp_health)
 
+    kas.add_middleware(validate_dpop)
+
     if AUDIT_ENABLED:
         kas.use_post_rewrap_hook(audit_hooks.audit_hook)
         kas.use_err_rewrap_hook(audit_hooks.err_audit_hook)
@@ -144,7 +147,7 @@ def app(name):
     # Configure compatibility with EO mode
     aa_certificate = load_key_bytes("ATTR_AUTHORITY_CERTIFICATE", missing_variables)
     if not aa_certificate:
-        logger.warn(
+        logger.warning(
             "KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode"
         )
     else:

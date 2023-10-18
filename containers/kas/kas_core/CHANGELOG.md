@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]: https://github.com/opentdf/backend/compare/main...HEAD
 
+## 1.2.1 - 2023-3-10
+- NO-REF
+  - Update certifi to address vulnerability
+- PLAT-2291
+  - README updates, spelling, remove old references
+- PLAT-2217
+  - Rename KEYCLOAK_URL to OIDC_SERVER_URL
+- NO-REF
+  - Simplify rewrap modules, Make it more clear that we expect the wrapping type to be a JWE crypto name
+- PLAT-2157
+  - add post-command and error hooks around rewrap_v2
+- NO-REF
+  - Update README and CHANGELOG formatting
+- NO-REF
+  - Remove private key access from WrappedKey 
+- PLAT-2237
+  - Use local dist of swagger-ui to fix vulnerabilities
+- NO-REF
+  - Add validation of DPoP (when cnf is present in access token) to KAS upsert and rewrap endpoints
+- NO-REF
+  - Reverse proxy for kas
+- NO-REF
+  - Add 412 PreconditionFailed response code
+- NO-REF
+  - fix kas rewrap-v2 exception on jwt decode
+- NO-REF
+  - fix protobuf vulnerability
+- PLAT-2056
+  - Update setup.py for access pdp
+
+
+## 0.8.7 - 2022-09-22
+- NO-REF
+  - kas should not force encryptedMetadata to be a json string
+- NO-REF
+  - dependency bumps
+- NO-REF
+  - fix 500 on unclaimed jwts
+- NO-REF
+  - stop using pipenv+pipfile, just use requirements.txt
+- NO-REF
+  - fix property name in log causing 500
+- NO-REF
+  - replace kas internal pdp with access pdp
+- NO-REF
+  - remove paralell attribute definition endpoints
+- NO-REF
+  - remove timing tracking
+
+
 ## 0.8.6 - 2022-06-10
 
 - PLAT-1641

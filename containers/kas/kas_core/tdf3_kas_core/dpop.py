@@ -68,7 +68,9 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     bearer, _, id_jwt = auth_header.partition(" ")
     logger.info("id_jwt: [%s], dpop: [%s]", id_jwt, dpop)
     if bearer != "Bearer" or not looks_like_jwt(id_jwt):
-        raise UnauthorizedError("Invalid auth header")
+        if do_oidc:
+            raise UnauthorizedError("Invalid auth header")
+        return False
     verifier_key = fetch_realm_key_by_jwt(id_jwt, key_master)
     jwt_decoded = authorized_v2(verifier_key, id_jwt)
     logger.debug("jwt_decoded: [%s]", jwt_decoded)
@@ -81,7 +83,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         logger.debug("DPoP not required, not found")
         return False
     if dpop and not cnf:
-        logger.warn(
+        logger.warning(
             "DPoP found but unconfirmed [%s] not referenced from [%s]", dpop, id_jwt
         )
         return False

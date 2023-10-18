@@ -1,9 +1,5 @@
 """Assorted helper functions"""
 
-import sys
-import os
-import connexion
-import string
 
 import logging
 
@@ -19,7 +15,7 @@ def value_to_boolean(value):
     if value is None:
         logger.warning("_value_to_boolean: no value received, returning false")
         return False
-    if type(value) is bool:
+    if isinstance(value, bool):
         return value
     try:
         if value.lower() == "false":

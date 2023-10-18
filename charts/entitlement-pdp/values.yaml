@@ -8,6 +8,19 @@ global:
     common:
       # -- JSON passed to the deployment's `template.spec.imagePullSecrets`
       imagePullSecrets: []
+      istio:
+        # -- Enable istio ingress
+        enabled: false
+        ingress:
+          # -- Allow traffic for specific hosts
+          hosts: []
+          # -- (string) Use an existing istio gateway
+          # (format if in different namespace: namespace/gateway-name)
+          existingGateway:
+          # -- Name of istio gateway to create if not existing
+          name: ""
+          # -- Redirect http requests to https
+          httpsRedirect: false
 
 # Configure the container image to use in the deployment.
 image:
@@ -42,6 +55,27 @@ secretRef:
 # -- Where the opa config yaml is mounted
 opaConfigMountPath: "/etc/opa/config"
 
+# Ingress configuration.
+ingress:
+  # -- Enables the Ingress
+  enabled: false
+  # -- Ingress annotations
+  annotations: {}
+  # -- Ingress class to use.
+  className: null
+  # -- Map in the form:
+  # [hostname]:
+  #   [path]:
+  #     pathType:    your-pathtype [default: "ImplementationSpecific"]
+  #     serviceName: your-service  [default: `service.fullname`]
+  #     servicePort: service-port  [default: `service.port` above]
+  hosts: {}
+  # -- Ingress TLS configuration
+  tls: null
+
+
+# To pass in your own custom opa config, use additionalVolumes and additionalVolume mounts
+# to mount the config, then update config.opaConfigPath to the location of the mounted config
 opaConfig:
   policy:
     # -- If `useStaticPolicy` is set to `true`, then an OPA config will be generated
@@ -81,7 +115,7 @@ opaConfig:
 
 config:
   # -- Port the server will listen on
-  listenPort: 3355
+  serverPort: 3355
   # -- External endpoint the server will be accessed from (used for OpenAPI endpoint serving)
   externalHost: ""
   # -- Enable verbose logging
@@ -92,3 +126,57 @@ config:
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   # -- Path to opa config yaml
   opaConfigPath: "/etc/opa/config/opa-config.yaml"
+
+# -- Specify additional volumes to mount, this can be used to specify additional
+# storage materials used in the opa config such as trust stores
+additionalVolumes: []
+  # Custom opa config example
+  # - name: custom-opa-config
+  #   configMap:
+  #     name: custom-opa-config-map
+  #     # An array of keys from the ConfigMap to create as files
+  #     items:
+  #     - key: "custom-opa-config.yaml"
+  #       path: "custom-opa-config.yaml"
+
+# -- Specify where the additional volumes are mounted
+additionalVolumeMounts: []
+  # - name: custom-opa-config
+  #   mountPath: "/etc/opa/custom-config"
+  #   readOnly: true
+
+additionalConfigMap:
+  # -- The name of the additional config map
+  name: ""
+  # -- The data to add to the additional config map
+  data: {}
+
+# -- Values for the deployment `spec.template.metadata.annotations` field
+podAnnotations: {}
+
+# -- Values for deployment's `spec.template.spec.securityContext`
+podSecurityContext: {}
+
+# -- Values for deployment's `spec.template.spec.containers.securityContext`
+securityContext: {}
+
+# Autoscaling settings
+autoscaling:
+  # -- Enables autoscaling. When set to `true`, `replicas` is no longer applied.
+  enabled: false
+  # -- Sets minimum replicas for autoscaling.
+  minReplicas: 1
+  # -- Sets maximum replicas for autoscaling.
+  maxReplicas: 100
+  # -- Target average CPU usage across all the pods
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# -- Node labels for pod assignment
+nodeSelector: {}
+
+# -- Tolerations for nodes that have taints on them
+tolerations: []
+
+# -- Pod scheduling preferences
+affinity: {}

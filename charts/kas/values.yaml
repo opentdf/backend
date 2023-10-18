@@ -8,6 +8,21 @@ global:
       imagePullSecrets: []
       # -- Enable audit logging
       auditLogEnabled: false
+      # -- Audit Org Id
+      auditOrgId:
+      istio:
+        # -- Enable istio ingress
+        enabled: false
+        ingress:
+          # -- Allow traffic for specific hosts
+          hosts: []
+          # -- (string) Use an existing istio gateway
+          # (format if in different namespace: namespace/gateway-name)
+          existingGateway:
+          # -- Name of istio gateway to create if not existing
+          name: ""
+          # -- Redirect http requests to https
+          httpsRedirect: false
 
 # -- Sets the default loglevel for the application. One of the valid python logging
 # levels: `DEBUG, INFO, WARNING, ERROR, CRITICAL`
@@ -41,7 +56,7 @@ serverRootPath: /
 openapiUrl: ""
 
 # -- To enable swagger ui
-SWAGGER_UI: "True"
+swaggerUIEnabled: "True"
 
 # Container image configuration.
 image:
@@ -87,7 +102,7 @@ securityContext: {}
 certFileSecretName: null
 
 # -- The name of a secret containing required config values (see `envConfig` below); overrides `envConfig`
-externalEnvSecretName:
+externalSecretName:
 
 # Environment configuration values for keys and certs used by the key server.  If `externalSecretName` is defined these are ignored.
 envConfig:
@@ -103,7 +118,7 @@ envConfig:
   privKey:
 
 # -- Secret containing additional env variables in addition to those provided by `envConfig` or `externalSecretName`
-extraEnvSecretName:
+externalEnvSecretName:
 
 # Service configuation information.
 service:

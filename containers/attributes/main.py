@@ -42,7 +42,7 @@ from python_base import (
     get_query,
     add_filter_by_access_control,
     hook_into,
-    HttpMethod
+    HttpMethod,
 )
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, sessionmaker, declarative_base
@@ -305,7 +305,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="OpenTDF",
-        version="1.2.1",
+        version="1.4.1",
         license_info={
             "name": "BSD 3-Clause Clear",
             "url": "https://github.com/opentdf/backend/blob/main/LICENSE",

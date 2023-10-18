@@ -16,20 +16,28 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         {{- include "entitlement-pdp.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "entitlement-pdp.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
       - name: {{ include "entitlement-pdp.fullname" . }}
+        securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
-          - name: LISTEN_PORT
+          - name: SERVER_PORT
             valueFrom:
               configMapKeyRef:
                 name: {{ $cm }}
-                key: listenPort
+                key: serverPort
           - name: EXTERNAL_HOST
             valueFrom:
               configMapKeyRef:
@@ -68,27 +76,30 @@ spec:
               {{- tpl . $ | nindent 14 }}
           {{- end }}
         ports:
-          - containerPort: {{ .Values.config.listenPort }}
+          - containerPort: {{ .Values.config.serverPort }}
         volumeMounts:
           - name: opa-config
             mountPath: {{ .Values.opaConfigMountPath }}
             readOnly: true
+        {{- if .Values.additionalVolumeMounts }}
+          {{- toYaml .Values.additionalVolumeMounts | nindent 10 }} 
+        {{- end }}
         livenessProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.config.listenPort }}
+            port: {{ .Values.config.serverPort }}
           failureThreshold: 1
           periodSeconds: 10
         startupProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.config.listenPort }}
+            port: {{ .Values.config.serverPort }}
           failureThreshold: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.config.listenPort }}
+            port: {{ .Values.config.serverPort }}
           failureThreshold: 30
           periodSeconds: 10
       volumes:
@@ -99,7 +110,22 @@ spec:
             items:
             - key: "opa-config.yaml"
               path: "opa-config.yaml"
+      {{- if .Values.additionalVolumes }}
+        {{- toYaml .Values.additionalVolumes | nindent 8}}
+      {{- end }}
       {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -67,7 +67,6 @@ def dict_to_helm_set_list(dict):
 # set: dictionary of value_name: value pairs
 # extra_helm_parameters: only valid when devmode=False; passed to underlying `helm update` command
 def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
-
     #   o8o
     #   `"'
     #  oooo  ooo. .oo.  .oo.    .oooo.    .oooooooo  .ooooo.   .oooo.o
@@ -180,8 +179,11 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
     helm_remote(
         "ingress-nginx",
         repo_url="https://kubernetes.github.io/ingress-nginx",
-        set=["controller.config.large-client-header-buffers=20 32k"],
-        version="4.2.1",
+        set=[
+            "controller.config.large-client-header-buffers=20 32k",
+            "controller.admissionWebhooks.enabled=false",
+        ],
+        version="4.0.16",
     )
 
     k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
@@ -260,7 +262,7 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
                 ("keycloak.image.repository", "keycloak.image.tag"),
                 ("attributes.image.repo", "attributes.image.tag"),
                 ("entitlements.image.repo", "entitlements.image.tag"),
-                ("entitlement_store.image.repo", "entitlement_store.image.tag"),
+                ("entitlement-store.image.repo", "entitlement-store.image.tag"),
                 ("entitlement-pdp.image.repo", "entitlement-pdp.image.tag"),
                 ("entity-resolution.image.repo", "entity-resolution.image.tag"),
                 ("kas.image.repo", "kas.image.tag"),

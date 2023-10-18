@@ -6,13 +6,13 @@
 
     <groupId>com.virtru</groupId>
     <artifactId>keycloak-virtru-services</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <properties>
-        <keycloak.version>20.0.1</keycloak.version>
+        <!-- this value should become golden, for now keep in-sync containers/keycloak-protocol-mapper/VERSION -->
+        <keycloak.version>21.1.2</keycloak.version>
         <resteasy.version>4.7.7.Final</resteasy.version>
-        <jackson.version>2.13.4</jackson.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>11</maven.compiler.source>
@@ -76,17 +76,17 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
+            <version>2.13.4</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <version>2.13.4.2</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
+            <version>2.13.4</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.resteasy</groupId>

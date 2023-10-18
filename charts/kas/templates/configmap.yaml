@@ -20,5 +20,6 @@ data:
   DISABLE_TRACING: {{ .Values.pdp.disableTracing | quote }}
   JSON_LOGGER: {{ .Values.jsonLogger | default "true" | quote }}
   AUDIT_ENABLED: {{ .Values.global.opentdf.common.auditLogEnabled | quote  }}
-
+  SWAGGER_UI: {{ .Values.swaggerUIEnabled | quote }}
   USE_OIDC: "1"
+  AUDIT_ORG_ID: {{ .Values.global.opentdf.common.auditOrgId | default "00000000-0000-0000-0000-000000000000" | quote }}

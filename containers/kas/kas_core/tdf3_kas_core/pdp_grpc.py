@@ -5,7 +5,6 @@ import logging
 from attributes.v1 import attributes_pb2
 from accesspdp.v1 import accesspdp_pb2
 
-from tdf3_kas_core.errors import InvalidAttributeError
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +26,7 @@ def convert_attribute_defs(attribute_defs):
     pb_attr_defs = []
     for attribute_def in attribute_defs:
         # use the policy constructor to validate the inputs
-        authority = attribute_def["authorityNamespace"]
+        authority = attribute_def["authority"]
         name = attribute_def["name"]
 
         # TODO This is an existing KAS default - if no definition (or incomplete definition)

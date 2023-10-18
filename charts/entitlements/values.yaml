@@ -12,6 +12,21 @@ global:
       imagePullSecrets: []
       # -- Enable audit logging
       auditLogEnabled: false
+      # -- Audit Org Id
+      auditOrgId:
+      istio:
+        # -- Enable istio ingress
+        enabled: false
+        ingress:
+          # -- Allow traffic for specific hosts
+          hosts: []
+          # -- (string) Use an existing istio gateway
+          # (format if in different namespace: namespace/gateway-name)
+          existingGateway:
+          # -- Name of istio gateway to create if not existing
+          name: ""
+          # -- Redirect http requests to https
+          httpsRedirect: false
       postgres:
         # -- postgres server's k8s name or global DNS for external server
         host: postgresql

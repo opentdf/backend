@@ -1,5 +1,4 @@
 from .header import Header
-from .policy import Policy
 from .data import ByteData
 
 

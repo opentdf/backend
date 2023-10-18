@@ -89,3 +89,14 @@ Create OIDC External Url from a common value
 {{- .Values.global.opentdf.common.oidcExternalBaseUrl }}
 {{- end }}
 {{- end }}
+
+{{/*
+Backend Ingress gateway name
+*/}}
+{{- define "entitlements.ingress.gateway" -}}
+{{- if .Values.global.opentdf.common.istio.ingress.existingGateway -}}
+{{ .Values.global.opentdf.common.istio.ingress.existingGateway }}
+{{- else -}}
+{{ .Values.global.opentdf.common.istio.ingress.name }}
+{{- end }}
+{{- end }}

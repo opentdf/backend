@@ -4,7 +4,6 @@ import logging
 
 from ..kas import Kas
 from ..schema import get_schema
-from ..dpop import validate_dpop
 
 from .create_context import create_context
 from .run_service_with_exceptions import run_service_with_exceptions
@@ -43,12 +42,14 @@ def upsert_helper(body, mode="upsert"):
 
 
 @run_service_with_exceptions
-def upsert(body, *, dpop):
-    validate_dpop(dpop, Kas.get_instance()._key_master)
+def upsert(body, *, dpop=None, userId=None):
+    if userId:
+        logger.info("Legacy user logging in")
+    Kas.get_instance().get_middleware()(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert")
 
 
 @run_service_with_exceptions
-def upsert_v2(body, *, dpop):
-    validate_dpop(dpop, Kas.get_instance()._key_master)
+def upsert_v2(body, *, dpop=None):
+    Kas.get_instance().get_middleware()(dpop, Kas.get_instance()._key_master)
     return upsert_helper(body, "upsert_v2")

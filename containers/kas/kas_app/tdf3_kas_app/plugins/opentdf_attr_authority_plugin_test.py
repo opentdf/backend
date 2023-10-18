@@ -78,8 +78,8 @@ def test_fetch_attributes_200_status(mock_request):
     actual = OpenTDFAttrAuthorityPlugin(HOST)
     attributes = actual.fetch_attributes(NAMESPACES)
     assert len(attributes) == 4
-    assert "authorityNamespace" in attributes[0]
-    assert "authorityNamespace" in attributes[1]
+    assert "authority" in attributes[0]
+    assert "authority" in attributes[1]
 
 
 @patch.object(requests, "get", side_effect=requests.exceptions.ReadTimeout)

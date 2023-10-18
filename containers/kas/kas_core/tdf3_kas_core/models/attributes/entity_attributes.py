@@ -30,9 +30,8 @@ class EntityAttributes(AttributeSet):
                 logger.warning("DEPRECATED - attribute 'url' should be 'attribute'")
                 ea.add(AttributeValue(attr_obj["url"]))
             else:
-                msg = f"'attribute' field missing = {attr_obj}"
-                logger.error(msg)
-                logger.setLevel(logging.DEBUG)  # dynamically escalate level
+                msg = "attr field missing from entity attribute"
+                logger.error("%s %s", msg, attr_obj)
                 raise InvalidAttributeError(msg)
 
         return ea

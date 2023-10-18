@@ -33,7 +33,7 @@ kc_internal_url = os.getenv(
 ).rstrip("/")
 pki_browser = os.getenv("ENABLE_PKI_BROWSER", "")
 pki_direct = os.getenv("ENABLE_PKI_DIRECTGRANT", "")
-
+default_client_secret = os.getenv("CLIENT_SECRET", "123-456")
 
 def check_matched(pattern, allData):
     filtered_item = [
@@ -47,18 +47,7 @@ def check_matched(pattern, allData):
 def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
     for item in preloaded_users:
         try:
-            new_user = keycloak_admin.create_user(
-                {
-                    "username": item["username"],
-                    "enabled": True,
-                    "credentials": [
-                        {
-                            "value": item["password"],
-                            "type": "password",
-                        }
-                    ],
-                }
-            )
+            new_user = keycloak_admin.create_user(item)
             logger.info("Created new passworded user %s", new_user)
 
             # Add Abacus-related roles to user
@@ -70,39 +59,40 @@ def createPreloadedUsersInRealm(keycloak_admin, preloaded_users):
 
 
 def createUsersInRealm(keycloak_admin):
-    for username in ("Alice_1234", "Bob_1234", "john"):
-        try:
-            new_user = keycloak_admin.create_user(
-                {"username": username, "enabled": True}
-            )
-            logger.info("Created new user %s (%s)", username, new_user)
-        except KeycloakPostError:
-            logger.warning("Could not create user for %s!", username, exc_info=True)
-    passwordedUsers = os.getenv(
-        "passwordUsers", "testuser@virtru.com,user1,user2"
-    ).split(",")
-    for passwordedUser in passwordedUsers:
-        try:
-            new_user = keycloak_admin.create_user(
-                {
-                    "username": passwordedUser,
-                    "enabled": True,
-                    "credentials": [
-                        {
-                            "value": "testuser123",
-                            "type": "password",
-                        }
-                    ],
-                }
-            )
-            logger.info("Created new passworded user %s", new_user)
+    if os.getenv("CREATE_DEFAULT_USERS", "TRUE") == "TRUE":
+        for username in ("Alice_1234", "Bob_1234", "john"):
+            try:
+                new_user = keycloak_admin.create_user(
+                    {"username": username, "enabled": True}
+                )
+                logger.info("Created new user %s (%s)", username, new_user)
+            except KeycloakPostError:
+                logger.warning("Could not create user for %s!", username, exc_info=True)
+        passwordedUsers = os.getenv(
+            "passwordUsers", "testuser@virtru.com,user1,user2"
+        ).split(",")
+        for passwordedUser in passwordedUsers:
+            try:
+                new_user = keycloak_admin.create_user(
+                    {
+                        "username": passwordedUser,
+                        "enabled": True,
+                        "credentials": [
+                            {
+                                "value": "testuser123",
+                                "type": "password",
+                            }
+                        ],
+                    }
+                )
+                logger.info("Created new passworded user %s", new_user)
 
-            # Add Abacus-related roles to user
-            assignViewRolesToUser(keycloak_admin, new_user)
-        except KeycloakPostError:
-            logger.warning(
-                "Could not create passworded user %s!", username, exc_info=True
-            )
+                # Add Abacus-related roles to user
+                assignViewRolesToUser(keycloak_admin, new_user)
+            except KeycloakPostError:
+                logger.warning(
+                    "Could not create passworded user %s!", username, exc_info=True
+                )
 
 
 def addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, client_audience):
@@ -217,7 +207,7 @@ def createTestClientForX509Flow(keycloak_admin):
 def createTestClientForClientCredentialsFlow(
     keycloak_admin, keycloak_auth_url, client_id
 ):
-    client_secret = os.getenv("CLIENT_SECRET", "123-456")
+    client_secret = os.getenv(client_id + "_CLIENT_SECRET", default_client_secret)
     logger.debug("Creating client %s configured for clientcreds flow", client_id)
     keycloak_admin.create_client(
         payload={
@@ -292,6 +282,7 @@ def createTestClientTDFClient(keycloak_admin):
     logger.info("Created client [%s] as [%s]", client_id, keycloak_client_id)
     addVirtruMappers(keycloak_admin, keycloak_client_id)
     addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-attributes")
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, "tdf-entitlement")
 
 
 def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clients):
@@ -327,6 +318,11 @@ def createPreloadedTDFClients(keycloak_admin, keycloak_auth_url, preloaded_clien
         )
 
         addVirtruMappers(keycloak_admin, keycloak_client_id)
+        audienceMappers = item["audienceMappers"]
+        if audienceMappers:
+            for client_audience in audienceMappers:
+                addVirtruClientAudienceMapper(keycloak_admin, keycloak_client_id, client_audience)
+
 
 
 def createTestClientTDFAttributes(keycloak_admin):
@@ -388,7 +384,7 @@ def createTestClientTDFEntitlements(keycloak_admin):
 
 def createTestClientTDFEntityResolution(keycloak_admin):
     client_id = "tdf-entity-resolution-service"
-    client_secret = "123-456"
+    client_secret = os.getenv(client_id + "_CLIENT_SECRET", default_client_secret)
     logger.debug("Creating client %s configured for entity resolution", client_id)
     keycloak_admin.create_client(
         payload={

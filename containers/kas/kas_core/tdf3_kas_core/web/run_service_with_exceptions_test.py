@@ -16,6 +16,7 @@ from tdf3_kas_core.errors import InvalidBindingError
 from tdf3_kas_core.errors import KeyAccessError
 from tdf3_kas_core.errors import KeyNotFoundError
 from tdf3_kas_core.errors import JWTError
+from tdf3_kas_core.errors import MiddlewareIsBadError
 from tdf3_kas_core.errors import PluginBackendError
 from tdf3_kas_core.errors import PluginIsBadError
 from tdf3_kas_core.errors import PluginFailedError
@@ -120,7 +121,7 @@ def test_KeyNotFoundError(req):
     serv = create_service(KeyNotFoundError)
     actual = (run_service_with_exceptions(serv))(req)
     assert isinstance(actual, flask.Response)
-    assert actual.status_code == 403
+    assert actual.status_code == 404
 
 
 def test_JWTError(req):
@@ -129,6 +130,14 @@ def test_JWTError(req):
     actual = (run_service_with_exceptions(serv))(req)
     assert isinstance(actual, flask.Response)
     assert actual.status_code == 403
+
+
+def test_MiddlewareIsBadError(req):
+    """Test MiddlewareIsBadError."""
+    serv = create_service(MiddlewareIsBadError)
+    actual = (run_service_with_exceptions(serv))(req)
+    assert isinstance(actual, flask.Response)
+    assert actual.status_code == 500
 
 
 def test_PluginBackendError(req):

@@ -21,11 +21,15 @@ jobs:
       SHA_TAG: "${{ steps.info.outputs.SHA }}"
     timeout-minutes: 5
     steps:
-      - name: This workflow should run only main branch
-        if: github.ref_name != 'main'
-        run: echo This workflow should run only main branch. Please switch from "${{ github.ref_name }}" to main and try again >> $GITHUB_STEP_SUMMARY && exit 1
-
       - uses: actions/checkout@v3
+      - name: Validate published release is on main (reviewed) branch
+        run: |
+          git fetch origin main:main
+          git fetch --all --tags --force
+          if ! git merge-base --is-ancestor "$RELEASE_TAG" main; then
+            echo "# Invalid release tag [$RELEASE_TAG] - must be on `main` branch" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
       - run: echo -e "$EVENT_CONTEXT\n"
         env:
           EVENT_CONTEXT: ${{ toJson(github.event) }}

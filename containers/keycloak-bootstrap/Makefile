@@ -2,7 +2,8 @@ all: dockerbuild
 
 COMPONENT_NAME=bootstrap
 COMPONENT_NAME_SNAKE=bootstrap
-IMAGE:=opentdf/keycloak-bootstrap
+IMAGE:=ghcr.io/opentdf/keycloak-bootstrap
+PLATFORMS?=linux/arm64,linux/amd64
 VERSION:=$(shell cat VERSION)
 VENV_DIR:=.venv
 PIPENV_VENV_IN_PROJECT := enabled
@@ -14,11 +15,11 @@ localbuild: lint
 
 .PHONY: dockerbuild
 dockerbuild:
-	docker build -t $(IMAGE):$(VERSION) .
+	@DOCKER_BUILDKIT=1 docker buildx build --platform $(PLATFORMS) --ssh default -t $(IMAGE):$(VERSION) .
 
 .PHONY: dockerbuildpush
 dockerbuildpush: dockerbuild
-	docker push $(IMAGE):$(VERSION)
+	@DOCKER_BUILDKIT=1 docker buildx build --platform $(PLATFORMS) --ssh default -t $(IMAGE):$(VERSION) --push .
 
 .PHONY: run
 run:

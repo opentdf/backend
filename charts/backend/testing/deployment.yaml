@@ -1,7 +1,8 @@
 keycloak:
   image:
     repository: ghcr.io/opentdf/keycloak
-    tag: 20.0.1
+    # keep in-sync containers/keycloak-protocol-mapper/VERSION
+    tag: main
 entity-resolution:
   secret:
     keycloak:

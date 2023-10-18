@@ -1,10 +1,7 @@
 """Test the KAS core code."""
 
-import json
 
-from pprint import pprint
 
-from tdf3_kas_core.models import AttributePolicyCache
 
 from .kas import Kas, swagger_enabled
 
@@ -52,5 +49,5 @@ def test_kas_constructor():
 #     assert actual.size == 3
 
 
-def test_swagger_enabled():
-    assert swagger_enabled()
+def test_swagger_disabled_default():
+    assert not swagger_enabled()

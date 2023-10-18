@@ -19,6 +19,7 @@ from tdf3_kas_core.errors import InvalidBindingError
 from tdf3_kas_core.errors import JWTError
 from tdf3_kas_core.errors import KeyAccessError
 from tdf3_kas_core.errors import KeyNotFoundError
+from tdf3_kas_core.errors import MiddlewareIsBadError
 from tdf3_kas_core.errors import PluginBackendError
 from tdf3_kas_core.errors import PluginIsBadError
 from tdf3_kas_core.errors import PluginFailedError
@@ -132,7 +133,11 @@ def run_service_with_exceptions(service=None, *, success=200):
             return handle_exception(403, err)
 
         except KeyNotFoundError as err:
-            return handle_exception(403, err)
+            return handle_exception(404, err)
+
+        except MiddlewareIsBadError as err:
+            # Error in the middleware configuration.
+            return handle_exception(500, err)
 
         except PluginBackendError as err:
             # Like a 500, but for somebody else.

@@ -1,0 +1,26 @@
+{{- if and .Values.global.opentdf.common.istio.enabled .Values.ingress.enabled -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ include "kas.fullname" . }}-vsvc
+  labels:
+    {{- include "kas.labels" . | nindent 4 }}
+spec:
+  gateways:
+    - {{ ( include "kas.ingress.gateway" . ) }}
+  hosts: {{ .Values.global.opentdf.common.istio.ingress.hosts | toYaml | nindent 4 }}
+  http:
+    - match:
+        - uri:
+            prefix: /api/{{ include "kas.fullname" . }}/
+        - uri:
+            prefix: /api/{{ include "kas.fullname" . }}
+      name: {{ include "kas.fullname" . }}
+      rewrite:
+        uri: /
+      route:
+        - destination:
+            host: {{ include "kas.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end -}}

@@ -9,7 +9,6 @@ import tdf3_kas_core.pdp_grpc as pdp_grpc
 from tdf3_kas_core.errors import AuthorizationError
 
 from accesspdp.v1 import accesspdp_pb2_grpc, accesspdp_pb2
-from attributes.v1 import attributes_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -74,13 +73,14 @@ class AccessPDP(object):
     def _check_attributes(
         self, data_attributes, entity_attributes, data_attribute_definitions
     ):
-        access = True
         """Invoke the PDP over gRPC and obtain decisions.
 
         We should obtain 1 Decision per entity in the `entity_attributes` dict
 
         If all entity-level Decisions are True, then return True, else return false.
         """
+        access = True
+
         # BEGIN grpc
         logger.debug(f"Invoking local PDP: {local_pdp}")
         channel = grpc.insecure_channel(local_pdp)
@@ -100,6 +100,11 @@ class AccessPDP(object):
         logger.debug(f"Requesting decision - request is {MessageToJson(req)}")
         responses = stub.DetermineAccess(req)
         entity_responses = []
+
+        # if claims are empty
+        if not entity_attributes and data_attributes:
+            access=False
+
         for response in responses:
             logger.debug(
                 "Received response for entity %s with access decision %s"
@@ -118,4 +123,4 @@ class AccessPDP(object):
 
         # Final check - KAS wants an error thrown if access == false
         if not access:
-            raise AuthorizationError(f"Access Denied")
+            raise AuthorizationError("Access Denied")

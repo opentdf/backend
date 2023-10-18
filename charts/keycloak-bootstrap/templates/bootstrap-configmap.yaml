@@ -1,3 +1,4 @@
+{{- if not .Values.existingConfigSecret }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -17,4 +18,6 @@ data:
 {{ toYaml .Values.keycloak.preloadedClients | indent 4 }}
   users.yaml: |-
 {{ toYaml .Values.keycloak.preloadedUsers | indent 4 }}
-
+{{- else if or .Values.attributes.preloadedAttributes .Values.attributes.preloadedAuthorities .Values.entitlements.realms .Values.keycloak.customConfig .Values.keycloak.preloadedClients .Values.keycloak.preloadedUsers }}
+{{- fail "Conflicting values: setting `existingConfigSecret` ignores other configuration input" }}
+{{- end }}

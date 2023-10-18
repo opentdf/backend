@@ -39,7 +39,7 @@ jobs:
           # This should be in sync with the minikube-deployed kube version below
           kubectl: "1.25.5"
           helm: "3.10.3"
-          tilt: "0.30.13"
+          tilt: "0.32.4"
       - run: |
           kubectl version --client
           kustomize version

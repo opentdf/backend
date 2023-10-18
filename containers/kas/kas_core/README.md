@@ -2,9 +2,25 @@
 
 The KAS core code implements the TDF3 standard in an open way. To create a KAS, import this dependency into your KAS server, configure it on boot-up, and run your server. The KAS core is a Flask app that should be run in GreenUnicorn or some other service manager.
 
+## Prerequisites
+
+### Ruff
+It basically replaces all the other python static analysis tools (see https://beta.ruff.rs/docs/rules )  
+It's super easy to use.
+
+```shell
+brew install ruff
+```
+
+```shell
+ruff check .
+```
+
+Ruff configuration is in `pyproject.toml` under `tool.ruff` sections
+
 ## Use
 
-The KAS core code has not been released and is not yet available on PyPI. Explore the script files in [etheria](https://github.com/opentdf/backendd) for examples of how to import the repo from git.
+The KAS core code has not been released and is not yet available on PyPI. Explore the script files in [etheria](https://github.com/opentdf/backend) for examples of how to import the repo from git.
 
 The KAS class is a builder for a [WSGI-compliant](https://en.wikipedia.org/wiki/Web_Server_Gateway_Interface) [Flask app](http://flask.pocoo.org/) that implements the TDF3 KAS protocol. Construct a Kas instance, configure it, and have it build the app:
 
