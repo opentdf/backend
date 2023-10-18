@@ -23,8 +23,12 @@ spec:
         {{- include "entity-resolution.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "entity-resolution.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
       - name: {{ include "entity-resolution.fullname" . }}
+        securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
@@ -100,5 +104,17 @@ spec:
           periodSeconds: 10
       {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
