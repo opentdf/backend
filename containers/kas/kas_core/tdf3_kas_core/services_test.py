@@ -574,7 +574,7 @@ def test_upsert_v2_invalid_auth_jwt(
 
 
 class MockResponse:
-    def __init__(self, status_code=200, type="application/json", v={}):
+    def __init__(self, status_code=200, type="application/json", v=None):
         self.status_code = status_code
         self.headers = {"content-type": type}
         self.v = v

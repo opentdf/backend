@@ -320,7 +320,7 @@ def _fetch_distributed_claims(names, sources, claim_name, allowlist):
     else:
         raise UnauthorizedError("distributed claim error: network failure")
 
-    if claim_name not in values:
+    if not values or claim_name not in values:
         logger.warning(
             "distributed claim error: remote claim not returned: [%s] from [%s]",
             claim_name,
@@ -383,7 +383,7 @@ def _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_
     return data_attribute_definitions
 
 
-def rewrap_v2(data, context, plugin_runner, key_master, trusted_entitlers=[]):
+def rewrap_v2(data, context, plugin_runner, key_master, trusted_entitlers=None):
     """Rewrap a key split.
 
     The rewrap service is the guts of the whole KAS.  It takes a raw data
