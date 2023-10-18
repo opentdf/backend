@@ -4,9 +4,6 @@ ARG ALPINE_VERSION=3.17
 # stage - build
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS build
 
-# run as non-root user
-USER 10001
-
 # Install apk dependencies
 RUN apk add --no-cache --upgrade \
     gcc \
