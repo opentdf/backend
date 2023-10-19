@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -38,12 +37,12 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
+import org.keycloak.protocol.ProtocolMapperUtils;
 import org.keycloak.protocol.oidc.mappers.AbstractOIDCProtocolMapper;
 import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.protocol.oidc.mappers.OIDCIDTokenMapper;
 import org.keycloak.protocol.oidc.mappers.UserInfoTokenMapper;
-import org.keycloak.protocol.ProtocolMapperUtils;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.representations.IDToken;
 import org.keycloak.representations.JsonWebToken;
@@ -95,8 +94,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 "If the claim count for all entities exceeds this limit then it becomes distributed claims",
                 ProviderConfigProperty.STRING_TYPE, "50"));
 
-        configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Attribute Provider URL",
-                "Full URL of the remote attribute provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
+        configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Claim Provider URL",
+                "Full URL of the entitlement-pdp provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
                 ProviderConfigProperty.STRING_TYPE, null));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_PARAMETERS, "Parameters",
