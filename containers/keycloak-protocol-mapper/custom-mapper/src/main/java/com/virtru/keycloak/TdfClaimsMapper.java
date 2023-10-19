@@ -177,8 +177,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             // FIXME add correct condition
             if (true) {
                 final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
-                JsonNode distributedClaims = buildDistrubtedClaimsObject(remoteUrl, entitlements);
-                OIDCAttributeMapperHelper.mapClaim(token, mappingModel, distributedClaims);
+                buildDistributedClaimsObject(remoteUrl, mappingModel, userSession, token);
             }
             else {
                 claims = buildClaimsObject(entitlements, clientPK);
@@ -193,19 +192,31 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
     }
 
-    private JsonNode buildDistrubtedClaimsObject(String entitlementURl, JsonNode entitlements) {
-        // TODO create JSON
-        // {
-        //    "_claim_names": {
-        //        "tdf_claims": "src1",
-        //    },
-        //    "_claim_sources": {
-        //        "src1": {
-        //            "endpoint": "http://internalcluster/entitlements?primary_entity_id=bc03f40c-a7af-4507-8198-d5334e2823e6&secondary_entity_ids=4f6636ca-c60c-40d1-9f3f-015086303f74"
-        //        }
-        //    }
-        // }
-        return entitlements;
+    private void buildDistributedClaimsObject(String entitlementURl, ProtocolMapperModel mappingModel, UserSessionModel userSession,
+                                                  IDToken token) {
+        Map<String, Object> parameters;
+        try {
+            parameters = getRequestParameters(mappingModel, userSession, token);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        // hack to add to top-level claims in one claim mapper, set CLAIM_NAME before adding thrice
+        String claimName = mappingModel.getConfig().get(CLAIM_NAME);
+        ObjectNode claimNamesNode = mapper.createObjectNode();
+        claimNamesNode.put(claimName, "src1");
+        mappingModel.getConfig().put(CLAIM_NAME, "_claim_names");
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimNamesNode);
+        ObjectNode claimSourcesNode = mapper.createObjectNode();
+        ObjectNode endpointNode = mapper.createObjectNode();
+        // FIXME add template to build URL
+        endpointNode.put("endpoint", entitlementURl + "/?primary_entity_id="+ token.getId());
+        claimSourcesNode.put("src1", endpointNode);
+        mappingModel.getConfig().put(CLAIM_NAME, "_claim_sources");
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimSourcesNode);
+        mappingModel.getConfig().put(CLAIM_NAME, claimName);
+        logger.debug(entitlementURl + "/?primary_entity_id="+ token.getId());
+        logger.debug(parameters.toString());
     }
 
     private Map<String, Object> getHeaders(ProtocolMapperModel mappingModel, UserSessionModel userSession) {
@@ -217,7 +228,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
 
         // FIXME: using MULTIVALUED_STRING_TYPE would be better but it doesn't seem to
         // work
-        if (config != null && !"".equals(config.trim())) {
+        if (config != null && !config.trim().isEmpty()) {
             String[] configList = config.trim().split("&");
             String[] keyValue;
             for (String configEntry : configList) {
