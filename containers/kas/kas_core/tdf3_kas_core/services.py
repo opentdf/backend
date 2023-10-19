@@ -276,13 +276,12 @@ def _fetch_distributed_claims(names, sources, claim_name, allowlist):
         )
         raise UnauthorizedError("broken distributed claim link")
     endpoint = source["endpoint"]
-    if endpoint not in allowlist:
-        logger.warning(
-            "unrecognized or disallowed claim source [%s] -> [%s] ∉ %s",
-            source_name,
-            endpoint,
-            allowlist,
-        )
+    matched = False
+    for trusted_entitler in allowlist:
+        if endpoint.startswith(trusted_entitler):
+            matched = True
+            break
+    if not matched:
         raise UnauthorizedError("unrecognized or disallowed claim source")
 
     if not endpoint.startswith("https://"):
