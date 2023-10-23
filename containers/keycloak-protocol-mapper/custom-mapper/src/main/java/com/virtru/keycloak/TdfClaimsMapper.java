@@ -177,7 +177,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             // FIXME add correct condition
             if (true) {
                 final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
-                buildDistributedClaimsObject(remoteUrl, mappingModel, userSession, token);
+                buildDistributedClaimsObject(remoteUrl, mappingModel, userSession, token, clientPK);
             }
             else {
                 claims = buildClaimsObject(entitlements, clientPK);
@@ -193,7 +193,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     private void buildDistributedClaimsObject(String entitlementURl, ProtocolMapperModel mappingModel, UserSessionModel userSession,
-                                                  IDToken token) {
+                                                  IDToken token, String clientPublicKey) {
         Map<String, Object> parameters;
         try {
             parameters = getRequestParameters(mappingModel, userSession, token);
@@ -203,6 +203,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         ObjectMapper mapper = new ObjectMapper();
         // hack to add to top-level claims in one claim mapper, set CLAIM_NAME before adding thrice
         String claimName = mappingModel.getConfig().get(CLAIM_NAME);
+        // client_public_signing_key tdf_signing_key
+        mappingModel.getConfig().put(CLAIM_NAME, "client_public_signing_key");
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, clientPublicKey);
+        // _claim_names
         ObjectNode claimNamesNode = mapper.createObjectNode();
         claimNamesNode.put(claimName, "src1");
         mappingModel.getConfig().put(CLAIM_NAME, "_claim_names");
@@ -210,12 +214,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         ObjectNode claimSourcesNode = mapper.createObjectNode();
         ObjectNode endpointNode = mapper.createObjectNode();
         // FIXME add template to build URL
-        endpointNode.put("endpoint", entitlementURl + "/?primary_entity_id="+ token.getId());
+        endpointNode.put("endpoint", String.format("%s?primary_entity_id=%s&secondary_entity_ids=%s", entitlementURl, token.getId(), token.getId()));
         claimSourcesNode.put("src1", endpointNode);
+        // _claim_sources
         mappingModel.getConfig().put(CLAIM_NAME, "_claim_sources");
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimSourcesNode);
         mappingModel.getConfig().put(CLAIM_NAME, claimName);
-        logger.debug(entitlementURl + "/?primary_entity_id="+ token.getId());
+        logger.debug(String.format("%s?primary_entity_id=%s&secondary_entity_ids=%s", entitlementURl, token.getId(), token.getId()));
         logger.debug(parameters.toString());
     }
 
