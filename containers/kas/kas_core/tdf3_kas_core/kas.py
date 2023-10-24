@@ -2,9 +2,9 @@
 
 import os
 import connexion
+
 import importlib_resources
 import logging
-import urllib.parse
 
 from . import services
 
@@ -31,26 +31,6 @@ from .util.swagger_ui_bundle import swagger_ui_4_path
 from .util.hooks import hook_into, post_rewrap_v2_hook_default
 
 logger = logging.getLogger(__name__)
-
-
-def clean_trusted_url(u):
-    r = urllib.parse.urlparse(u, scheme="https")
-    if r.fragment:
-        logger.warning(
-            "Fragments in trusted entitlement URIs are ignored: [%s] won't be required",
-            r.fragment,
-        )
-    if r.query:
-        logger.warning(
-            "Be careful. We use prefix matching for trusted entitlers, so query params are unusual [%s]",
-            u,
-        )
-        if r.path:
-            return f"{r.scheme}://{r.netloc}{r.path}?{r.query}"
-        return f"{r.scheme}://{r.netloc}/?{r.query}"
-    if not r.path:
-        return f"{r.scheme}://{r.netloc}/"
-    return f"{r.scheme}://{r.netloc}{r.path}"
 
 
 def create_session_ping(version):
@@ -202,7 +182,7 @@ class Kas(object):
         self._root_name = name
 
     def set_trusted_entitlers(self, trusted_entitlers):
-        self._trusted_entitlers = [clean_trusted_url(e) for e in trusted_entitlers]
+        self._trusted_entitlers = trusted_entitlers
 
     def set_version(self, version=None):
         """Set version for the heartbeat message."""
