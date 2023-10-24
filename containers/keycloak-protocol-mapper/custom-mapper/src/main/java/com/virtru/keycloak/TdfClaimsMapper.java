@@ -208,8 +208,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         int count = 0;
         if (entitlements.isArray()) {
             for (final JsonNode objNode : entitlements) {
-                logger.info("entity_attributes.size: [{}]", objNode.get("entity_attributes").size());
-                count += objNode.get("entity_attributes").size();
+                if (objNode != null && objNode.get("entity_attributes") != null) {
+                    logger.info("entity_attributes.size: [{}]", objNode.get("entity_attributes").size());
+                    count += objNode.get("entity_attributes").size();
+                }
             }
         }
         return count;
