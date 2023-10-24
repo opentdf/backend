@@ -183,7 +183,7 @@ endpoints:
   # -- Local override for `global.opentdf.common.oidcInternalBaseUrl` + path
   oidcPubkeyEndpoint:
   trustedEntitlers:
-    - http://entitlement-pdp:3355
+    - http://entitlement-pdp:3355/
 
 # -- Adds a container `livenessProbe`, if set.
 livenessProbe:

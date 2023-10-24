@@ -194,8 +194,6 @@ public class TdfClaimsMapperTest {
         config.put(CLAIM_LIMIT, "50");
         config.put(DPOP_ENABLED, "true");
         config.put(PUBLIC_KEY_HEADER, "testPK");
-        config.put(REMOTE_PARAMETERS_USERNAME, "true");
-        config.put(REMOTE_PARAMETERS_CLIENTID, "true");
         if (userInfo) {
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_USERINFO, "true");
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "false");
