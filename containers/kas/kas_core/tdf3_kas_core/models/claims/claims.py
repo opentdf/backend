@@ -26,8 +26,10 @@ class Claims(object):
 
         # Unpack the raw data
         user_id = raw_data["sub"]
-
-        return Claims.load_from_raw_tdf_claims(user_id, claims_cert_obj)
+        client_public_signing_key = claims_cert_obj["client_public_signing_key"]
+        return Claims.load_from_raw_tdf_claims(
+            user_id, claims_cert_obj, client_public_signing_key
+        )
 
     @classmethod
     def load_from_raw_tdf_claims(

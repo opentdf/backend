@@ -115,7 +115,7 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 		tdfClaims := Claims{TdfClaims{Entitlements: entitlements}}
 		// FIXME remove
-		json.NewEncoder(os.Stdout).Encode(tdfClaims)
+		_ = json.NewEncoder(os.Stdout).Encode(tdfClaims)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(tdfClaims)

@@ -3,6 +3,7 @@ package com.virtru.keycloak;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -72,11 +74,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     static final String REMOTE_URL = "remote.url";
     static final String REMOTE_HEADERS = "remote.headers";
     static final String REMOTE_PARAMETERS = "remote.parameters";
-    static final String REMOTE_PARAMETERS_USERNAME = "remote.parameters.username";
-    static final String REMOTE_PARAMETERS_CLIENTID = "remote.parameters.clientid";
     static final String CLAIM_NAME = "claim.name";
     static final String CLAIM_LIMIT = "claim.limit";
     static final String DPOP_ENABLED = "client.dpop";
+    static final String DISTRIBUTED_ENABLED = "client.distributed";
     static final String PUBLIC_KEY_HEADER = "client.publickey";
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
 
@@ -90,17 +91,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
         configProperties.get(configProperties.size() - 1).setDefaultValue("tdf_claims");
 
-        configProperties.add(new ProviderConfigProperty(CLAIM_LIMIT, "Claim Count Limit",
-                "If the claim count for all entities exceeds this limit then it becomes distributed claims",
-                ProviderConfigProperty.STRING_TYPE, "50"));
-
         configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Claim Provider URL",
                 "Full URL of the entitlement-pdp provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
-                ProviderConfigProperty.STRING_TYPE, null));
+                ProviderConfigProperty.STRING_TYPE, System.getenv("CLAIMS_URL")));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_PARAMETERS, "Parameters",
-                "List of additional parameters to send separated by '&'. Separate parameter name and value by an equals sign '=', the value can contain equals signs (ex: scope=all&full=true).",
-                ProviderConfigProperty.STRING_TYPE, null));
+                "List of parameters to send separated by '&'. Separate parameter name and value by an equals sign '=', the value can contain equals signs (ex: scope=all&full=true).",
+                ProviderConfigProperty.STRING_TYPE, "primary_entity_id={}&secondary_entity_ids={}&entitlement_context_obj={}"));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_HEADERS, "Headers",
                 "List of headers to send separated by '&'. Separate header name and value by an equals sign '=', the value can contain equals signs (ex: Authorization=az89d).",
@@ -114,6 +111,12 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 "Support registering proof of possession with DPoP confirmation token",
                 ProviderConfigProperty.BOOLEAN_TYPE, "true"));
 
+        configProperties.add(new ProviderConfigProperty(DISTRIBUTED_ENABLED, "Enable Distributed Claims",
+                "Support distributed claims",
+                ProviderConfigProperty.BOOLEAN_TYPE, "false"));
+        configProperties.add(new ProviderConfigProperty(CLAIM_LIMIT, "Claim Count Limit",
+                "If the claim count for all entities exceeds this limit then it becomes distributed claims",
+                ProviderConfigProperty.STRING_TYPE, "50"));
     }
 
     @Override
@@ -171,15 +174,25 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // If claims are not cached OR this is a userinfo request (which should always
         // refresh claims from remote) then refresh claims.
         if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
-            logger.debug("Getting remote authorizations");
+            logger.info("Getting remote authorizations");
             JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
-            // TODO if entitlements count over claims.limit then distrubted claims
-            // FIXME add correct condition
-            if (true) {
+            // if Distributed Claims is enabled and ...
+            Object distributedEnabledValue = mappingModel.getConfig().get(DISTRIBUTED_ENABLED);
+            boolean distributedEnabled = "true".equals(distributedEnabledValue);
+            logger.info("distributedEnabled: [{}]", distributedEnabled);
+            // get claims to check length
+            int claimCount = countClaims(entitlements);
+            // if entitlements count over claims.limit then distributed claims
+            String claimLimitValue = mappingModel.getConfig().get(CLAIM_LIMIT);
+            int claimLimit = Integer.parseInt(claimLimitValue);
+            logger.info("claimLimit: [{}]", claimLimit);
+            if (distributedEnabled && (claimCount > claimLimit)) {
+                logger.info("distributed");
                 final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
                 buildDistributedClaimsObject(remoteUrl, mappingModel, userSession, token, clientPK);
             }
             else {
+                // embedded claims
                 claims = buildClaimsObject(entitlements, clientPK);
                 OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
             }
@@ -188,8 +201,18 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         } else {
             logger.debug("Using cached remote authorizations: [{}]", claims);
         }
-        // FIXME handle cache or not use cache
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
+    }
+
+    private int countClaims(JsonNode entitlements) {
+        int count = 0;
+        if (entitlements.isArray()) {
+            for (final JsonNode objNode : entitlements) {
+                logger.info("entity_attributes.size: [{}]", objNode.get("entity_attributes").size());
+                count += objNode.get("entity_attributes").size();
+            }
+        }
+        return count;
     }
 
     private void buildDistributedClaimsObject(String entitlementURl, ProtocolMapperModel mappingModel, UserSessionModel userSession,
