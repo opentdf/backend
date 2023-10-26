@@ -126,7 +126,7 @@ def kas_public_key(
     if with_kid:
         return {
             "kid": kid.decode("ascii"),
-            "public_key": public_key_bytes.decode("ascii"),
+            "publicKey": public_key_bytes.decode("ascii"),
         }
     return public_key_bytes.decode("ascii")
 
