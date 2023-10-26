@@ -184,10 +184,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             int claimCount = countClaims(entitlements);
             // if entitlements count over claims.limit then distributed claims
             String claimLimitValue = mappingModel.getConfig().get(CLAIM_LIMIT);
+            if (claimLimitValue == null) {
+                logger.error("claim.limit is null");
+                claimLimitValue = "0";
+            }
             int claimLimit = Integer.parseInt(claimLimitValue);
             logger.info("claimLimit: [{}]", claimLimit);
             if (distributedEnabled && (claimCount > claimLimit)) {
-                logger.info("distributed");
                 final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
                 buildDistributedClaimsObject(remoteUrl, mappingModel, userSession, token, clientPK);
             }
