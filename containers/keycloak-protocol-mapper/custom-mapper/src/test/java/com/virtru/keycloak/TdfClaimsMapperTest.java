@@ -1,5 +1,6 @@
 package com.virtru.keycloak;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({ MockitoExtension.class })
-public class TdfClaimsMapperTest {
+class TdfClaimsMapperTest {
     private UndertowJaxrsServer server;
 
     @Mock
@@ -179,6 +180,26 @@ public class TdfClaimsMapperTest {
                         keycloakSession, userSessionModel, clientSessionContext),
                 "");
 
+    }
+
+    @Test
+    void testCountClaims() throws JsonProcessingException {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> TdfClaimsMapper.countClaims(null),
+                "null arg");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode notArray = mapper.createObjectNode();
+        int actualCount = TdfClaimsMapper.countClaims(notArray);
+        Assertions.assertEquals(0, actualCount);
+        JsonNode entitlementsOne = mapper.readTree("[{\"entity_attributes\":[{\"a\":\"b\"}]}]");
+        actualCount = TdfClaimsMapper.countClaims(entitlementsOne);
+        Assertions.assertEquals(1, actualCount);
+        JsonNode entitlementsFour = mapper.readTree("[{\"entity_attributes\":[{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"}]}]");
+        actualCount = TdfClaimsMapper.countClaims(entitlementsFour);
+        Assertions.assertEquals(4, actualCount);
+        JsonNode entitlementsEight = mapper.readTree("[{\"entity_attributes\":[{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"}]},{\"entity_attributes\":[{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"}]}]");
+        actualCount = TdfClaimsMapper.countClaims(entitlementsEight);
+        Assertions.assertEquals(8, actualCount);
     }
 
     void commonSetup(String pkHeader, boolean setConfig, boolean userInfo, boolean userIsSvcAcct) {

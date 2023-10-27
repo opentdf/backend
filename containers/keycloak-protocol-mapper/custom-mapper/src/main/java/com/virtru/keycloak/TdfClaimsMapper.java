@@ -174,12 +174,12 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // If claims are not cached OR this is a userinfo request (which should always
         // refresh claims from remote) then refresh claims.
         if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
-            logger.info("Getting remote authorizations");
+            logger.debug("Getting remote authorizations");
             JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
             // if Distributed Claims is enabled and ...
             Object distributedEnabledValue = mappingModel.getConfig().get(DISTRIBUTED_ENABLED);
             boolean distributedEnabled = "true".equals(distributedEnabledValue);
-            logger.info("distributedEnabled: [{}]", distributedEnabled);
+            logger.debug("distributedEnabled: [{}]", distributedEnabled);
             // get claims to check length
             int claimCount = countClaims(entitlements);
             // if entitlements count over claims.limit then distributed claims
@@ -189,7 +189,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 claimLimitValue = "0";
             }
             int claimLimit = Integer.parseInt(claimLimitValue);
-            logger.info("claimLimit: [{}]", claimLimit);
+            logger.debug("claimLimit: [{}]", claimLimit);
             if (distributedEnabled && (claimCount > claimLimit)) {
                 final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
                 buildDistributedClaimsObject(remoteUrl, mappingModel, userSession, token, clientPK);
@@ -207,7 +207,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
     }
 
-    private int countClaims(JsonNode entitlements) {
+    static int countClaims(@NotNull JsonNode entitlements) {
         int count = 0;
         if (entitlements.isArray()) {
             for (final JsonNode objNode : entitlements) {
@@ -221,13 +221,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     private void buildDistributedClaimsObject(String entitlementURl, ProtocolMapperModel mappingModel, UserSessionModel userSession,
-                                                  IDToken token, String clientPublicKey) {
+                                                  IDToken token, String clientPublicKey) throws JsonProcessingException {
         Map<String, Object> parameters;
-        try {
-            parameters = getRequestParameters(mappingModel, userSession, token);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        parameters = getRequestParameters(mappingModel, userSession, token);
         ObjectMapper mapper = new ObjectMapper();
         // hack to add to top-level claims in one claim mapper, set CLAIM_NAME before adding thrice
         String claimName = mappingModel.getConfig().get(CLAIM_NAME);
@@ -248,8 +244,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         mappingModel.getConfig().put(CLAIM_NAME, "_claim_sources");
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimSourcesNode);
         mappingModel.getConfig().put(CLAIM_NAME, claimName);
-        logger.debug(String.format("%s?primary_entity_id=%s&secondary_entity_ids=%s", entitlementURl, token.getId(), token.getId()));
-        logger.debug(parameters.toString());
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("%s?primary_entity_id=%s&secondary_entity_ids=%s", entitlementURl, token.getId(), token.getId()));
+            logger.debug(parameters.toString());
+        }
     }
 
     private Map<String, Object> getHeaders(ProtocolMapperModel mappingModel, UserSessionModel userSession) {
