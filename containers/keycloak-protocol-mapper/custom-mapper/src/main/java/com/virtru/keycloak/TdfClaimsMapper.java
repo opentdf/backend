@@ -221,7 +221,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     private void buildDistributedClaimsObject(String entitlementURl, ProtocolMapperModel mappingModel, UserSessionModel userSession,
-                                                  IDToken token, String clientPublicKey) throws JsonProcessingException {
+                                                  IDToken token, String clientPublicKey) {
         Map<String, Object> parameters;
         parameters = getRequestParameters(mappingModel, userSession, token);
         ObjectMapper mapper = new ObjectMapper();
@@ -273,9 +273,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         return map;
     }
 
-    private Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
+    Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
             UserSessionModel userSession,
-            IDToken token) throws JsonProcessingException {
+            IDToken token) {
         // Get parameters
         final Map<String, Object> formattedParameters = buildMapFromStringConfig(
                 mappingModel.getConfig().get(REMOTE_PARAMETERS));
@@ -296,6 +296,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // SUB = subject (always present, might be == AZP, might not be )
         // Get client ID (or IDs plural, if this is a token that has been exchanged for
         // the same user from a previous client)
+        // Note this will list all clients that have authenticated with during the user session
         String clientId = userSession.getAuthenticatedClientSessions().values().stream()
                 .map(AuthenticatedClientSessionModel::getClient)
                 .map(ClientModel::getId)
@@ -303,8 +304,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 .collect(Collectors.joining(","));
 
         logger.debug("Complete list of clients from keycloak is: {}", clientId);
-
-        String[] clientIds = clientId.split(",");
 
         // Get username
         UserModel user = userSession.getUser();
@@ -323,19 +322,23 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             String clientInternalId = user.getServiceAccountClientLink();
             formattedParameters.put("primary_entity_id", clientInternalId);
 
-            // This is dumb. If there's a terser and more efficient Java-y way to do this,
-            // feel free to fix.
-            List<String> clientlist = new ArrayList<>(Arrays.asList(clientIds));
-            clientlist.remove(clientInternalId);
-            clientIds = clientlist.toArray(new String[0]);
+            List<String> secondaryEntityIds = Arrays.stream(clientId.split(","))
+                    .filter(id -> !id.equals(clientInternalId))
+                    .collect(Collectors.toList());
+            formattedParameters.put("secondary_entity_ids", secondaryEntityIds);
         } else {
             formattedParameters.put("primary_entity_id", userSession.getUser().getId());
+            List<String> secondaryEntityIds = Arrays.stream(clientId.split(","))
+                    .collect(Collectors.toList());
+            formattedParameters.put("secondary_entity_ids", secondaryEntityIds);
         }
 
-        formattedParameters.put("secondary_entity_ids", clientIds);
-
         ObjectMapper objectMapper = new ObjectMapper();
-        formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        try {
+            formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always
