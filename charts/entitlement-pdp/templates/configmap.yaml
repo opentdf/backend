@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "entitlement-pdp.labels" . | nindent 4 }}
 data:
-  listenPort: {{ .Values.config.listenPort | quote }}
+  serverPort: {{ .Values.config.serverPort | quote }}
   externalHost: {{ .Values.config.externalHost | quote }}
   verbose: {{ .Values.config.verbose | quote }}
   disableTracing: {{ .Values.config.disableTracing | quote }}
@@ -41,3 +41,10 @@ data:
     {{ if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /opt/entitlement-pdp/policycache{{ end }}
 
 {{ toYaml .Values.opaConfig.extraConfigYaml | indent 4 }}
+
+{{- if .Values.additionalConfigMapData }}
+{{- range $index, $content := .Values.additionalConfigMapData }}
+  {{ $index }}: |-
+{{ $content | indent 4 }}
+{{- end }}
+{{- end }}

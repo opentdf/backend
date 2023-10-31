@@ -53,7 +53,6 @@ class AbstractHealthzPlugin(AbstractPlugin):
             probe,
             self.__class__.__name__,
         )
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
 
 
 class AbstractRewrapPlugin(AbstractPlugin):
@@ -65,7 +64,6 @@ class AbstractRewrapPlugin(AbstractPlugin):
             "AbstractRewrapPlugin update method was called on [%s]",
             self.__class__.__name__,
         )
-        logger.setLevel(logging.DEBUG)  # dynamically escalate level
         return (req, res)
 
     def fetch_attributes(self, namespaces):
@@ -73,7 +71,7 @@ class AbstractRewrapPlugin(AbstractPlugin):
         objects like the following:
 
          class Attribute:
-             authorityNamespace: AnyUrl
+             authority: AnyUrl
              name: str
              order: list
              rule: RuleEnum

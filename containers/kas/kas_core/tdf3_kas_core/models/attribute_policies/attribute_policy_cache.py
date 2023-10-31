@@ -36,7 +36,7 @@ class AttributePolicyCache(object):
         )
         for attribute_object in attribute_policy_config:
             # use the policy constructor to validate the inputs
-            authority_namespace = attribute_object["authorityNamespace"]
+            authority_namespace = attribute_object["authority"]
             attribute_name = attribute_object["name"]
             attribute_name_object = f"{authority_namespace}/attr/{attribute_name}"
             if "rule" in attribute_object:
@@ -82,5 +82,4 @@ class AttributePolicyCache(object):
             return self.__policies[namespace]
         except Exception as e:
             logger.exception(e)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
             return None

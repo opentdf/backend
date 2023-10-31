@@ -38,9 +38,8 @@ class DataAttributes(AttributeSet):
                 logger.warning("DEPRECATED - attribute 'url' should be 'attribute'")
                 self.add(AttributeValue(attr_obj["url"]))
             else:
-                msg = f"URL field missing from data attribute = {attr_obj}"
-                logger.error(msg)
-                logger.setLevel(logging.DEBUG)  # dynamically escalate level
+                msg = "url field missing from data attribute"
+                logger.error("%s %s", msg, attr_obj)
                 raise InvalidAttributeError(msg)
 
     def export_raw(self):

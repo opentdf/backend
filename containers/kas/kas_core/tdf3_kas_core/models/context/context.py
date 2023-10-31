@@ -56,7 +56,7 @@ class Context(CaseInsensitiveDict):
 
     def get(self, key):
         """Get the value that goes with the key, if any."""
-        if not key in self:
+        if key not in self:
             return None
         return copy.deepcopy(self[key])
 

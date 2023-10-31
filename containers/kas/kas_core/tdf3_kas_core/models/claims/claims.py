@@ -27,6 +27,11 @@ class Claims(object):
         # Unpack the raw data
         user_id = raw_data["sub"]
 
+        return Claims.load_from_raw_tdf_claims(user_id, claims_cert_obj)
+
+    @classmethod
+    def load_from_raw_tdf_claims(cls, user_id, claims_cert_obj):
+        """Create an Claims object from raw data."""
         # The public key is packaged in the cert string
         claims_public_key = serialization.load_pem_public_key(
             str.encode(claims_cert_obj["client_public_signing_key"]),

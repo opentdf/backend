@@ -22,12 +22,7 @@ def assure_public_key(public_key):
         return public_key
     elif isinstance(public_key, _RSAPrivateKey):
         raise CryptoError("Public key expected in assure_public_key")
-    try:
-        # Assume the public key is a PEM encoded bytes. Try to construct
-        # a public key. If it fails error will be caught.
-        return serialization.load_pem_public_key(public_key, backend=default_backend())
-    except Exception as e:
-        raise CryptoError("Key error") from e
+    raise CryptoError()
 
 
 def assure_private_key(private_key):
@@ -36,15 +31,7 @@ def assure_private_key(private_key):
         return private_key
     elif isinstance(private_key, _RSAPublicKey):
         raise CryptoError("Private key expected in assure_private_key")
-    else:
-        try:
-            # Assume the private key is a PEM encoded bytes. Try to construct
-            # a private key. If it isn't PEM then this will raise an error.
-            return serialization.load_pem_private_key(
-                private_key, backend=default_backend(), password=None
-            )
-        except Exception as e:
-            raise CryptoError("Key Error") from e
+    raise CryptoError()
 
 
 def aes_decrypt_sha1(cipher, private_key):
@@ -84,9 +71,6 @@ def aes_encrypt_sha1(binary, public_key):
         )
     except Exception as e:
         raise CryptoError("Encrypt failed") from e
-
-
-encrypt_algs = {"RSA-OAEP": aes_encrypt_sha1}
 
 
 class WrappedKey(object):
@@ -132,9 +116,9 @@ class WrappedKey(object):
 
     def rewrap_key(self, entity_public_key, algorithm="RSA-OAEP"):
         """Rewrap the held key with another key."""
-        entity_wrapped_key = encrypt_algs[algorithm](
-            self.__unwrapped_key, entity_public_key
-        )
+        if algorithm != "RSA-OAEP":
+            raise ValueError(f"Unsupported algorithm [{algorithm}]")
+        entity_wrapped_key = aes_encrypt_sha1(self.__unwrapped_key, entity_public_key)
         return bytes.decode(base64.b64encode(entity_wrapped_key))
 
     def decrypt(self, ciphertext, iv):

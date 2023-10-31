@@ -54,27 +54,18 @@ class RewrapPluginRunnerV2(AbstractPluginRunner):
 
             # Check the new_res value.  Recycle if it is ok.
             if new_res is None:
-                message = "Plugin canceled rewrap"
-                logger.error(message)
-                raise AuthorizationError(message)
+                raise AuthorizationError("Plugin canceled rewrap")
             if isinstance(new_res, str):
                 # Signale rejection with rejection message
-                logger.error(new_res)
-                logger.setLevel(logging.DEBUG)  # dynamically escalate level
                 raise AuthorizationError(new_res)
             res = new_res
 
             # Check the req.policy value. Recycle if it is ok.
             if "policy" not in new_req:
-                message = "Plugin return value did not contain policy."
-                logger.setLevel(logging.DEBUG)  # dynamically escalate level
-                raise PluginFailedError(message)
+                raise PluginFailedError("Plugin return value did not contain policy.")
             new_policy = new_req["policy"]
             if not isinstance(new_policy, Policy):
-                # Some sort of bug occured
-                message = f"returned policy is type {type(policy)}"
-                logger.setLevel(logging.DEBUG)  # dynamically escalate level
-                raise PluginFailedError(message)
+                raise PluginFailedError(f"returned policy is type {type(policy)}")
 
             # We're redeclaring `req` here because while we want to
             # feed any updated policy from a plugin to the next plugin

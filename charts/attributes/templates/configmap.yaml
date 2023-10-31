@@ -26,3 +26,4 @@ data:
   SERVER_PUBLIC_NAME: {{ .Values.serverPublicName | quote  }}
   SERVER_ROOT_PATH: {{ .Values.serverRootPath | quote  }}
   SERVER_CORS_ORIGINS: {{ .Values.serverCorsOrigins | quote  }}
+  AUDIT_ORG_ID: {{ .Values.global.opentdf.common.auditOrgId | default "00000000-0000-0000-0000-000000000000" | quote }}

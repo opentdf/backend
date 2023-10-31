@@ -5,28 +5,24 @@ import base64
 
 from tdf3_kas_core.models.wrapped_keys import aes_encrypt_sha1
 
-from tdf3_kas_core.util import get_public_key_from_disk
-from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
 
 from tdf3_kas_core.errors import KeyAccessError
 
 from .key_access import KeyAccess
 
-public_key = get_public_key_from_disk("test")
-private_key = get_private_key_from_disk("test")
-
-entity_public_key = get_public_key_from_disk("test_alt")
-entity_private_key = get_private_key_from_disk("test_alt")
 
 plain_key = b"This-is-the-good-key"
-wrapped_key = aes_encrypt_sha1(plain_key, public_key)
 msg = b"This message is valid"
 binding = str.encode(generate_hmac_digest(msg, plain_key))
-
-raw_wrapped_key = bytes.decode(base64.b64encode(wrapped_key))
 raw_binding = bytes.decode(base64.b64encode(binding))
 canonical_policy = bytes.decode(msg)
+
+
+@pytest.fixture
+def raw_wrapped_key(public_key):
+    wrapped_key = aes_encrypt_sha1(plain_key, public_key)
+    return bytes.decode(base64.b64encode(wrapped_key))
 
 
 def test_key_access_constructor():
@@ -95,7 +91,7 @@ def test_key_access_from_raw_remote():
     assert actual.protocol == "kas"
 
 
-def test_key_access_from_raw_wrapped():
+def test_key_access_from_raw_wrapped(raw_wrapped_key, private_key):
     """Test the raw dict create method."""
     print("=======")
     print(raw_wrapped_key)
@@ -116,7 +112,7 @@ def test_key_access_from_raw_wrapped():
     assert actual.wrapped_key == raw_wrapped_key
 
 
-def test_key_access_to_dict_remote():
+def test_key_access_to_dict_remote(private_key):
     """Test the key_access to_dict production method."""
     raw = {"type": "remote", "url": "http://127.0.0.1:4000", "protocol": "kas"}
     ka = KeyAccess.from_raw(raw, private_key)
