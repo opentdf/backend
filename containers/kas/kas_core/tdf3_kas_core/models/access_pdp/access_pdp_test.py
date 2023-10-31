@@ -1,13 +1,13 @@
 import unittest
 from unittest.mock import patch, Mock
-from access_pdp import AccessPDP
+from .access_pdp import AccessPDP
 
 
 class TestAccessPDP(unittest.TestCase):
     def setUp(self):
         self.access_pdp = AccessPDP()
 
-    @patch('access_pdp.pdp_grpc.convert_attribute_defs', return_value=None)
+    @patch('.access_pdp.pdp_grpc.convert_attribute_defs', return_value=None)
     def test_check_attributes_with_none_attr_defs(self, _):
         data_attributes = Mock()
         entity_attributes = Mock()
