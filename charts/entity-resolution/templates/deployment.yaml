@@ -15,20 +15,28 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         {{- include "entity-resolution.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "entity-resolution.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
       - name: {{ include "entity-resolution.fullname" . }}
+        securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.repo }}:{{ .Values.image.tag | default .Chart.AppVersion }}
         env:
-          - name: LISTEN_PORT
+          - name: SERVER_PORT
             valueFrom:
               configMapKeyRef:
                 name: {{ include "entity-resolution.fullname" . }}-cm
-                key: listenPort
+                key: serverPort
           - name: EXTERNAL_HOST
             valueFrom:
               configMapKeyRef:
@@ -75,26 +83,38 @@ spec:
                 name: {{ include "entity-resolution.fullname" . }}-keycloak-client-secret
                 key: keycloakClientSecret
         ports:
-          - containerPort: {{ .Values.config.listenPort }}
+          - containerPort: {{ .Values.config.serverPort }}
         livenessProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.config.listenPort }}
+            port: {{ .Values.config.serverPort }}
           failureThreshold: 1
           periodSeconds: 10
         startupProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.config.listenPort }}
+            port: {{ .Values.config.serverPort }}
           failureThreshold: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /healthz
-            port: {{ .Values.config.listenPort }}
+            port: {{ .Values.config.serverPort }}
           failureThreshold: 30
           periodSeconds: 10
       {{- with (coalesce .Values.imagePullSecrets .Values.global.opentdf.common.imagePullSecrets) }}
       imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

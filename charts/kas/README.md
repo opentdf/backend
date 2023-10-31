@@ -28,10 +28,10 @@ helm upgrade --install kas .
 
 If you wish to provide and manage your own KAS keys (recommended), you may do so by either:
 
-2. Creating/managing your own named K8S Secret in the chart namespace in the form described by [](./templates/secrets.yaml), and setting `kas.externalEnvSecretName` accordingly:
+2. Creating/managing your own named K8S Secret in the chart namespace in the form described by [](./templates/secrets.yaml), and setting `kas.externalSecretName` accordingly:
 
 ```sh
-helm upgrade --install kas --set externalEnvSecretName=<Secret-with-rsa-and-ec-keypairs> .
+helm upgrade --install kas --set externalSecretName=<Secret-with-rsa-and-ec-keypairs> .
 ```
 
 3. Supplying each private/public key as a values override, e.g:
@@ -58,6 +58,7 @@ helm upgrade --install kas \
 | endpoints.attrHost                                  | string | `"http://attributes:4020"`                                      | Internal url of attributes service                                                                                                                                                                                                                                       |
 | endpoints.oidcPubkeyEndpoint                        | string | `nil`                                                           | Local override for `global.opentdf.common.oidcInternalBaseUrl` + path                                                                                                                                                                                                    |
 | endpoints.statsdHost                                | string | `"statsd"`                                                      | Internal url of statsd                                                                                                                                                                                                                                                   |
+| endpoints.trustedEntitlers                          | list   | `['http://entitlements']`                                       | Distributed claims host(s)                                                                                                                                                                                                                                               |
 | envConfig.attrAuthorityCert                         | string | `nil`                                                           | The public key used to validate responses from `attrHost`                                                                                                                                                                                                                |
 | envConfig.cert                                      | string | `nil`                                                           | Public key KAS clients can use to validate responses                                                                                                                                                                                                                     |
 | envConfig.ecCert                                    | string | `nil`                                                           | The public key of curve secp256r1, KAS clients can use to validate responses                                                                                                                                                                                             |

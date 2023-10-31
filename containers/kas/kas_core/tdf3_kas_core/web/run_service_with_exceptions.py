@@ -133,7 +133,7 @@ def run_service_with_exceptions(service=None, *, success=200):
             return handle_exception(403, err)
 
         except KeyNotFoundError as err:
-            return handle_exception(403, err)
+            return handle_exception(404, err)
 
         except MiddlewareIsBadError as err:
             # Error in the middleware configuration.

@@ -75,9 +75,8 @@ class KeyAccess(object):
         #                              canonical_policy=canonical_policy)
 
         else:
-            msg = f"Unknown key access type = {kao.type}"
-            logger.error(msg)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
+            msg = "Unknown key access type"
+            logger.error("%s [%s]", msg, kao.type)
             raise KeyAccessError(msg)
 
         kao.metadata = decrypt_metadata_string(
@@ -111,8 +110,7 @@ class KeyAccess(object):
         """Set the type."""
         logger.debug("Setting type to = %s", value)
         if value not in KEY_ACCESS_TYPES:
-            logger.error("Key access type '%s' is invalid", value)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
+            logger.warning("Key access type '%s' is invalid", value)
             raise KeyAccessError("Invalid type")
         self.__type = value
 
@@ -128,8 +126,7 @@ class KeyAccess(object):
         logger.debug("Setting url to = %s", value)
         valid = attr_authority_check.match(value)
         if not valid:
-            logger.error("url '%s' is invalid", value)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
+            logger.warning("url '%s' is invalid", value)
             raise KeyAccessError("Invalid url")
         self.__url = value
 
@@ -156,9 +153,8 @@ class KeyAccess(object):
         """Set the protocol."""
         logger.debug("Setting protocol to = %s", value)
         if value not in PROTOCOL_TYPES:
-            msg = f"Invalid protocol = {value}; must be type {PROTOCOL_TYPES}"
-            logger.error(msg)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
+            msg = f"Invalid protocol {PROTOCOL_TYPES}"
+            logger.warning("%s - [%s]", msg, value)
             raise KeyAccessError(msg)
         self.__protocol = value
 
@@ -177,9 +173,8 @@ class KeyAccess(object):
         logger.debug("Setting wrapped_key to = %s", value)
         # Might need to add None as a valid value for Wrapped_Key
         if not (isinstance(value, str) or (value is None)):
-            msg = f"Wrapped key must be string, got {value}"
-            logger.error(msg)
-            logger.setLevel(logging.DEBUG)  # dynamically escalate level
+            msg = "wrapped key must be string"
+            logger.error("%s, got [%s]", msg, value)
             raise KeyAccessError(msg)
         self.__wrapped_key = value
 

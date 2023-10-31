@@ -13,7 +13,7 @@ from .plugins import (
     opentdf_attr_authority_plugin,
     revocation_plugin,
     access_pdp_healthz_plugin,
-    audit_hooks
+    audit_hooks,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,6 +23,7 @@ USE_OIDC = os.environ.get("USE_OIDC") == "1"
 OIDC_SERVER_URL = os.environ.get("OIDC_SERVER_URL") is not None
 
 AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
+TRUSTED_ENTITLERS = os.environ.get("TRUSTED_ENTITLERS", "").split()
 
 
 def configure_filters(kas):
@@ -69,6 +70,7 @@ def app(name):
     # Construct the KAS instance
     kas = Kas.get_instance()
     kas.set_root_name(name)
+    kas.set_trusted_entitlers(TRUSTED_ENTITLERS)
 
     # Set the version, if possible
     version = version_info()
@@ -147,7 +149,7 @@ def app(name):
     # Configure compatibility with EO mode
     aa_certificate = load_key_bytes("ATTR_AUTHORITY_CERTIFICATE", missing_variables)
     if not aa_certificate:
-        logger.warn(
+        logger.warning(
             "KAS does not have an ATTR_AUTHORITY_CERTIFICATE; running in OIDC-only mode"
         )
     else:

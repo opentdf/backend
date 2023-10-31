@@ -83,7 +83,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         logger.debug("DPoP not required, not found")
         return False
     if dpop and not cnf:
-        logger.warn(
+        logger.warning(
             "DPoP found but unconfirmed [%s] not referenced from [%s]", dpop, id_jwt
         )
         return False

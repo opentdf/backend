@@ -6,14 +6,8 @@ from tdf3_kas_core.authorized import pack_rs256_jwt
 from tdf3_kas_core.errors import AuthorizationError
 from tdf3_kas_core.errors import UnauthorizedError
 from tdf3_kas_core.errors import JWTError
-from tdf3_kas_core.util import get_public_key_from_disk
-from tdf3_kas_core.util import get_private_key_from_disk
 
 from . import authorized
-
-entity_private_key = get_private_key_from_disk("test")
-entity_public_key = get_public_key_from_disk("test")
-other_public_key = get_public_key_from_disk("test_alt")
 
 slightly_borked_jwt = """"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUI
 iwia2lkIiA6ICJXcGNJNjdBdjhtb2ItY2Vqa3NtWkJ5R2otcllmUURDMTBLa1V
@@ -47,17 +41,17 @@ def no_leeway():
     authorized.leeway = old_value
 
 
-def test_authorized_pass():
+def test_authorized_pass(entity_private_key, entity_public_key):
     """Test authorized."""
     auth_token = pack_rs256_jwt({}, entity_private_key, exp_sec=60)
     assert authorized.authorized(entity_public_key, auth_token)
 
 
-def test_authorized_fail():
+def test_authorized_fail(entity_private_key, public_key):
     """Test authorized failure."""
     auth_token = pack_rs256_jwt({}, entity_private_key, exp_sec=60)
     with pytest.raises(AuthorizationError):
-        authorized.authorized(other_public_key, auth_token)
+        authorized.authorized(public_key, auth_token)
 
 
 def test_jwt_utilities_unsafe_decode_jwt_fails_on_malformed_jwt():
@@ -65,13 +59,11 @@ def test_jwt_utilities_unsafe_decode_jwt_fails_on_malformed_jwt():
         assert authorized.unsafe_decode_jwt(slightly_borked_jwt)
 
 
-def test_jwt_utilities_rs256test_happy():
+def test_jwt_utilities_rs256test_happy(private_key, public_key):
     """Test creation/validation of asymmetric JWTs with RSA key pairs."""
     expected = {"foo": "bar"}
-    private = get_private_key_from_disk("test")
-    public = get_public_key_from_disk("test")
-    jwt = authorized.pack_rs256_jwt(expected, private)
-    actual = authorized.unpack_rs256_jwt(jwt, public)
+    jwt = authorized.pack_rs256_jwt(expected, private_key)
+    actual = authorized.unpack_rs256_jwt(jwt, public_key)
     assert actual == expected
 
 
@@ -83,41 +75,35 @@ def test_jwt_utilities_rs256_pack_sad():
         authorized.pack_rs256_jwt(expected, bogus)
 
 
-def test_jwt_utilities_rs256_unpack_sad():
+def test_jwt_utilities_rs256_unpack_sad(private_key, entity_public_key):
     """Test validatation attempt with bogus public key."""
     expected = {"foo": "bar"}
-    private = get_private_key_from_disk("test")
-    bogus = get_public_key_from_disk("test_alt")
+    private = private_key
+    bogus = entity_public_key
     jwt = authorized.pack_rs256_jwt(expected, private)
     with pytest.raises(JWTError):
         authorized.unpack_rs256_jwt(jwt, bogus)
 
 
-def test_jwt_utilities_rs256_unpack_expiration_hrs(no_leeway):
+def test_jwt_utilities_rs256_unpack_expiration_hrs(private_key, public_key, no_leeway):
     """Test validatation attempt with bogus public key."""
     expected = {"foo": "bar"}
-    private = get_private_key_from_disk("test")
-    public = get_public_key_from_disk("test")
-    jwt = authorized.pack_rs256_jwt(expected, private, exp_hrs=-1)
+    jwt = authorized.pack_rs256_jwt(expected, private_key, exp_hrs=-1)
     with pytest.raises(JWTError):
-        authorized.unpack_rs256_jwt(jwt, public)
+        authorized.unpack_rs256_jwt(jwt, public_key)
 
 
-def test_jwt_utilities_rs256_unpack_expiration_sec(no_leeway):
+def test_jwt_utilities_rs256_unpack_expiration_sec(private_key, public_key, no_leeway):
     """Test validatation attempt with bogus public key."""
     expected = {"foo": "bar"}
-    private = get_private_key_from_disk("test")
-    public = get_public_key_from_disk("test")
-    jwt = authorized.pack_rs256_jwt(expected, private, exp_sec=-1)
+    jwt = authorized.pack_rs256_jwt(expected, private_key, exp_sec=-1)
     with pytest.raises(JWTError):
-        authorized.unpack_rs256_jwt(jwt, public)
+        authorized.unpack_rs256_jwt(jwt, public_key)
 
 
-def test_jwt_utilities_rs256_unpack_expiration_leeway():
+def test_jwt_utilities_rs256_unpack_expiration_leeway(private_key, public_key):
     """Test validatation attempt with bogus public key."""
     expected = {"foo": "bar"}
-    private = get_private_key_from_disk("test")
-    public = get_public_key_from_disk("test")
-    jwt = authorized.pack_rs256_jwt(expected, private, exp_sec=-1)
-    actual = authorized.unpack_rs256_jwt(jwt, public)
+    jwt = authorized.pack_rs256_jwt(expected, private_key, exp_sec=-1)
+    actual = authorized.unpack_rs256_jwt(jwt, public_key)
     assert actual == expected

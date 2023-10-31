@@ -26,7 +26,7 @@ def convert_attribute_defs(attribute_defs):
     pb_attr_defs = []
     for attribute_def in attribute_defs:
         # use the policy constructor to validate the inputs
-        authority = attribute_def["authorityNamespace"]
+        authority = attribute_def["authority"]
         name = attribute_def["name"]
 
         # TODO This is an existing KAS default - if no definition (or incomplete definition)

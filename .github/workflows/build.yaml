@@ -87,12 +87,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: "🐍 🧪"
-        run: docker run --rm -v "$PWD:/mnt" --workdir "/mnt" "python:3.10" scripts/monotest --coverage containers/kas/kas_app containers/kas/kas_core
-      - name: Override Coverage Source Path for Sonar
-        run: |-
-          sudo sed -i 's|<source>/mnt/containers/kas/kas_core</source>|<source>/github/workspace/containers/kas/kas_core</source>|g' /home/runner/work/backend/backend/containers/kas/kas_core/coverage-reports/coverage.xml
-          sudo sed -i 's|<source>/mnt/containers/kas/kas_app</source>|<source>/github/workspace/containers/kas/kas_app</source>|g' /home/runner/work/backend/backend/containers/kas/kas_app/coverage-reports/coverage.xml
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+      - name: Test
+        run: scripts/monotest --coverage containers/kas/kas_core
       - name: SonarCloud Scan
         if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master

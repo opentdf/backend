@@ -2,14 +2,11 @@
 
 import os
 import connexion
-
 import importlib_resources
 import logging
+import urllib.parse
 
-from .services import ping
-from .services import rewrap, rewrap_v2
-from .services import upsert, upsert_v2
-from .services import kas_public_key
+from . import services
 
 from .models import HealthzPluginRunner
 from .models import RewrapPluginRunner
@@ -36,11 +33,31 @@ from .util.hooks import hook_into, post_rewrap_v2_hook_default
 logger = logging.getLogger(__name__)
 
 
+def clean_trusted_url(u):
+    r = urllib.parse.urlparse(u, scheme="https")
+    if r.fragment:
+        logger.warning(
+            "Fragments in trusted entitlement URIs are ignored: [%s] won't be required",
+            r.fragment,
+        )
+    if r.query:
+        logger.warning(
+            "Be careful. We use prefix matching for trusted entitlers, so query params are unusual [%s]",
+            u,
+        )
+        if r.path:
+            return f"{r.scheme}://{r.netloc}{r.path}?{r.query}"
+        return f"{r.scheme}://{r.netloc}/?{r.query}"
+    if not r.path:
+        return f"{r.scheme}://{r.netloc}/"
+    return f"{r.scheme}://{r.netloc}{r.path}"
+
+
 def create_session_ping(version):
     """Create a session ping callable."""
 
     def session_ping(request=None):
-        return ping(version)
+        return services.ping(version)
 
     return session_ping
 
@@ -65,12 +82,12 @@ def create_session_rewrap(key_master, plugins):
     plugin_runner = RewrapPluginRunner(plugins)
 
     def session_rewrap(data, options):
-        return rewrap(data, options, plugin_runner, key_master)
+        return services.rewrap(data, options, plugin_runner, key_master)
 
     return session_rewrap
 
 
-def create_session_rewrap_v2(key_master, plugins):
+def create_session_rewrap_v2(key_master, plugins, trusted_entitlers):
     """Create a simpler callable that accepts one argument, the data.
 
     The other components that the rewrap service needs are captured in the
@@ -80,9 +97,12 @@ def create_session_rewrap_v2(key_master, plugins):
     plugin_runner = RewrapPluginRunnerV2(plugins)
 
     def session_rewrap(data, options):
-        return hook_into(post=Kas.get_instance()._post_rewrap_hook,
-                    err=Kas.get_instance()._err_rewrap_hook)(rewrap_v2)(
-                        data, options, plugin_runner, key_master)
+        return hook_into(
+            post=Kas.get_instance()._post_rewrap_hook,
+            err=Kas.get_instance()._err_rewrap_hook,
+        )(services.rewrap_v2)(
+            data, options, plugin_runner, key_master, trusted_entitlers
+        )
 
     return session_rewrap
 
@@ -97,12 +117,12 @@ def create_session_upsert(key_master, plugins):
     plugin_runner = UpsertPluginRunner(plugins)
 
     def session_upsert(data, options):
-        return upsert(data, options, plugin_runner, key_master)
+        return services.upsert(data, options, plugin_runner, key_master)
 
     return session_upsert
 
 
-def create_session_upsert_v2(key_master, plugins):
+def create_session_upsert_v2(key_master, plugins, trusted_entitlers):
     """Create a simpler callable that accepts one argument, the data.
 
     The other components that the upsert service needs are captured in the
@@ -114,7 +134,9 @@ def create_session_upsert_v2(key_master, plugins):
     plugin_runner = UpsertPluginRunnerV2(plugins)
 
     def session_upsert(data, options):
-        return upsert_v2(data, options, plugin_runner, key_master)
+        return services.upsert_v2(
+            data, options, plugin_runner, key_master, trusted_entitlers
+        )
 
     return session_upsert
 
@@ -125,8 +147,8 @@ def create_session_public_key(key_master):
     The keymaster is carried in the closure of this function.
     """
 
-    def session_kas_public_key(algorithm):
-        return kas_public_key(key_master, algorithm)
+    def session_kas_public_key(algorithm, fmt, v):
+        return services.kas_public_key(key_master, algorithm, fmt, v)
 
     return session_kas_public_key
 
@@ -157,6 +179,7 @@ class Kas(object):
         self._healthz_plugins = []
         self._rewrap_plugins = []
         self._rewrap_plugins_v2 = []
+        self._trusted_entitlers = []
         self._upsert_plugins = []
         self._upsert_plugins_v2 = []
         self._post_rewrap_hook = post_rewrap_v2_hook_default
@@ -177,6 +200,9 @@ class Kas(object):
 
     def set_root_name(self, name):
         self._root_name = name
+
+    def set_trusted_entitlers(self, trusted_entitlers):
+        self._trusted_entitlers = [clean_trusted_url(e) for e in trusted_entitlers]
 
     def set_version(self, version=None):
         """Set version for the heartbeat message."""
@@ -250,25 +276,25 @@ class Kas(object):
             raise PluginIsBadError("plugin is not a decendent of AbstractHealthzPlugin")
 
     def use_post_rewrap_hook(self, hook):
-        """ Add a hook called after rewrap completes """
+        """Add a hook called after rewrap completes"""
         if not callable(hook):
             raise MiddlewareIsBadError("Provided error hook is not callable")
         self._post_rewrap_hook = hook
 
     def use_err_rewrap_hook(self, hook):
-        """ Add a hook called when rewrap returns an error """
+        """Add a hook called when rewrap returns an error"""
         if not callable(hook):
             raise MiddlewareIsBadError("Provided error hook is not callable")
         self._err_rewrap_hook = hook
 
     def add_middleware(self, middleware):
-        """ add middleware called with upsert and rewrap """
-        if not(callable(middleware) or None):
+        """add middleware called with upsert and rewrap"""
+        if not (callable(middleware) or None):
             raise MiddlewareIsBadError("Provided middleware is not callable")
         self._middleware = middleware
 
     def get_middleware(self):
-        """ return the callable middleare """
+        """return the callable middleare"""
         if self._middleware is not None:
             return self._middleware
         return lambda *args: None
@@ -321,7 +347,7 @@ class Kas(object):
         )
 
         self._session_rewrap_v2 = create_session_rewrap_v2(
-            self._key_master, self._rewrap_plugins_v2
+            self._key_master, self._rewrap_plugins_v2, self._trusted_entitlers
         )
 
         self._session_upsert = create_session_upsert(
@@ -329,7 +355,7 @@ class Kas(object):
         )
 
         self._session_upsert_v2 = create_session_upsert_v2(
-            self._key_master, self._upsert_plugins_v2
+            self._key_master, self._upsert_plugins_v2, self._trusted_entitlers
         )
 
         self._session_kas_public_key = create_session_public_key(self._key_master)
@@ -338,7 +364,7 @@ class Kas(object):
         app = connexion.FlaskApp(
             self._root_name, specification_dir="api/", options=flask_options
         )
-        
+
         # Allow swagger_ui to be disabled
         options = {"swagger_ui": False}
         if swagger_enabled():

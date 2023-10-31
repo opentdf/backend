@@ -7,8 +7,6 @@ from cryptography.hazmat.backends.openssl.rsa import _RSAPrivateKey, _RSAPublicK
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from tdf3_kas_core.errors import CryptoError
-from tdf3_kas_core.util import get_public_key_from_disk
-from tdf3_kas_core.util import get_private_key_from_disk
 from tdf3_kas_core.util import generate_hmac_digest
 from tdf3_kas_core.util.cipher.aes_gcm import aes_gcm_encrypt
 
@@ -21,14 +19,15 @@ from .wrapped_keys import (
     assure_public_key,
 )
 
-kas_public_key = get_public_key_from_disk("test")
-kas_private_key = get_private_key_from_disk("test")
-entity_public_key = get_public_key_from_disk("test_alt")
-entity_private_key = get_private_key_from_disk("test_alt")
-
 
 plain_key = b"This-is-the-good-key"
-wrapped_key = aes_encrypt_sha1(plain_key, kas_public_key)
+
+
+@pytest.fixture
+def wrapped_key(public_key):
+    return aes_encrypt_sha1(plain_key, public_key)
+
+
 good_msg = b"This message is valid"
 good_binding = str.encode(generate_hmac_digest(good_msg, plain_key))
 
@@ -50,15 +49,15 @@ def test_wrapped_key_from_plain():
     assert test_item._WrappedKey__unwrapped_key == plain_key
 
 
-def test_wrapped_key_from_raw():
+def test_wrapped_key_from_raw(wrapped_key, private_key):
     """Test the from raw factory function."""
     raw_wrapped_key = bytes.decode(base64.b64encode(wrapped_key))
-    test_item = WrappedKey.from_raw(raw_wrapped_key, kas_private_key)
+    test_item = WrappedKey.from_raw(raw_wrapped_key, private_key)
     assert isinstance(test_item, WrappedKey)
     assert test_item._WrappedKey__unwrapped_key == plain_key
 
 
-def test_rsa_sha1_keys():
+def test_rsa_sha1_keys(public_key, private_key):
     """Test asymmetric RSA SHA1 encrypt/decrypt."""
     expected = b"Cozy sphinx waves quart jug of bad milk"
     wrapped = aes_encrypt_sha1(expected, public_key)
@@ -66,7 +65,7 @@ def test_rsa_sha1_keys():
     assert actual == expected
 
 
-def test_wrapped_key_rewrap_key():
+def test_wrapped_key_rewrap_key(entity_public_key, entity_private_key):
     """Test the rewrap method."""
     test_item = WrappedKey(plain_key)
     rewrapped_b64str = test_item.rewrap_key(entity_public_key)
@@ -76,7 +75,7 @@ def test_wrapped_key_rewrap_key():
     assert actual == plain_key
 
 
-def test_wrapped_key_decrypt():
+def test_wrapped_key_decrypt(entity_public_key, entity_private_key):
     """Test the decrypt method."""
     test_item = WrappedKey(plain_key)
     rewrapped_b64str = test_item.rewrap_key(entity_public_key)
@@ -95,23 +94,10 @@ def test_aes_gcm_mode():
     assert actual == expected
 
 
-public_key = get_public_key_from_disk("test")
-private_key = get_private_key_from_disk("test")
-
-public_key_pem = get_public_key_from_disk("test", as_pem=True)
-private_key_pem = get_private_key_from_disk("test", as_pem=True)
-
-
-def test_assure_public_key_key():
+def test_assure_public_key_key(public_key):
     """Test assure_public_key passes through RSAPublicKeys."""
     actual = assure_public_key(public_key)
     assert actual == public_key
-
-
-def test_assure_public_key_pem():
-    """Test assure_public_key converts PEM encoded bytes."""
-    actual = assure_public_key(public_key_pem)
-    assert isinstance(actual, _RSAPublicKey)
 
 
 def test_assure_public_key_fail_str():
@@ -120,28 +106,22 @@ def test_assure_public_key_fail_str():
         assure_public_key("bad input")
 
 
-def test_assure_public_key_fail_private():
+def test_assure_public_key_fail_private(private_key):
     """Test assure_public_key raises error with private key."""
     with pytest.raises(CryptoError):
         assure_public_key(private_key)
 
 
-def test_assure_public_key_fail_private_pem():
+def test_assure_public_key_fail_private_pem(private_key):
     """Test assure_public_key raises error with private pem."""
     with pytest.raises(CryptoError):
-        assure_public_key(private_key_pem)
+        assure_public_key(private_key)
 
 
-def test_assure_private_key_key():
+def test_assure_private_key_key(private_key):
     """Test assure_private_key passes through RSAPrivateKeys."""
     actual = assure_private_key(private_key)
     assert actual == private_key
-
-
-def test_assure_private_key_pem():
-    """Test assure_private_key converts PEM encoded bytes."""
-    actual = assure_private_key(private_key_pem)
-    assert isinstance(actual, _RSAPrivateKey)
 
 
 def test_assure_private_key_fail_bad_input():
@@ -150,13 +130,7 @@ def test_assure_private_key_fail_bad_input():
         assure_private_key("bad input")
 
 
-def test_assure_private_key_fail_public():
+def test_assure_private_key_fail_public(public_key):
     """Test assure_private_key raises error on public key."""
     with pytest.raises(CryptoError):
         assure_private_key(public_key)
-
-
-def test_assure_private_key_fail_public_pem():
-    """Test assure_private_key raises error on bad input."""
-    with pytest.raises(CryptoError):
-        assure_private_key(public_key_pem)
