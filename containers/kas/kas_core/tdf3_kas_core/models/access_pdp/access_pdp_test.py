@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, Mock
 from tdf3_kas_core.models.access_pdp import AccessPDP
+from tdf3_kas_core.errors import AuthorizationError
 
 
 class TestAccessPDP(unittest.TestCase):
