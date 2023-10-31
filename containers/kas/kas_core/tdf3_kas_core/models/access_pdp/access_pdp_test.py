@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, Mock
-from tdf3_kas_core.models.access_pdp.access_pdp import AccessPDP
+from tdf3_kas_core.models.access_pdp import AccessPDP
 
 
 class TestAccessPDP(unittest.TestCase):
