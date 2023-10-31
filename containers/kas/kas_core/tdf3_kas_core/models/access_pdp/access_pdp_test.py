@@ -1,16 +1,14 @@
 import unittest
 from unittest.mock import patch, Mock
 from access_pdp import AccessPDP
-from tdf3_kas_core.errors import AuthorizationError
 
 
 class TestAccessPDP(unittest.TestCase):
     def setUp(self):
         self.access_pdp = AccessPDP()
 
-    @patch('access_pdp.pdp_grpc.convert_attribute_defs',
-           return_value=None)
-    def test_check_attributes_with_none_attr_defs(self, mock_convert_attribute_defs):
+    @patch('access_pdp.pdp_grpc.convert_attribute_defs', return_value=None)
+    def test_check_attributes_with_none_attr_defs(self, _):
         data_attributes = Mock()
         entity_attributes = Mock()
         data_attribute_definitions = Mock()
