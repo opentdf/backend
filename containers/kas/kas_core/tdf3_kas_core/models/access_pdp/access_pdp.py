@@ -91,6 +91,9 @@ class AccessPDP(object):
         entity_attrs = pdp_grpc.convert_entity_attrs(entity_attributes)
         data_attrs = pdp_grpc.convert_data_attrs(data_attributes)
 
+        if attr_defs is None:
+            raise AuthorizationError(f"Invalid Attribute")
+
         req = accesspdp_pb2.DetermineAccessRequest(
             data_attributes=data_attrs,
             entity_attribute_sets=entity_attrs,
