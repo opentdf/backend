@@ -7,7 +7,7 @@ class TestAccessPDP(unittest.TestCase):
     def setUp(self):
         self.access_pdp = AccessPDP()
 
-    @patch('tdf3_kas_core.models.access_pdp.pdp_grpc.convert_attribute_defs', return_value=None)
+    @patch('tdf3_kas_core.models.pdp_grpc.convert_attribute_defs', return_value=None)
     def test_check_attributes_with_none_attr_defs(self, _):
         data_attributes = Mock()
         entity_attributes = Mock()
