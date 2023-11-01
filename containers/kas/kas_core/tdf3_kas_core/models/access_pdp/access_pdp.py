@@ -88,10 +88,6 @@ class AccessPDP(object):
 
         logger.debug("Serializing KAS structures")
         attr_defs = pdp_grpc.convert_attribute_defs(data_attribute_definitions)
-
-        # if attr_defs is None:
-        #     raise AuthorizationError("Invalid Attribute")
-
         entity_attrs = pdp_grpc.convert_entity_attrs(entity_attributes)
         data_attrs = pdp_grpc.convert_data_attrs(data_attributes)
 
@@ -108,6 +104,9 @@ class AccessPDP(object):
         # if claims are empty
         if not entity_attributes and data_attributes:
             access=False
+
+        if attr_defs is None:
+            raise AuthorizationError("Invalid Attribute")
 
         for response in responses:
             logger.debug(
