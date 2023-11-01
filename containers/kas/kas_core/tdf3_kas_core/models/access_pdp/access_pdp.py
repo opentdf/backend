@@ -99,31 +99,34 @@ class AccessPDP(object):
 
         logger.debug(f"Requesting decision - request is {MessageToJson(req)}")
         responses = stub.DetermineAccess(req)
-        entity_responses = []
+        try:
+            entity_responses = []
 
-        # if claims are empty
-        if not entity_attributes and data_attributes:
-            access=False
+            # if claims are empty
+            if not entity_attributes and data_attributes:
+                access=False
 
-        if attr_defs is None:
-            raise AuthorizationError("Invalid Attribute")
+            if attr_defs is None:
+                raise AuthorizationError("Invalid Attribute")
 
-        for response in responses:
-            logger.debug(
-                "Received response for entity %s with access decision %s"
-                % (response.entity, response.access)
-            )
-            # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
-            access = access and response.access
-            # Capture the per-data-attribute result details for each entity decision, for logging/etc
-            logger.debug(
-                f"Detailed data attribute results for entity {response.entity}: \n"
-            )
-            string_res = MessageToJson(response)
-            logger.debug(f"{string_res}\n")
-            entity_responses.append(string_res)
-        # END grpc
+            for response in responses:
+                logger.debug(
+                    "Received response for entity %s with access decision %s"
+                    % (response.entity, response.access)
+                )
+                # Boolean AND the results - e.g. flip `access` to false if any response.Result is false
+                access = access and response.access
+                # Capture the per-data-attribute result details for each entity decision, for logging/etc
+                logger.debug(
+                    f"Detailed data attribute results for entity {response.entity}: \n"
+                )
+                string_res = MessageToJson(response)
+                logger.debug(f"{string_res}\n")
+                entity_responses.append(string_res)
+            # END grpc
 
-        # Final check - KAS wants an error thrown if access == false
-        if not access:
-            raise AuthorizationError("Access Denied")
+            # Final check - KAS wants an error thrown if access == false
+            if not access:
+                raise AuthorizationError("Access Denied")
+        except grpc.RPCError as e:
+            raise AuthorizationError(e.details())
