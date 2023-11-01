@@ -88,11 +88,12 @@ class AccessPDP(object):
 
         logger.debug("Serializing KAS structures")
         attr_defs = pdp_grpc.convert_attribute_defs(data_attribute_definitions)
-        entity_attrs = pdp_grpc.convert_entity_attrs(entity_attributes)
-        data_attrs = pdp_grpc.convert_data_attrs(data_attributes)
 
         if attr_defs is None:
             raise AuthorizationError("Invalid Attribute")
+
+        entity_attrs = pdp_grpc.convert_entity_attrs(entity_attributes)
+        data_attrs = pdp_grpc.convert_data_attrs(data_attributes)
 
         req = accesspdp_pb2.DetermineAccessRequest(
             data_attributes=data_attrs,
