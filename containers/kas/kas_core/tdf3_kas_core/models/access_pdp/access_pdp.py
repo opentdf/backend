@@ -98,8 +98,8 @@ class AccessPDP(object):
         )
 
         logger.debug(f"Requesting decision - request is {MessageToJson(req)}")
-        responses = stub.DetermineAccess(req)
         try:
+            responses = stub.DetermineAccess(req)
             entity_responses = []
 
             # if claims are empty
