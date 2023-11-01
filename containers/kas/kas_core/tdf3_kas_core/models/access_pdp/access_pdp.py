@@ -129,4 +129,4 @@ class AccessPDP(object):
             if not access:
                 raise AuthorizationError("Access Denied")
         except grpc.RpcError as e:
-            raise AuthorizationError(e)
+            raise AuthorizationError("Access Denied by Policy") from e
