@@ -128,5 +128,5 @@ class AccessPDP(object):
             # Final check - KAS wants an error thrown if access == false
             if not access:
                 raise AuthorizationError("Access Denied")
-        except grpc.RpcError as e:
+        except Exception as e:
             raise AuthorizationError("Access Denied by Policy") from e

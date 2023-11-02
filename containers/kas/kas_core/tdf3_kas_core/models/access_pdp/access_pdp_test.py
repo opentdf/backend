@@ -6,7 +6,7 @@ from tdf3_kas_core.models.access_pdp import AccessPDP
 
 
 class TestAccessPDP(unittest.TestCase):
-    @patch('grpc.insecure_channel')  # Replace 'your_module' with the actual module name
+    @patch('grpc.insecure_channel')
     @patch('accesspdp.v1.accesspdp_pb2_grpc.AccessPDPEndpointStub')
     def test_check_attributes_grpc_error(self, MockStub, _):
         pdp = AccessPDP()
@@ -18,7 +18,7 @@ class TestAccessPDP(unittest.TestCase):
         with self.assertRaises(AuthorizationError) as context:
             pdp._check_attributes({}, {}, {})
 
-        self.assertEqual(str(context.exception), "Some gRPC error")
+        self.assertEqual(str(context.exception), "Access Denied by Policy")
 
 
 if __name__ == "__main__":
