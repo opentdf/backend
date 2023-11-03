@@ -103,34 +103,58 @@ def test_attribute_service():
     assert s.get_attribute("undefined").status == 404
 
 
+us_kas = EncryptionMapping(
+    kas="https://kas.virtru.com",
+    grants=[
+        KeyAccessGrant(
+            attr="https://virtru.co.us/attr/Need+to+Know",
+            values=["HCS", "SI"],
+        ),
+        KeyAccessGrant(
+            attr="https://virtru.co.us/attr/Releasable+To",
+            values=["USA"],
+        ),
+    ],
+)
+uk_kas = EncryptionMapping(
+    kas="https://kas.sample.co.uk",
+    grants=[
+        KeyAccessGrant(
+            attr="https://virtru.co.us/attr/Need+to+Know",
+            values=["INT"],
+        ),
+        KeyAccessGrant(
+            attr="https://virtru.co.us/attr/Releasable+To",
+            values=["GBR"],
+        ),
+    ],
+)
+
+
 def test_configuration_service():
     c = ConfigurationService()
-    c.put_mapping(
-        EncryptionMapping(
-            kas="https://kas.virtru.com",
-            grants=[
-                KeyAccessGrant(
-                    attr="https://virtru.co.us/attr/Need+to+Know",
-                    values=["INT", "SI"],
-                ),
-                KeyAccessGrant(
-                    attr="https://virtru.co.us/attr/Releasable+To",
-                    values=["USA"],
-                ),
-            ],
-        )
-    )
-    c.put_mapping(
-        EncryptionMapping(
-            kas="https://kas.sample.co.uk",
-            grants=[
-                KeyAccessGrant(
-                    attr="https://virtru.co.us/attr/Releasable+To",
-                    values=["GBR"],
-                ),
-            ],
-        )
-    )
+    c.put_mapping(us_kas)
+    c.put_mapping(uk_kas)
     assert len(c.get_mappings("https://virtru.co.us/attr/Releasable+To")) == 2
-    assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 1
+    assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 2
     assert c.get_mappings("https://virtru.co.us/attr/Classification").status == 404
+
+
+cfg_svc = ConfigurationService()
+for e in [uk_kas, us_kas]:
+    cfg_svc.put_mapping(e)
+attr_svc = AttributeService()
+for d in [classDef, needToKnowDef, relToDef]:
+    attr_svc.put_attribute(d)
+
+
+def test_construct_attr_boolean():
+    policy = [
+        AttributeInstance.from_url(x)
+        for x in [
+            "https://virtru.com/attr/Classification/value/Secret",
+            "https://virtru.co.us/attr/Releasable+To/value/GBR",
+            "https://virtru.co.us/attr/Need+to+Know/value/INT",
+        ]
+    ]
+    pass

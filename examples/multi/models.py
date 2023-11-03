@@ -143,3 +143,16 @@ class ConfigurationService:
         return self.by_prefix.get(prefix) or WebError(
             status=404, message=f"Unknown attribute type: [{prefix}]"
         )
+
+
+class Reason:
+    def __init__(
+        self, attribute_svc: AttributeService, config_svc: ConfigurationService
+    ) -> None:
+        self.attrs = attribute_svc
+        self.cfg = config_svc
+
+    def construct_attribute_boolean(self, policy: list[AttributeInstance]):
+        prefixes: set[str] = set()
+        for a in policy:
+            prefixes.add(a.prefix())
