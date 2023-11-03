@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Nerzal/gocloak/v11"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 )
