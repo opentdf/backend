@@ -1,4 +1,12 @@
-from .models import AttributeDefinition, AttributeInstance, AttributeService, Rule
+from .models import (
+    AttributeDefinition,
+    AttributeInstance,
+    AttributeService,
+    ConfigurationService,
+    EncryptionMapping,
+    KeyAccessGrant,
+    Rule,
+)
 
 classDef = AttributeDefinition(
     authority="https://virtru.com/",
@@ -33,6 +41,8 @@ needToKnowDef = AttributeDefinition(
     order=[
         "INT",
         "SI",
+        "OTHER",
+        "FORGOTTEN",
     ],
     rule=Rule.allOf,
 )
@@ -91,3 +101,36 @@ def test_attribute_service():
     assert s.get_attribute(classDef.prefix()) == classDef
     assert s.get_attribute(relToDef.prefix()) == relToDef
     assert s.get_attribute("undefined").status == 404
+
+
+def test_configuration_service():
+    c = ConfigurationService()
+    c.put_mapping(
+        EncryptionMapping(
+            kas="https://kas.virtru.com",
+            grants=[
+                KeyAccessGrant(
+                    attr="https://virtru.co.us/attr/Need+to+Know",
+                    values=["INT", "SI"],
+                ),
+                KeyAccessGrant(
+                    attr="https://virtru.co.us/attr/Releasable+To",
+                    values=["USA"],
+                ),
+            ],
+        )
+    )
+    c.put_mapping(
+        EncryptionMapping(
+            kas="https://kas.sample.co.uk",
+            grants=[
+                KeyAccessGrant(
+                    attr="https://virtru.co.us/attr/Releasable+To",
+                    values=["GBR"],
+                ),
+            ],
+        )
+    )
+    assert len(c.get_mappings("https://virtru.co.us/attr/Releasable+To")) == 2
+    assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 1
+    assert c.get_mappings("https://virtru.co.us/attr/Classification").status == 404

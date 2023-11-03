@@ -58,8 +58,7 @@ class AttributeDefinition(BaseModel):
 
 class KeyAccessGrant(BaseModel):
     attr: str
-    allvalues: bool | None
-    values: list[str] | None
+    values: list[str]
 
 
 class EncryptionMapping(BaseModel):
@@ -124,4 +123,23 @@ class AttributeService:
 
 
 class ConfigurationService:
-    pass
+    def __init__(self) -> None:
+        self.by_kas: dict[str, EncryptionMapping] = {}
+        self.by_prefix: dict[str, list[EncryptionMapping]] = {}
+
+    def put_mapping(self, em: EncryptionMapping):
+        if em.kas in self.by_kas:
+            for grant in self.by_kas[em.kas].grants:
+                self.by_prefix[grant.attr] -= [em]
+
+        for grant in em.grants:
+            if grant.attr in self.by_prefix:
+                self.by_prefix[grant.attr] += [em]
+            else:
+                self.by_prefix[grant.attr] = [em]
+        self.by_kas[em.kas] = em
+
+    def get_mappings(self, prefix: str):
+        return self.by_prefix.get(prefix) or WebError(
+            status=404, message=f"Unknown attribute type: [{prefix}]"
+        )
