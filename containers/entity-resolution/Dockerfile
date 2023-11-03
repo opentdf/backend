@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine AS builder
+FROM golang:1.21-alpine AS builder
 
 ARG GOLANGCI_VERSION=v1.49.0
 ARG COVERAGE_THRESH_PCT=55
@@ -47,7 +47,7 @@ RUN go build -o /dist/entity-resolution-service
 
 
 # Create the minimal runtime image
-FROM golang:1.19-alpine AS emptyfinal
+FROM golang:1.21-alpine AS emptyfinal
 
 COPY --chown=0:0 --from=builder /dist/entity-resolution-service /entity-resolution-service
 

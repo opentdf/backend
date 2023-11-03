@@ -7,7 +7,7 @@ ARG PROD_IMAGE_TAG=1
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
-FROM golang:1.19-bullseye AS gobuilder
+FROM golang:1.21-bullseye AS gobuilder
 RUN mkdir /dist
 RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
 

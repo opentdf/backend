@@ -1,6 +1,6 @@
 module github.com/opentdf/v2/entitlement-pdp
 
-go 1.19
+go 1.21
 
 require (
 	github.com/open-policy-agent/opa v0.53.1
