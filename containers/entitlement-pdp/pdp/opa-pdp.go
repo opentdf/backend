@@ -4,6 +4,7 @@ import (
 	"bytes"
 	ctx "context"
 	"encoding/json"
+	"github.com/open-policy-agent/opa/hooks"
 	"os"
 	"strings"
 	"time"
@@ -65,10 +66,13 @@ func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func(), error) {
 	engineCtx, opaCtxCancel := ctx.WithTimeout(initCtx, timeout)
 	opaOptions := sdk.Options{
 		Config:        bytes.NewReader(opaConfig),
+		Logger:        nil,
 		ConsoleLogger: opalog.New(),
 		Ready:         nil,
 		Plugins:       nil,
 		ID:            "EP-0",
+		Store:         nil,
+		Hooks:         hooks.Hooks{},
 	}
 	optionsSpan.End()
 	_, engineSpan := tracer.Start(engineCtx, "opa-engine")
@@ -146,6 +150,7 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 		Metrics:             metrics.New(),
 		Profiler:            profiler.New(),
 		Instrument:          false,
+		DecisionID:          "R-0",
 	}
 
 	result, err := pdp.opa.Decision(evalCtx, decisionReq)
