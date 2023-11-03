@@ -2,9 +2,9 @@
 
 import os
 import connexion
-
 import importlib_resources
 import logging
+import urllib.parse
 
 from . import services
 
@@ -31,6 +31,26 @@ from .util.swagger_ui_bundle import swagger_ui_4_path
 from .util.hooks import hook_into, post_rewrap_v2_hook_default
 
 logger = logging.getLogger(__name__)
+
+
+def clean_trusted_url(u):
+    r = urllib.parse.urlparse(u, scheme="https")
+    if r.fragment:
+        logger.warning(
+            "Fragments in trusted entitlement URIs are ignored: [%s] won't be required",
+            r.fragment,
+        )
+    if r.query:
+        logger.warning(
+            "Be careful. We use prefix matching for trusted entitlers, so query params are unusual [%s]",
+            u,
+        )
+        if r.path:
+            return f"{r.scheme}://{r.netloc}{r.path}?{r.query}"
+        return f"{r.scheme}://{r.netloc}/?{r.query}"
+    if not r.path:
+        return f"{r.scheme}://{r.netloc}/"
+    return f"{r.scheme}://{r.netloc}{r.path}"
 
 
 def create_session_ping(version):
@@ -67,7 +87,7 @@ def create_session_rewrap(key_master, plugins):
     return session_rewrap
 
 
-def create_session_rewrap_v2(key_master, plugins):
+def create_session_rewrap_v2(key_master, plugins, trusted_entitlers):
     """Create a simpler callable that accepts one argument, the data.
 
     The other components that the rewrap service needs are captured in the
@@ -80,7 +100,9 @@ def create_session_rewrap_v2(key_master, plugins):
         return hook_into(
             post=Kas.get_instance()._post_rewrap_hook,
             err=Kas.get_instance()._err_rewrap_hook,
-        )(services.rewrap_v2)(data, options, plugin_runner, key_master)
+        )(services.rewrap_v2)(
+            data, options, plugin_runner, key_master, trusted_entitlers
+        )
 
     return session_rewrap
 
@@ -100,7 +122,7 @@ def create_session_upsert(key_master, plugins):
     return session_upsert
 
 
-def create_session_upsert_v2(key_master, plugins):
+def create_session_upsert_v2(key_master, plugins, trusted_entitlers):
     """Create a simpler callable that accepts one argument, the data.
 
     The other components that the upsert service needs are captured in the
@@ -112,7 +134,9 @@ def create_session_upsert_v2(key_master, plugins):
     plugin_runner = UpsertPluginRunnerV2(plugins)
 
     def session_upsert(data, options):
-        return services.upsert_v2(data, options, plugin_runner, key_master)
+        return services.upsert_v2(
+            data, options, plugin_runner, key_master, trusted_entitlers
+        )
 
     return session_upsert
 
@@ -155,6 +179,7 @@ class Kas(object):
         self._healthz_plugins = []
         self._rewrap_plugins = []
         self._rewrap_plugins_v2 = []
+        self._trusted_entitlers = []
         self._upsert_plugins = []
         self._upsert_plugins_v2 = []
         self._post_rewrap_hook = post_rewrap_v2_hook_default
@@ -175,6 +200,9 @@ class Kas(object):
 
     def set_root_name(self, name):
         self._root_name = name
+
+    def set_trusted_entitlers(self, trusted_entitlers):
+        self._trusted_entitlers = [clean_trusted_url(e) for e in trusted_entitlers]
 
     def set_version(self, version=None):
         """Set version for the heartbeat message."""
@@ -319,7 +347,7 @@ class Kas(object):
         )
 
         self._session_rewrap_v2 = create_session_rewrap_v2(
-            self._key_master, self._rewrap_plugins_v2
+            self._key_master, self._rewrap_plugins_v2, self._trusted_entitlers
         )
 
         self._session_upsert = create_session_upsert(
@@ -327,7 +355,7 @@ class Kas(object):
         )
 
         self._session_upsert_v2 = create_session_upsert_v2(
-            self._key_master, self._upsert_plugins_v2
+            self._key_master, self._upsert_plugins_v2, self._trusted_entitlers
         )
 
         self._session_kas_public_key = create_session_public_key(self._key_master)

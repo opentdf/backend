@@ -28,6 +28,7 @@ import json
 import jwt
 import logging
 import os
+import requests
 import typing
 
 import tdf3_kas_core.keycloak as keycloak
@@ -125,7 +126,7 @@ def kas_public_key(
     if with_kid:
         return {
             "kid": kid.decode("ascii"),
-            "public_key": public_key_bytes.decode("ascii"),
+            "publicKey": public_key_bytes.decode("ascii"),
         }
     return public_key_bytes.decode("ascii")
 
@@ -259,20 +260,104 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     return authorized_v2(realmKey, idpJWT)
 
 
-def _get_tdf_claims(context, key_master):
+def _fetch_distributed_claims(names, sources, claim_name, allowlist):
+    source_name = names[claim_name]
+    if source_name not in sources:
+        raise UnauthorizedError("broken distributed claim link in [%s]", names)
+    source = sources[source_name]
+    if "JWT" in source:
+        logger.warning(
+            "aggregated claims not supported [%s] -> [%s]", source_name, source
+        )
+        raise UnauthorizedError("aggregated claims not supported")
+    if "endpoint" not in source:
+        logger.warning(
+            "broken distributed claim link [%s] -> [%s]", source_name, source
+        )
+        raise UnauthorizedError("broken distributed claim link")
+    endpoint = source["endpoint"]
+    matched = False
+    for trusted_entitler in allowlist:
+        if endpoint.startswith(trusted_entitler):
+            matched = True
+            break
+    if not matched:
+        raise UnauthorizedError("unrecognized or disallowed claim source")
+
+    if not endpoint.startswith("https://"):
+        logger.warning("untrusted distributed source: [%s]", endpoint)
+    if "access_token" in source:
+        r = requests.get(
+            endpoint, headers={"Authorization": f'Bearer {source["access_token"]}'}
+        )
+    else:
+        r = requests.get(endpoint)
+
+    if r.status_code == 200:
+        if "application/json" in r.headers["content-type"]:
+            values = r.json()
+        elif "application/jwt" in r.headers["content-type"]:
+            raise UnauthorizedError(
+                "distributed claim error: JWT distributed claims not yet implemented"
+            )
+        else:
+            logger.warning(
+                "distributed claim error: unrecognized content type [%s] from [%s]",
+                r.headers["content-type"],
+                endpoint,
+            )
+            raise UnauthorizedError(
+                "distributed claim error: unrecognized content type"
+            )
+    elif r.status_code >= 400:
+        logger.warning(
+            "distributed claim error: [%s] from [%s]", r.status_code, endpoint
+        )
+        raise UnauthorizedError(
+            f"distributed claim error: {r.status_code} from backend"
+        )
+    else:
+        raise UnauthorizedError("distributed claim error: network failure")
+
+    if not values or claim_name not in values:
+        logger.warning(
+            "distributed claim error: remote claim not returned: [%s] from [%s]",
+            claim_name,
+            endpoint,
+        )
+        raise UnauthorizedError("distributed claim error: remote claim not returned")
+
+    return values[claim_name]
+
+
+def _get_tdf_claims(context, key_master, trusted_entitlers):
     """Serializes the decoded and validated JWT into KAS's object model stuff."""
     try:
         decodedJwt = _decode_and_validate_oidc_jwt(context, key_master)
-        claims = Claims.load_from_raw_data(decodedJwt)
+        if "tdf_claims" in decodedJwt:
+            claims = Claims.load_from_raw_data(decodedJwt)
+        elif (
+            "_claim_names" in decodedJwt
+            and "_claim_sources" in decodedJwt
+            and "tdf_claims" in decodedJwt["_claim_names"]
+        ):
+            user_id = decodedJwt["sub"]
+            names = decodedJwt["_claim_names"]
+            sources = decodedJwt["_claim_sources"]
+            tdf_claims = _fetch_distributed_claims(
+                names, sources, "tdf_claims", trusted_entitlers
+            )
+            claims = Claims.load_from_raw_tdf_claims(user_id, tdf_claims)
+        else:
+            raise UnauthorizedError("Claims absent")
         return claims
-    except (KeyError, ValueError) as e:
+    except (KeyError, TypeError, ValueError) as e:
         raise UnauthorizedError("Claims absent or invalid") from e
 
 
 def _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_runner):
     #
     # Run the plugins
-    #
 
     data_attribute_definitions = []
 
@@ -297,7 +382,7 @@ def _fetch_attribute_definitions_from_authority_plugins(original_policy, plugin_
     return data_attribute_definitions
 
 
-def rewrap_v2(data, context, plugin_runner, key_master):
+def rewrap_v2(data, context, plugin_runner, key_master, trusted_entitlers=None):
     """Rewrap a key split.
 
     The rewrap service is the guts of the whole KAS.  It takes a raw data
@@ -316,7 +401,7 @@ def rewrap_v2(data, context, plugin_runner, key_master):
     # begins to look somewhat redundant/decorative.
 
     # Validate OIDC JWT, decode it to our "Claims" object model type
-    claims = _get_tdf_claims(context, key_master)
+    claims = _get_tdf_claims(context, key_master, trusted_entitlers)
 
     # We want the pubkey from the client that was embedded in the validated JWT,
     # we will use it to validate the request body signature
@@ -742,7 +827,7 @@ def upsert(data, context, plugin_runner, key_master):
     return messages  # XXX: Don't return internals!!
 
 
-def upsert_v2(data, context, plugin_runner, key_master):
+def upsert_v2(data, context, plugin_runner, key_master, trusted_entitlers):
     """Upsert a policy/key.
 
     The upsert service is a proxy to the back-end services that persist
@@ -750,7 +835,7 @@ def upsert_v2(data, context, plugin_runner, key_master):
     """
     logger.debug("===== UPSERTV2 SERVICE START ====")
 
-    claims = _get_tdf_claims(context, key_master)
+    claims = _get_tdf_claims(context, key_master, trusted_entitlers)
     signer_public_key = claims.client_public_signing_key
 
     if "signedRequestToken" not in data:

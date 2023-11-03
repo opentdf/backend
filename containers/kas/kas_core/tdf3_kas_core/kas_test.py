@@ -1,9 +1,7 @@
 """Test the KAS core code."""
 
 
-
-
-from .kas import Kas, swagger_enabled
+from .kas import Kas, clean_trusted_url, swagger_enabled
 
 name = "__main__"
 
@@ -51,3 +49,13 @@ def test_kas_constructor():
 
 def test_swagger_disabled_default():
     assert not swagger_enabled()
+
+
+def test_clean_trusted_url():
+    assert "https://a/" == clean_trusted_url("//a")
+    assert "https://a/" == clean_trusted_url("https://a/")
+    assert "https://a/" == clean_trusted_url("https://a#ignored")
+    assert "http://a/" == clean_trusted_url("http://a")
+    assert "https://a/?alpha=beta" == clean_trusted_url("https://a?alpha=beta")
+    assert "https://a/b" == clean_trusted_url("https://a/b")
+    assert "https://a/b?a=b" == clean_trusted_url("https://a/b?a=b")
