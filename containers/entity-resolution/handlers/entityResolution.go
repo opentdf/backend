@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Nerzal/gocloak/v11"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 )
@@ -122,7 +121,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 			return
 		}
 
-		for _, ident := range payload.EntityIdentifiers {
+		for i, ident := range payload.EntityIdentifiers {
 			var keycloakEntities []*gocloak.User
 			logger.Debugf("Lookup entity %s/%s", ident.Type, ident.Identifier)
 			var getUserParams gocloak.GetUsersParams
@@ -130,9 +129,9 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 			exactMatch := true
 			switch ident.Type {
 			case TypeEmail:
-				getUserParams = gocloak.GetUsersParams{Email: &ident.Identifier, Exact: &exactMatch}
+				getUserParams = gocloak.GetUsersParams{Email: &payload.EntityIdentifiers[i].Identifier, Exact: &exactMatch}
 			case TypeUsername:
-				getUserParams = gocloak.GetUsersParams{Username: &ident.Identifier, Exact: &exactMatch}
+				getUserParams = gocloak.GetUsersParams{Username: &payload.EntityIdentifiers[i].Identifier, Exact: &exactMatch}
 			}
 
 			users, userErr := kcConnector.client.GetUsers(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, getUserParams)
@@ -148,7 +147,7 @@ func GetEntityResolutionHandler(kcConfig KeyCloakConfg, logger *zap.SugaredLogge
 				logger.Debug("No user found for ", ident.Identifier)
 				if ident.Type == TypeEmail {
 					//try by group
-					groups, groupErr := kcConnector.client.GetGroups(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, gocloak.GetGroupsParams{Search: &ident.Identifier})
+					groups, groupErr := kcConnector.client.GetGroups(ctxb, kcConnector.token.AccessToken, kcConfig.Realm, gocloak.GetGroupsParams{Search: &payload.EntityIdentifiers[i].Identifier})
 					if groupErr != nil {
 						logger.Error("Error getting group", groupErr)
 						w.WriteHeader(http.StatusInternalServerError)
