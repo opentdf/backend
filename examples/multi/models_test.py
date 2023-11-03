@@ -39,18 +39,18 @@ needToKnowDef = AttributeDefinition(
 
 
 def test_definition_sample():
-    assert classDef.prefix() == "https://virtru.com/name/Classification"
-    assert needToKnowDef.prefix() == "https://virtru.co.us/name/Need+to+Know"
-    assert relToDef.prefix() == "https://virtru.com/name/Releasable+To"
+    assert classDef.prefix() == "https://virtru.com/attr/Classification"
+    assert needToKnowDef.prefix() == "https://virtru.co.us/attr/Need+to+Know"
+    assert relToDef.prefix() == "https://virtru.com/attr/Releasable+To"
 
 
 def test_definition_pathfix():
     for authority, prefix in [
-        ("http://e", "http://e/name/n"),
-        ("https://e", "https://e/name/n"),
-        ("http://e/", "http://e/name/n"),
-        ("http://e/hello", "http://e/hello/name/n"),
-        ("http://e/hello/", "http://e/hello/name/n"),
+        ("http://e", "http://e/attr/n"),
+        ("https://e", "https://e/attr/n"),
+        ("http://e/", "http://e/attr/n"),
+        ("http://e/hello", "http://e/hello/attr/n"),
+        ("http://e/hello/", "http://e/hello/attr/n"),
     ]:
         assert (
             AttributeDefinition(
@@ -68,16 +68,16 @@ def test_definition_pathfix():
 
 def test_instance_str():
     for a, n, v, s in [
-        ("http://e", "a", "1", "http://e/name/a/value/1"),
-        ("https://e/", "a", "1", "https://e/name/a/value/1"),
-        ("http://e", "name", "value", "http://e/name/name/value/value"),
-        ("http://e", "value", "name", "http://e/name/value/value/name"),
+        ("http://e", "a", "1", "http://e/attr/a/value/1"),
+        ("https://e/", "a", "1", "https://e/attr/a/value/1"),
+        ("http://e", "attr", "value", "http://e/attr/attr/value/value"),
+        ("http://e", "value", "attr", "http://e/attr/value/value/attr"),
     ]:
         assert str(AttributeInstance(authority=a, name=n, value=v)) == s
 
 
 def test_instance_from_url():
-    for u in ["http://e/name/a/value/1"]:
+    for u in ["http://e/attr/a/value/1"]:
         assert AttributeInstance.from_url(u).__str__() == u
         assert str(AttributeInstance.from_url(u).authority) == "http://e/"
         assert AttributeInstance.from_url(u).name == "a"

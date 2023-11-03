@@ -1,7 +1,6 @@
 """AttributeValue."""
 
 import logging
-import re
 
 from tdf3_kas_core.errors import InvalidAttributeError
 from tdf3_kas_core.validation import attr_attribute_check

@@ -53,7 +53,7 @@ class AttributeDefinition(BaseModel):
         return v
 
     def prefix(self) -> str:
-        return f"{self.authority}name/{urllib.parse.quote_plus(self.name)}"
+        return f"{self.authority}attr/{urllib.parse.quote_plus(self.name)}"
 
 
 class KeyAccessGrant(BaseModel):
@@ -90,7 +90,7 @@ class AttributeInstance(BaseModel):
     @classmethod
     def from_url(cls, url: str) -> "AttributeInstance":
         m = re.fullmatch(
-            r"(?P<authority>https?://[\w./]+)/name/(?P<name>\S*)/value/(?P<value>\S*)",
+            r"(?P<authority>https?://[\w./]+)/attr/(?P<name>\S*)/value/(?P<value>\S*)",
             url,
         )
         if not m:
@@ -102,10 +102,10 @@ class AttributeInstance(BaseModel):
         )
 
     def prefix(self) -> str:
-        return f"{self.authority}name/{urllib.parse.quote_plus(self.name)}"
+        return f"{self.authority}attr/{urllib.parse.quote_plus(self.name)}"
 
     def __str__(self) -> str:
-        return f"{self.authority}name/{urllib.parse.quote_plus(self.name)}/value/{self.value}"
+        return f"{self.authority}attr/{urllib.parse.quote_plus(self.name)}/value/{self.value}"
 
 
 class AttributeService:
