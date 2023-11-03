@@ -38,6 +38,7 @@ USER 10001
 
 WORKDIR /app
 COPY --from=build --chown=10001:10001 /build/ .
+RUN find . -type f -executable -exec chmod ugo-w {} \;
 # NOTE - the python version needs to be specified in the following COPY command:
 COPY --from=build --chown=10001:10001 /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
