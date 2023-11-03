@@ -98,7 +98,11 @@ class AccessPDP(object):
         )
 
         logger.debug(f"Requesting decision - request is {MessageToJson(req)}")
-        responses = stub.DetermineAccess(req)
+        try:
+            responses = stub.DetermineAccess(req)
+        except grpc.RpcError as e:
+            raise AuthorizationError("Access Denied by Policy") from e
+
         entity_responses = []
 
         # if claims are empty
