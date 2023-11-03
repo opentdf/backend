@@ -4,11 +4,11 @@ import (
 	"bytes"
 	ctx "context"
 	"encoding/json"
-	"github.com/open-policy-agent/opa/hooks"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/open-policy-agent/opa/hooks"
 	opalog "github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/metrics"
 	"github.com/open-policy-agent/opa/profiler"
