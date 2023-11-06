@@ -40,6 +40,7 @@ func init() {
 		log.FatalLevel,
 		log.ErrorLevel,
 		log.WarnLevel,
+		log.InfoLevel,
 	)))
 	if os.Getenv("SERVER_LOG_JSON") == trueEmv {
 		log.SetFormatter(&log.JSONFormatter{
@@ -70,31 +71,31 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// otel tracer
-	tp, err := initTracer()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		if err := tp.Shutdown(context.Background()); err != nil {
-			log.Printf("Error shutting down tracer provider: %v", err)
-		}
-	}()
 	// Register our TracerProvider as the global so any imported
 	// instrumentation in the future will default to using it.
 	if os.Getenv("DISABLE_TRACING") != trueEmv {
-		otel.SetTracerProvider(tp)
-	}
-	// otel meter
-	mp, err := initMeter()
-	if err != nil {
-		log.Panic(err)
-	}
-	defer func() {
-		if err := mp.Shutdown(context.Background()); err != nil {
-			log.Printf("Error shutting down meter provider: %v", err)
+		// otel tracer
+		tp, err := initTracer()
+		if err != nil {
+			log.Fatal(err)
 		}
-	}()
+		defer func() {
+			if err := tp.Shutdown(context.Background()); err != nil {
+				log.Printf("Error shutting down tracer provider: %v", err)
+			}
+		}()
+		otel.SetTracerProvider(tp)
+		// otel meter
+		mp, err := initMeter()
+		if err != nil {
+			log.Panic(err)
+		}
+		defer func() {
+			if err := mp.Shutdown(context.Background()); err != nil {
+				log.Printf("Error shutting down meter provider: %v", err)
+			}
+		}()
+	}
 	// healthz
 	healthz := handlers.Healthz{}
 	http.Handle("/healthz", &healthz)
