@@ -96,15 +96,15 @@ class AttributeInstance(BaseModel):
             raise ValueError(url)
         return AttributeInstance(
             authority=m.group("authority"),
-            name=m.group("name"),
-            value=m.group("value"),
+            name=urllib.parse.unquote_plus(m.group("name")),
+            value=urllib.parse.unquote_plus(m.group("value")),
         )
 
     def prefix(self) -> str:
         return f"{self.authority}attr/{urllib.parse.quote_plus(self.name)}"
 
     def __str__(self) -> str:
-        return f"{self.authority}attr/{urllib.parse.quote_plus(self.name)}/value/{self.value}"
+        return f"{self.authority}attr/{urllib.parse.quote_plus(self.name)}/value/{urllib.parse.quote_plus(self.value)}"
 
 
 class AttributeService:
@@ -118,7 +118,8 @@ class AttributeService:
 
     def get_attribute(self, prefix: str):
         return self.dict.get(prefix) or WebError(
-            status=404, message=f"Unknown attribute type: [{prefix}]"
+            status=404,
+            message=f"Unknown attribute type: [{prefix}], not in [{list(self.dict.keys())}]",
         )
 
 
@@ -145,14 +146,33 @@ class ConfigurationService:
         )
 
 
-class Reason:
+class SingleAttributeClause(BaseModel):
+    definition: AttributeDefinition
+    values: list[AttributeInstance]
+
+
+class AttributeBooleanExpression(BaseModel):
+    must: list[SingleAttributeClause]
+
+
+class Reasoner:
     def __init__(
         self, attribute_svc: AttributeService, config_svc: ConfigurationService
     ) -> None:
         self.attrs = attribute_svc
         self.cfg = config_svc
 
-    def construct_attribute_boolean(self, policy: list[AttributeInstance]):
-        prefixes: set[str] = set()
+    def construct_attribute_boolean(
+        self, policy: list[AttributeInstance]
+    ) -> AttributeBooleanExpression:
+        prefixes: dict[str, AttributeInstance] = {}
         for a in policy:
-            prefixes.add(a.prefix())
+            p = a.prefix()
+            if p not in prefixes:
+                d = self.attrs.get_attribute(p)
+                if isinstance(d, WebError):
+                    raise ValueError(f"Unrecognized {p}: [{d}]")
+                prefixes[p] = SingleAttributeClause(definition=d, values=[a])
+            else:
+                prefixes[p].values += [a]
+        return AttributeBooleanExpression(must=list(prefixes.values()))

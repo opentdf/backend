@@ -1,11 +1,14 @@
 from .models import (
+    AttributeBooleanExpression,
     AttributeDefinition,
     AttributeInstance,
     AttributeService,
     ConfigurationService,
     EncryptionMapping,
     KeyAccessGrant,
+    Reasoner,
     Rule,
+    SingleAttributeClause,
 )
 
 classDef = AttributeDefinition(
@@ -61,6 +64,8 @@ def test_definition_pathfix():
         ("http://e/", "http://e/attr/n"),
         ("http://e/hello", "http://e/hello/attr/n"),
         ("http://e/hello/", "http://e/hello/attr/n"),
+        ("http://e/a+b", "http://e/a+b/attr/n"),
+        ("http://e/a++/", "http://e/a++/attr/n"),
     ]:
         assert (
             AttributeDefinition(
@@ -82,6 +87,8 @@ def test_instance_str():
         ("https://e/", "a", "1", "https://e/attr/a/value/1"),
         ("http://e", "attr", "value", "http://e/attr/attr/value/value"),
         ("http://e", "value", "attr", "http://e/attr/value/value/attr"),
+        ("http://e", "a b", "1", "http://e/attr/a+b/value/1"),
+        ("http://e", "hello there%", "#", "http://e/attr/hello+there%25/value/%23"),
     ]:
         assert str(AttributeInstance(authority=a, name=n, value=v)) == s
 
@@ -101,6 +108,9 @@ def test_attribute_service():
     assert s.get_attribute(classDef.prefix()) == classDef
     assert s.get_attribute(relToDef.prefix()) == relToDef
     assert s.get_attribute("undefined").status == 404
+    assert s.get_attribute("https://virtru.com/attr/Classification") == classDef
+    assert s.get_attribute("https://virtru.com/attr/Releasable+To") == relToDef
+    assert s.get_attribute("https://virtru.co.us/attr/Need+to+Know") == needToKnowDef
 
 
 us_kas = EncryptionMapping(
@@ -111,7 +121,7 @@ us_kas = EncryptionMapping(
             values=["HCS", "SI"],
         ),
         KeyAccessGrant(
-            attr="https://virtru.co.us/attr/Releasable+To",
+            attr="https://virtru.com/attr/Releasable+To",
             values=["USA"],
         ),
     ],
@@ -124,7 +134,7 @@ uk_kas = EncryptionMapping(
             values=["INT"],
         ),
         KeyAccessGrant(
-            attr="https://virtru.co.us/attr/Releasable+To",
+            attr="https://virtru.com/attr/Releasable+To",
             values=["GBR"],
         ),
     ],
@@ -135,9 +145,9 @@ def test_configuration_service():
     c = ConfigurationService()
     c.put_mapping(us_kas)
     c.put_mapping(uk_kas)
-    assert len(c.get_mappings("https://virtru.co.us/attr/Releasable+To")) == 2
+    assert c.get_mappings("https://virtru.com/attr/Classification").status == 404
+    assert len(c.get_mappings("https://virtru.com/attr/Releasable+To")) == 2
     assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 2
-    assert c.get_mappings("https://virtru.co.us/attr/Classification").status == 404
 
 
 cfg_svc = ConfigurationService()
@@ -149,12 +159,42 @@ for d in [classDef, needToKnowDef, relToDef]:
 
 
 def test_construct_attr_boolean():
+    reasoner = Reasoner(attr_svc, cfg_svc)
     policy = [
         AttributeInstance.from_url(x)
         for x in [
             "https://virtru.com/attr/Classification/value/Secret",
-            "https://virtru.co.us/attr/Releasable+To/value/GBR",
+            "https://virtru.com/attr/Releasable+To/value/GBR",
             "https://virtru.co.us/attr/Need+to+Know/value/INT",
         ]
     ]
-    pass
+    assert reasoner.construct_attribute_boolean(
+        policy=policy
+    ) == AttributeBooleanExpression(
+        must=[
+            SingleAttributeClause(
+                definition=classDef,
+                values=[
+                    AttributeInstance.from_url(
+                        "https://virtru.com/attr/Classification/value/Secret"
+                    )
+                ],
+            ),
+            SingleAttributeClause(
+                definition=relToDef,
+                values=[
+                    AttributeInstance.from_url(
+                        "https://virtru.com/attr/Releasable+To/value/GBR"
+                    )
+                ],
+            ),
+            SingleAttributeClause(
+                definition=needToKnowDef,
+                values=[
+                    AttributeInstance.from_url(
+                        "https://virtru.co.us/attr/Need+to+Know/value/INT"
+                    )
+                ],
+            ),
+        ]
+    )
