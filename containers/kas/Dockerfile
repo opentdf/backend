@@ -76,7 +76,7 @@ RUN chmod 755 /sbin/tini
 RUN mkdir -p /opentdf/bin
 COPY tini-init.sh /opentdf/bin/
 
-COPY --chown=kas:kas --from=gobuilder /dist/access-pdp /opentdf/bin/access-pdp-grpc-server
+COPY --chown=root:root --chmod=755 --from=gobuilder /dist/access-pdp /opentdf/bin/access-pdp-grpc-server
 
 # Run as kas instead of root
 USER kas
