@@ -1,3 +1,7 @@
+import re
+import pytest
+import urllib
+
 from .models import (
     AttributeBooleanExpression,
     AttributeDefinition,
@@ -9,6 +13,7 @@ from .models import (
     Reasoner,
     Rule,
     SingleAttributeClause,
+    WebError,
 )
 
 classDef = AttributeDefinition(
@@ -107,7 +112,8 @@ def test_attribute_service():
         s.put_attribute(d)
     assert s.get_attribute(classDef.prefix()) == classDef
     assert s.get_attribute(relToDef.prefix()) == relToDef
-    assert s.get_attribute("undefined").status == 404
+    with pytest.raises(WebError):
+        s.get_attribute("undefined")
     assert s.get_attribute("https://virtru.com/attr/Classification") == classDef
     assert s.get_attribute("https://virtru.com/attr/Releasable+To") == relToDef
     assert s.get_attribute("https://virtru.co.us/attr/Need+to+Know") == needToKnowDef
@@ -145,7 +151,8 @@ def test_configuration_service():
     c = ConfigurationService()
     c.put_mapping(us_kas)
     c.put_mapping(uk_kas)
-    assert c.get_mappings("https://virtru.com/attr/Classification").status == 404
+    with pytest.raises(WebError):
+        c.get_mappings("https://virtru.com/attr/Classification")
     assert len(c.get_mappings("https://virtru.com/attr/Releasable+To")) == 2
     assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 2
 
@@ -158,18 +165,86 @@ for d in [classDef, needToKnowDef, relToDef]:
     attr_svc.put_attribute(d)
 
 
+AUTHORITIES = {
+    "Classification": "https://virtru.com/",
+    "Need to Know": "https://virtru.co.us/",
+    "Releasable To": "https://virtru.com/",
+}
+
+VSHORT_NAMES = {"Classification": "CLS", "Need to Know": "N2K", "Releasable To": "REL"}
+SHORT_VALUES = {
+    "Top Secret": "TS",
+    "Secret": "S",
+    "Confidential": "CNF",
+    "For Official Use Only": "FOUO",
+    "Open": "O",
+}
+UNSHORT = {}
+for l in [VSHORT_NAMES, SHORT_VALUES]:
+    for k, v in l.items():
+        UNSHORT[v] = k
+
+
+def vshort(a: AttributeInstance) -> str:
+    return f"{VSHORT_NAMES[a.name]}:{SHORT_VALUES.get(a.value, a.value)}"
+
+
+def unshorten(s: str) -> AttributeInstance:
+    m = re.fullmatch(
+        r"(?P<name>[^:]+):(?P<value>[^:]+)",
+        s,
+    )
+    if not m:
+        raise ValueError(m)
+    name = m.group("name")
+    if name not in UNSHORT:
+        raise ValueError(
+            f"Unrecognized name: [{name}]; not found in [{list(UNSHORT.keys())}]"
+        )
+    name = UNSHORT[name]
+    value = m.group("value")
+    value = UNSHORT.get(value, value)
+    return AttributeInstance(
+        authority=AUTHORITIES[name],
+        name=name,
+        value=value,
+    )
+
+
+def lookup_def(name: str) -> AttributeInstance:
+    name = UNSHORT.get(name, name)
+    return attr_svc.get_attribute(
+        f"{AUTHORITIES[name]}attr/{urllib.parse.quote_plus(name)}"
+    )
+
+
+def expand(e: dict[str, list[str]]):
+    return AttributeBooleanExpression(
+        must=[
+            SingleAttributeClause(
+                definition=lookup_def(n),
+                values=[unshorten(f"{n}:{v}") for v in clause],
+            )
+            for n, clause in e.items()
+        ]
+    )
+
+
 def test_construct_attr_boolean():
     reasoner = Reasoner(attr_svc, cfg_svc)
-    policy = [
-        AttributeInstance.from_url(x)
+    policy1 = [
+        unshorten(x)
         for x in [
-            "https://virtru.com/attr/Classification/value/Secret",
-            "https://virtru.com/attr/Releasable+To/value/GBR",
-            "https://virtru.co.us/attr/Need+to+Know/value/INT",
+            "CLS:S",
+            "REL:GBR",
+            "N2K:INT",
         ]
     ]
+    assert reasoner.construct_attribute_boolean(policy=policy1) == expand(
+        {"CLS": ["S"], "REL": ["GBR"], "N2K": ["INT"]}
+    )
     assert reasoner.construct_attribute_boolean(
-        policy=policy
+        policy=policy1
     ) == AttributeBooleanExpression(
         must=[
             SingleAttributeClause(

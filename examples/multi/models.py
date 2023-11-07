@@ -20,9 +20,8 @@ class PublicKeyResponse(BaseModel):
     publicKey: str
 
 
-class WebError(BaseModel):
-    status: int
-    message: str
+class WebError(BaseException):
+    pass
 
 
 class Rule(str, Enum):
@@ -36,6 +35,8 @@ class AttributeDefinition(BaseModel):
     name: str
     order: list[str]
     rule: Rule
+    # TODO - Replace EncryptionMapping with this or something like it:
+    # access_controller: dict[str, AnyUrl]
 
     @field_validator("authority")
     @classmethod
@@ -110,17 +111,20 @@ class AttributeInstance(BaseModel):
 class AttributeService:
     def __init__(self) -> None:
         self.dict: dict[str, AttributeDefinition] = {}
+        self.names: dict[str, AttributeDefinition] = {}
 
     # @app.put("/attribute/{attribute_name}", response_model=AttributeDefinition)
     def put_attribute(self, attribute: AttributeDefinition):
         self.dict[attribute.prefix()] = attribute
+        self.names[attribute.name] = attribute
         return attribute
 
-    def get_attribute(self, prefix: str):
-        return self.dict.get(prefix) or WebError(
-            status=404,
-            message=f"Unknown attribute type: [{prefix}], not in [{list(self.dict.keys())}]",
-        )
+    def get_attribute(self, prefix: str) -> AttributeDefinition | WebError:
+        if prefix not in self.dict:
+            raise WebError(
+                f"[404] Unknown attribute type: [{prefix}], not in [{list(self.dict.keys())}]"
+            )
+        return self.dict[prefix]
 
 
 class ConfigurationService:
@@ -141,9 +145,9 @@ class ConfigurationService:
         self.by_kas[em.kas] = em
 
     def get_mappings(self, prefix: str):
-        return self.by_prefix.get(prefix) or WebError(
-            status=404, message=f"Unknown attribute type: [{prefix}]"
-        )
+        if prefix not in self.by_prefix:
+            raise WebError(f"[404] Unknown attribute type: [{prefix}]")
+        return self.by_prefix[prefix]
 
 
 class SingleAttributeClause(BaseModel):
@@ -169,8 +173,9 @@ class Reasoner:
         for a in policy:
             p = a.prefix()
             if p not in prefixes:
-                d = self.attrs.get_attribute(p)
-                if isinstance(d, WebError):
+                try:
+                    d = self.attrs.get_attribute(p)
+                except:
                     raise ValueError(f"Unrecognized {p}: [{d}]")
                 prefixes[p] = SingleAttributeClause(definition=d, values=[a])
             else:
