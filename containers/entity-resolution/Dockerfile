@@ -49,9 +49,9 @@ RUN go build -o /dist/entity-resolution-service
 # Create the minimal runtime image
 FROM golang:1.19-alpine AS emptyfinal
 
+COPY --chown=root:root --chmod=755 --from=builder /dist/entity-resolution-service /entity-resolution-service
+
 # use non-root user
 USER 10001
-
-COPY --chown=10001:10001 --from=builder /dist/entity-resolution-service /entity-resolution-service
 
 ENTRYPOINT ["/entity-resolution-service"]
