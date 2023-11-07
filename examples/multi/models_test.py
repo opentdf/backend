@@ -119,8 +119,26 @@ def test_attribute_service():
     assert s.get_attribute("https://virtru.co.us/attr/Need+to+Know") == needToKnowDef
 
 
+ca_kas = EncryptionMapping(
+    kas="KAS-CAN-1",
+    grants=[
+        KeyAccessGrant(
+            attr="https://virtru.com/attr/Releasable+To",
+            values=["CAN"],
+        ),
+    ],
+)
+fvey_kas = EncryptionMapping(
+    kas="KAS-FVEY-1",
+    grants=[
+        KeyAccessGrant(
+            attr="https://virtru.com/attr/Releasable+To",
+            values=["FVEY"],
+        ),
+    ],
+)
 us_kas = EncryptionMapping(
-    kas="https://kas.virtru.com",
+    kas="KAS-USA-1",
     grants=[
         KeyAccessGrant(
             attr="https://virtru.co.us/attr/Need+to+Know",
@@ -133,7 +151,7 @@ us_kas = EncryptionMapping(
     ],
 )
 uk_kas = EncryptionMapping(
-    kas="https://kas.sample.co.uk",
+    kas="KAS-GBR-1",
     grants=[
         KeyAccessGrant(
             attr="https://virtru.co.us/attr/Need+to+Know",
@@ -158,7 +176,7 @@ def test_configuration_service():
 
 
 cfg_svc = ConfigurationService()
-for e in [uk_kas, us_kas]:
+for e in [ca_kas, fvey_kas, uk_kas, us_kas]:
     cfg_svc.put_mapping(e)
 attr_svc = AttributeService()
 for d in [classDef, needToKnowDef, relToDef]:
@@ -243,6 +261,14 @@ def test_construct_attr_boolean():
     assert reasoner.construct_attribute_boolean(policy=policy1) == expand(
         {"CLS": ["S"], "REL": ["GBR"], "N2K": ["INT"]}
     )
+    assert (
+        str(
+            reasoner.insert_keys_for_attribute_value(
+                reasoner.construct_attribute_boolean(policy=policy1)
+            )
+        )
+        == "[DEFAULT]&(KAS-GBR-1)&(KAS-GBR-1)"
+    )
     assert reasoner.construct_attribute_boolean(
         policy=policy1
     ) == AttributeBooleanExpression(
@@ -283,6 +309,14 @@ def test_construct_attr_boolean():
     assert reasoner.construct_attribute_boolean(policy=policy2) == expand(
         {"CLS": ["S"], "REL": ["FVEY"]}
     )
+    assert (
+        str(
+            reasoner.insert_keys_for_attribute_value(
+                reasoner.construct_attribute_boolean(policy=policy2)
+            )
+        )
+        == "[DEFAULT]&(KAS-FVEY-1)"
+    )
 
     policy3 = [
         unshorten(x)
@@ -294,6 +328,14 @@ def test_construct_attr_boolean():
     ]
     assert reasoner.construct_attribute_boolean(policy=policy3) == expand(
         {"CLS": ["S"], "REL": ["CAN", "GBR"]}
+    )
+    assert (
+        str(
+            reasoner.insert_keys_for_attribute_value(
+                reasoner.construct_attribute_boolean(policy=policy3)
+            )
+        )
+        == "[DEFAULT]&(KAS-CAN-1⋀KAS-GBR-1)"
     )
 
     policy4 = [
@@ -308,4 +350,47 @@ def test_construct_attr_boolean():
     ]
     assert reasoner.construct_attribute_boolean(policy=policy4) == expand(
         {"CLS": ["S"], "REL": ["USA", "GBR"], "N2K": ["SI", "HCS"]}
+    )
+    assert (
+        str(
+            reasoner.insert_keys_for_attribute_value(
+                reasoner.construct_attribute_boolean(policy=policy4)
+            )
+        )
+        == "[DEFAULT]&(KAS-USA-1⋀KAS-GBR-1)&(KAS-USA-1⋁KAS-USA-1)"
+    )
+
+
+def test_split_eyes():
+    cfg_svc_split = ConfigurationService()
+    for country_code in ["AUS", "CAN", "GBR", "NZL", "USA"]:
+        cfg_svc_split.put_mapping(
+            EncryptionMapping(
+                kas=f"KAS-{country_code}-1",
+                grants=[
+                    KeyAccessGrant(
+                        attr="https://virtru.com/attr/Releasable+To",
+                        values=["FVEY"],
+                    ),
+                ],
+            )
+        )
+    reasoner = Reasoner(attr_svc, cfg_svc_split)
+    policy1 = [
+        unshorten(x)
+        for x in [
+            "CLS:S",
+            "REL:FVEY",
+        ]
+    ]
+    assert reasoner.construct_attribute_boolean(policy=policy1) == expand(
+        {"CLS": ["S"], "REL": ["FVEY"]}
+    )
+    assert (
+        str(
+            reasoner.insert_keys_for_attribute_value(
+                reasoner.construct_attribute_boolean(policy=policy1)
+            )
+        )
+        == "[DEFAULT]&(KAS-AUS-1⋀KAS-CAN-1⋀KAS-GBR-1⋀KAS-NZL-1⋀KAS-USA-1)"
     )

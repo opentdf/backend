@@ -130,6 +130,7 @@ class AttributeService:
 class ConfigurationService:
     def __init__(self) -> None:
         self.by_kas: dict[str, EncryptionMapping] = {}
+        self.by_attr: dict[str, list[str]] = {}
         self.by_prefix: dict[str, list[EncryptionMapping]] = {}
 
     def put_mapping(self, em: EncryptionMapping):
@@ -138,6 +139,12 @@ class ConfigurationService:
                 self.by_prefix[grant.attr] -= [em]
 
         for grant in em.grants:
+            for v in grant.values:
+                a = f"{grant.attr}/value/{urllib.parse.quote_plus(v)}"
+                if a in self.by_attr:
+                    self.by_attr[a] += [em.kas]
+                else:
+                    self.by_attr[a] = [em.kas]
             if grant.attr in self.by_prefix:
                 self.by_prefix[grant.attr] += [em]
             else:
@@ -149,6 +156,11 @@ class ConfigurationService:
             raise WebError(f"[404] Unknown attribute type: [{prefix}]")
         return self.by_prefix[prefix]
 
+    def get_mapping(self, attr: str):
+        if attr not in self.by_attr:
+            raise WebError(f"[404] Unknown attribute mapping: [{attr}]")
+        return self.by_attr[attr]
+
 
 class SingleAttributeClause(BaseModel):
     definition: AttributeDefinition
@@ -157,6 +169,29 @@ class SingleAttributeClause(BaseModel):
 
 class AttributeBooleanExpression(BaseModel):
     must: list[SingleAttributeClause]
+
+
+class PublicKeyInfo(BaseModel):
+    kas: str
+    # TODO kid: str
+
+
+class KeyClause(BaseModel):
+    operator: Rule
+    values: list[PublicKeyInfo]
+
+    def __str__(self):
+        if len(self.values) == 1 and self.values[0].kas == "DEFAULT":
+            return "[DEFAULT]"
+        op = "⋀" if self.operator == Rule.anyOf else "⋁"
+        return f"({op.join(x.kas for x in self.values)})"
+
+
+class BooleanKeyExpression(BaseModel):
+    values: list[KeyClause]
+
+    def __str__(self):
+        return "&".join(str(x) for x in self.values)
 
 
 class Reasoner:
@@ -181,3 +216,20 @@ class Reasoner:
             else:
                 prefixes[p].values += [a]
         return AttributeBooleanExpression(must=list(prefixes.values()))
+
+    def insert_keys_for_attribute_value(
+        self, e: AttributeBooleanExpression
+    ) -> BooleanKeyExpression:
+        return BooleanKeyExpression(
+            values=[
+                KeyClause(
+                    operator=clause.definition.rule,
+                    values=[
+                        PublicKeyInfo(kas=kas)
+                        for term in clause.values
+                        for kas in self.cfg.by_attr.get(str(term), ["DEFAULT"])
+                    ],
+                )
+                for clause in e.must
+            ]
+        )
