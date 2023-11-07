@@ -145,12 +145,35 @@ us_kas = EncryptionMapping(
     kas="KAS-USA-1",
     grants=[
         KeyAccessGrant(
-            attr="https://virtru.co.us/attr/Need+to+Know",
-            values=["HCS", "SI"],
+            attr="https://virtru.com/attr/Releasable+To",
+            values=["USA"],
         ),
+    ],
+)
+us_kas = EncryptionMapping(
+    kas="KAS-USA-1",
+    grants=[
         KeyAccessGrant(
             attr="https://virtru.com/attr/Releasable+To",
             values=["USA"],
+        ),
+    ],
+)
+us_kas_hcs = EncryptionMapping(
+    kas="KAS-USA-HCS",
+    grants=[
+        KeyAccessGrant(
+            attr="https://virtru.co.us/attr/Need+to+Know",
+            values=["HCS"],
+        ),
+    ],
+)
+us_kas_si = EncryptionMapping(
+    kas="KAS-USA-SI",
+    grants=[
+        KeyAccessGrant(
+            attr="https://virtru.co.us/attr/Need+to+Know",
+            values=["SI"],
         ),
     ],
 )
@@ -176,11 +199,14 @@ def test_configuration_service():
     with pytest.raises(WebError):
         c.get_mappings("https://virtru.com/attr/Classification")
     assert len(c.get_mappings("https://virtru.com/attr/Releasable+To")) == 2
-    assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 2
+    assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 1
+    c.put_mapping(us_kas_hcs)
+    c.put_mapping(us_kas_si)
+    assert len(c.get_mappings("https://virtru.co.us/attr/Need+to+Know")) == 3
 
 
 cfg_svc = ConfigurationService()
-for e in [ca_kas, fvey_kas, uk_kas, us_kas]:
+for e in [ca_kas, fvey_kas, uk_kas, us_kas, us_kas_hcs, us_kas_si]:
     cfg_svc.put_mapping(e)
 attr_svc = AttributeService()
 for d in [classDef, needToKnowDef, relToDef]:
@@ -336,8 +362,8 @@ def test_construct_attr_boolean():
     ab4 = reasoner.construct_attribute_boolean(policy=policy4)
     assert ab4 == expand({"CLS": ["S"], "REL": ["USA", "GBR"], "N2K": ["SI", "HCS"]})
     b4 = reasoner.insert_keys_for_attribute_value(ab4)
-    assert str(b4) == "[DEFAULT]&(KAS-USA-1⋁KAS-GBR-1)&(KAS-USA-1⋀KAS-USA-1)"
-    assert str(reduce(b4)) == "(KAS-GBR-1⋁KAS-USA-1)&(KAS-USA-1)"
+    assert str(b4) == "[DEFAULT]&(KAS-USA-1⋁KAS-GBR-1)&(KAS-USA-SI⋀KAS-USA-HCS)"
+    assert str(reduce(b4)) == "(KAS-GBR-1⋁KAS-USA-1)&(KAS-USA-SI)&(KAS-USA-HCS)"
 
 
 def test_reduce():
@@ -370,8 +396,17 @@ def test_reduce():
     assert str(e([["&", "A", "A"]])) == "(A⋀A)"
     assert str(reduce(e([["&", "A", "A"]]))) == "(A)"
 
+    assert str(e([["&", "A", "B"]])) == "(A⋀B)"
+    assert str(reduce(e([["&", "A", "B"]]))) == "(A)&(B)"
+
+    assert str(e([["&", "A"], ["|", "B"]])) == "(A)&(B)"
+    assert str(reduce(e([["&", "A"], ["|", "B"]]))) == "(A)&(B)"
+
     assert str(e([["&", "A"], ["&", "DEFAULT"]])) == "(A)&[DEFAULT]"
     assert str(reduce(e([["&", "A"], ["&", "DEFAULT"]]))) == "(A)"
+
+    assert str(e([["&", "B", "A"], ["&", "A", "B"]])) == "(B⋀A)&(A⋀B)"
+    assert str(reduce(e([["&", "B", "A"], ["&", "A", "B"]]))) == "(B)&(A)"
 
     assert str(e([["&", "A", "DEFAULT"]])) == "(A⋀DEFAULT)"
     assert str(reduce(e([["&", "A", "DEFAULT"]]))) == "(A)"

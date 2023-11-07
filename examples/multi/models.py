@@ -134,10 +134,6 @@ class ConfigurationService:
         self.by_prefix: dict[str, list[EncryptionMapping]] = {}
 
     def put_mapping(self, em: EncryptionMapping):
-        if em.kas in self.by_kas:
-            for grant in self.by_kas[em.kas].grants:
-                self.by_prefix[grant.attr] -= [em]
-
         for grant in em.grants:
             for v in grant.values:
                 a = f"{grant.attr}/value/{urllib.parse.quote_plus(v)}"
