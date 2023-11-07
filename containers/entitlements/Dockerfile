@@ -33,14 +33,14 @@ RUN diff <(python3 -m entitlements.main) entitlements/openapi.json
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 ARG PY_VERSION
 
+WORKDIR /app
+COPY --from=build --chown=root:root --chmod=755 /build/ .
+# NOTE - the python version needs to be specified in the following COPY command:
+COPY --from=build --chown=root:root --chmod=755 /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
+# add any new deployable directories and files from the build stage here
+
 # use non-root user
 USER 10001
-
-WORKDIR /app
-COPY --from=build --chown=10001:10001 /build/ .
-# NOTE - the python version needs to be specified in the following COPY command:
-COPY --from=build --chown=10001:10001 /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
-# add any new deployable directories and files from the build stage here
 
 # Server
 ENV SERVER_ROOT_PATH "/"

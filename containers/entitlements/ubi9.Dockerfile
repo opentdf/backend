@@ -35,14 +35,14 @@ RUN diff <(python3 -m entitlements.main) entitlements/openapi.json
 FROM ${PROD_IMAGE_REGISTRY}${PROD_IMAGE}:${PROD_IMAGE_TAG} AS production
 ARG PY_VERSION
 
+WORKDIR /app
+COPY --from=build --chown=root:root /build/ .
+# NOTE - the python version needs to be specified in the following COPY command:
+COPY --from=build --chown=root:root --chmod=755 /opt/app-root/lib/python${PY_VERSION}/site-packages/ /opt/app-root/lib/python${PY_VERSION}/site-packages
+# add any new deployable directories and files from the build stage here
+
 # use non-root user
 USER 10001
-
-WORKDIR /app
-COPY --from=build --chown=10001:10001 /build/ .
-# NOTE - the python version needs to be specified in the following COPY command:
-COPY --from=build --chown=10001:10001 /opt/app-root/lib/python${PY_VERSION}/site-packages/ /opt/app-root/lib/python${PY_VERSION}/site-packages
-# add any new deployable directories and files from the build stage here
 
 # Server
 ENV SERVER_ROOT_PATH "/"
