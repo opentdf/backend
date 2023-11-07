@@ -273,3 +273,39 @@ def test_construct_attr_boolean():
             ),
         ]
     )
+    policy2 = [
+        unshorten(x)
+        for x in [
+            "CLS:S",
+            "REL:FVEY",
+        ]
+    ]
+    assert reasoner.construct_attribute_boolean(policy=policy2) == expand(
+        {"CLS": ["S"], "REL": ["FVEY"]}
+    )
+
+    policy3 = [
+        unshorten(x)
+        for x in [
+            "CLS:S",
+            "REL:CAN",
+            "REL:GBR",
+        ]
+    ]
+    assert reasoner.construct_attribute_boolean(policy=policy3) == expand(
+        {"CLS": ["S"], "REL": ["CAN", "GBR"]}
+    )
+
+    policy4 = [
+        unshorten(x)
+        for x in [
+            "CLS:S",
+            "REL:USA",
+            "REL:GBR",
+            "N2K:SI",
+            "N2K:HCS",
+        ]
+    ]
+    assert reasoner.construct_attribute_boolean(policy=policy4) == expand(
+        {"CLS": ["S"], "REL": ["USA", "GBR"], "N2K": ["SI", "HCS"]}
+    )
