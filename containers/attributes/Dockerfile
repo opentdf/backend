@@ -33,15 +33,14 @@ RUN diff <(python3 -m attributes.main) attributes/openapi.json
 FROM python:${PY_VERSION}-alpine${ALPINE_VERSION} AS production
 ARG PY_VERSION
 
-# use non-root user
-RUN addgroup -g 10001 nonroot && adduser -u 10001 -G nonroot -H -D nonroot
-USER nonroot
-
 WORKDIR /app
-COPY --from=build --chown=nonroot:nonroot /build/ .
+COPY --from=build --chown=root:root --chmod=755 /build/ .
 # NOTE - the python version needs to be specified in the following COPY command:
-COPY --from=build --chown=nonroot:nonroot /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
+COPY --from=build --chown=root:root --chmod=755 /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
+
+# use non-root user
+USER 10001
 
 # Server
 ENV SERVER_ROOT_PATH "/"
