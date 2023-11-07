@@ -7,13 +7,17 @@ from .models import (
     AttributeDefinition,
     AttributeInstance,
     AttributeService,
+    BooleanKeyExpression,
     ConfigurationService,
     EncryptionMapping,
     KeyAccessGrant,
+    KeyClause,
+    PublicKeyInfo,
     Reasoner,
     Rule,
     SingleAttributeClause,
     WebError,
+    reduce,
 )
 
 classDef = AttributeDefinition(
@@ -258,20 +262,13 @@ def test_construct_attr_boolean():
             "N2K:INT",
         ]
     ]
-    assert reasoner.construct_attribute_boolean(policy=policy1) == expand(
-        {"CLS": ["S"], "REL": ["GBR"], "N2K": ["INT"]}
-    )
-    assert (
-        str(
-            reasoner.insert_keys_for_attribute_value(
-                reasoner.construct_attribute_boolean(policy=policy1)
-            )
-        )
-        == "[DEFAULT]&(KAS-GBR-1)&(KAS-GBR-1)"
-    )
-    assert reasoner.construct_attribute_boolean(
-        policy=policy1
-    ) == AttributeBooleanExpression(
+    ab1 = reasoner.construct_attribute_boolean(policy=policy1)
+    assert ab1 == expand({"CLS": ["S"], "REL": ["GBR"], "N2K": ["INT"]})
+    b1 = reasoner.insert_keys_for_attribute_value(ab1)
+    assert str(b1) == "[DEFAULT]&(KAS-GBR-1)&(KAS-GBR-1)"
+    assert str(reduce(b1)) == "(KAS-GBR-1)"
+
+    assert ab1 == AttributeBooleanExpression(
         must=[
             SingleAttributeClause(
                 definition=classDef,
@@ -306,17 +303,11 @@ def test_construct_attr_boolean():
             "REL:FVEY",
         ]
     ]
-    assert reasoner.construct_attribute_boolean(policy=policy2) == expand(
-        {"CLS": ["S"], "REL": ["FVEY"]}
-    )
-    assert (
-        str(
-            reasoner.insert_keys_for_attribute_value(
-                reasoner.construct_attribute_boolean(policy=policy2)
-            )
-        )
-        == "[DEFAULT]&(KAS-FVEY-1)"
-    )
+    ab2 = reasoner.construct_attribute_boolean(policy=policy2)
+    assert ab2 == expand({"CLS": ["S"], "REL": ["FVEY"]})
+    b2 = reasoner.insert_keys_for_attribute_value(ab2)
+    assert str(b2) == "[DEFAULT]&(KAS-FVEY-1)"
+    assert str(reduce(b2)) == "(KAS-FVEY-1)"
 
     policy3 = [
         unshorten(x)
@@ -326,17 +317,11 @@ def test_construct_attr_boolean():
             "REL:GBR",
         ]
     ]
-    assert reasoner.construct_attribute_boolean(policy=policy3) == expand(
-        {"CLS": ["S"], "REL": ["CAN", "GBR"]}
-    )
-    assert (
-        str(
-            reasoner.insert_keys_for_attribute_value(
-                reasoner.construct_attribute_boolean(policy=policy3)
-            )
-        )
-        == "[DEFAULT]&(KAS-CAN-1⋀KAS-GBR-1)"
-    )
+    ab3 = reasoner.construct_attribute_boolean(policy=policy3)
+    assert ab3 == expand({"CLS": ["S"], "REL": ["CAN", "GBR"]})
+    b3 = reasoner.insert_keys_for_attribute_value(ab3)
+    assert str(b3) == "[DEFAULT]&(KAS-CAN-1⋁KAS-GBR-1)"
+    assert str(reduce(b3)) == "(KAS-CAN-1⋁KAS-GBR-1)"
 
     policy4 = [
         unshorten(x)
@@ -348,17 +333,54 @@ def test_construct_attr_boolean():
             "N2K:HCS",
         ]
     ]
-    assert reasoner.construct_attribute_boolean(policy=policy4) == expand(
-        {"CLS": ["S"], "REL": ["USA", "GBR"], "N2K": ["SI", "HCS"]}
-    )
-    assert (
-        str(
-            reasoner.insert_keys_for_attribute_value(
-                reasoner.construct_attribute_boolean(policy=policy4)
-            )
+    ab4 = reasoner.construct_attribute_boolean(policy=policy4)
+    assert ab4 == expand({"CLS": ["S"], "REL": ["USA", "GBR"], "N2K": ["SI", "HCS"]})
+    b4 = reasoner.insert_keys_for_attribute_value(ab4)
+    assert str(b4) == "[DEFAULT]&(KAS-USA-1⋁KAS-GBR-1)&(KAS-USA-1⋀KAS-USA-1)"
+    assert str(reduce(b4)) == "(KAS-GBR-1⋁KAS-USA-1)&(KAS-USA-1)"
+
+
+def test_reduce():
+    def e(sexpr: list[list[str]]):
+        return BooleanKeyExpression(
+            values=[
+                KeyClause(
+                    operator=Rule.allOf if ruley == "&" else Rule.anyOf,
+                    values=[PublicKeyInfo(kas=k) for k in rest],
+                )
+                for [ruley, *rest] in sexpr
+            ]
         )
-        == "[DEFAULT]&(KAS-USA-1⋀KAS-GBR-1)&(KAS-USA-1⋁KAS-USA-1)"
-    )
+
+    assert str(e([["&", "A"]])) == "(A)"
+    assert str(reduce(e([["&", "A"]]))) == "(A)"
+
+    assert str(e([["|", "A"]])) == "(A)"
+    assert str(reduce(e([["|", "A"]]))) == "(A)"
+
+    assert str(e([["&", "A", "A"]])) == "(A⋀A)"
+    assert str(reduce(e([["&", "A", "A"]]))) == "(A)"
+
+    assert str(e([["|", "A", "A"]])) == "(A⋁A)"
+    assert str(reduce(e([["|", "A", "A"]]))) == "(A)"
+
+    assert str(e([["|", "DEFAULT"]])) == "[DEFAULT]"
+    assert reduce(e([["|", "DEFAULT"]])) == None
+
+    assert str(e([["&", "A", "A"]])) == "(A⋀A)"
+    assert str(reduce(e([["&", "A", "A"]]))) == "(A)"
+
+    assert str(e([["&", "A"], ["&", "DEFAULT"]])) == "(A)&[DEFAULT]"
+    assert str(reduce(e([["&", "A"], ["&", "DEFAULT"]]))) == "(A)"
+
+    assert str(e([["&", "A", "DEFAULT"]])) == "(A⋀DEFAULT)"
+    assert str(reduce(e([["&", "A", "DEFAULT"]]))) == "(A)"
+
+    assert str(e([["|", "A", "DEFAULT"]])) == "(A⋁DEFAULT)"
+    assert str(reduce(e([["|", "A", "DEFAULT"]]))) == "(A)"
+
+    assert str(e([["&", "DEFAULT", "A", "DEFAULT"]])) == "(DEFAULT⋀A⋀DEFAULT)"
+    assert str(reduce(e([["&", "DEFAULT", "A", "DEFAULT"]]))) == "(A)"
 
 
 def test_split_eyes():
@@ -383,14 +405,9 @@ def test_split_eyes():
             "REL:FVEY",
         ]
     ]
-    assert reasoner.construct_attribute_boolean(policy=policy1) == expand(
-        {"CLS": ["S"], "REL": ["FVEY"]}
-    )
-    assert (
-        str(
-            reasoner.insert_keys_for_attribute_value(
-                reasoner.construct_attribute_boolean(policy=policy1)
-            )
-        )
-        == "[DEFAULT]&(KAS-AUS-1⋀KAS-CAN-1⋀KAS-GBR-1⋀KAS-NZL-1⋀KAS-USA-1)"
-    )
+    ab = reasoner.construct_attribute_boolean(policy=policy1)
+    assert ab == expand({"CLS": ["S"], "REL": ["FVEY"]})
+
+    b = reasoner.insert_keys_for_attribute_value(ab)
+    assert str(b) == "[DEFAULT]&(KAS-AUS-1⋁KAS-CAN-1⋁KAS-GBR-1⋁KAS-NZL-1⋁KAS-USA-1)"
+    assert str(reduce(b)) == "(KAS-AUS-1⋁KAS-CAN-1⋁KAS-GBR-1⋁KAS-NZL-1⋁KAS-USA-1)"
