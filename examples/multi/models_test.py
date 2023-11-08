@@ -18,6 +18,7 @@ from .models import (
     SingleAttributeClause,
     WebError,
     reduce,
+    split,
 )
 
 classDef = AttributeDefinition(
@@ -293,6 +294,7 @@ def test_construct_attr_boolean():
     b1 = reasoner.insert_keys_for_attribute_value(ab1)
     assert str(b1) == "[DEFAULT]&(KAS-GBR-1)&(KAS-GBR-1)"
     assert str(reduce(b1)) == "(KAS-GBR-1)"
+    assert [x.splitid for x in split(b1)] == ["split-0"]
 
     assert ab1 == AttributeBooleanExpression(
         must=[
@@ -334,6 +336,7 @@ def test_construct_attr_boolean():
     b2 = reasoner.insert_keys_for_attribute_value(ab2)
     assert str(b2) == "[DEFAULT]&(KAS-FVEY-1)"
     assert str(reduce(b2)) == "(KAS-FVEY-1)"
+    assert [x.splitid for x in split(b2)] == ["split-0"]
 
     policy3 = [
         unshorten(x)
@@ -348,6 +351,7 @@ def test_construct_attr_boolean():
     b3 = reasoner.insert_keys_for_attribute_value(ab3)
     assert str(b3) == "[DEFAULT]&(KAS-CAN-1⋁KAS-GBR-1)"
     assert str(reduce(b3)) == "(KAS-CAN-1⋁KAS-GBR-1)"
+    assert [x.splitid for x in split(b3)] == ["split-0", "split-0"]
 
     policy4 = [
         unshorten(x)
@@ -364,6 +368,12 @@ def test_construct_attr_boolean():
     b4 = reasoner.insert_keys_for_attribute_value(ab4)
     assert str(b4) == "[DEFAULT]&(KAS-USA-1⋁KAS-GBR-1)&(KAS-USA-SI⋀KAS-USA-HCS)"
     assert str(reduce(b4)) == "(KAS-GBR-1⋁KAS-USA-1)&(KAS-USA-SI)&(KAS-USA-HCS)"
+    assert [x.splitid for x in split(b4)] == [
+        "split-0",
+        "split-0",
+        "split-1",
+        "split-2",
+    ]
 
 
 def test_reduce():
@@ -380,6 +390,9 @@ def test_reduce():
 
     assert str(e([["&", "A"]])) == "(A)"
     assert str(reduce(e([["&", "A"]]))) == "(A)"
+    assert split(e([["&", "A"]]))[0].splitid == "split-0"
+    assert [x.splitid for x in split(e([["&", "A", "B"]]))] == ["split-0", "split-1"]
+    assert [x.splitid for x in split(e([["|", "A", "B"]]))] == ["split-0", "split-0"]
 
     assert str(e([["|", "A"]])) == "(A)"
     assert str(reduce(e([["|", "A"]]))) == "(A)"
@@ -446,3 +459,4 @@ def test_split_eyes():
     b = reasoner.insert_keys_for_attribute_value(ab)
     assert str(b) == "[DEFAULT]&(KAS-AUS-1⋁KAS-CAN-1⋁KAS-GBR-1⋁KAS-NZL-1⋁KAS-USA-1)"
     assert str(reduce(b)) == "(KAS-AUS-1⋁KAS-CAN-1⋁KAS-GBR-1⋁KAS-NZL-1⋁KAS-USA-1)"
+    assert [x.splitid for x in split(b)] == ["split-0"] * 5

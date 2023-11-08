@@ -259,3 +259,93 @@ class Reasoner:
                 for clause in e.must
             ]
         )
+
+
+class KeyAccessProtocol(str, Enum):
+    kas = "kas"
+
+
+class KeyAccessType(str, Enum):
+    wrapped = "wrapped"
+    remote = "remote"
+
+
+class KeyAccess(BaseModel):
+    type: KeyAccessType
+    url: str
+    kid: str
+    splitid: str
+    protocol: KeyAccessProtocol
+    wrapped_key: bytes
+    encrypted_metadata: bytes
+    policy_binding: bytes
+
+
+def split(expr: BooleanKeyExpression) -> list[KeyAccess]:
+    rexpr = reduce(expr)
+    if not rexpr:
+        return [
+            KeyAccess(
+                type="wrapped",
+                url="default",
+                kid="TODO",
+                splitid="NONE",
+                protocol="kas",
+                wrapped_key=f"encapsulate([default], ***SECRET***)",
+                encrypted_metadata="TODO",
+                policy_binding="TODO",
+            )
+        ]
+    k: list[KeyAccess] = []
+    for i, v in enumerate(rexpr.values):
+        split_id = f"split-{i}"
+        if v.operator == Rule.anyOf:
+            for d in v.values:
+                k.append(
+                    KeyAccess(
+                        type="wrapped",
+                        url="default",
+                        kid="TODO",
+                        splitid=split_id,
+                        protocol="kas",
+                        wrapped_key=f"encapsulate({d.kas}, ***SECRET***)",
+                        encrypted_metadata="TODO",
+                        policy_binding="TODO",
+                    )
+                )
+        if v.operator == Rule.allOf:
+            if len(v.values) > 1:
+                for j, d in enumerate(v.values):
+                    k.append(
+                        KeyAccess(
+                            type="wrapped",
+                            url="default",
+                            kid="TODO",
+                            splitid=f"{split_id}-{j}",
+                            protocol="kas",
+                            wrapped_key=f"encapsulate({d.kas}, ***SECRET***)",
+                            encrypted_metadata="TODO",
+                            policy_binding="TODO",
+                        )
+                    )
+            else:
+                [
+                    d,
+                ] = v.values
+                k.append(
+                    KeyAccess(
+                        type="wrapped",
+                        url="default",
+                        kid="TODO",
+                        splitid=f"{split_id}",
+                        protocol="kas",
+                        wrapped_key=f"encapsulate({d.kas}, ***SECRET***)",
+                        encrypted_metadata="TODO",
+                        policy_binding="TODO",
+                    )
+                )
+    return k
+
+
+# Wrapped:
+# Remote: wrappedKey:b64, encryptedMetadata:b64, policyBinding:b64
