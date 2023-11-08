@@ -36,7 +36,7 @@ data:
         {{- end }}
         polling:
           min_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
-          max_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.minDelay }}
+          max_delay_seconds: {{ $.Values.opaConfig.policy.updatePolling.maxDelay }}
 
     {{ if .Values.opaConfig.policy.useStaticPolicy }}persistence_directory: /opt/entitlement-pdp/policycache{{ end }}
 
