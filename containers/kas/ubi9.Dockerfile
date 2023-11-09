@@ -9,7 +9,7 @@ ARG PROD_IMAGE_TAG=1
 # (policy definition point)
 FROM golang:1.21-bullseye AS gobuilder
 RUN mkdir /dist
-RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.8.0
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.9.0
 
 # stage - build
 FROM ${CONTAINER_REGISTRY}/opentdf/python-base${PYTHON_BASE_IMAGE_SELECTOR} AS build

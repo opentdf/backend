@@ -5,7 +5,7 @@ ARG CONTAINER_REGISTRY=docker.io
 # (policy definition point)
 FROM golang:1.21 AS gobuilder
 RUN mkdir /dist
-RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.8.0
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.9.0
 
 # stage - build
 FROM python:${PY_VERSION} AS build
