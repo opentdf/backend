@@ -9,7 +9,7 @@ ENV GO111MODULE=on \
 # Get git and other tools needed
 RUN apk add --no-cache git=~2 wget=~1
 
-# Get test coverage tool and swagger codegen
+# Get test coverage tool and swagger, codegen
 RUN go install github.com/klmitch/overcover@latest && \
     go install github.com/swaggo/swag/cmd/swag@v1.8.4 && \
     go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_VERSION}
