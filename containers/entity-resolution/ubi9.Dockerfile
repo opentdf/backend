@@ -15,6 +15,9 @@ RUN go build .
 # Create the minimal runtime image
 FROM registry.access.redhat.com/ubi9-micro:9.1 AS emptyfinal
 
-COPY --from=builder /opt/app-root/src/entity-resolution /entity-resolution-service
+COPY --from=builder --chown=root:root --chmod=755 /opt/app-root/src/entity-resolution /entity-resolution-service
+
+# use non-root user
+USER 10001
 
 ENTRYPOINT ["/entity-resolution-service"]

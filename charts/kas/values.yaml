@@ -92,7 +92,8 @@ serviceAccount:
 podAnnotations: {}
 
 # -- Values for deployment's `spec.template.spec.securityContext`
-podSecurityContext: {}
+podSecurityContext:
+  runAsUser: 10001
 
 # -- Values for deployment's `spec.template.spec.containers.securityContext`
 securityContext: {}

@@ -39,9 +39,13 @@ RUN mkdir -p $CACHEDIR
 RUN chmod -R 777 /opt/entitlement-pdp
 WORKDIR $HOME
 # openapi
-COPY --chown=root:root openapi.json .
-COPY --chown=root:root --from=builder /build/entitlement-pdp /entitlement-pdp
-COPY --chown=root:root --chmod=777 --from=policy-builder /build/bundle.tar.gz $CACHEDIR/bundle.tar.gz
+COPY --chown=root:root --chmod=755 openapi.json .
+COPY --chown=root:root --chmod=755 --from=builder /build/entitlement-pdp /entitlement-pdp
+COPY --chown=root:root --chmod=755 --from=policy-builder /build/bundle.tar.gz $CACHEDIR/bundle.tar.gz
+
+# use non-root user
+USER 10001
+
 ENTRYPOINT ["/entitlement-pdp"]
 # END AS production
 

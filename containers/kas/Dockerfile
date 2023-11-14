@@ -3,9 +3,9 @@ ARG CONTAINER_REGISTRY=docker.io
 
 # KAS is a PEP (policy enforcement point) that depends on/wraps an internal PDP
 # (policy definition point)
-FROM golang:1.18 AS gobuilder
+FROM golang:1.21 AS gobuilder
 RUN mkdir /dist
-RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.2.0
+RUN GOBIN=/dist go install github.com/virtru/access-pdp@v1.9.0
 
 # stage - build
 FROM python:${PY_VERSION} AS build
@@ -51,15 +51,13 @@ RUN pip3 install \
     gunicorn[gthread] \
     wsgicors
 
-# Add kas user and kas group
-RUN addgroup --system kas && adduser --system --uid ${KAS_UID:-909} kas --ingroup kas
 
-COPY --from=build --chown=kas:kas /kas_app/ /kas_app
-COPY --from=build --chown=kas:kas /kas_core/ /kas_core
+COPY --from=build --chown=root:root --chmod=755 /kas_app/ /kas_app
+COPY --from=build --chown=root:root --chmod=755 /kas_core/ /kas_core
 # NOTE - the python version needs to be specified in the following COPY command:
-COPY --from=build --chown=root:root /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
+COPY --from=build --chown=root:root --chmod=755 /usr/local/lib/python${PY_VERSION}/site-packages/ /usr/local/lib/python${PY_VERSION}/site-packages
 # add any new deployable directories and files from the build stage here
-RUN mkdir -p /certs && chown kas /certs && chgrp kas /certs
+RUN mkdir -p /certs && chown 10001 /certs
 
 # `tini` is a tiny, valid init process that runs inside the container
 # We use it because we need to launch multiple processes from a single Docker
@@ -76,10 +74,10 @@ RUN chmod 755 /sbin/tini
 RUN mkdir -p /opentdf/bin
 COPY tini-init.sh /opentdf/bin/
 
-COPY --chown=kas:kas --from=gobuilder /dist/access-pdp /opentdf/bin/access-pdp-grpc-server
+COPY --chown=root:root --chmod=755 --from=gobuilder /dist/access-pdp /opentdf/bin/access-pdp-grpc-server
 
-# Run as kas instead of root
-USER kas
+# Run as 10001 instead of root
+USER 10001
 
 # Configure Gunicorn
 #
