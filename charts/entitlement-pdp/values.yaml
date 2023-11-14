@@ -121,7 +121,7 @@ config:
   # -- Enable verbose logging
   verbose: "false"
   # -- Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)
-  disableTracing: "false"
+  disableTracing: "true"
   # -- Open telemetry collector endpoint
   otlpCollectorEndpoint: "opentelemetry-collector.otel.svc:4317"
   # -- Path to opa config yaml

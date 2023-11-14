@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/open-policy-agent/opa/hooks"
 	opalog "github.com/open-policy-agent/opa/logging"
 	"github.com/open-policy-agent/opa/metrics"
 	"github.com/open-policy-agent/opa/profiler"
@@ -63,17 +64,15 @@ func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func(), error) {
 	var shutdownFunc func()
 	const timeout = 20 * time.Second
 	engineCtx, opaCtxCancel := ctx.WithTimeout(initCtx, timeout)
-	// Annoyingly, OPA defines its own logging interface - so for now just wrap logger
-	opaLogger := &OtelLogger{
-		ctx: engineCtx,
-	}
 	opaOptions := sdk.Options{
 		Config:        bytes.NewReader(opaConfig),
-		Logger:        opaLogger,
-		ConsoleLogger: opaLogger,
+		Logger:        nil,
+		ConsoleLogger: opalog.New(),
 		Ready:         nil,
 		Plugins:       nil,
 		ID:            "EP-0",
+		Store:         nil,
+		Hooks:         hooks.Hooks{},
 	}
 	optionsSpan.End()
 	_, engineSpan := tracer.Start(engineCtx, "opa-engine")
@@ -151,6 +150,7 @@ func (pdp *OPAPDPEngine) ApplyEntitlementPolicy(primaryEntity string, secondaryE
 		Metrics:             metrics.New(),
 		Profiler:            profiler.New(),
 		Instrument:          false,
+		DecisionID:          "R-0",
 	}
 
 	result, err := pdp.opa.Decision(evalCtx, decisionReq)
@@ -283,32 +283,4 @@ func (e *joinError) Error() string {
 
 func (e *joinError) Unwrap() []error {
 	return e.errs
-}
-
-// OtelLogger with context for otel
-type OtelLogger struct {
-	ctx ctx.Context
-}
-
-func (l *OtelLogger) Debug(fmt string, a ...interface{}) {
-	log.WithContext(l.ctx).Debug(fmt, a)
-}
-func (l *OtelLogger) Info(fmt string, a ...interface{}) {
-	log.WithContext(l.ctx).Info(fmt, a)
-}
-func (l *OtelLogger) Error(fmt string, a ...interface{}) {
-	log.WithContext(l.ctx).Error(fmt, a)
-}
-func (l *OtelLogger) Warn(fmt string, a ...interface{}) {
-	log.WithContext(l.ctx).Warn(fmt, a)
-}
-func (l *OtelLogger) WithFields(fields map[string]interface{}) opalog.Logger {
-	log.WithContext(l.ctx).WithFields(fields)
-	return l
-}
-func (l *OtelLogger) GetLevel() opalog.Level {
-	return opalog.Level(log.GetLevel())
-}
-func (l *OtelLogger) SetLevel(level opalog.Level) {
-	log.Debugf("SetLevel %v", level)
 }

@@ -20,4 +20,7 @@ RUN apk add --no-cache curl
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir --requirement requirements.txt
 
+# run as non-root user
+USER 10001
+
 CMD ["/project/bootstrap.py"]
