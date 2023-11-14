@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine AS builder
+FROM golang:1.21-alpine AS builder
 
 ARG GOLANGCI_VERSION=v1.49.0
 ARG COVERAGE_THRESH_PCT=55
