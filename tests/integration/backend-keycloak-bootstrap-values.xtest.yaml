@@ -50,6 +50,9 @@ keycloak:
                 claim.name: tdf_claims
               name: Virtru OIDC Auth Mapper
               protocolMapper: virtru-oidc-protocolmapper
+          saRoles:
+              - view-clients
+              - view-users
         - payload:
             clientId: test-client-2
             directAccessGrantsEnabled: "true"
