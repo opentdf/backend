@@ -95,9 +95,14 @@ jobs:
         with:
           go-version: "1.21"
       - name: Test
-        run: scripts/monotest --coverage containers/kas/kas_core
+        run: |-
+        scripts/monotest --coverage containers/kas/kas_core
+        pwd 
+        ls -al
       - name: Override Coverage Source Path for SonarCloud (to avoid 0% code coverage error)
         run: |-
+          pwd
+          ls -al
           sudo sed -i 's|<source>/mnt/containers/kas/kas_core</source>|<source>/github/workspace/containers/kas/kas_core</source>|g' /home/runner/work/backend/backend/containers/kas/kas_core/coverage-reports/coverage.xml
 #          sudo sed -i 's|<source>/mnt/containers/kas/kas_app</source>|<source>/github/workspace/containers/kas/kas_app</source>|g' /home/runner/work/backend/backend/containers/kas/kas_app/coverage-reports/coverage.xml
       - name: SonarCloud Scan
