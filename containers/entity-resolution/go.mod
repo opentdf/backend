@@ -3,7 +3,6 @@ module github.com/opentdf/v2/entity-resolution
 go 1.21
 
 require (
-	github.com/Nerzal/gocloak/v11 v11.2.0
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/stretchr/testify v1.8.0
 	github.com/swaggo/http-swagger v1.3.0
@@ -25,16 +24,12 @@ require (
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/spec v0.20.5 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/swaggo/files v0.0.0-20220610200504-28940afbdbfe // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.4.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.4.1 // indirect
