@@ -104,7 +104,7 @@ jobs:
           cd containers/kas/kas_core/coverage-reports
           ls -al
           echo "$(cat coverage.xml)"
-#          sudo sed -i 's|<source>/mnt/containers/kas/kas_core</source>|<source>/github/workspace/containers/kas/kas_core</source>|g' /home/runner/work/backend/backend/containers/kas/kas_core/coverage-reports/coverage.xml
+          sudo sed -i 's|<source>/home/runner/work/backend/backend/containers/kas/kas_core</source>|<source>/github/workspace/containers/kas/kas_core</source>|g' /home/runner/work/backend/backend/containers/kas/kas_core/coverage-reports/coverage.xml
 #          sudo sed -i 's|<source>/mnt/containers/kas/kas_app</source>|<source>/github/workspace/containers/kas/kas_app</source>|g' /home/runner/work/backend/backend/containers/kas/kas_app/coverage-reports/coverage.xml
       - name: SonarCloud Scan
         if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
