@@ -19,7 +19,7 @@ jobs:
     name: go-lint
     strategy:
       matrix:
-        go: ['1.20','1.19']
+        go: ['1.21', '1.20']
 #        bug in goimports on windows-latest
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
