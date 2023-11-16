@@ -914,6 +914,14 @@ def createClient(keycloak_admin, realm_name, client):
         if "mappers" in client:
             addClientMappers(keycloak_admin, keycloak_client_id, client["mappers"])
 
+        if "saRoles" in client:
+            serviceAcctUser = keycloak_admin.get_client_service_account_user(keycloak_client_id)
+            serviceAcctUserId = serviceAcctUser["id"]
+            logger.info(
+                "Client %s, Service Account User ID=%s", client_id, serviceAcctUserId
+            )
+            addRolesToUser(keycloak_admin, serviceAcctUserId, client["saRoles"])
+
     except KeycloakPostError:
         logger.error(
             f"Error creating client {client['payload']} in realm {realm_name}",
