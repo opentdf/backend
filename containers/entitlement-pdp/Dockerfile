@@ -8,8 +8,8 @@ COPY go.mod go.sum ./
 RUN go mod download
 # copy Go files - add new package to this list
 COPY *.go ./
-COPY /handlers/ ./handlers/
-COPY /pdp/ ./pdp/
+COPY /handlers/getEntitlements.go ./handlers/getEntitlements.go
+COPY /pdp/opa-pdp.go ./pdp/opa-pdp.go
 COPY VERSION .
 # build
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X main.Version=$(cat <VERSION)"
