@@ -23,15 +23,15 @@ as long as the following is also true of the Rego policy bundle it is replaced w
 
 ```json
 [
-    {
-      "entity_identifier": "xxx",
-      "entity_attributes": [
+  {
+    "entity_identifier": "xxx",
+    "entity_attributes": [
       {
         "attribute": "xx",
         "displayName": "xx"
       }
-      ]
-    }
+    ]
+  }
 ]
 ```
 
@@ -54,17 +54,20 @@ See [OpenAPI definition](openapi.json)
 
 If service is running, it will also expose a live OpenAPI endpoint on `http://localhost:3355/openapi.json`
 
-Use Postman client from https://www.postman.com/downloads/ 
+Use Postman client from https://www.postman.com/downloads/
+
 - Set `baseUrl` under Variables tab to `http://localhost:3355`
 
-JSON is bundled and published.  YAML and JSON version are available.  work with one and then convert the other. don't run the wrong one ;)
+JSON is bundled and published. YAML and JSON version are available. work with one and then convert the other. don't run the wrong one ;)
 
 YAML --> JSON
+
 ```shell
 yq eval openapi.yaml --input-format yaml --output-format json > openapi.json
 ```
 
 JSON --> YAML
+
 ```shell
 # the other is preferred
 yq eval openapi.json --input-format json --output-format yaml
@@ -101,7 +104,7 @@ curl -X 'POST' \
 | Name                      | Default                           | Description                                                                                                                                                                                                           |
 | ------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | SERVER_PORT               | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
-| SERVER_PUBLIC_NAME             | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
+| SERVER_PUBLIC_NAME        | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
 | VERBOSE                   | "false"                           | Enable verbose/debug logging                                                                                                                                                                                          |
 | DISABLE_TRACING           | "false"                           | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)                                                                                                                       |
 | OPA_CONFIG_PATH           | "/etc/opa/config/opa-config.yaml" | Path to OPA config yaml - valid OPA config must exist here or service will not start. Normally this should be left alone                                                                                              |
@@ -150,6 +153,7 @@ go build github.com/opentdf/v2/entitlement-pdp
 ### Endpoints
 
 OpenAPI GET
+
 ```shell
 curl -v http://localhost:3355/openapi.json
 # deprecated
