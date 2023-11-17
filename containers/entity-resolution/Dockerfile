@@ -20,8 +20,7 @@ WORKDIR /build
 # Hoovering in everything here doesn't matter -
 # we're going to discard this intermediate image later anyway
 # and just copy over the resulting binary
-COPY . .
-
+COPY --exclude=handlers/entitlementResolution_test.go . .
 # Generate swagger docs from API def.
 RUN swag init
 
