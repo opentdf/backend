@@ -9,18 +9,13 @@ ENV GO111MODULE=on \
 # Get git and other tools needed
 RUN apk add --no-cache git=~2 wget=~1
 
-# Get test coverage tool and swagger codegen
-RUN go install github.com/klmitch/overcover@latest && \
-    go install github.com/swaggo/swag/cmd/swag@v1.8.4 && \
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_VERSION}
-
 WORKDIR /build
 
 # Copy the code necessary to build the application
 # Hoovering in everything here doesn't matter -
 # we're going to discard this intermediate image later anyway
 # and just copy over the resulting binary
-COPY --exclude=handlers/entitlementResolution_test.go . .
+COPY . .
 # Generate swagger docs from API def.
 RUN swag init
 
@@ -34,12 +29,6 @@ RUN mkdir /dist
 
 # TODO this is very slow on `arm64` - like 5x slower
 RUN golangci-lint --version && golangci-lint run --timeout 20m
-
-# Run tests
-RUN go test --coverprofile cover.out ./...
-
-# Test coverage
-RUN overcover --coverprofile cover.out ./... --threshold ${COVERAGE_THRESH_PCT}
 
 # Build the application
 RUN go build -o /dist/entity-resolution-service

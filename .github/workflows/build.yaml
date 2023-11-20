@@ -134,6 +134,28 @@ jobs:
         run: |
           python -m pytest containers/${{ matrix.repo }}/tests
 
+  gotest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - entitlement-pdp
+          - entity-resolution
+    timeout-minutes: 10
+    steps:
+      - name: Checkout working branch
+        uses: actions/checkout@v3
+
+      - name: Setup Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Test with coverage
+        run: |
+          cd containers/${{ matrix.repo }}
+          go test ./... -coverprofile=./cover.out
+
   integration-test:
     runs-on: ubuntu-latest
     needs:
