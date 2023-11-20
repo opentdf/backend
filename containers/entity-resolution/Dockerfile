@@ -17,7 +17,6 @@ WORKDIR /build
 # and just copy over the resulting binary
 COPY . .
 # Generate swagger docs from API def.
-RUN swag init
 
 # Vendor modules here so that subsequent steps don't
 # re-fetch, and just use the vendored versions
