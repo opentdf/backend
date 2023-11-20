@@ -86,7 +86,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="OpenTDF",
-        version="1.4.1",
+        version="1.5.0",
         license_info={
             "name": "BSD 3-Clause Clear",
             "url": "https://github.com/opentdf/backend/blob/main/LICENSE",
@@ -684,7 +684,6 @@ async def remove_entitlement_from_entity(
     ),
     auth_token=Depends(get_auth),
 ):
-
     return await remove_entitlement_from_entity_crud(entityId, request, auth_token)
 
 
