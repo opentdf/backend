@@ -362,7 +362,7 @@ class Kas(object):
 
         flask_options = {"swagger_url": "/docs"}
         app = connexion.FlaskApp(
-            self._root_name, specification_dir="api/", options=flask_options
+            self._root_name, specification_dir="api/", swagger_ui_options=flask_options
         )
 
         # Allow swagger_ui to be disabled
