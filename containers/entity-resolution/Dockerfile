@@ -27,7 +27,6 @@ RUN go mod vendor
 RUN mkdir /dist
 
 # TODO this is very slow on `arm64` - like 5x slower
-RUN golangci-lint --version && golangci-lint run --timeout 20m
 
 # Build the application
 RUN go build -o /dist/entity-resolution-service
