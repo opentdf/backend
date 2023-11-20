@@ -190,7 +190,7 @@ def test_decrypt_metadata_string_with_metadata_in_raw_dict(public_key, private_k
         raw_dict, wrapped_key=wrapped_key, private_key=private_key
     )
     print(kao.metadata)
-    assert json.dumps(json.loads(kao.metadata)) == json.dumps(expected)
+    assert json.dumps(kao.metadata) == json.dumps(expected)
 
 
 def test_add_metadata_values_without_metadata_in_raw_dict(public_key, private_key):
@@ -242,4 +242,4 @@ def test_metadata_from_raw_with_iv_prepend():
         "ciphertext": base64.b64encode(iv + encrypted),
     }
     metadata = decrypt_encrypted_metadata(raw_metadata, WrappedKey(secret))
-    assert json.dumps(json.loads(metadata)) == json.dumps(expected)
+    assert json.dumps(metadata) == json.dumps(expected)

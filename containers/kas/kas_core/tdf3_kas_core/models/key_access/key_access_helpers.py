@@ -140,8 +140,9 @@ def decrypt_encrypted_metadata(raw_metadata, key):
     data = key.decrypt(pure_ciphertext, iv)
 
     logger.debug("metaData = %s", data)
+    dict_metadata = json.loads(data)
 
-    if data:
-        return data
+    if dict_metadata:
+        return dict_metadata
     else:
         return None
