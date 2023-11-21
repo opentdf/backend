@@ -3,6 +3,7 @@
 import os
 import connexion
 from connexion.options import SwaggerUIOptions
+from a2wsgi import ASGIMiddleware
 import importlib_resources
 import logging
 import urllib.parse
@@ -390,7 +391,8 @@ class Kas(object):
         app.add_api(openapi_file, swagger_ui_options=swagger_ui_options, strict_validation=True)
 
         logger.debug("KAS app starting.")
-        self._app = app.app
+        # convert from asgi to wsgi
+        self._app = ASGIMiddleware(app)
         return self._app
 
 
