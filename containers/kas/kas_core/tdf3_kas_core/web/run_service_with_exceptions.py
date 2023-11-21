@@ -96,8 +96,8 @@ def run_service_with_exceptions(service=None, *, success=200):
             to_response = jsonify
             if success == 204:
                 to_response = lambda _: current_app.response_class(
-                    status=204)#, mimetype=current_app.config["JSONIFY_MIMETYPE"]
-                #)
+                    status=204, mimetype=current_app.json.mimetype
+                )
             return to_response(response), success, security_headers
 
         except AttributePolicyConfigError as err:

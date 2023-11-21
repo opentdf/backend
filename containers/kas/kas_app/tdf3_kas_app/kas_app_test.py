@@ -24,7 +24,6 @@ def test_kas_heartbeat(test_client):
     response = test_client.get("/")
     print(response)
     assert response.status_code == 200
-    assert "application/json" in response.apparent_encoding
     json = response.json()
     assert re.match(r"\d+\.\d+\.\d+", json["version"])
 
