@@ -392,7 +392,8 @@ class Kas(object):
 
         logger.debug("KAS app starting.")
         # convert from asgi to wsgi
-        self._app = ASGIMiddleware(app)
+        #self._app = ASGIMiddleware(app)
+        self._app = app.wsgi_app
         return self._app
 
 
