@@ -3,7 +3,6 @@
 import os
 import connexion
 from connexion.options import SwaggerUIOptions
-from a2wsgi import ASGIMiddleware
 import importlib_resources
 import logging
 import urllib.parse
@@ -392,8 +391,7 @@ class Kas(object):
 
         logger.debug("KAS app starting.")
         # convert from asgi to wsgi
-        #self._app = ASGIMiddleware(app)
-        self._app = app.app.wsgi_app
+        self._app = app
         return self._app
 
 

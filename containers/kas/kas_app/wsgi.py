@@ -3,11 +3,12 @@
 import os
 
 from wsgicors import CORS
+from a2wsgi import ASGIMiddleware
 
 from tdf3_kas_app import kas_app
 
 app = CORS(
-    kas_app.app(__name__),
+    ASGIMiddleware(kas_app.app(__name__)),
     headers=str(
         os.environ.get(
             "WSGI_CORS_HEADERS",

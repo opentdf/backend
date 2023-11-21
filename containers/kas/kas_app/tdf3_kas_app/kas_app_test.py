@@ -16,7 +16,7 @@ def kas_app_instance():
 
 @pytest.fixture(scope="session")
 def test_client(kas_app_instance):
-    client = kas_app_instance.test_client()
+    client = kas_app_instance.app.test_client()
     return client
 
 
