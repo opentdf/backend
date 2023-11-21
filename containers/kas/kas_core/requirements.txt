@@ -1,7 +1,6 @@
 -i https://pypi.org/simple
 -e git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=accesspdp&subdirectory=clients/python/accesspdp
 -e git+https://github.com/virtru/access-pdp@1f7f62667c9ba0451a67b3618a894beedb74ad54#egg=attributes&subdirectory=clients/python/attributes
-a2wsgi~=1.8.0
 bitstruct~=8.17.0
 blinker~=1.6.2
 certifi~=2023.7.22
