@@ -30,10 +30,10 @@ def get_public_key_from_pem(
     try:
         try:
             logger.debug("Attempting to return deserialized key")
-            return serialization.load_pem_public_key(pem, backend=default_backend())
+            return serialization.load_pem_public_key(str.encode(pem), backend=default_backend())
         except Exception:
             logger.debug("Deserialization failed; loading cert")
-            cert = x509.load_pem_x509_certificate(pem, default_backend())
+            cert = x509.load_pem_x509_certificate(str.encode(pem), default_backend())
             logger.debug("Cert check passed, returning cert")
             return cert
 
@@ -52,7 +52,7 @@ def get_private_key_from_pem(
     try:
         logger.debug("Attempting to return deserialized key")
         return serialization.load_pem_private_key(
-            pem, password=None, backend=default_backend()
+            str.encode(pem), password=None, backend=default_backend()
         )
 
     except Exception as e:
