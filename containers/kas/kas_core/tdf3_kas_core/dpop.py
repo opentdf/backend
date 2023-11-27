@@ -102,6 +102,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         raise UnauthorizedError("Invalid JWT")
     jwk = decoded["header"]["jwk"]
     key_thumbprint = jwk_thumbprint(jwk)
+    
     if key_thumbprint != jkt:
         raise UnauthorizedError(f"Invalid DPoP: {key_thumbprint} || {jkt}")
 
