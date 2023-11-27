@@ -27,13 +27,16 @@ def get_public_key_from_pem(
         or isinstance(pem, x509.Certificate)
     ):
         return pem
+    # cryptography load methods need bytes
+    if isinstance(pem, str):
+        pem = pem.encode()
     try:
         try:
             logger.debug("Attempting to return deserialized key")
-            return serialization.load_pem_public_key(pem.encode(), backend=default_backend())
+            return serialization.load_pem_public_key(pem, backend=default_backend())
         except Exception:
             logger.debug("Deserialization failed; loading cert")
-            cert = x509.load_pem_x509_certificate(pem.encode(), default_backend())
+            cert = x509.load_pem_x509_certificate(pem, default_backend())
             logger.debug("Cert check passed, returning cert")
             return cert
 
@@ -49,10 +52,13 @@ def get_private_key_from_pem(
     """Deserialize a private key from a PEM string."""
     if isinstance(pem, EllipticCurvePrivateKey) or isinstance(pem, RSAPrivateKey):
         return pem
+    # cryptography load methods need bytes
+    if isinstance(pem, str):
+        pem = pem.encode()
     try:
         logger.debug("Attempting to return deserialized key")
         return serialization.load_pem_private_key(
-            pem.encode(), password=None, backend=default_backend()
+            pem, password=None, backend=default_backend()
         )
 
     except Exception as e:
