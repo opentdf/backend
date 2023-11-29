@@ -11,7 +11,7 @@
 
     <properties>
         <!-- this value should become golden, for now keep in-sync containers/keycloak-protocol-mapper/VERSION -->
-        <keycloak.version>21.1.2</keycloak.version>
+        <keycloak.version>23.0.1</keycloak.version>
         <resteasy.version>4.7.7.Final</resteasy.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
