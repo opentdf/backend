@@ -4,7 +4,9 @@ import (
 	"bytes"
 	ctx "context"
 	"encoding/json"
+	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,7 +21,7 @@ import (
 )
 
 const (
-	ErrOpaIntialization       = Error("opa initialization error")
+	ErrOpaInitialization      = Error("opa initialization error")
 	ErrOpaDecision            = Error("opa decision")
 	ErrOpaResultDeserialize   = Error("deserializing OPA result")
 	ErrFinalJson              = Error("deserialize final JSON result document")
@@ -51,7 +53,7 @@ func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func(), error) {
 	defer initSpan.End()
 	_, loadSpan := tracer.Start(initCtx, "opa-config-load")
 	opaConfigPath := os.Getenv("OPA_CONFIG_PATH")
-	log.Debugf("Loading config file from from %s", opaConfigPath)
+	log.Infof("Loading config file from from %s", opaConfigPath)
 	opaConfig, err := os.ReadFile(opaConfigPath)
 	if err != nil {
 		log.Panicf("Error loading config file from from %s! Error was %s", opaConfigPath, err)
@@ -60,19 +62,33 @@ func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func(), error) {
 	_, replaceSpan := tracer.Start(initCtx, "opa-config-replace")
 	opaConfig = replaceOpaEnvVar(opaConfig)
 	replaceSpan.End()
+	log.Debug(string(opaConfig))
 	_, optionsSpan := tracer.Start(initCtx, "opa-config-options")
 	var shutdownFunc func()
-	const timeout = 20 * time.Second
+	engineTimeout := os.Getenv("OPA_ENGINE_STARTUP_TIMEOUT")
+	if "" == engineTimeout {
+		engineTimeout = "90"
+	}
+	log.Debugf("engineTimeout %s", engineTimeout)
+	engineTimeoutSeconds, err := strconv.Atoi(engineTimeout)
+	if err != nil {
+		return OPAPDPEngine{nil}, nil, ErrOpaInitialization
+	}
+	timeout := time.Duration(engineTimeoutSeconds) * time.Second
 	engineCtx, opaCtxCancel := ctx.WithTimeout(initCtx, timeout)
 	opaOptions := sdk.Options{
-		Config:        bytes.NewReader(opaConfig),
-		Logger:        nil,
-		ConsoleLogger: opalog.New(),
-		Ready:         nil,
-		Plugins:       nil,
-		ID:            "EP-0",
-		Store:         nil,
-		Hooks:         hooks.Hooks{},
+		Config: bytes.NewReader(opaConfig),
+		Logger: &StandardLogger{
+			logger: log.StandardLogger(),
+		},
+		ConsoleLogger: &StandardLogger{
+			logger: log.StandardLogger(),
+		},
+		Ready:   nil,
+		Plugins: nil,
+		ID:      "EP-0",
+		Store:   nil,
+		Hooks:   hooks.Hooks{},
 	}
 	optionsSpan.End()
 	_, engineSpan := tracer.Start(engineCtx, "opa-engine")
@@ -81,14 +97,14 @@ func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func(), error) {
 		log.WithContext(engineCtx).Debug(err)
 		engineSpan.End()
 		opaCtxCancel()
-		return OPAPDPEngine{opa}, nil, ErrJoin(ErrOpaIntialization, err)
+		return OPAPDPEngine{opa}, nil, ErrJoin(ErrOpaInitialization, err)
 	}
 	// assert opa state manager is set up and return nil
 	if opa.Plugin("") != nil {
-		log.WithContext(engineCtx).Error(ErrOpaIntialization)
+		log.WithContext(engineCtx).Error(ErrOpaInitialization)
 		engineSpan.End()
 		opaCtxCancel()
-		return OPAPDPEngine{opa}, nil, ErrOpaIntialization
+		return OPAPDPEngine{opa}, nil, ErrOpaInitialization
 	}
 	engineSpan.End()
 	log.WithContext(engineCtx).Info("OPA Engine successfully started")
@@ -283,4 +299,101 @@ func (e *joinError) Error() string {
 
 func (e *joinError) Unwrap() []error {
 	return e.errs
+}
+
+// StandardLogger is the default OPA logger implementation.
+type StandardLogger struct {
+	logger *log.Logger
+	fields map[string]interface{}
+}
+
+// SetOutput sets the underlying logrus output.
+func (l *StandardLogger) SetOutput(w io.Writer) {
+	l.logger.SetOutput(w)
+}
+
+// SetFormatter sets the underlying logrus formatter.
+func (l *StandardLogger) SetFormatter(formatter log.Formatter) {
+	l.logger.SetFormatter(formatter)
+}
+
+// WithFields provides additional fields to include in log output
+func (l *StandardLogger) WithFields(fields map[string]interface{}) opalog.Logger {
+	cp := *l
+	cp.fields = make(map[string]interface{})
+	for k, v := range l.fields {
+		cp.fields[k] = v
+	}
+	for k, v := range fields {
+		cp.fields[k] = v
+	}
+	return &cp
+}
+
+// getFields returns additional fields of this logger
+func (l *StandardLogger) getFields() map[string]interface{} {
+	return l.fields
+}
+
+// SetLevel sets the standard logger level.
+func (l *StandardLogger) SetLevel(level opalog.Level) {
+	var logrusLevel log.Level
+	switch level {
+	case opalog.Error: // set logging level report Warn or higher (includes Error)
+		logrusLevel = log.WarnLevel
+	case opalog.Warn:
+		logrusLevel = log.WarnLevel
+	case opalog.Info:
+		logrusLevel = log.InfoLevel
+	case opalog.Debug:
+		logrusLevel = log.DebugLevel
+	default:
+		l.Warn("unknown log level %v", level)
+		logrusLevel = log.InfoLevel
+	}
+
+	l.logger.SetLevel(logrusLevel)
+}
+
+// GetLevel returns the standard logger level.
+func (l *StandardLogger) GetLevel() opalog.Level {
+	logrusLevel := l.logger.GetLevel()
+
+	var level opalog.Level
+	switch logrusLevel {
+	case log.WarnLevel:
+		level = opalog.Error
+	case log.InfoLevel:
+		level = opalog.Info
+	case log.DebugLevel:
+		level = opalog.Debug
+	case log.TraceLevel:
+		// lowest is debug in OPA, use that for trace
+		level = opalog.Debug
+	default:
+		l.Warn("unknown log level %v", logrusLevel)
+		level = opalog.Info
+	}
+
+	return level
+}
+
+// Debug logs at debug level
+func (l *StandardLogger) Debug(fmt string, a ...interface{}) {
+	l.logger.WithFields(l.getFields()).Debugf(fmt, a...)
+}
+
+// Info logs at info level
+func (l *StandardLogger) Info(fmt string, a ...interface{}) {
+	l.logger.WithFields(l.getFields()).Infof(fmt, a...)
+}
+
+// Error logs at error level
+func (l *StandardLogger) Error(fmt string, a ...interface{}) {
+	l.logger.WithFields(l.getFields()).Errorf(fmt, a...)
+}
+
+// Warn logs at warn level
+func (l *StandardLogger) Warn(fmt string, a ...interface{}) {
+	l.logger.WithFields(l.getFields()).Warnf(fmt, a...)
 }

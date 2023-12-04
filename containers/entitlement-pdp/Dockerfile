@@ -46,6 +46,9 @@ COPY --chown=root:root --chmod=755 --from=policy-builder /build/bundle.tar.gz $C
 # use non-root user
 USER 10001
 
+# seconds
+ENV OPA_ENGINE_STARTUP_TIMEOUT=90
+
 ENTRYPOINT ["/entitlement-pdp"]
 # END AS production
 
