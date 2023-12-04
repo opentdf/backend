@@ -8,8 +8,8 @@ bundles:
   entitlement-policy:
     service: policy-registry
     resource: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle:main
-    trigger: periodic
-    persist: false
+    trigger: manual
+    persist: true
     polling:
       min_delay_seconds: 60
       max_delay_seconds: 60
