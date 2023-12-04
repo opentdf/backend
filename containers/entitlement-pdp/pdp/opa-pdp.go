@@ -361,6 +361,13 @@ func (l *StandardLogger) GetLevel() opalog.Level {
 
 	var level opalog.Level
 	switch logrusLevel {
+	case log.PanicLevel:
+		// highest is error in OPA
+		level = opalog.Error
+	case log.FatalLevel:
+		level = opalog.Error
+	case log.ErrorLevel:
+		level = opalog.Error
 	case log.WarnLevel:
 		level = opalog.Error
 	case log.InfoLevel:
