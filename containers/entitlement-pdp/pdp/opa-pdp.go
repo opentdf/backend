@@ -62,11 +62,11 @@ func InitOPAPDP(parentCtx ctx.Context) (OPAPDPEngine, func(), error) {
 	_, replaceSpan := tracer.Start(initCtx, "opa-config-replace")
 	opaConfig = replaceOpaEnvVar(opaConfig)
 	replaceSpan.End()
-	log.Debug(string(opaConfig))
+	// to inspect config file that is loaded, not for prod due to secrets log.Debug(string(opaConfig))
 	_, optionsSpan := tracer.Start(initCtx, "opa-config-options")
 	var shutdownFunc func()
 	engineTimeout := os.Getenv("OPA_ENGINE_STARTUP_TIMEOUT")
-	if "" == engineTimeout {
+	if engineTimeout == "" {
 		engineTimeout = "90"
 	}
 	log.Debugf("engineTimeout %s", engineTimeout)
