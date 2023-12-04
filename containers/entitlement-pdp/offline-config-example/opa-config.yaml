@@ -1,16 +1,14 @@
-#
+# https://www.openpolicyagent.org/docs/latest/
 services:
   policy-registry:
     url: https://ghcr.io
     type: oci
-    credentials:
-      bearer:
-        token: "${OPA_POLICYBUNDLE_PULLCRED}"
+
 bundles:
   entitlement-policy:
     service: policy-registry
     resource: ghcr.io/opentdf/entitlement-pdp/entitlements-policybundle:main
-    trigger: "manual"
+    trigger: manual
     persist: true
     polling:
       min_delay_seconds: 60

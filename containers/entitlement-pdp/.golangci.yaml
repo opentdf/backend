@@ -67,6 +67,7 @@ linters-settings:
       - "^google.golang.org/protobuf/.+Options$"
       - "^gopkg.in/yaml.v3.Node$"
       - "^github.com/redis/go-redis/v9.Options$"
+      - "^github.com/opentdf/v2/entitlement-pdp/pdp.StandardLogger$"
 
   funlen:
     # Checks the number of lines in a function.
