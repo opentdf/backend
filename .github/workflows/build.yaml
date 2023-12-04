@@ -95,7 +95,11 @@ jobs:
         with:
           go-version: "1.21"
       - name: Test
-        run: scripts/monotest --coverage containers/kas/kas_core
+        run: scripts/monotest --coverage containers/kas/kas_core containers/kas/kas_app
+      - name: Override Coverage Source Path for SonarCloud (to avoid 0% code coverage error)
+        run: |-
+          sudo sed -i 's|<source>/home/runner/work/backend/backend/containers/kas/kas_core</source>|<source>/github/workspace/containers/kas/kas_core</source>|g' /home/runner/work/backend/backend/containers/kas/kas_core/coverage-reports/coverage.xml
+          sudo sed -i 's|<source>/home/runner/work/backend/backend/containers/kas/kas_app</source>|<source>/github/workspace/containers/kas/kas_app</source>|g' /home/runner/work/backend/backend/containers/kas/kas_app/coverage-reports/coverage.xml
       - name: SonarCloud Scan
         if: ${{ ! github.event.pull_request.head.repo.fork && env.SONAR_TOKEN }}
         uses: SonarSource/sonarcloud-github-action@master
@@ -129,6 +133,28 @@ jobs:
       - name: Test
         run: |
           python -m pytest containers/${{ matrix.repo }}/tests
+
+  gotest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo:
+          - entitlement-pdp
+          - entity-resolution
+    timeout-minutes: 10
+    steps:
+      - name: Checkout working branch
+        uses: actions/checkout@v3
+
+      - name: Setup Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Test with coverage
+        run: |
+          cd containers/${{ matrix.repo }}
+          go test ./... -coverprofile=./cover.out
 
   integration-test:
     runs-on: ubuntu-latest
