@@ -103,7 +103,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     jwk = decoded["header"]["jwk"]
     key_thumbprint = jwk_thumbprint(jwk)
     if key_thumbprint != jkt:
-        raise UnauthorizedError(f"Invalid DPoP")
+        raise UnauthorizedError("Invalid DPoP")
 
     try:
         key = PyJWK.from_dict(jwk).key
