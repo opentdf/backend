@@ -60,6 +60,10 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     Returns False if either DPoP is ignored or no auth is requested.
     """
     auth_header = request.headers.get("authorization", None)
+    p = request['path']
+    b = request.base_url
+    logger.warning(f"scope: {request.scope}")
+    logger.warning("b=[%s] p=[%s]", b, p)
     if not auth_header:
         if do_oidc:
             raise UnauthorizedError("Missing auth header")
