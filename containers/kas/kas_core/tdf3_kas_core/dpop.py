@@ -61,6 +61,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     """
     auth_header = request.headers.get("authorization", None)
     logger.warning(f"scope: {request.scope}")
+    
     if not auth_header:
         if do_oidc:
             raise UnauthorizedError("Missing auth header")
@@ -125,6 +126,8 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         raise UnauthorizedError("Invalid JWT") from e
 
     if m != htm or u != htu:
+        b = request.base_url
+        p = request.path
         logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s] b=[%s] p=[%s]", htm, htu, m, u, b, p)
         logger.warning(f"scope: {request.scope}")
         raise UnauthorizedError("Invalid DPoP")
