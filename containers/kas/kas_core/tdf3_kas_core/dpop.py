@@ -118,12 +118,14 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         htu = decoded["htu"]
         m = request.method
         u = request.url
+        p = request['path']
+        b = request.base_url
     except Exception as e:
         raise UnauthorizedError("Invalid JWT") from e
 
-    logger.info("DPOP: htm:[%s] htu:[%s] m:[%s] u[%s]")
     if m != htm or u != htu:
-        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu, m, u)
+        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s] b=[%s] p=[%s]", htm, htu, m, u, b, p)
+        logger.warning(f"scope: {request.scope}")
         raise UnauthorizedError("Invalid DPoP")
     access_token_hash = jws_sha(id_jwt)
     if ath != access_token_hash:
