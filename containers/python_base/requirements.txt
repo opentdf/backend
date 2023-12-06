@@ -29,3 +29,4 @@ uvicorn[standard]==0.17.6
 uvloop==0.16.0
 watchgod==0.8.1
 websockets==10.2
+coverage==7.3.2
