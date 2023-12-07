@@ -41,8 +41,6 @@ def test_jwk_thumbprint():
 
 @dataclass
 class MockRequest:
-    def __getitem__(self, item):
-        return "stub subscriptable"
     headers: dict[str, str] = field(default_factory=lambda: {})
     method: str = "GET"
     url: str = "http://localhost/"

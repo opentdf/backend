@@ -125,7 +125,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     # workaround for starlette request.url not including ingress path
     htu_no_ingress = htu.replace("/api/kas", "")
     if m != htm or u != htu_no_ingress:
-        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s]", htm, htu_no_ingress, m, u)
+        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu_no_ingress, m, u)
         raise UnauthorizedError("Invalid DPoP")
     access_token_hash = jws_sha(id_jwt)
     if ath != access_token_hash:
