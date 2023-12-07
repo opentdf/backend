@@ -46,9 +46,6 @@ class MockRequest:
     headers: dict[str, str] = field(default_factory=lambda: {})
     method: str = "GET"
     url: str = "http://localhost/"
-    scope: str = "stub"
-    base_url: str = "stub-base"
-    path: str = "stub-path"
 
 
 def test_validate_dpop_no_auth():

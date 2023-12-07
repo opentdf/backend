@@ -27,9 +27,6 @@ def get_public_key_from_pem(
         or isinstance(pem, x509.Certificate)
     ):
         return pem
-    # cryptography load methods need bytes
-    if isinstance(pem, str):
-        pem = pem.encode()
     try:
         try:
             logger.debug("Attempting to return deserialized key")
@@ -52,9 +49,6 @@ def get_private_key_from_pem(
     """Deserialize a private key from a PEM string."""
     if isinstance(pem, EllipticCurvePrivateKey) or isinstance(pem, RSAPrivateKey):
         return pem
-    # cryptography load methods need bytes
-    if isinstance(pem, str):
-        pem = pem.encode()
     try:
         logger.debug("Attempting to return deserialized key")
         return serialization.load_pem_private_key(
