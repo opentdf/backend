@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-version = "1.4.0"
+version = "1.5.0"
 
 setup(
     name="tdf3-kas-core",
@@ -26,7 +26,7 @@ setup(
         "Flask",
         "PyJWT",
         "bitstruct",
-        "connexion>=2,<3",
+        "connexion[flask]",
         "cryptography",
         "grpcio",
         "gunicorn",

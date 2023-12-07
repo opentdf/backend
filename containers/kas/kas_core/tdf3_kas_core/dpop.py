@@ -60,6 +60,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     Returns False if either DPoP is ignored or no auth is requested.
     """
     auth_header = request.headers.get("authorization", None)
+    
     if not auth_header:
         if do_oidc:
             raise UnauthorizedError("Missing auth header")
@@ -121,8 +122,10 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     except Exception as e:
         raise UnauthorizedError("Invalid JWT") from e
 
-    if m != htm or u != htu:
-        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu, m, u)
+    # workaround for starlette request.url not including ingress path
+    htu_no_ingress = htu.replace("/api/kas", "")
+    if m != htm or u != htu_no_ingress:
+        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu_no_ingress, m, u)
         raise UnauthorizedError("Invalid DPoP")
     access_token_hash = jws_sha(id_jwt)
     if ath != access_token_hash:

@@ -24,8 +24,7 @@ def test_kas_heartbeat(test_client):
     response = test_client.get("/")
     print(response)
     assert response.status_code == 200
-    assert response.is_json
-    json = response.get_json()
+    json = response.json()
     assert re.match(r"\d+\.\d+\.\d+", json["version"])
 
 
@@ -33,5 +32,5 @@ def test_kas_public_key(test_client):
     response = test_client.get("/kas_public_key")
     print(response)
     assert response.status_code == 200
-    cert = response.get_data().decode("utf-8")
+    cert = response.content.decode("utf-8")
     assert re.match(r".?-----BEGIN CERTIFICATE-----(.|\s)*", cert)
