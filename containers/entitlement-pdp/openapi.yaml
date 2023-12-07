@@ -75,7 +75,9 @@ paths:
           name: "secondary_entity_ids"
           schema:
             type: array
-          required: true
+            items:
+              type: string
+          required: false
           description: Array of string ID of the entities to get
       responses:
         default:

@@ -104,7 +104,7 @@
             "schema": {
               "type": "array"
             },
-            "required": true,
+            "required": false,
             "description": "Array of string ID of the entities to get"
           }
         ],

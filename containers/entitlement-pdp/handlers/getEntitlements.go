@@ -3,6 +3,7 @@ package handlers
 import (
 	ctx "context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -13,8 +14,9 @@ import (
 )
 
 const (
-	ErrPayloadUnmarshal = Error("payload json unmarshal failure")
-	ErrPayloadInvalid   = Error("payload json invalid")
+	ErrPayloadUnmarshal      = Error("payload json unmarshal failure")
+	ErrPayloadInvalid        = Error("payload json invalid")
+	ErrPrimaryEntityRequired = Error("primary entity required")
 )
 
 var tracer = otel.Tracer("handlers")
@@ -98,7 +100,9 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method == http.MethodGet {
 		payload, err := getRequestParameters(spanCtx, req)
-		if err != nil {
+		if errors.Is(err, ErrPrimaryEntityRequired) {
+			w.WriteHeader(http.StatusBadRequest)
+		} else if err != nil {
 			log.Errorf("request parameters returned error! Error was %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -178,6 +182,9 @@ func getRequestParameters(parentCtx ctx.Context, r *http.Request) (*Entitlements
 	log.Debugf("Parsing request parameters: %s", r.URL.RawQuery)
 	var payload EntitlementsRequest
 	payload.PrimaryEntityId = r.URL.Query().Get("primary_entity_id")
+	if payload.PrimaryEntityId == "" {
+		return &payload, ErrPrimaryEntityRequired
+	}
 	secIds := r.URL.Query().Get("secondary_entity_ids")
 	payload.SecondaryEntityIds = strings.Split(secIds, ",")
 	payload.EntitlementContextObject = "{}"
