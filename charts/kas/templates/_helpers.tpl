@@ -67,7 +67,7 @@ Create oidc endpoint from a common value
 */}}
 {{- define "kas.oidcPubkeyEndpoint" }}
 {{- $t := coalesce .Values.endpoints.oidcPubkeyEndpoint .Values.global.opentdf.common.oidcInternalBaseUrl }}
-{{- tpl $t $ | nindent 16 }}
+{{- tpl $t $ }}
 {{- end }}
 
 {{- define "kas.secretName" -}}
