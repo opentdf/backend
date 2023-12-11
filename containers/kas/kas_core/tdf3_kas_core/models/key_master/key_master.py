@@ -97,7 +97,10 @@ class KeyMaster(object):
     def set_key_pem(self, key_name, key_type, pem_key):
         """Set the pem key directly into the store."""
         if isinstance(key_type, str):
-            key_type = KeyType[key_type]
+            if key_type in KeyType:
+                key_type = KeyType[key_type]
+            else:
+                raise KeyNotFoundError("Attempt to load key with defective type")
         if key_type == KeyType.PUBLIC:
             key_obj = PublicKey(key_name, get_public_key_from_pem(pem_key))
         else:

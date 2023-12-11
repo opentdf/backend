@@ -176,7 +176,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                dataJson["entity"], key_master.public_key("AA-PUBLIC")
+                dataJson["entity"], key_master.public_key("AA-PUBLIC").public_key()
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -189,7 +189,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                data["entity"], key_master.public_key("AA-PUBLIC")
+                data["entity"], key_master.public_key("AA-PUBLIC").public_key()
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -253,7 +253,7 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     """
     idpJWT = _get_bearer_token_from_header(context)
     realmKey = (
-        key_master.public_key("AA-PUBLIC")
+        key_master.public_key("AA-PUBLIC").public_key()
         if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
         else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
     )
@@ -780,7 +780,7 @@ def upsert(data, context, plugin_runner, key_master):
         raise AuthorizationError("No Entity object")
 
     entity = Entity.load_from_raw_data(
-        data["entity"], key_master.public_key("AA-PUBLIC")
+        data["entity"], key_master.public_key("AA-PUBLIC").public_key()
     )
 
     # Check the auth token.
