@@ -75,8 +75,7 @@ class KeyMaster(object):
             key_obj = self.__keys[key_name]
             if isinstance(key_obj, PublicKey):
                 return key_obj.v_public
-            return key_obj.v_privates
-            
+            return key_obj.v_private
         msg = f"Key '{key_name}' not found"
         # This is not necessarily a critical failure,
         # in some cases we fetch the key if it is not cached
