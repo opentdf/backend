@@ -98,9 +98,9 @@ def kas_public_key(
     with_kid = version == "2"
     public_key = None
     if algorithm == "rsa:2048":
-        public_key = key_master.public_key("KAS-PUBLIC")
+        public_key = key_master.cert("KAS-PUBLIC")
     elif algorithm == "ec:secp256r1":
-        public_key = key_master.public_key("KAS-EC-SECP256R1-PUBLIC")
+        public_key = key_master.cert("KAS-EC-SECP256R1-PUBLIC")
 
     if public_key is None:
         raise KeyNotFoundError("Could not produce a public key")
@@ -176,7 +176,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                dataJson["entity"], key_master.public_key("AA-PUBLIC").public_key()
+                dataJson["entity"], key_master.public_key("AA-PUBLIC")
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -189,7 +189,7 @@ def rewrap(data, context, plugin_runner, key_master):
 
         try:
             entity = Entity.load_from_raw_data(
-                data["entity"], key_master.public_key("AA-PUBLIC").public_key()
+                data["entity"], key_master.public_key("AA-PUBLIC")
             )
         except ValueError as e:
             raise BadRequestError(f"Error in EO [{e}]") from e
@@ -253,7 +253,7 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     """
     idpJWT = _get_bearer_token_from_header(context)
     realmKey = (
-        key_master.public_key("AA-PUBLIC").public_key()
+        key_master.public_key("AA-PUBLIC")
         if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
         else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
     )
@@ -780,7 +780,7 @@ def upsert(data, context, plugin_runner, key_master):
         raise AuthorizationError("No Entity object")
 
     entity = Entity.load_from_raw_data(
-        data["entity"], key_master.public_key("AA-PUBLIC").public_key()
+        data["entity"], key_master.public_key("AA-PUBLIC")
     )
 
     # Check the auth token.
