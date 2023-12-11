@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -73,6 +72,10 @@ type Entitlements struct {
 	Pdp PDPEngine
 }
 
+type ResponseDetail struct {
+	Detail string `json:"detail" example:"{\"detail\":\"somevalue\"}"`
+}
+
 // GetEntitlementsHandler godoc
 // @Summary      Request an entitlements set from the PDP
 // @Description  Provide entity identifiers to the entitlement PDP
@@ -102,6 +105,9 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		payload, err := getRequestParameters(spanCtx, req)
 		if errors.Is(err, ErrPrimaryEntityRequired) {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Header().Set("Content-Type", "application/json")
+			rd := ResponseDetail{Detail: ErrPrimaryEntityRequired.Error()}
+			_ = json.NewEncoder(w).Encode(rd)
 		} else if err != nil {
 			log.Errorf("request parameters returned error! Error was %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -118,8 +124,6 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		tdfClaims := Claims{TdfClaims{Entitlements: entitlements}}
-		// FIXME remove
-		_ = json.NewEncoder(os.Stdout).Encode(tdfClaims)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		err = json.NewEncoder(w).Encode(tdfClaims)
