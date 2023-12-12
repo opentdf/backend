@@ -98,9 +98,9 @@ def kas_public_key(
     with_kid = version == "2"
     public_key = None
     if algorithm == "rsa:2048":
-        public_key = key_master.get_key("KAS-PUBLIC")
+        public_key = key_master.public_key_or_cert("KAS-PUBLIC")
     elif algorithm == "ec:secp256r1":
-        public_key = key_master.get_key("KAS-EC-SECP256R1-PUBLIC")
+        public_key = key_master.public_key_or_cert("KAS-EC-SECP256R1-PUBLIC")
 
     if public_key is None:
         raise KeyNotFoundError("Could not produce a public key")

@@ -23,6 +23,7 @@ __pycache__
 /containers/kas/**/build/
 coverage-reports
 .coverage
+venv/
 
 # @SECURITY
 certs/*
