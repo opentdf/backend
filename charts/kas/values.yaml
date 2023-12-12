@@ -188,16 +188,17 @@ endpoints:
   # -- Local override for `global.opentdf.common.oidcInternalBaseUrl` + path
   oidcPubkeyEndpoint:
 
+# -- Defines gokas HSM parameters
 pkcs11:
-  # -- The slot where the token is located
+  # -- The hsm slot where the token is located
   slotIndex:
   # -- Label for the softhsm token
   tokenLabel:
   # -- Location of hsm .so
   modulePath:
-  # -- Label for the RSA kas keys
+  # -- Label for the RSA kas keys on the hsm
   pubRsaLabel:
-  # -- Label for the EC kas keys
+  # -- Label for the EC kas keys on the hsm
   pubEcLabel:
   
 # -- Adds a container `livenessProbe`, if set.
