@@ -26,3 +26,10 @@ data:
   {{- with .Values.endpoints.trustedEntitlers | join " " }}
   TRUSTED_ENTITLERS: {{ . }}
   {{- end }}
+  PKCS11_SLOT_INDEX: {{ .Values.pkcs11.slotIndex | default 0 | quote }}
+  PKCS11_TOKEN_LABEL: {{ .Values.pkcs11.tokenLabel | default "development-token" | quote }}
+  {{- with .Values.pkcs11.modulePath | join " " }}
+  PKCS11_MODULE_PATH: {{ tpl . $ | quote }}
+  {{- end }}
+  PKCS11_LABEL_PUBKEY_RSA: {{ .Values.pkcs11.pubRsaLabel | default "development-rsa-kas" | quote }}
+  PKCS11_LABEL_PUBKEY_EC: {{ .Values.pkcs11.pubEcLabel | default "development-ec-kas" | quote }}
