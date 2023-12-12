@@ -10,7 +10,7 @@ generated_entitlements := new_entitlements if {
 	# Fetch entitlements from rule output
 	core_entitlements := entitlementsvc.entitlements_fetch_success
 	custom_attribute_names := ["name", "preferredUsername", "email"]
-	idp_attributes := construct_idp_attributes(custom_attribute_names)
+	idp_attributes := construct_idp_attributes(custom_attribute_names, input.entitlement_context)
 
 	entitlements := merge_idp_attributes(core_entitlements, idp_attributes)
 
@@ -34,16 +34,17 @@ generated_entitlements := new_entitlements if {
 	new_entitlements := array.concat(updated_entities, rest)
 }
 
-construct_idp_attributes(attribute_names) := idp_attributes if {
-	some attribute_name in attribute_names
-	idp_attributes := construct_idp_attribute(attribute_name)
+construct_idp_attributes(attribute_names, entitlement_context) := idp_attributes if {
+	idp_attributes := [attribute |
+		some attribute_name in attribute_names
+		attribute := construct_idp_attribute(attribute_name, entitlement_context)
+	]
 }
 
-construct_idp_attribute(attribute_name) := idp_attribute if {
+construct_idp_attribute(attribute_name, entitlement_context) := idp_attribute if {
 	# if entitlement_context is provided in input return the idp attribute object
-	input.entitlement_context
-	input.entitlement_context[attribute_name]
-	not is_null(input.entitlement_context[attribute_name])
+	entitlement_context[attribute_name]
+	not is_null(entitlement_context[attribute_name])
 	idp_attribute := {
 		"attribute": concat("", ["https://example.org/attr/OPA/value/", attribute_name]),
 		"displayName": input.entitlement_context[attribute_name],
@@ -54,7 +55,6 @@ merge_idp_attributes(core_entitlements, idp_attributes) := merged_entitlements i
 	# merge attributes fetched from backend with idp attributes
 	merged_entitlements := [entity_item |
 		some entity in core_entitlements
-
 		entity_item := {
 			"entity_identifier": entity.entity_identifier,
 			"entity_attributes": array.concat(entity.entity_attributes, idp_attributes),

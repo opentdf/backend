@@ -37,6 +37,7 @@ get_entitlements_arr = [
 
 test_entitlements_call_success_appends_attr_to_entities_with_empty_attr_sets {
 	entitlements := entitlement.generated_entitlements with entitlementsvc.entitlements_fetch_success as get_entitlements_arr
+	    with input as {"entitlement_context": {"email": "unittest@test.com"}, "primary_entity": "74cb12cb-4b53-4c0e-beb6-9ddd8333d6d3"}
 
 	entitlements[i].entity_identifier == valid_secondary_entities[_]
 	entitlements[i].entity_attributes[0] == {
