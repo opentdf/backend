@@ -117,6 +117,10 @@ envConfig:
   ecPrivKey:
   # -- Private key KAS uses to certify responses
   privKey:
+  # -- PKCS11 Pin used for softhsm token (gokas)
+  pkcsPin:
+  # -- PKCS11 SO (security officer) Pin used for softhsm token (gokas)
+  pkcsSoPin:
 
 # -- Secret containing additional env variables in addition to those provided by `envConfig` or `externalSecretName`
 externalEnvSecretName:
@@ -184,6 +188,18 @@ endpoints:
   # -- Local override for `global.opentdf.common.oidcInternalBaseUrl` + path
   oidcPubkeyEndpoint:
 
+pkcs11:
+  # -- The slot where the token is located
+  slotIndex:
+  # -- Label for the softhsm token
+  tokenLabel:
+  # -- Location of hsm .so
+  modulePath:
+  # -- Label for the RSA kas keys
+  pubRsaLabel:
+  # -- Label for the EC kas keys
+  pubEcLabel:
+  
 # -- Adds a container `livenessProbe`, if set.
 livenessProbe:
   httpGet:
