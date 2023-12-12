@@ -115,11 +115,11 @@ def load_realm_key(realmId, key_master):
         realmKey = key_master.public_key(f"KEYCLOAK-PUBLIC-{realmId}")
     except KeyNotFoundError:
         try:
-            KEYCLOAK_HOST = _get_keycloak_host()
             realmKey = get_keycloak_public_key(realmId)
         except Exception:
             logger.warning(
-                f"Unable to fetch public key for realm: {realmId} from Keycloak endpoint: {KEYCLOAK_HOST}"
+                f"Unable to fetch public key for realm: {realmId} from Keycloak endpoint",
+                exc_info=1,
             )
         else:
             key_master.set_key_pem(f"KEYCLOAK-PUBLIC-{realmId}", "PUBLIC", realmKey)
