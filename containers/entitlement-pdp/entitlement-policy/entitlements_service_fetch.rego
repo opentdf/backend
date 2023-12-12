@@ -1,6 +1,6 @@
 package opentdf.entitlementsvc
 
-import data.opentdf.entitlements_service
+import data.opentdf.entitlementsvc
 import input.primary_entity
 import input.secondary_entities
 
@@ -9,7 +9,7 @@ import input.secondary_entities
 entitlements_service_fetch = response {
 	response := http.send({
 		"method": "POST",
-		"url": entitlements_service.url,
+		"url": entitlementsvc.url,
 		"body": {
 			"primary_entity_id": primary_entity,
 			"secondary_entity_ids": secondary_entities,
