@@ -16,11 +16,6 @@ data:
   {{- with .Values.endpoints.trustedEntitlers | join " " }}
   TRUSTED_ENTITLERS: {{ . }}
   {{- end }}
-  {{- with include "kas.oidcPubkeyEndpoint" . }}
-
-  # Old Keycloak 'all realms' configuration
-  OIDC_SERVER_URL: {{ . | quote }}
-  {{- end }}
   {{- with .Values.auth }}
   {{-   $length := len . }}
   {{-   if eq $length 1 }}
@@ -34,6 +29,12 @@ data:
   {{-     end }}
   {{-   else }}
   {{-     fail "TODO: Support multiple realms for auth" }}
+  {{-   end }}
+  {{- else }}
+  {{-   with include "kas.oidcPubkeyEndpoint" . }}
+
+  # Old Keycloak 'all realms' configuration
+  OIDC_SERVER_URL: {{ . | quote }}
   {{-   end }}
   {{- end }}
 

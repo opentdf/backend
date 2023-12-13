@@ -136,6 +136,7 @@ def jwt_verifier_key(
         logger.warning("Issuer mismatch: [%s] should be [%s]", issuer_url, issuer)
         raise UnauthorizedError("Invalid auth header")
     oidc_config = oidc_discovery(discovery_base or issuer)
+    # TODO Verify issuer matches oidc_config issuer field
     # TODO Cache jwks_client by uri
     jwks_client = jwt.PyJWKClient(oidc_config["jwks_uri"])
     jwk = jwks_client.get_signing_key_from_jwt(jwt)
