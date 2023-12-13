@@ -99,22 +99,9 @@ def mocked_requests_get_fails(*args, **kwargs):
 
 
 @patch("requests.Session.get", side_effect=mocked_requests_get)
-def test_get_keycloak_public_key_fails_without_required_env(mock_get):
-    """Tests that fetching KC pubkey, but without crucial
-    env vars set, will raise."""
-    with pytest.raises(Exception, match=r"OIDC_SERVER_URL"):
-        del os.environ["OIDC_SERVER_URL"]
-        keycloak.get_keycloak_public_key("tdf")
-    # Should bail before it makes a request if the env vars aren't set.
-    assert mock_get.called == False
-
-
-@patch("requests.Session.get", side_effect=mocked_requests_get)
 def test_get_keycloak_public_key_succeeds_with_required_env(mock_get):
-    """Tests that fetching KC pubkey, but with crucial
-    env vars set, will fetch pubkey."""
-    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
-    pubkey = keycloak.get_keycloak_public_key("tdf")
+    """Tests that fetching KC pubkey will invoke an http get pubkey."""
+    pubkey = keycloak.get_keycloak_public_key("https://mykc.com", "tdf")
     assert mock_get.called == True
     assert pubkey
 
@@ -129,8 +116,7 @@ def test_try_extract_realm_returns_realmkey(mock_get):
 @patch("requests.Session.get", side_effect=mocked_requests_get)
 def test_load_realm_key_prefers_cached_key(mock_get, key_master):
     realm = "tdf"
-    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
-    realmKey = keycloak.load_realm_key(realm, key_master)
+    realmKey = keycloak.load_realm_key("https://mykc.com", realm, key_master)
     assert mock_get.called == False
     assert realmKey
 
@@ -138,8 +124,7 @@ def test_load_realm_key_prefers_cached_key(mock_get, key_master):
 @patch("requests.Session.get", side_effect=mocked_requests_get)
 def test_load_realm_key_fetches_uncached_key(mock_get, key_master):
     realm = "someRealm"
-    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
-    realmKey = keycloak.load_realm_key(realm, key_master)
+    realmKey = keycloak.load_realm_key("https://mykc.com", realm, key_master)
     assert mock_get.called == True
     assert realmKey
 
@@ -148,7 +133,6 @@ def test_load_realm_key_fetches_uncached_key(mock_get, key_master):
 def test_uncached_key_fetch_fails_returns_falsy_empty(mock_get, key_master):
     realm = "someRealm"
     realmKey = ""
-    os.environ["OIDC_SERVER_URL"] = "https://mykc.com"
-    realmKey = keycloak.load_realm_key(realm, key_master)
+    realmKey = keycloak.load_realm_key("https://mykc.com", realm, key_master)
     assert mock_get.called == True
     assert not realmKey

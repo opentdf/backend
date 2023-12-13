@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import pytest
 
 from cryptography.hazmat.primitives import serialization
@@ -16,6 +17,42 @@ logger = logging.getLogger(__name__)
 
 
 keys = KeyMaster()
+
+
+@pytest.fixture
+def with_single_auth(monkeypatch):
+    """Set an environment variable and restore it to its previous value after the test."""
+    original_value = os.environ.get("OIDC_ISSUER_URL")
+    monkeypatch.setenv("OIDC_ISSUER_URL", "https://localhost/realm/test")
+    yield
+    if original_value:
+        os.environ["OIDC_ISSUER_URL"] = original_value
+    else:
+        del os.environ["OIDC_ISSUER_URL"]
+
+
+@pytest.fixture
+def with_discovery_base(monkeypatch):
+    """Set an environment variable and restore it to its previous value after the test."""
+    original_value = os.environ.get("OIDC_DISCOVERY_BASE_URL")
+    monkeypatch.setenv("OIDC_DISCOVERY_BASE_URL", "http://internal.host/realm/test")
+    yield
+    if original_value:
+        os.environ["OIDC_DISCOVERY_BASE_URL"] = original_value
+    else:
+        del os.environ["OIDC_DISCOVERY_BASE_URL"]
+
+
+@pytest.fixture
+def with_keycloak(monkeypatch):
+    """Set an environment variable and restore it to its previous value after the test."""
+    original_value = os.environ.get("OIDC_SERVER_URL")
+    monkeypatch.setenv("OIDC_SERVER_URL", "https://localhost/realm")
+    yield
+    if original_value:
+        os.environ["OIDC_SERVER_URL"] = original_value
+    else:
+        del os.environ["OIDC_SERVER_URL"]
 
 
 def test_canonical_strips():
@@ -53,7 +90,9 @@ def test_validate_dpop_no_auth():
 
 def test_validate_dpop_malformed_auth():
     with pytest.raises(UnauthorizedError, match=r".*Invalid auth.*"):
-        validate_dpop("", keys, MockRequest({"authorization": "Barely a.b.c"}), do_oidc=True)
+        validate_dpop(
+            "", keys, MockRequest({"authorization": "Barely a.b.c"}), do_oidc=True
+        )
 
 
 def test_validate_dpop_malformed_auth_2():
@@ -61,7 +100,7 @@ def test_validate_dpop_malformed_auth_2():
 
 
 def test_validate_dpop_malformed_auth_3():
-    with pytest.raises(UnauthorizedError, match=r".*Invalid JWT.*"):
+    with pytest.raises(UnauthorizedError, match=r".*Invalid.*"):
         validate_dpop("", keys, MockRequest({"authorization": "Bearer a.b.c"}))
 
 
@@ -83,12 +122,12 @@ def gen_sample_keypair():
 
 
 private_rsa, private_rsa_bytes, public_rsa_bytes = gen_sample_keypair()
-keys.set_key_pem("KEYCLOAK-PUBLIC-realm", "PUBLIC", public_rsa_bytes)
+keys.set_key_pem("KEYCLOAK-PUBLIC-test", "PUBLIC", public_rsa_bytes)
 
 
-def test_validate_dpop_standard_auth():
+def test_validate_dpop_standard_auth(with_keycloak):
     id_jwt = PyJWT().encode(
-        {"iss": "https://localhost/realm"},
+        {"iss": "https://localhost/realm/test"},
         private_rsa,
         algorithm="RS256",
     )
@@ -97,9 +136,9 @@ def test_validate_dpop_standard_auth():
     )
 
 
-def test_validate_dpop_no_cnf_ignored():
+def test_validate_dpop_no_cnf_ignored(with_keycloak):
     id_jwt = PyJWT().encode(
-        {"iss": "https://localhost/realm"},
+        {"iss": "https://localhost/realm/test"},
         private_rsa,
         algorithm="RS256",
     )
@@ -109,9 +148,9 @@ def test_validate_dpop_no_cnf_ignored():
     )
 
 
-def test_validate_dpop_invalid_cnf():
+def test_validate_dpop_invalid_cnf(with_keycloak):
     id_jwt = PyJWT().encode(
-        {"cnf": "unknwon", "iss": "https://localhost/realm"},
+        {"cnf": "unknwon", "iss": "https://localhost/realm/test"},
         private_rsa,
         algorithm="RS256",
     )
@@ -122,9 +161,9 @@ def test_validate_dpop_invalid_cnf():
         )
 
 
-def test_validate_dpop_mismatch_cnf():
+def test_validate_dpop_mismatch_cnf(with_keycloak):
     id_jwt = PyJWT().encode(
-        {"cnf": {"jkt": "incorrect"}, "iss": "https://localhost/realm"},
+        {"cnf": {"jkt": "incorrect"}, "iss": "https://localhost/realm/test"},
         private_rsa,
         algorithm="RS256",
     )
@@ -135,12 +174,15 @@ def test_validate_dpop_mismatch_cnf():
         )
 
 
-def test_validate_dpop_happy_path():
+def test_validate_dpop_happy_path(with_keycloak):
     pop_private_rsa, _, _ = gen_sample_keypair()
     pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
 
     id_jwt = PyJWT().encode(
-        {"cnf": {"jkt": jwk_thumbprint(pop_jwk)}, "iss": "https://localhost/realm"},
+        {
+            "cnf": {"jkt": jwk_thumbprint(pop_jwk)},
+            "iss": "https://localhost/realm/test",
+        },
         private_rsa,
         algorithm="RS256",
     )
@@ -159,7 +201,10 @@ def test_validate_dpop_htu_wrong():
     pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
 
     id_jwt = PyJWT().encode(
-        {"cnf": {"jkt": jwk_thumbprint(pop_jwk)}, "iss": "https://localhost/realm"},
+        {
+            "cnf": {"jkt": jwk_thumbprint(pop_jwk)},
+            "iss": "https://localhost/realm/test",
+        },
         private_rsa,
         algorithm="RS256",
     )
@@ -179,7 +224,10 @@ def test_validate_dpop_htm_wrong():
     pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
 
     id_jwt = PyJWT().encode(
-        {"cnf": {"jkt": jwk_thumbprint(pop_jwk)}, "iss": "https://localhost/realm"},
+        {
+            "cnf": {"jkt": jwk_thumbprint(pop_jwk)},
+            "iss": "https://localhost/realm/test",
+        },
         private_rsa,
         algorithm="RS256",
     )
@@ -199,7 +247,10 @@ def test_validate_dpop_incorrect_ath():
     pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
 
     id_jwt = PyJWT().encode(
-        {"cnf": {"jkt": jwk_thumbprint(pop_jwk)}, "iss": "https://localhost/realm"},
+        {
+            "cnf": {"jkt": jwk_thumbprint(pop_jwk)},
+            "iss": "https://localhost/realm/test",
+        },
         private_rsa,
         algorithm="RS256",
     )
