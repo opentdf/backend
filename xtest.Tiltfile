@@ -7,7 +7,7 @@ load("./common.Tiltfile", "backend", "CONTAINER_REGISTRY", "OIDC_CLIENT_SECRET")
 backend(
     set={
         "kas.ingress.enabled": "true",
-        'kas.auth."http://localhost:65432/auth/realms/tdf".clientId': "tdf-access",
+        "kas.auth.http://localhost:65432/auth/realms/tdf.discoveryBaseUrl": "http://keycloak-http/auth/realms/tdf",
     }
 )
 
