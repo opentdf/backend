@@ -123,6 +123,7 @@ def oidc_discovery(server: str) -> dict:
 def jwt_verifier_key(
     issuer: str, discovery_base: str | None, idpJWT: str | bytes
 ) -> PublicKeyTypes:
+    logger.info("jwt_verifier_key([%s], [%s], [%s]", issuer, discovery_base, idpJWT)
     # We must extract `iss` without validating the JWT,
     # because we need `iss` to know which specific realm endpoint to hit
     # to get the public key we would verify it with
@@ -139,7 +140,7 @@ def jwt_verifier_key(
     # TODO Verify issuer matches oidc_config issuer field
     # TODO Cache jwks_client by uri
     jwks_client = jwt.PyJWKClient(oidc_config["jwks_uri"])
-    jwk = jwks_client.get_signing_key_from_jwt(jwt)
+    jwk = jwks_client.get_signing_key_from_jwt(idpJWT)
     return jwk.key
 
 

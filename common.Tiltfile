@@ -66,7 +66,9 @@ def dict_to_helm_set_list(dict):
 # values: list of values files
 # set: dictionary of value_name: value pairs
 # extra_helm_parameters: only valid when devmode=False; passed to underlying `helm update` command
-def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
+def backend(
+    values=[], set={}, external_port="65432", extra_helm_parameters=[], devmode=False
+):
     #   o8o
     #   `"'
     #  oooo  ooo. .oo.  .oo.    .oooo.    .oooooooo  .ooooo.   .oooo.o
@@ -186,7 +188,9 @@ def backend(values=[], set={}, extra_helm_parameters=[], devmode=False):
         version="4.0.16",
     )
 
-    k8s_resource("ingress-nginx-controller", port_forwards="65432:80")
+    k8s_resource(
+        "ingress-nginx-controller", port_forwards="{}:80".format(external_port)
+    )
 
     # TODO not sure why this needs to be installed separately, but
     # our ingress config won't work without it.
