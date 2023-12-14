@@ -123,7 +123,7 @@ def oidc_discovery(server: str) -> dict:
 def jwt_verifier_key(
     issuer: str, discovery_base: str | None, idpJWT: str | bytes
 ) -> PublicKeyTypes:
-    logger.info("jwt_verifier_key([%s], [%s], [%s]", issuer, discovery_base, idpJWT)
+    logger.debug("jwt_verifier_key([%s], [%s], [%s]", issuer, discovery_base, idpJWT)
     # We must extract `iss` without validating the JWT,
     # because we need `iss` to know which specific realm endpoint to hit
     # to get the public key we would verify it with
