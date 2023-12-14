@@ -6,7 +6,7 @@ import connexion
 try:
     from connexion.options import ConnexionOptions
 except ImportError:
-    from connextion.options import SwaggerUIOptions
+    from connexion.options import SwaggerUIOptions
 
     ConnexionOptions = SwaggerUIOptions
 
