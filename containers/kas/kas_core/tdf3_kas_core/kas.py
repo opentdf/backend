@@ -2,7 +2,14 @@
 
 import os
 import connexion
-from connexion.options import ConnexionOptions
+
+try:
+    from connexion.options import ConnexionOptions
+except ImportError:
+    from connextion.options import SwaggerUIOptions
+
+    ConnexionOptions = SwaggerUIOptions
+
 import importlib_resources
 import logging
 import urllib.parse
