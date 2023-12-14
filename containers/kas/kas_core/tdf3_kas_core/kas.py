@@ -2,7 +2,7 @@
 
 import os
 import connexion
-from connexion.options import SwaggerUIOptions
+from connexion.options import ConnexionOptions
 import importlib_resources
 import logging
 import urllib.parse
@@ -361,12 +361,11 @@ class Kas(object):
 
         self._session_kas_public_key = create_session_public_key(self._key_master)
 
-        swagger_ui_options = SwaggerUIOptions(
-            swagger_ui_path="/docs",
-            swagger_ui=False
-        )
+        swagger_ui_options = ConnexionOptions(swagger_ui_path="/docs", swagger_ui=False)
         app = connexion.FlaskApp(
-            self._root_name, specification_dir="api/", swagger_ui_options=swagger_ui_options
+            self._root_name,
+            specification_dir="api/",
+            swagger_ui_options=swagger_ui_options,
         )
 
         # swagger_ui default disabled
@@ -377,7 +376,7 @@ class Kas(object):
 
             proxied = ReverseProxied(flask_app.wsgi_app, script_name="/api/kas/")
             flask_app.wsgi_app = proxied
-            swagger_ui_options = SwaggerUIOptions(
+            swagger_ui_options = ConnexionOptions(
                 swagger_ui_path="/docs",
                 swagger_ui=True,
                 swagger_ui_template_dir=swagger_ui_4_path,
@@ -387,7 +386,9 @@ class Kas(object):
 
         # Connexion will link REST endpoints to handlers using the openapi.yaml file
         openapi_file = importlib_resources.files(__package__) / "api" / "openapi.yaml"
-        app.add_api(openapi_file, swagger_ui_options=swagger_ui_options, strict_validation=True)
+        app.add_api(
+            openapi_file, swagger_ui_options=swagger_ui_options, strict_validation=True
+        )
 
         logger.debug("KAS app starting.")
         # convert from asgi to wsgi
