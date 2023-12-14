@@ -1,13 +1,15 @@
 import json
 import logging
 import os
+from urllib.error import URLError
 import pytest
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from dataclasses import dataclass, field
-from jwt import PyJWT
+from jwt import PyJWKSet, PyJWT
 from jwt.algorithms import RSAAlgorithm
+from unittest.mock import MagicMock, patch
 
 from .dpop import canonical, jwk_thumbprint, jws_sha, validate_dpop
 from .errors import UnauthorizedError
@@ -185,6 +187,87 @@ def test_validate_dpop_happy_path(with_keycloak):
         },
         private_rsa,
         algorithm="RS256",
+    )
+    dpop = PyJWT().encode(
+        payload={"htm": "GET", "htu": "http://localhost/", "ath": jws_sha(id_jwt)},
+        key=pop_private_rsa,
+        headers={"typ": "dpop+jwt", "alg": "RS256", "jwk": pop_jwk},
+    )
+    assert validate_dpop(
+        None, keys, MockRequest({"authorization": f"Bearer {id_jwt}", "dpop": dpop})
+    )
+
+
+def mocked_requests_get(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code, headers=None):
+            self.json_data = json_data
+            self.status_code = status_code
+            self.headers = headers or {}
+
+        def json(self):
+            return self.json_data
+
+    if args[0] == "https://localhost/realm/test/.well-known/openid-configuration":
+        return MockResponse(
+            {"jwks_uri": "https://localhost/realm/test"},
+            200,
+            {"content-type": "application/json"},
+        )
+    elif args[0] == "https://localhost/realm/test":
+        return MockResponse({"key2": "value2"}, 200)
+    logger.error("Unexpected uri: [%s]", args)
+    return MockResponse(None, 404)
+
+
+class MockUrllibResponse:
+    def __init__(self, json_data, status_code, headers=None):
+        self.json_data = json_data
+        self.status_code = status_code
+        self.headers = headers or {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        pass
+
+    def __str__(self):
+        return json.dumps(self.json_data)
+
+    def read(self):
+        return str(self)
+
+    def json(self):
+        return self.json_data
+
+
+@patch("urllib.request.urlopen")
+@patch("requests.get", side_effect=mocked_requests_get)
+def test_validate_dpop_happy_path_single_auth(
+    mock_get, mock_urlopen, with_single_auth, private_key, public_key_jwk_sig
+):
+    def mock_urlib(*args, **kwargs):
+        if args[0].full_url == "https://localhost/realm/test":
+            return MockUrllibResponse({"keys": [public_key_jwk_sig]}, 200)
+        raise URLError(f"404 for {args}")
+
+    jwks = PyJWKSet.from_dict({"keys": [public_key_jwk_sig]})
+    assert len(jwks.keys) == 1
+    assert jwks.keys[0].public_key_use == "sig"
+
+    mock_urlopen.side_effect = mock_urlib
+    pop_private_rsa, _, _ = gen_sample_keypair()
+    pop_jwk = json.loads(RSAAlgorithm.to_jwk(pop_private_rsa.public_key()))
+
+    id_jwt = PyJWT().encode(
+        {
+            "cnf": {"jkt": jwk_thumbprint(pop_jwk)},
+            "iss": "https://localhost/realm/test",
+        },
+        private_key,
+        algorithm="RS256",
+        headers={"kid": "a"},
     )
     dpop = PyJWT().encode(
         payload={"htm": "GET", "htu": "http://localhost/", "ath": jws_sha(id_jwt)},
