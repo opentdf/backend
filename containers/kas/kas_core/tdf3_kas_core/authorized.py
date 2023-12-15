@@ -175,17 +175,19 @@ def authorized_v2(public_key: PublicKeyTypes, auth_token: str | bytes) -> dict:
             options={"verify_aud": False},
         )
     except jwt.exceptions.PyJWTError as e:
-        decoded = jwt.decode(
-            # This could be an access_token or refresh_token
-            auth_token,
-            options={"verify_signature": False, "verify_aud": False},
-            algorithms=["RS256", "ES256", "ES384", "ES512"],
-        )
-        logger.warning(
-            "Unverifiable claims [%s] found in [%s], public_key=[%s]",
-            decoded,
-            auth_token,
-            public_key,
-        )
-        raise UnauthorizedError("Not authorized") from e
+        try:
+            decoded = jwt.decode(
+                # This could be an access_token or refresh_token
+                auth_token,
+                options={"verify_signature": False, "verify_aud": False},
+                algorithms=["RS256", "ES256", "ES384", "ES512"],
+            )
+            raise UnauthorizedError("Not authorized") from e
+        except jwt.exceptions.PyJWTError as e2:
+            logger.warning(
+                "Unable to decode auth token [%s], public_key=[%s]",
+                auth_token,
+                public_key,
+            )
+            raise UnauthorizedError("Not authorized") from e2
     return decoded
