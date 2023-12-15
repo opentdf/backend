@@ -9,6 +9,8 @@ import pytest
 import json
 import base64
 
+from jwt.algorithms import RSAAlgorithm
+
 from .models import Policy
 from .models import Entity
 from .models import EntityAttributes
@@ -86,6 +88,14 @@ def public_key():
 @pytest.fixture
 def private_key():
     return __private_key
+
+
+@pytest.fixture
+def public_key_jwk_sig(public_key):
+    jwk = json.loads(RSAAlgorithm.to_jwk(public_key))
+    jwk["use"] = "sig"
+    jwk["kid"] = "a"
+    return jwk
 
 
 @pytest.fixture

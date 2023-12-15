@@ -16,7 +16,7 @@ HIERARCHY = "hierarchy"
 def convert_attribute_defs(attribute_defs):
     """Load attribute definitions from a dict."""
     if not attribute_defs:
-        logger.warn("No attribute definitions found!")
+        logger.warning("No attribute definitions found!")
         return
     logger.debug(
         "--- attribute definitions  [attribute def = %s] ---",
@@ -62,7 +62,7 @@ def convert_attribute_defs(attribute_defs):
 def convert_entity_attrs(entity_attributes):
     """Load attribute instances from a dict."""
     if not entity_attributes:
-        logger.warn("No entity attributes found!")
+        logger.warning("No entity attributes found!")
         return
     logger.debug(
         "--- entity attribute instances  [attribute instances = %s] ---",
@@ -91,7 +91,7 @@ def convert_entity_attrs(entity_attributes):
 def convert_data_attrs(data_attributes):
     """Load attribute instances from a dict."""
     if not data_attributes:
-        logger.warn("No data attributes found!")
+        logger.warning("No data attributes found!")
         return
     logger.debug(
         "--- data attribute instances  [attribute instances = %s] ---",

@@ -184,6 +184,14 @@ endpoints:
   # -- Local override for `global.opentdf.common.oidcInternalBaseUrl` + path
   oidcPubkeyEndpoint:
 
+# --Configuration of supported auth services, if present
+auth: {}
+# the service URL, e.g. "https://localhost:65432/auth/realms/tdf"
+# [issuer]:
+# --Discovery url; used to find well-known configuration by service.
+#   clientId: tdf-access
+#   discoveryBaseUrl: "http://keycloak-http/auth/realms/tdf"
+
 # -- Adds a container `livenessProbe`, if set.
 livenessProbe:
   httpGet:

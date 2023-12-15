@@ -42,5 +42,11 @@ backend(
         + openapi_enable.items()
         + server_root.items()
         + cors_origins.items()
-    )
+        + [
+            (
+                "kas.auth.http://localhost:65432/auth/realms/tdf.discoveryBaseUrl",
+                "http://keycloak-http/auth/realms/tdf",
+            )
+        ],
+    ),
 )

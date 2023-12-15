@@ -9,20 +9,45 @@ data:
   {{- with (coalesce .Values.endpoints.attrHost .Values.endpoints.easHost) }}
   ATTR_AUTHORITY_HOST: {{ tpl . $ | quote  }}
   {{- end }}
-  FLASK_DEBUG: {{ .Values.flaskDebug | quote }}
   GUNICORN_WORKERS: {{ .Values.gunicornWorkers | default 1 | quote }}
-  OIDC_SERVER_URL: {{ include "kas.oidcPubkeyEndpoint" . | quote }}
+
+  USE_OIDC: "1"
+  AUDIT_ORG_ID: {{ .Values.global.opentdf.common.auditOrgId | default "00000000-0000-0000-0000-000000000000" | quote }}
+  {{- with .Values.endpoints.trustedEntitlers | join " " }}
+  TRUSTED_ENTITLERS: {{ . }}
+  {{- end }}
+  {{- with .Values.auth }}
+  {{-   $length := len . }}
+  {{-   if eq $length 1 }}
+  {{-     range $issuer, $details := . }}
+
+  # Single realm, no keycloak integration feature
+  OIDC_ISSUER_URL: {{ $issuer | quote }}
+  {{-       with $details.discoveryBaseUrl }}
+  OIDC_DISCOVERY_BASE_URL: {{ . | quote}}
+  {{-       end }}
+  {{-     end }}
+  {{-   else }}
+  {{-     fail "TODO: Support multiple realms for auth" }}
+  {{-   end }}
+  {{- else }}
+  {{-   with include "kas.oidcPubkeyEndpoint" . }}
+
+  # Old Keycloak 'all realms' configuration
+  OIDC_SERVER_URL: {{ . | quote }}
+  {{-   end }}
+  {{- end }}
+
+  # Logging and tracing configuration
   LOGLEVEL: {{ .Values.logLevel | quote }}
   VERBOSE: {{ .Values.pdp.verbose | quote }}
   {{- with .Values.endpoints.statsdHost }}
   STATSD_HOST: {{ tpl . $ | quote  }}
   {{- end }}
   DISABLE_TRACING: {{ .Values.pdp.disableTracing | quote }}
+  FLASK_DEBUG: {{ .Values.flaskDebug | quote }}
   JSON_LOGGER: {{ .Values.jsonLogger | default "true" | quote }}
   AUDIT_ENABLED: {{ .Values.global.opentdf.common.auditLogEnabled | quote  }}
+
+  # OpenAPI test user interface
   SWAGGER_UI: {{ .Values.swaggerUIEnabled | quote }}
-  USE_OIDC: "1"
-  AUDIT_ORG_ID: {{ .Values.global.opentdf.common.auditOrgId | default "00000000-0000-0000-0000-000000000000" | quote }}
-  {{- with .Values.endpoints.trustedEntitlers | join " " }}
-  TRUSTED_ENTITLERS: {{ . }}
-  {{- end }}
