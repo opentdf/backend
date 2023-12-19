@@ -56,8 +56,21 @@ class KeyMaster(object):
         """
         self.__keys = {}
 
-    def public_key(self, key_name) -> PublicKeyTypes | x509.Certificate:
+    def public_key(self, key_name) -> PublicKeyTypes:
         """Get a PUBLIC key object that can be used to encrypt or verify things."""
+        if key_name in self.__keys:
+            key_obj = self.__keys[key_name]
+            if isinstance(key_obj.v_public, x509.Certificate):
+                return key_obj.v_public.public_key()
+            return key_obj.v_public
+        msg = f"Key '{key_name}' not found"
+        # This is not necessarily a critical failure,
+        # in some cases we fetch the key if it is not cached
+        # with key_manager.
+        raise KeyNotFoundError(msg)
+    
+    def public_key_or_cert(self, key_name) -> PublicKeyTypes | x509.Certificate:
+        """Get a key object"""
         if key_name in self.__keys:
             key_obj = self.__keys[key_name]
             return key_obj.v_public
@@ -66,8 +79,8 @@ class KeyMaster(object):
         # in some cases we fetch the key if it is not cached
         # with key_manager.
         raise KeyNotFoundError(msg)
-
-    def private_key(self, key_name):
+        
+    def private_key(self, key_name) -> PrivateKeyTypes:
         """Get a SECRET key object that can be used to decrypt or sign things."""
         if key_name in self.__keys:
             key_obj = self.__keys[key_name]

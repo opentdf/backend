@@ -54,11 +54,6 @@ def test_authorized_fail(entity_private_key, public_key):
         authorized.authorized(public_key, auth_token)
 
 
-def test_jwt_utilities_unsafe_decode_jwt_fails_on_malformed_jwt():
-    with pytest.raises(UnauthorizedError):
-        assert authorized.unsafe_decode_jwt(slightly_borked_jwt)
-
-
 def test_jwt_utilities_rs256test_happy(private_key, public_key):
     """Test creation/validation of asymmetric JWTs with RSA key pairs."""
     expected = {"foo": "bar"}

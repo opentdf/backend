@@ -1,3 +1,4 @@
+import os
 import connexion
 import json
 import logging
@@ -8,9 +9,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from jwt import PyJWK, PyJWS, PyJWT
 
-from .authorized import authorized_v2, looks_like_jwt
+from .authorized import authorized_v2, issuer_verifier_key, looks_like_jwt
 from .errors import UnauthorizedError
-from .keycloak import fetch_realm_key_by_jwt
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +60,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     Returns False if either DPoP is ignored or no auth is requested.
     """
     auth_header = request.headers.get("authorization", None)
+
     if not auth_header:
         if do_oidc:
             raise UnauthorizedError("Missing auth header")
@@ -71,7 +72,7 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
         if do_oidc:
             raise UnauthorizedError("Invalid auth header")
         return False
-    verifier_key = fetch_realm_key_by_jwt(id_jwt, key_master)
+    verifier_key = issuer_verifier_key(id_jwt, key_master)
     jwt_decoded = authorized_v2(verifier_key, id_jwt)
     logger.debug("jwt_decoded: [%s]", jwt_decoded)
     cnf = jwt_decoded.get("cnf", None)
@@ -121,8 +122,12 @@ def validate_dpop(dpop, key_master, request=connexion.request, do_oidc=False):
     except Exception as e:
         raise UnauthorizedError("Invalid JWT") from e
 
-    if m != htm or u != htu:
-        logger.warning("Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu, m, u)
+    # workaround for starlette request.url not including ingress path
+    htu_no_ingress = htu.replace("/api/kas", "")
+    if m != htm or u != htu_no_ingress:
+        logger.warning(
+            "Invalid DPoP htm:[%s] htu:[%s] != m:[%s] u[%s]", htm, htu_no_ingress, m, u
+        )
         raise UnauthorizedError("Invalid DPoP")
     access_token_hash = jws_sha(id_jwt)
     if ath != access_token_hash:

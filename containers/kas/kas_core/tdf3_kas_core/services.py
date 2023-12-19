@@ -68,6 +68,7 @@ from tdf3_kas_core.models.nanotdf import SymmetricAndPayloadConfig
 
 from tdf3_kas_core.authorized import authorized
 from tdf3_kas_core.authorized import authorized_v2
+from tdf3_kas_core.authorized import issuer_verifier_key
 from tdf3_kas_core.authorized import looks_like_jwt
 from tdf3_kas_core.authorized import leeway
 
@@ -98,9 +99,9 @@ def kas_public_key(
     with_kid = version == "2"
     public_key = None
     if algorithm == "rsa:2048":
-        public_key = key_master.public_key("KAS-PUBLIC")
+        public_key = key_master.public_key_or_cert("KAS-PUBLIC")
     elif algorithm == "ec:secp256r1":
-        public_key = key_master.public_key("KAS-EC-SECP256R1-PUBLIC")
+        public_key = key_master.public_key_or_cert("KAS-EC-SECP256R1-PUBLIC")
 
     if public_key is None:
         raise KeyNotFoundError("Could not produce a public key")
@@ -255,7 +256,7 @@ def _decode_and_validate_oidc_jwt(context, key_master):
     realmKey = (
         key_master.public_key("AA-PUBLIC")
         if (context.has("X-Tdf-Claims") and os.environ.get("V2_SAAS_ENABLED"))
-        else keycloak.fetch_realm_key_by_jwt(idpJWT, key_master)
+        else issuer_verifier_key(idpJWT, key_master)
     )
     return authorized_v2(realmKey, idpJWT)
 

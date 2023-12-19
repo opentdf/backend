@@ -2,26 +2,19 @@
 
 import os
 import logging
+import jwt
 import requests
 from cryptography import hazmat
+from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 from urllib.parse import urlparse
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-from tdf3_kas_core.errors import KeyNotFoundError
-from tdf3_kas_core.errors import AuthorizationError
+from tdf3_kas_core.errors import KeyNotFoundError, UnauthorizedError
 
-from tdf3_kas_core.authorized import unsafe_decode_jwt
+from tdf3_kas_core.models.key_master.key_master import KeyMaster
 
 logger = logging.getLogger(__name__)
-
-
-def _get_keycloak_host():
-    kc_host = os.environ.get("OIDC_SERVER_URL")
-    if not kc_host:
-        raise AuthorizationError("OIDC_SERVER_URL not set! Can't fetch keys")
-
-    return kc_host
 
 
 def get_retryable_request():
@@ -50,9 +43,8 @@ def get_retryable_request():
 #     ).json()
 #     jwks_client = PyJWKClient(oidc_config["jwks_uri"])
 #     return jwks_client.get_signing_key_from_jwt(jwt)
-def get_keycloak_public_key(realmId):
-    KEYCLOAK_HOST = _get_keycloak_host()
-    url = f"{KEYCLOAK_HOST}/auth/realms/{realmId}"
+def get_keycloak_public_key(host: str, realmId: str) -> PublicKeyTypes:
+    url = f"{host}/auth/realms/{realmId}"
 
     http = get_retryable_request()
 
@@ -109,17 +101,17 @@ def try_extract_realm(unverified_jwt):
 # For now, we're relying on key_master to handle caching, and just using
 # a cached pubkey if one exists - this (and key_master itself) could stand to be
 # more robust in terms of key validity checks, rotations, refreshes, etc.
-def load_realm_key(realmId, key_master):
+def load_realm_key(host: str, realmId: str, key_master: KeyMaster) -> PublicKeyTypes:
     realmKey = {}
     try:
         realmKey = key_master.public_key(f"KEYCLOAK-PUBLIC-{realmId}")
     except KeyNotFoundError:
         try:
-            KEYCLOAK_HOST = _get_keycloak_host()
-            realmKey = get_keycloak_public_key(realmId)
+            realmKey = get_keycloak_public_key(host, realmId)
         except Exception:
             logger.warning(
-                f"Unable to fetch public key for realm: {realmId} from Keycloak endpoint: {KEYCLOAK_HOST}"
+                f"Unable to fetch public key for realm: {realmId} from Keycloak endpoint",
+                exc_info=1,
             )
         else:
             key_master.set_key_pem(f"KEYCLOAK-PUBLIC-{realmId}", "PUBLIC", realmKey)
@@ -130,11 +122,18 @@ def load_realm_key(realmId, key_master):
 # Given a JWT and the keymaster, attempt to obtain the right pubkey from
 # Keycloak for the realm this JWT was issued from.
 # If anything goes wrong, return an empty/falsy value
-def fetch_realm_key_by_jwt(idpJWT, key_master):
+def fetch_realm_key_by_jwt(host: str, idpJWT, key_master: KeyMaster) -> PublicKeyTypes:
     # We must extract `iss` without validating the JWT,
     # because we need `iss` to know which specific realm endpoint to hit
     # to get the public key we would verify it with
-    unverified_jwt = unsafe_decode_jwt(idpJWT)
+    try:
+        unverified_jwt = jwt.decode(
+            idpJWT,
+            options={"verify_signature": False, "verify_aud": False},
+            algorithms=["RS256", "ES256", "ES384", "ES512"],
+        )
+    except Exception as e:
+        raise UnauthorizedError("Invalid JWT") from e
 
     realmId = ""
     # If we can't parse or extract the realm ID from the issuer JWT
@@ -147,4 +146,4 @@ def fetch_realm_key_by_jwt(idpJWT, key_master):
         )
         return None
 
-    return load_realm_key(realmId, key_master)
+    return load_realm_key(host, realmId, key_master)

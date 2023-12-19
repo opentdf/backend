@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 USE_OIDC = os.environ.get("USE_OIDC") == "1"
 OIDC_SERVER_URL = os.environ.get("OIDC_SERVER_URL") is not None
+OIDC_ISSUER_URL = os.environ.get("OIDC_ISSUER_URL") is not None
 
 AUDIT_ENABLED = os.getenv("AUDIT_ENABLED", "false").lower() in ("yes", "true", "t", "1")
 TRUSTED_ENTITLERS = os.environ.get("TRUSTED_ENTITLERS", "").split()
@@ -86,10 +87,12 @@ def app(name):
 
     if USE_OIDC and OIDC_SERVER_URL:
         logger.info("Keycloak integration enabled.")
-    elif USE_OIDC or OIDC_SERVER_URL:
-        e_msg = "Either USE_OIDC or OIDC_SERVER_URL are not correctly defined - both are required."
-        logger.error(e_msg)
-        raise Exception(e_msg)
+    elif USE_OIDC and OIDC_ISSUER_URL:
+        logger.info("Single OAuth2 integration enabled.")
+    elif USE_OIDC or OIDC_SERVER_URL or OIDC_ISSUER_URL:
+        raise Exception(
+            "Either USE_OIDC or one of OIDC_SERVER_URL and OIDC_ISSUER_URL are not correctly defined"
+        )
     # Add Attribute fetch plugin
     attr_host = os.environ.get("ATTR_AUTHORITY_HOST")
     if not attr_host:
