@@ -26,7 +26,7 @@ policypushinsecure: policybuild
 .PHONY: test
 test: localprep
 	@echo "Running all OPA tests"
-	@opa test .
+	@opa test --verbose .
 
 #List targets in makefile
 .PHONY: list

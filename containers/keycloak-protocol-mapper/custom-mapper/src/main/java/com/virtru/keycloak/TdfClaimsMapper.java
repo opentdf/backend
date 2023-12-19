@@ -3,6 +3,7 @@ package com.virtru.keycloak;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,12 +39,12 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
+import org.keycloak.protocol.ProtocolMapperUtils;
 import org.keycloak.protocol.oidc.mappers.AbstractOIDCProtocolMapper;
 import org.keycloak.protocol.oidc.mappers.OIDCAccessTokenMapper;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.protocol.oidc.mappers.OIDCIDTokenMapper;
 import org.keycloak.protocol.oidc.mappers.UserInfoTokenMapper;
-import org.keycloak.protocol.ProtocolMapperUtils;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.representations.IDToken;
 import org.keycloak.representations.JsonWebToken;
@@ -72,10 +74,10 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     static final String REMOTE_URL = "remote.url";
     static final String REMOTE_HEADERS = "remote.headers";
     static final String REMOTE_PARAMETERS = "remote.parameters";
-    static final String REMOTE_PARAMETERS_USERNAME = "remote.parameters.username";
-    static final String REMOTE_PARAMETERS_CLIENTID = "remote.parameters.clientid";
     static final String CLAIM_NAME = "claim.name";
+    static final String CLAIM_LIMIT = "claim.limit";
     static final String DPOP_ENABLED = "client.dpop";
+    static final String DISTRIBUTED_ENABLED = "client.distributed";
     static final String PUBLIC_KEY_HEADER = "client.publickey";
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
 
@@ -89,13 +91,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         OIDCAttributeMapperHelper.addTokenClaimNameConfig(configProperties);
         configProperties.get(configProperties.size() - 1).setDefaultValue("tdf_claims");
 
-        configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Attribute Provider URL",
-                "Full URL of the remote attribute provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
-                ProviderConfigProperty.STRING_TYPE, null));
+        configProperties.add(new ProviderConfigProperty(REMOTE_URL, "Claim Provider URL",
+                "Full URL of the entitlement-pdp provider service endpoint. Overrides the \"CLAIMS_URL\" environment variable setting",
+                ProviderConfigProperty.STRING_TYPE, System.getenv("CLAIMS_URL")));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_PARAMETERS, "Parameters",
-                "List of additional parameters to send separated by '&'. Separate parameter name and value by an equals sign '=', the value can contain equals signs (ex: scope=all&full=true).",
-                ProviderConfigProperty.STRING_TYPE, null));
+                "List of parameters to send separated by '&'. Separate parameter name and value by an equals sign '=', the value can contain equals signs (ex: scope=all&full=true).",
+                ProviderConfigProperty.STRING_TYPE, "primary_entity_id={}&secondary_entity_ids={}&entitlement_context_obj={}"));
 
         configProperties.add(new ProviderConfigProperty(REMOTE_HEADERS, "Headers",
                 "List of headers to send separated by '&'. Separate header name and value by an equals sign '=', the value can contain equals signs (ex: Authorization=az89d).",
@@ -108,6 +110,13 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         configProperties.add(new ProviderConfigProperty(DPOP_ENABLED, "Enable DPoP Extension",
                 "Support registering proof of possession with DPoP confirmation token",
                 ProviderConfigProperty.BOOLEAN_TYPE, "true"));
+
+        configProperties.add(new ProviderConfigProperty(DISTRIBUTED_ENABLED, "Enable Distributed Claims",
+                "Support distributed claims",
+                ProviderConfigProperty.BOOLEAN_TYPE, "false"));
+        configProperties.add(new ProviderConfigProperty(CLAIM_LIMIT, "Claim Count Limit",
+                "If the claim count for all entities exceeds this limit then it becomes distributed claims",
+                ProviderConfigProperty.STRING_TYPE, "50"));
     }
 
     @Override
@@ -167,13 +176,78 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         if (claims == null || OIDCAttributeMapperHelper.includeInUserInfo(mappingModel)) {
             logger.debug("Getting remote authorizations");
             JsonNode entitlements = getRemoteAuthorizations(mappingModel, userSession, token);
-            claims = buildClaimsObject(entitlements, clientPK);
+            // if Distributed Claims is enabled and ...
+            Object distributedEnabledValue = mappingModel.getConfig().get(DISTRIBUTED_ENABLED);
+            boolean distributedEnabled = "true".equals(distributedEnabledValue);
+            logger.debug("distributedEnabled: [{}]", distributedEnabled);
+            // get claims to check length
+            int claimCount = countClaims(entitlements);
+            // if entitlements count over claims.limit then distributed claims
+            String claimLimitValue = mappingModel.getConfig().get(CLAIM_LIMIT);
+            if (claimLimitValue == null) {
+                logger.error("claim.limit is null");
+                claimLimitValue = "0";
+            }
+            int claimLimit = Integer.parseInt(claimLimitValue);
+            logger.debug("claimLimit: [{}]", claimLimit);
+            if (distributedEnabled && (claimCount > claimLimit)) {
+                final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
+                buildDistributedClaimsObject(remoteUrl, mappingModel, userSession, token, clientPK);
+            }
+            else {
+                // embedded claims
+                claims = buildClaimsObject(entitlements, clientPK);
+                OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
+            }
             // Cache for next callback
             clientSessionCtx.setAttribute(REMOTE_AUTHORIZATION_ATTR, claims);
         } else {
             logger.debug("Using cached remote authorizations: [{}]", claims);
         }
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
+    }
+
+    static int countClaims(@NotNull JsonNode entitlements) {
+        int count = 0;
+        if (entitlements.isArray()) {
+            for (final JsonNode objNode : entitlements) {
+                if (objNode != null && objNode.get("entity_attributes") != null) {
+                    logger.info("entity_attributes.size: [{}]", objNode.get("entity_attributes").size());
+                    count += objNode.get("entity_attributes").size();
+                }
+            }
+        }
+        return count;
+    }
+
+    private void buildDistributedClaimsObject(String entitlementURl, ProtocolMapperModel mappingModel, UserSessionModel userSession,
+                                                  IDToken token, String clientPublicKey) {
+        Map<String, Object> parameters;
+        parameters = getRequestParameters(mappingModel, userSession, token);
+        ObjectMapper mapper = new ObjectMapper();
+        // hack to add to top-level claims in one claim mapper, set CLAIM_NAME before adding thrice
+        String claimName = mappingModel.getConfig().get(CLAIM_NAME);
+        // client_public_signing_key tdf_signing_key
+        mappingModel.getConfig().put(CLAIM_NAME, "client_public_signing_key");
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, clientPublicKey);
+        // _claim_names
+        ObjectNode claimNamesNode = mapper.createObjectNode();
+        claimNamesNode.put(claimName, "src1");
+        mappingModel.getConfig().put(CLAIM_NAME, "_claim_names");
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimNamesNode);
+        ObjectNode claimSourcesNode = mapper.createObjectNode();
+        ObjectNode endpointNode = mapper.createObjectNode();
+        // FIXME add template to build URL
+        endpointNode.put("endpoint", String.format("%s?primary_entity_id=%s&secondary_entity_ids=%s", entitlementURl, token.getId(), token.getId()));
+        claimSourcesNode.put("src1", endpointNode);
+        // _claim_sources
+        mappingModel.getConfig().put(CLAIM_NAME, "_claim_sources");
+        OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claimSourcesNode);
+        mappingModel.getConfig().put(CLAIM_NAME, claimName);
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("%s?primary_entity_id=%s&secondary_entity_ids=%s", entitlementURl, token.getId(), token.getId()));
+            logger.debug(parameters.toString());
+        }
     }
 
     private Map<String, Object> getHeaders(ProtocolMapperModel mappingModel, UserSessionModel userSession) {
@@ -185,7 +259,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
 
         // FIXME: using MULTIVALUED_STRING_TYPE would be better but it doesn't seem to
         // work
-        if (config != null && !"".equals(config.trim())) {
+        if (config != null && !config.trim().isEmpty()) {
             String[] configList = config.trim().split("&");
             String[] keyValue;
             for (String configEntry : configList) {
@@ -199,9 +273,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         return map;
     }
 
-    private Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
+    Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
             UserSessionModel userSession,
-            IDToken token) throws JsonProcessingException {
+            IDToken token) {
         // Get parameters
         final Map<String, Object> formattedParameters = buildMapFromStringConfig(
                 mappingModel.getConfig().get(REMOTE_PARAMETERS));
@@ -222,6 +296,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // SUB = subject (always present, might be == AZP, might not be )
         // Get client ID (or IDs plural, if this is a token that has been exchanged for
         // the same user from a previous client)
+        // Note this will list all clients that have authenticated with during the user session
         String clientId = userSession.getAuthenticatedClientSessions().values().stream()
                 .map(AuthenticatedClientSessionModel::getClient)
                 .map(ClientModel::getId)
@@ -229,8 +304,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 .collect(Collectors.joining(","));
 
         logger.debug("Complete list of clients from keycloak is: {}", clientId);
-
-        String[] clientIds = clientId.split(",");
 
         // Get username
         UserModel user = userSession.getUser();
@@ -249,19 +322,23 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             String clientInternalId = user.getServiceAccountClientLink();
             formattedParameters.put("primary_entity_id", clientInternalId);
 
-            // This is dumb. If there's a terser and more efficient Java-y way to do this,
-            // feel free to fix.
-            List<String> clientlist = new ArrayList<>(Arrays.asList(clientIds));
-            clientlist.remove(clientInternalId);
-            clientIds = clientlist.toArray(new String[0]);
+            List<String> secondaryEntityIds = Arrays.stream(clientId.split(","))
+                    .filter(id -> !id.equals(clientInternalId))
+                    .collect(Collectors.toList());
+            formattedParameters.put("secondary_entity_ids", secondaryEntityIds);
         } else {
             formattedParameters.put("primary_entity_id", userSession.getUser().getId());
+            List<String> secondaryEntityIds = Arrays.stream(clientId.split(","))
+                    .collect(Collectors.toList());
+            formattedParameters.put("secondary_entity_ids", secondaryEntityIds);
         }
 
-        formattedParameters.put("secondary_entity_ids", clientIds);
-
         ObjectMapper objectMapper = new ObjectMapper();
-        formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        try {
+            formattedParameters.put("entitlement_context_obj", objectMapper.writeValueAsString(token));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         logger.debug("CHECKING USERINFO mapper!");
         // If we are configured to be a protocol mapper for userinfo tokens, then always

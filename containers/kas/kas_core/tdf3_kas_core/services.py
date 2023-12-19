@@ -343,12 +343,16 @@ def _get_tdf_claims(context, key_master, trusted_entitlers):
             and "tdf_claims" in decodedJwt["_claim_names"]
         ):
             user_id = decodedJwt["sub"]
+            # client_public_signing_key is a root of JWT in distributed claims case
+            client_public_signing_key = decodedJwt["client_public_signing_key"]
             names = decodedJwt["_claim_names"]
             sources = decodedJwt["_claim_sources"]
             tdf_claims = _fetch_distributed_claims(
                 names, sources, "tdf_claims", trusted_entitlers
             )
-            claims = Claims.load_from_raw_tdf_claims(user_id, tdf_claims)
+            claims = Claims.load_from_raw_tdf_claims(
+                user_id, tdf_claims, client_public_signing_key
+            )
         else:
             raise UnauthorizedError("Claims absent")
         return claims

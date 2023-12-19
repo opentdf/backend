@@ -87,10 +87,11 @@ def jwt_claims(tdf_claims):
 
 
 @pytest.fixture
-def jwt_with_distributed_claims(private_key):
+def jwt_with_distributed_claims(private_key, client_public_key):
     claims = {
         "iss": "https://localhost/tdf",
         "sub": "user@virtru.com",
+        "client_public_signing_key": client_public_key,
         "_claim_names": {
             "tdf_spec_version": "a",
             "tdf_claims": "a",

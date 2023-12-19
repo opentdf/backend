@@ -3,16 +3,19 @@ package handlers
 import (
 	ctx "context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 )
 
 const (
-	ErrPayloadUnmarshal = Error("payload json unmarshal failure")
-	ErrPayloadInvalid   = Error("payload json invalid")
+	ErrPayloadUnmarshal      = Error("payload json unmarshal failure")
+	ErrPayloadInvalid        = Error("payload json invalid")
+	ErrPrimaryEntityRequired = Error("primary entity required")
 )
 
 var tracer = otel.Tracer("handlers")
@@ -29,6 +32,14 @@ type EntityAttribute struct {
 type EntityEntitlement struct {
 	EntityId         string            `json:"entity_identifier" example:"bc03f40c-a7af-4507-8198-d5334e2823e6"`
 	EntityAttributes []EntityAttribute `json:"entity_attributes"`
+}
+
+type Claims struct {
+	TdfClaims TdfClaims `json:"tdf_claims"`
+}
+
+type TdfClaims struct {
+	Entitlements []EntityEntitlement `json:"entitlements"`
 }
 
 // EntitlementsRequest defines the body for the /entitlements endpoint
@@ -61,6 +72,10 @@ type Entitlements struct {
 	Pdp PDPEngine
 }
 
+type ResponseDetail struct {
+	Detail string `json:"detail" example:"{\"detail\":\"somevalue\"}"`
+}
+
 // GetEntitlementsHandler godoc
 // @Summary      Request an entitlements set from the PDP
 // @Description  Provide entity identifiers to the entitlement PDP
@@ -80,9 +95,43 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	handlerCtx, span := tracer.Start(spanCtx, "GetEntitlementsHandler")
 	defer span.End()
 
-	if req.Method != http.MethodPost {
+	if req.Method != http.MethodPost && req.Method != http.MethodGet {
 		log.Error("Rejected request, invalid HTTP verb")
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if req.Method == http.MethodGet {
+		payload, err := getRequestParameters(spanCtx, req)
+		if errors.Is(err, ErrPrimaryEntityRequired) {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Header().Set("Content-Type", "application/json")
+			rd := ResponseDetail{Detail: ErrPrimaryEntityRequired.Error()}
+			_ = json.NewEncoder(w).Encode(rd)
+		} else if err != nil {
+			log.Errorf("request parameters returned error! Error was %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		entitlements, err := e.Pdp.ApplyEntitlementPolicy(
+			payload.PrimaryEntityId,
+			payload.SecondaryEntityIds,
+			payload.EntitlementContextObject,
+			handlerCtx)
+		if err != nil {
+			log.Errorf("Policy engine returned error! Error was %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		tdfClaims := Claims{TdfClaims{Entitlements: entitlements}}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		err = json.NewEncoder(w).Encode(tdfClaims)
+		if err != nil {
+			log.Errorf("Error encoding entitlements in response! Error was %s", err)
+			http.Error(w, "Server Error", http.StatusInternalServerError)
+			return
+		}
 		return
 	}
 
@@ -129,6 +178,21 @@ func (e Entitlements) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Server Error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func getRequestParameters(parentCtx ctx.Context, r *http.Request) (*EntitlementsRequest, error) {
+	_, span := tracer.Start(parentCtx, "getRequestParameters")
+	defer span.End()
+	log.Debugf("Parsing request parameters: %s", r.URL.RawQuery)
+	var payload EntitlementsRequest
+	payload.PrimaryEntityId = r.URL.Query().Get("primary_entity_id")
+	if payload.PrimaryEntityId == "" {
+		return &payload, ErrPrimaryEntityRequired
+	}
+	secIds := r.URL.Query().Get("secondary_entity_ids")
+	payload.SecondaryEntityIds = strings.Split(secIds, ",")
+	payload.EntitlementContextObject = "{}"
+	return &payload, nil
 }
 
 func getRequestPayload(parentCtx ctx.Context, bodBytes []byte) (*EntitlementsRequest, error) {

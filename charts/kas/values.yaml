@@ -183,6 +183,8 @@ endpoints:
   statsdHost: statsd
   # -- Local override for `global.opentdf.common.oidcInternalBaseUrl` + path
   oidcPubkeyEndpoint:
+  trustedEntitlers:
+    - http://entitlement-pdp:3355/
 
 # --Configuration of supported auth services, if present
 auth: {}

@@ -10,12 +10,14 @@ info:
     url: https://github.com/opentdf/backend/blob/main/LICENSE
   x-logo:
     url: https://avatars.githubusercontent.com/u/90051847?s=200&v=4
-  version: 2.0.0
+  version: 2.1.0
 paths:
   /entitlements:
     post:
       description: >-
-        Provide entity identifiers to the entitlement PDP and receive an array of attribute sets for each entity involved in the         entitlement decisions
+        Provide entity identifiers to the entitlement PDP and receive an array
+        of attribute sets for each entity involved in the         entitlement
+        decisions
       tags:
         - Entitlements
       summary: Request an entitlements set from the PDP
@@ -23,7 +25,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/handlers.EntitlementsRequest'
+              $ref: '#/components/schemas/EntitlementsRequest'
         description: List of primary and secondary entity identifiers to entitle
         required: true
       responses:
@@ -34,7 +36,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/handlers.EntityEntitlement'
+                  $ref: '#/components/schemas/EntityEntitlement'
         '400':
           description: Bad Request
           content:
@@ -53,9 +55,36 @@ paths:
             application/json:
               schema:
                 type: string
+    get:
+      summary: Request an entitlements set from the PDP
+      description: >-
+        Provide entity identifiers to the entitlement PDP and receive an array
+        of attribute sets for each entity involved in the         entitlement
+        decisions
+      tags:
+        - Entitlements
+      operationId: ''
+      parameters:
+        - in: query
+          name: "primary_entity_id"
+          schema:
+            type: string
+          required: true
+          description: String ID of the entity to get
+        - in: query
+          name: "secondary_entity_ids"
+          schema:
+            type: array
+            items:
+              type: string
+          required: false
+          description: Array of string ID of the entities to get
+      responses:
+        default:
+          description: Default error sample response
 components:
   schemas:
-    handlers.EntitlementsRequest:
+    EntitlementsRequest:
       description: >-
         Request containing entity identifiers seeking entitlement. At least one
         entity (primary requestor) is required The Entitlements PDP is expected
@@ -103,7 +132,7 @@ components:
             type: string
           example:
             - 4f6636ca-c60c-40d1-9f3f-015086303f74
-    handlers.EntityAttribute:
+    EntityAttribute:
       description: Represents a single entity attribute.
       type: object
       properties:
@@ -117,13 +146,13 @@ components:
           description: Optional display name for the attribute
           type: string
           example: Added By OPA
-    handlers.EntityEntitlement:
+    EntityEntitlement:
       type: object
       properties:
         entity_attributes:
           type: array
           items:
-            $ref: '#/components/schemas/handlers.EntityAttribute'
+            $ref: '#/components/schemas/EntityAttribute'
         entity_identifier:
           type: string
           example: bc03f40c-a7af-4507-8198-d5334e2823e6

@@ -8,8 +8,10 @@ ARG KEYCLOAK_BASE_IMAGE=quay.io/keycloak/keycloak
 
 FROM maven:${MAVEN_VERSION}-jdk-${JDK_VERSION} as claimsmapperbuild
 
+COPY custom-mapper/pom.xml /usr/src/custom-mapper/pom.xml
+RUN mvn -f  /usr/src/custom-mapper/pom.xml clean install
 COPY custom-mapper /usr/src/custom-mapper
-RUN mvn -f  /usr/src/custom-mapper/pom.xml clean package
+RUN mvn -f  /usr/src/custom-mapper/pom.xml package
 
 FROM gradle:7-jdk${JDK_VERSION} as envoyBuild
 

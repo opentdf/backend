@@ -14,7 +14,7 @@
     "x-logo": {
       "url": "https://avatars.githubusercontent.com/u/90051847?s=200&v=4"
     },
-    "version": "2.0.0"
+    "version": "2.1.0"
   },
   "paths": {
     "/entitlements": {
@@ -28,7 +28,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/handlers.EntitlementsRequest"
+                "$ref": "#/components/schemas/EntitlementsRequest"
               }
             }
           },
@@ -43,7 +43,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/handlers.EntityEntitlement"
+                    "$ref": "#/components/schemas/EntityEntitlement"
                   }
                 }
               }
@@ -80,12 +80,45 @@
             }
           }
         }
+      },
+      "get": {
+        "summary": "Request an entitlements set from the PDP",
+        "description": "Provide entity identifiers to the entitlement PDP and receive an array of attribute sets for each entity involved in the         entitlement decisions",
+        "tags": [
+          "Entitlements"
+        ],
+        "operationId": "",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "primary_entity_id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "String ID of the entity to get"
+          },
+          {
+            "in": "query",
+            "name": "secondary_entity_ids",
+            "schema": {
+              "type": "array"
+            },
+            "required": false,
+            "description": "Array of string ID of the entities to get"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "Default error sample response"
+          }
+        }
       }
     }
   },
   "components": {
     "schemas": {
-      "handlers.EntitlementsRequest": {
+      "EntitlementsRequest": {
         "description": "Request containing entity identifiers seeking entitlement. At least one entity (primary requestor) is required The Entitlements PDP is expected to be invoked directly by an identity provider and with contextual entity information attested to and possessed by that identity provider",
         "type": "object",
         "properties": {
@@ -111,7 +144,7 @@
           }
         }
       },
-      "handlers.EntityAttribute": {
+      "EntityAttribute": {
         "description": "Represents a single entity attribute.",
         "type": "object",
         "properties": {
@@ -127,13 +160,13 @@
           }
         }
       },
-      "handlers.EntityEntitlement": {
+      "EntityEntitlement": {
         "type": "object",
         "properties": {
           "entity_attributes": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/handlers.EntityAttribute"
+              "$ref": "#/components/schemas/EntityAttribute"
             }
           },
           "entity_identifier": {

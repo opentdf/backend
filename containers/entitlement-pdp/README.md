@@ -101,15 +101,15 @@ curl -X 'POST' \
 
 ## Environment variables
 
-| Name                      | Default                           | Description                                                                                                                                                                                                           |
-| ------------------------- |-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| SERVER_PORT               | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
-| SERVER_PUBLIC_NAME        | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
-| VERBOSE                   | "false"                           | Enable verbose/debug logging                                                                                                                                                                                          |
-| DISABLE_TRACING           | "false"                           | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)                                                                                                                       |
-| OPA_CONFIG_PATH           | "/etc/opa/config/opa-config.yaml" | Path to OPA config yaml - valid OPA config must exist here or service will not start. Normally this should be left alone                                                                                              |
-| OPA_POLICYBUNDLE_PULLCRED | "YOURPATHERE"                     | If the OPA config used points to a policybundle stored in an OCI registry that requires credentials to fetch OCI artifacts, this should be set to a valid personal access token that has pull access to that registry |
-| OPA_ENGINE_STARTUP_TIMEOUT| 90                                | In seconds. Timeout of the startup of the OPA engine.  This can affect long operations like bundle downloads                                                                                                          |
+| Name                       | Default                           | Description                                                                                                                                                                                                           |
+|----------------------------|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| SERVER_PORT                | "3355"                            | Port the server will listen on                                                                                                                                                                                        |
+| SERVER_PUBLIC_NAME         | ""                                | External endpoint the server will be accessed from (used for OpenAPI endpoint serving)                                                                                                                                |
+| VERBOSE                    | "false"                           | Enable verbose/debug logging                                                                                                                                                                                          |
+| DISABLE_TRACING            | "false"                           | Disable emitting OpenTelemetry traces (avoids junk timeouts if environment has no OT collector)                                                                                                                       |
+| OPA_CONFIG_PATH            | "/etc/opa/config/opa-config.yaml" | Path to OPA config yaml - valid OPA config must exist here or service will not start. Normally this should be left alone                                                                                              |
+| OPA_POLICYBUNDLE_PULLCRED  | "YOURPATHERE"                     | If the OPA config used points to a policybundle stored in an OCI registry that requires credentials to fetch OCI artifacts, this should be set to a valid personal access token that has pull access to that registry |
+| OPA_ENGINE_STARTUP_TIMEOUT | 90                                | In seconds. Timeout of the startup of the OPA engine.  This can affect long operations like bundle downloads                                                                                                          |
 
 All environment variables starting with`OPA_` will be replaced in the opa config file
 
@@ -193,4 +193,56 @@ https://prometheus.io/docs/prometheus/latest/getting_started/
 
 ```shell
 docker run --name prometheus -d -p 127.0.0.1:9090:9090 prom/prometheus
+```
+
+## Testing
+
+After running `tilt up` in project root, you can test the entitlement-pdp endpoint:
+
+Open port
+
+```shell
+kubectl port-forward service/entitlement-pdp 3355:3355
+```
+
+Start Swagger UI
+
+```shell
+docker run -d -p 5440:8080 -e URL="http://localhost:3355/openapi.json" swaggerapi/swagger-editor
+```
+
+Go to http://localhost:5440/
+
+Request
+
+```shell
+curl "http://localhost:3355/entitlements?primary_entity_id=abc&secondary_entity_ids=def"
+```
+Response
+
+```json
+{
+  "tdf_claims": {
+    "entitlements": [
+      {
+        "entity_identifier": "abc",
+        "entity_attributes": [
+          {
+            "attribute": "https://example.org/attr/OPA/value/AddedByOPA",
+            "displayName": "Added By OPA"
+          }
+        ]
+      },
+      {
+        "entity_identifier": "def",
+        "entity_attributes": [
+          {
+            "attribute": "https://example.org/attr/OPA/value/AddedByOPA",
+            "displayName": "Added By OPA"
+          }
+        ]
+      }
+    ]
+  }
+}
 ```

@@ -1,8 +1,24 @@
 package com.virtru.keycloak;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
 import org.jboss.resteasy.test.TestPortProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -11,45 +27,55 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.keycloak.models.*;
+import org.keycloak.models.AuthenticatedClientSessionModel;
+import org.keycloak.models.ClientModel;
+import org.keycloak.models.ClientSessionContext;
+import org.keycloak.models.KeycloakContext;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.ProtocolMapperModel;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
+import org.keycloak.models.UserSessionModel;
 import org.keycloak.models.session.PersistentAuthenticatedClientSessionAdapter;
 import org.keycloak.models.session.PersistentClientSessionModel;
 import org.keycloak.protocol.oidc.mappers.OIDCAttributeMapperHelper;
 import org.keycloak.representations.AccessToken;
+import org.keycloak.representations.IDToken;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import java.util.*;
-
-import static com.virtru.keycloak.TdfClaimsMapper.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static com.virtru.keycloak.TdfClaimsMapper.CLAIM_LIMIT;
+import static com.virtru.keycloak.TdfClaimsMapper.CLAIM_NAME;
+import static com.virtru.keycloak.TdfClaimsMapper.DPOP_ENABLED;
+import static com.virtru.keycloak.TdfClaimsMapper.PUBLIC_KEY_HEADER;
+import static com.virtru.keycloak.TdfClaimsMapper.REMOTE_URL;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({ MockitoExtension.class })
-public class TdfClaimsMapperTest {
+class TdfClaimsMapperTest {
     private UndertowJaxrsServer server;
 
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     KeycloakSession keycloakSession;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     UserSessionModel userSessionModel;
     @Mock
     PersistentClientSessionModel persistentClientSessionModel;
     @Mock
     RealmModel realmModel;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     ClientSessionContext clientSessionContext;
     @Mock
     ProtocolMapperModel protocolMapperModel;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     KeycloakContext keycloakContext;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     HttpHeaders httpHeaders;
-    @Mock
+    @Mock(strictness = Mock.Strictness.LENIENT)
     ClientModel clientModel;
     @Mock
     UserModel userModel;
@@ -147,7 +173,7 @@ public class TdfClaimsMapperTest {
         ArrayList entitlements = (ArrayList) responseClaimAsMap.get("entitlements");
         Map ent = (Map) entitlements.get(0);
         assertEquals("1234599998888", ent.get("primary_entity_id"));
-        assertEquals(0, ((List) ent.get("secondary_entity_ids")).size(), "0 entries");
+        assertEquals((new ArrayList<String>(0)).toString(), ent.get("secondary_entity_ids").toString());
     }
 
     private void assertTransformUserInfo_WithPKHeader() throws Exception {
@@ -181,6 +207,46 @@ public class TdfClaimsMapperTest {
 
     }
 
+    @Test
+    void testCountClaims() throws JsonProcessingException {
+        Assertions.assertThrows(NullPointerException.class,
+                () -> TdfClaimsMapper.countClaims(null),
+                "null arg");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode notArray = mapper.createObjectNode();
+        int actualCount = TdfClaimsMapper.countClaims(notArray);
+        Assertions.assertEquals(0, actualCount);
+        JsonNode entitlementsOne = mapper.readTree("[{\"entity_attributes\":[{\"a\":\"b\"}]}]");
+        actualCount = TdfClaimsMapper.countClaims(entitlementsOne);
+        Assertions.assertEquals(1, actualCount);
+        JsonNode entitlementsFour = mapper.readTree("[{\"entity_attributes\":[{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"}]}]");
+        actualCount = TdfClaimsMapper.countClaims(entitlementsFour);
+        Assertions.assertEquals(4, actualCount);
+        JsonNode entitlementsEight = mapper.readTree("[{\"entity_attributes\":[{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"}]},{\"entity_attributes\":[{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"},{\"a\":\"b\"}]}]");
+        actualCount = TdfClaimsMapper.countClaims(entitlementsEight);
+        Assertions.assertEquals(8, actualCount);
+    }
+
+    @Test
+    void testGetRequestParameters() {
+        commonSetup("12345", false, true, false);
+        IDToken idToken = new IDToken();
+        Map<String, Object> params = attributeOIDCProtocolMapper.getRequestParameters(protocolMapperModel, userSessionModel, idToken);
+        assertEquals("1234-4567-8901", params.get("primary_entity_id"));
+        ArrayList<String> expected = new ArrayList<>(1);
+        expected.add("1234599998888");
+        assertEquals(expected.toString(), params.get("secondary_entity_ids").toString());
+    }
+
+    @Test
+    void testGetRequestParametersService() {
+        commonSetup("12345", false, true, true);
+        IDToken idToken = new IDToken();
+        Map<String, Object> params = attributeOIDCProtocolMapper.getRequestParameters(protocolMapperModel, userSessionModel, idToken);
+        assertEquals("1234599998888", params.get("primary_entity_id"));
+        assertEquals((new ArrayList<String>(0)).toString(), params.get("secondary_entity_ids").toString());
+    }
+
     void commonSetup(String pkHeader, boolean setConfig, boolean userInfo, boolean userIsSvcAcct) {
         server.deployOldStyle(TestApp.class);
         String url = TestPortProvider.generateURL("/base/endpoint");
@@ -191,10 +257,9 @@ public class TdfClaimsMapperTest {
             config.put(REMOTE_URL, url);
         }
         config.put(CLAIM_NAME, "customAttrs");
+        config.put(CLAIM_LIMIT, "50");
         config.put(DPOP_ENABLED, "true");
         config.put(PUBLIC_KEY_HEADER, "testPK");
-        config.put(REMOTE_PARAMETERS_USERNAME, "true");
-        config.put(REMOTE_PARAMETERS_CLIENTID, "true");
         if (userInfo) {
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_USERINFO, "true");
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "false");
@@ -225,7 +290,7 @@ public class TdfClaimsMapperTest {
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class)).thenReturn(null);
             AuthenticatedClientSessionModel authenticatedClientSessionModel = new PersistentAuthenticatedClientSessionAdapter(
                     keycloakSession, persistentClientSessionModel, realmModel, clientModel, userSessionModel);
-            if (userIsSvcAcct) {
+            if (!userIsSvcAcct) {
                 when(clientModel.getId()).thenReturn(clientId);
                 Map<String, AuthenticatedClientSessionModel> clients = new HashMap<String, AuthenticatedClientSessionModel>();
                 clients.put("x", authenticatedClientSessionModel);
