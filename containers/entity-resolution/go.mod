@@ -5,12 +5,12 @@ go 1.21
 require (
 	github.com/Nerzal/gocloak/v11 v11.2.0
 	github.com/caarlos0/env v3.5.0+incompatible
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/http-swagger v1.3.0
 	github.com/swaggo/swag v1.8.1
 	github.com/virtru/oteltracer v1.1.2
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.32.0
-	go.opentelemetry.io/otel v1.7.0
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.44.0
+	go.opentelemetry.io/otel v1.18.0
 	go.uber.org/zap v1.21.0
 )
 
@@ -18,8 +18,8 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/felixge/httpsnoop v1.0.2 // indirect
-	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
@@ -40,9 +40,9 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.4.1 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.4.1 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.4.1 // indirect
-	go.opentelemetry.io/otel/metric v0.30.0 // indirect
+	go.opentelemetry.io/otel/metric v1.18.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.4.1 // indirect
-	go.opentelemetry.io/otel/trace v1.7.0 // indirect
+	go.opentelemetry.io/otel/trace v1.18.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.12.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
