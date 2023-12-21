@@ -251,7 +251,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           build-args: |-
-            MAVEN_VERSION=3.8.4
+            MAVEN_VERSION=3.8.5
             JDK_VERSION=17
             CONTAINER_REGISTRY=ghcr.io
             KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}

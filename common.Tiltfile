@@ -104,7 +104,7 @@ def backend(
         build_args={
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
             "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
-            "MAVEN_VERSION": "3.8.4",
+            "MAVEN_VERSION": "3.8.5",
             "JDK_VERSION": "17",
         },
     )
