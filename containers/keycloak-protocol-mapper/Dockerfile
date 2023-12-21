@@ -6,7 +6,7 @@ ARG JDK_VERSION=17
 ARG KEYCLOAK_BASE_VERSION
 ARG KEYCLOAK_BASE_IMAGE=quay.io/keycloak/keycloak
 
-FROM maven:${MAVEN_VERSION}-jdk-${JDK_VERSION} as claimsmapperbuild
+FROM maven:${MAVEN_VERSION}-openjdk-${JDK_VERSION} as claimsmapperbuild
 
 COPY custom-mapper /usr/src/custom-mapper
 RUN mvn -f  /usr/src/custom-mapper/pom.xml clean package
