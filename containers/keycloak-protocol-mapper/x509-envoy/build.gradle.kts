@@ -4,7 +4,7 @@
  * This generated file contains a sample Kotlin library project to get you started.
  */
 
-val keyCloakVersion by extra { "21.1.2" }
+val keyCloakVersion by extra { "23.0.2" }
 
 
 plugins {

@@ -105,7 +105,7 @@ def backend(
             "CONTAINER_REGISTRY": CONTAINER_REGISTRY,
             "KEYCLOAK_BASE_VERSION": KEYCLOAK_BASE_VERSION,
             "MAVEN_VERSION": "3.8.4",
-            "JDK_VERSION": "11",
+            "JDK_VERSION": "17",
         },
     )
 

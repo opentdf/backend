@@ -36,7 +36,7 @@ dependencies:
   - name: keycloakx
     alias: keycloak
     repository: https://codecentric.github.io/helm-charts
-    version: 2.1.1
+    version: 2.3.0
     condition: embedded.keycloak
     tags: ["third-party", "identity"]
   - name: keycloak-bootstrap
