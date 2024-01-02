@@ -29,6 +29,8 @@ for k, v in os.environ.items():
 formatter = "json"
 if os.environ.get("JSON_LOGGER", "").lower() == "false":
     formatter = "dev"
+if "LOG_FORMAT" in os.environ and os.environ["LOG_FORMAT"].lower() != "json":
+    formatter = "dev"
 
 
 def env_level(env):
