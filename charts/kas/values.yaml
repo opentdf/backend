@@ -203,3 +203,6 @@ readinessProbe:
   httpGet:
     path: /healthz?probe=readiness
     port: http
+
+# -- Inlined into the ConfigMap, if present.
+extraConfigMapData:
