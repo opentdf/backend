@@ -199,7 +199,7 @@ livenessProbe:
     port: http
 
 # -- Override the above livenessProbe, if set.
-livenessProbeOverride: false
+livenessProbeOverride:
 
 # -- Adds a container `readinessProbe`, if set.
 readinessProbe:
@@ -208,7 +208,7 @@ readinessProbe:
     port: http
 
 # -- Override the above readinessProbe, if set.
-readinessProbeOverride: false
+readinessProbeOverride:
 
 # -- Inlined into the ConfigMap, if present.
 extraConfigMapData:
