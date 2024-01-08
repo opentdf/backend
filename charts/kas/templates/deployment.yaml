@@ -48,11 +48,17 @@ spec:
               mountPath: "/certs"
               readOnly: true
           {{- end }}
-          {{- with .Values.livenessProbe }}
+          {{- with .Values.livenessProbeOverride }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- else with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.readinessProbe }}
+          {{- with .Values.readinessProbeOverride }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- else with .Values.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
