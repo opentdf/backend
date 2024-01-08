@@ -198,11 +198,17 @@ livenessProbe:
     path: /healthz?probe=liveness
     port: http
 
+# -- Override the above livenessProbe, if set.
+livenessProbeOverride:
+
 # -- Adds a container `readinessProbe`, if set.
 readinessProbe:
   httpGet:
     path: /healthz?probe=readiness
     port: http
+
+# -- Override the above readinessProbe, if set.
+readinessProbeOverride:
 
 # -- Inlined into the ConfigMap, if present.
 extraConfigMapData:
