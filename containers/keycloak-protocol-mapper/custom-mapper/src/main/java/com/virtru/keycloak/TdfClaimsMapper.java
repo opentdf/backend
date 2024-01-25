@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.ws.rs.BadRequestException;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
