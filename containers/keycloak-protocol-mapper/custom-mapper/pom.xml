@@ -128,6 +128,12 @@
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.70</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jetbrains/annotations -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>24.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

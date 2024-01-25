@@ -21,11 +21,11 @@ repositories {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "17"
 }
 
 tasks.withType<JavaCompile> {
-    options.compilerArgs.addAll(listOf("-source", "11", "-target",  "11"))
+    options.compilerArgs.addAll(listOf("-source", "17", "-target",  "17"))
 }
 
 dependencies {

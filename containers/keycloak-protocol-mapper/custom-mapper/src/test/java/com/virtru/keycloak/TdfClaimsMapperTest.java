@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.util.*;
 
