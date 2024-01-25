@@ -5,6 +5,9 @@
 
 load("./common.Tiltfile", "backend")
 
+# Ingress host port
+INGRESS_HOST_PORT = os.getenv("OPENTDF_INGRESS_HOST_PORT", "65432")
+
 config.define_string("allow-origin")
 cfg = config.parse()
 host_arg = cfg.get("allow-origin", "http://localhost:3000")
@@ -37,6 +40,7 @@ cors_origins = {
 backend(
     # if not CI then run in developer mode, see env var https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
     devmode=os.getenv("CI") != "true",
+    external_port=INGRESS_HOST_PORT,
     set=dict(
         ingress_enable.items()
         + openapi_enable.items()

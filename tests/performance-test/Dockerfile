@@ -1,6 +1,8 @@
 ARG PY_TEST_VERSION=3.8
 FROM python:${PY_TEST_VERSION}
-RUN apt-get update || : && apt-get install curl jq -y
+RUN apt-get update || : && apt-get -y install \
+    curl \
+    jq
 RUN pip3 install --upgrade pip
 # test
 WORKDIR /test/

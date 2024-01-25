@@ -51,3 +51,7 @@ data:
 
   # OpenAPI test user interface
   SWAGGER_UI: {{ .Values.swaggerUIEnabled | quote }}
+
+  {{- with .Values.extraConfigMapData }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
