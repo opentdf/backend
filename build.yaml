@@ -36,7 +36,7 @@ services:
       context: ./containers/keycloak-protocol-mapper
       args:
         - MAVEN_VERSION=${MAVEN_VERSION:-3.6.3}
-        - JDK_VERSION=${JDK_VERSION:-11}
+        - JDK_VERSION=${JDK_VERSION:-17}
         # INTENTIONALLY tying this version to upstream KC image version, golden containers/keycloak-protocol-mapper/VERSION
         - KEYCLOAK_BASE_VERSION=${KEYCLOAK_VERSION}
       dockerfile: Dockerfile

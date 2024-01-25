@@ -14,7 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.ClientErrorException;
+import jakarta.ws.rs.ClientErrorException;
 
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.keycloak.jose.jwk.ECPublicJWK;
