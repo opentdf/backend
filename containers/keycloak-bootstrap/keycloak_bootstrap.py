@@ -987,6 +987,14 @@ def configureKeycloak(kc_admin_user, kc_admin_pass, kc_url, keycloak_config):
 
 
 def kc_bootstrap():
+    """
+    This function provides a mechanism to hydrate Keycloak's configuration. 
+    
+    Users of the keycloak-bootstrap may either provide a `clients` & `users` section
+    OR provide a `customConfig` object in Helm values. NOTE: When using `customConfig`, 
+    ALL users and clients must be defined (the `clients` & `users` sections will be 
+    ignored when `customConfig` is given).
+    """
     logger.info("Running Keycloak bootstrap")
     username = os.getenv("keycloak_admin_username")
     password = os.getenv("keycloak_admin_password")
