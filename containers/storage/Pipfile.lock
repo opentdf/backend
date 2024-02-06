@@ -62,7 +62,7 @@
                 "sha256:a36d5f2fad931aa3575c07a3472c784e81f3e664e3bb5c8b9c88d0ec1104f59c"
             ],
             "index": "pypi",
-            "version": "==0.70.0"
+            "version": "==0.109.1"
         },
         "h11": {
             "hashes": [
