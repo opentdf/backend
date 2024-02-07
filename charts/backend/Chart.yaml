@@ -30,7 +30,7 @@ dependencies:
     version: 0.0.1
   - name: postgresql
     repository: https://charts.bitnami.com/bitnami
-    version: 12.1.8
+    version: 14.0.1
     condition: embedded.postgresql
     tags: ["third-party"]
   - name: keycloakx

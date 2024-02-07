@@ -113,7 +113,7 @@ kubectl port-forward -n istio-ingress service/istio-ingress 65432:80
 | file://../entity-resolution               | entity-resolution   | 0.0.1   |
 | file://../kas                             | kas                 | 0.0.1   |
 | file://../keycloak-bootstrap              | keycloak-bootstrap  | 0.4.4   |
-| https://charts.bitnami.com/bitnami        | postgresql          | 12.1.8  |
+| https://charts.bitnami.com/bitnami        | postgresql          | 14.0.1  |
 | https://codecentric.github.io/helm-charts | keycloak(keycloakx) | 2.1.1   |
 
 ## Values
