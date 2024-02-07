@@ -442,11 +442,11 @@ postgresql:
   auth:
     # -- Name of externally defined secret to use for PostgreSQL credentials
     existingSecret: >
-      {{ include "postgresql.primary.fullname" . }}-otdf-secret
+      {{ include "postgresql.v1.primary.fullname" . }}-otdf-secret
   primary:
     initdb:
       # -- Specify the PostgreSQL username to execute the initdb scripts
       user: postgres
       # -- Secret with scripts to be run at first boot (in case it contains sensitive information)
       scriptsSecret: >
-        {{ include "postgresql.primary.fullname" . }}-initdb-secret
+        {{ include "postgresql.v1.primary.fullname" . }}-initdb-secret
