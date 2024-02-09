@@ -6,7 +6,7 @@ asgiref==3.4.1; python_version >= '3.6'
 asyncpg==0.24.0
 cffi==1.15.1
 click==8.0.3; python_version >= '3.6'
-cryptography==41.0.6
+cryptography==42.0.0
 databases[postgresql]==0.5.5
 fastapi==0.92.0
 h11==0.12.0; python_version >= '3.6'
@@ -23,7 +23,7 @@ python-keycloak==2.6.0
 pyyaml==6.0.1
 requests==2.31.0
 sqlalchemy==1.4.32
-starlette==0.25.0; python_version >= '3.7'
+starlette==0.37.0; python_version >= '3.8'
 typing-extensions==4.1.1
 uvicorn[standard]==0.17.6
 uvloop==0.16.0
