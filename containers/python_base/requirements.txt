@@ -8,7 +8,7 @@ cffi==1.15.1
 click==8.0.3; python_version >= '3.6'
 cryptography==42.0.0
 databases[postgresql]==0.5.5
-fastapi==0.109.1
+fastapi==0.109.2
 h11==0.12.0; python_version >= '3.6'
 httptools==0.4.0
 httpx==0.23.3; python_version >= '3.7'
