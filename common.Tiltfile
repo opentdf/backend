@@ -7,7 +7,7 @@ load("ext://helm_remote", "helm_remote")
 load("ext://helm_resource", "helm_resource")
 load("ext://min_tilt_version", "min_tilt_version")
 
-#min_tilt_version("0.30")
+min_tilt_version("0.30")
 
 BACKEND_DIR = os.getcwd()
 

@@ -495,7 +495,7 @@
                 "sha256:57eab3cc975a28af62f6faec94d355a410634940f10b30d68d31cb5ec1b44ae8"
             ],
             "markers": "python_full_version >= '3.6.0'",
-            "version": "==0.17.1"
+            "version": "==0.36.2"
         },
         "typing-extensions": {
             "hashes": [
