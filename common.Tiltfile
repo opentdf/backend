@@ -7,7 +7,7 @@ load("ext://helm_remote", "helm_remote")
 load("ext://helm_resource", "helm_resource")
 load("ext://min_tilt_version", "min_tilt_version")
 
-min_tilt_version("0.30")
+#min_tilt_version("0.30")
 
 BACKEND_DIR = os.getcwd()
 
@@ -274,6 +274,7 @@ def backend(
             flags=[
                 "--wait",
                 "--dependency-update",
+                "--timeout=15m",
             ]
             + dict_to_helm_set_list(set_values)
             + prefix_list("-f", values),
