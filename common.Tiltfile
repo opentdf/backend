@@ -274,7 +274,7 @@ def backend(
             flags=[
                 "--wait",
                 "--dependency-update",
-                "--timeout=15m",
+                "--timeout=30m",
             ]
             + dict_to_helm_set_list(set_values)
             + prefix_list("-f", values),
