@@ -262,6 +262,7 @@ jobs:
           kubectl get pods -A
       - name: Run xtest.Tiltfile
         run: |-
+          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           export TILTFILE_FILE=xtest.Tiltfile
           echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           tilt ci -f ${TILTFILE_FILE}
