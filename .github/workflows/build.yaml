@@ -280,7 +280,8 @@ jobs:
           kubectl get pods
           # Sometimes, PKI tests only are failing randomly in CI with 400 errors when calling Keycloak.
           # This is to help debug that
-          kubectl logs keycloak-0
+          #kubectl logs keycloak-0
+          kubectl logs deployment/attributes
           tilt down -f ${TILTFILE_FILE}
 
   publish-helm-charts:
