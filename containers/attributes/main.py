@@ -1011,7 +1011,7 @@ async def create_authorities_crud(request, decoded_token=None):
     result = await database.fetch_all(query)
     namespaces = []
     for row in result:
-        namespaces.append(f"{row.get(table_authority.c.name)}")
+        namespaces.append(f"{row[table_authority.c.name]}")
     return namespaces
 
 
