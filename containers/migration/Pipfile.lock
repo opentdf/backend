@@ -181,7 +181,7 @@
                 "sha256:43d12891b78fc497a50623e9c7c24640c569489f060acd9ce2c4902080487a93"
             ],
             "index": "pypi",
-            "version": "==0.75.0"
+            "version": "==0.109.2"
         },
         "greenlet": {
             "hashes": [
@@ -495,7 +495,7 @@
                 "sha256:57eab3cc975a28af62f6faec94d355a410634940f10b30d68d31cb5ec1b44ae8"
             ],
             "markers": "python_full_version >= '3.6.0'",
-            "version": "==0.17.1"
+            "version": "==0.36.3"
         },
         "typing-extensions": {
             "hashes": [

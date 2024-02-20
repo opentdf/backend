@@ -390,8 +390,8 @@ async def read_relationship(auth_token=Depends(get_auth), name: Optional[str] = 
     for row in result:
         relationships.append(
             EntityAttributeRelationship(
-                attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
-                entityId=row.get(table_entity_attribute.c.entity_id),
+                attribute=f"{row[table_entity_attribute.c.namespace]}/attr/{row[table_entity_attribute.c.name]}/value/{row[table_entity_attribute.c.value]}",
+                entityId=row[table_entity_attribute.c.entity_id],
                 state="active",
             )
         )
@@ -539,8 +539,8 @@ async def read_entity_attribute_relationship(
     for row in result:
         relationships.append(
             EntityAttributeRelationship(
-                attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
-                entityId=row.get(table_entity_attribute.c.entity_id),
+                attribute=f"{row[table_entity_attribute.c.namespace]}/attr/{row[table_entity_attribute.c.name]}/value/{row[table_entity_attribute.c.value]}",
+                entityId=row[table_entity_attribute.c.entity_id],
                 state="active",
             )
         )
@@ -623,8 +623,8 @@ async def get_attribute_entity_relationship(
     for row in result:
         relationships.append(
             EntityAttributeRelationship(
-                attribute=f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}",
-                entityId=row.get(table_entity_attribute.c.entity_id),
+                attribute=f"{row[table_entity_attribute.c.namespace]}/attr/{row[table_entity_attribute.c.name]}/value/{row[table_entity_attribute.c.value]}",
+                entityId=row[table_entity_attribute.c.entity_id],
                 state="active",
             )
         )
