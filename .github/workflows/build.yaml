@@ -262,7 +262,6 @@ jobs:
           kubectl get pods -A
       - name: Run xtest.Tiltfile
         run: |-
-          echo "127.0.0.1 keycloak-http" | sudo tee -a /etc/hosts
           export TILTFILE_FILE=xtest.Tiltfile
           echo "TILTFILE_FILE=$TILTFILE_FILE" >> $GITHUB_ENV
           tilt ci -f ${TILTFILE_FILE}
@@ -281,8 +280,7 @@ jobs:
           kubectl get pods
           # Sometimes, PKI tests only are failing randomly in CI with 400 errors when calling Keycloak.
           # This is to help debug that
-          #kubectl logs keycloak-0
-          kubectl logs deployment/attributes
+          kubectl logs keycloak-0
           tilt down -f ${TILTFILE_FILE}
 
   publish-helm-charts:

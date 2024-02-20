@@ -247,7 +247,7 @@ def backend(
         # configurator scripts and the built-in bootstrap script.
         # Hopefully, either tilt or the helm_resource extension will be improved
         # to avoid this change (or maybe everything will just get faster)
-        update_settings(k8s_upsert_timeout_secs=60)
+        update_settings(k8s_upsert_timeout_secs=1200)
         helm_resource(
             name="backend",
             chart=BACKEND_DIR + "/charts/backend",
@@ -274,7 +274,6 @@ def backend(
             flags=[
                 "--wait",
                 "--dependency-update",
-                "--timeout=5m",
             ]
             + dict_to_helm_set_list(set_values)
             + prefix_list("-f", values),
