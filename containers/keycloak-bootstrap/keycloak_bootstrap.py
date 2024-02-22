@@ -723,6 +723,10 @@ def createTDFRealm(
                 keycloak_admin, kc_url, npe_client_id
             )
 
+    # Create test client for testing audience-related cases
+    createTestClientForClientCredentialsFlow(keycloak_admin, kc_url, "tdf-test-entitlements")
+    addVirtruClientAudienceMapper(keycloak_admin, keycloak_admin.get_client_id("tdf-test-entitlements"), "tdf-entitlement")
+
     # Create test client configured for browser auth flow
     createTestClientForBrowserAuthFlow(keycloak_admin)
 

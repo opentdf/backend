@@ -62,7 +62,7 @@
                 "sha256:a36d5f2fad931aa3575c07a3472c784e81f3e664e3bb5c8b9c88d0ec1104f59c"
             ],
             "index": "pypi",
-            "version": "==0.70.0"
+            "version": "==0.109.2"
         },
         "h11": {
             "hashes": [
@@ -155,7 +155,7 @@
             ],
             "index": "pypi",
             "markers": "python_version >= '3.7'",
-            "version": "==0.27.0"
+            "version": "==0.36.3"
         },
         "typing-extensions": {
             "hashes": [

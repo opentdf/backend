@@ -172,11 +172,11 @@ async def get_entitlements_for_entity_id(entityId: str):
     result = await database.fetch_all(query)
     logger.debug("Queried attrs for entityId [%s]", entityId)
     for row in result:
-        uri = f"{row.get(table_entity_attribute.c.namespace)}/attr/{row.get(table_entity_attribute.c.name)}/value/{row.get(table_entity_attribute.c.value)}"
+        uri = f"{row[table_entity_attribute.c.namespace]}/attr/{row[table_entity_attribute.c.name]}/value/{row[table_entity_attribute.c.value]}"
         logger.debug("Got attr: [%s]", uri)
         attributes.append(
             AttributeDisplay(
-                attribute=uri, displayName=row.get(table_entity_attribute.c.name)
+                attribute=uri, displayName=row[table_entity_attribute.c.name]
             )
         )
 
