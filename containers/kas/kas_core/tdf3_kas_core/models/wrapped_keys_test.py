@@ -3,7 +3,6 @@
 import base64
 import pytest
 
-from cryptography.hazmat.backends.openssl.rsa import _RSAPrivateKey, _RSAPublicKey
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from tdf3_kas_core.errors import CryptoError
