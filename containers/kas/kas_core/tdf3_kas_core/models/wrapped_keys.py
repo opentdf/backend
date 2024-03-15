@@ -4,7 +4,7 @@ import base64
 import logging
 
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.backends.openssl.rsa import _RSAPrivateKey, _RSAPublicKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -17,19 +17,19 @@ logger = logging.getLogger(__name__)
 
 
 def assure_public_key(public_key):
-    """Assure that the public key is an _RSAPublicKey."""
-    if isinstance(public_key, _RSAPublicKey):
+    """Assure that the public key is an RSAPublicKey."""
+    if isinstance(public_key, RSAPublicKey):
         return public_key
-    elif isinstance(public_key, _RSAPrivateKey):
+    elif isinstance(public_key, RSAPrivateKey):
         raise CryptoError("Public key expected in assure_public_key")
     raise CryptoError()
 
 
 def assure_private_key(private_key):
-    """Assure that the private key is an _RSAPrivateKey."""
-    if isinstance(private_key, _RSAPrivateKey):
+    """Assure that the private key is an RSAPrivateKey."""
+    if isinstance(private_key, RSAPrivateKey):
         return private_key
-    elif isinstance(private_key, _RSAPublicKey):
+    elif isinstance(private_key, RSAPublicKey):
         raise CryptoError("Private key expected in assure_private_key")
     raise CryptoError()
 
