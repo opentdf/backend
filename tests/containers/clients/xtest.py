@@ -51,6 +51,7 @@ ANY_OF_SUCCESS = [
 ]
 ANY_OF_FAILURE = ["http://testing123.fun/attr/Color/value/blue"]
 HIERARCHY_SUCCESS = ["https://example.com/attr/Classification/value/U"]
+HIERARCHY_SUCCESS2 = ["https://example.com/attr/Classification/value/C"]
 HIERARCHY_FAILURE = ["https://example.com/attr/Classification/value/TS"]
 ATTR_TESTS = {
     "allOf": ALL_OF_SUCCESS,
@@ -58,6 +59,7 @@ ATTR_TESTS = {
     "anyOf": ANY_OF_SUCCESS,
     "anyOf fail": ANY_OF_FAILURE,
     "hierarchy": HIERARCHY_SUCCESS,
+    "hierarchy success2": HIERARCHY_SUCCESS2,
     "hierarchy fail": HIERARCHY_FAILURE,
 }
 
