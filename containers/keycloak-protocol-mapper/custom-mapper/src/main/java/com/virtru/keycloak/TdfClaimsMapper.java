@@ -76,7 +76,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     static final String CLAIM_NAME = "claim.name";
     static final String DPOP_ENABLED = "client.dpop";
     static final String PUBLIC_KEY_HEADER = "client.publickey";
-    static final String DISABLE_TDF_CLAIMS = "tdf_claim.enabled";
+    static final String DISABLE_TDF_CLAIMS = "tdf_claims.enabled";
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
 
     /**
