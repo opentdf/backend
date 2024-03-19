@@ -29,7 +29,7 @@ import static com.virtru.keycloak.TdfClaimsMapper.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@ExtendWith({ MockitoExtension.class })
+@ExtendWith({MockitoExtension.class})
 public class TdfClaimsMapperTest {
     private UndertowJaxrsServer server;
 
@@ -64,14 +64,16 @@ public class TdfClaimsMapperTest {
         attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
                 keycloakSession, userSessionModel, clientSessionContext);
         Object customClaims = accessToken.getOtherClaims().get("customAttrs");
-        assertNull(customClaims, "No custom claims present as a result of no client public key header");
+        assertNull(customClaims,
+                "No custom claims present as a result of no client public key header");
     }
 
     @EnabledIfSystemProperty(named = "attributemapperTestMode", matches = "env")
     @Test
     public void testTransformAccessToken_WithPKHeader_EnvVar() throws Exception {
         commonSetup("12345", false, false, false);
-        Assertions.assertThrows(JsonRemoteClaimException.class, () -> assertTransformAccessToken_WithPKHeader(),
+        Assertions.assertThrows(JsonRemoteClaimException.class,
+                () -> assertTransformAccessToken_WithPKHeader(),
                 " Error when accessing remote claim - Configured URL: "
                         + System.getenv("CLAIMS_URL"));
     }
@@ -114,7 +116,8 @@ public class TdfClaimsMapperTest {
         // we have the object node
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
-        Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
+        Map responseClaimAsMap =
+                new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         assertNotNull(responseClaimAsMap, "Echoed claim present");
         assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
         assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
@@ -140,7 +143,8 @@ public class TdfClaimsMapperTest {
         // we have the object node
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
-        Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
+        Map responseClaimAsMap =
+                new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         assertNotNull(responseClaimAsMap, "Echoed claim present");
         assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
         assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
@@ -160,7 +164,8 @@ public class TdfClaimsMapperTest {
         // we have the object node
         assertTrue(customClaims instanceof ObjectNode);
         ObjectNode objectNode = (ObjectNode) customClaims;
-        Map responseClaimAsMap = new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
+        Map responseClaimAsMap =
+                new ObjectMapper().readValue(objectNode.toPrettyString(), Map.class);
         assertNotNull(responseClaimAsMap, "Echoed claim present");
         assertEquals(2, responseClaimAsMap.keySet().size(), "2 entries");
         assertEquals("12345", responseClaimAsMap.get("client_public_signing_key"));
@@ -175,8 +180,9 @@ public class TdfClaimsMapperTest {
         commonSetup("12345", false, false, false);
         AccessToken accessToken = new AccessToken();
         Assertions.assertThrows(JsonRemoteClaimException.class,
-                () -> attributeOIDCProtocolMapper.transformAccessToken(accessToken, protocolMapperModel,
-                        keycloakSession, userSessionModel, clientSessionContext),
+                () -> attributeOIDCProtocolMapper.transformAccessToken(accessToken,
+                        protocolMapperModel, keycloakSession, userSessionModel,
+                        clientSessionContext),
                 "");
 
     }
@@ -195,6 +201,7 @@ public class TdfClaimsMapperTest {
         config.put(PUBLIC_KEY_HEADER, "testPK");
         config.put(REMOTE_PARAMETERS_USERNAME, "true");
         config.put(REMOTE_PARAMETERS_CLIENTID, "true");
+        config.put(DISABLE_TDF_CLAIMS, "false");
         if (userInfo) {
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_USERINFO, "true");
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "false");
@@ -218,16 +225,21 @@ public class TdfClaimsMapperTest {
         when(userSessionModel.getUser()).thenReturn(userModel);
 
         if (pkHeader != null) {
-            List<String> pkHeaders = pkHeader == null ? Collections.emptyList() : Collections.singletonList(pkHeader);
+            List<String> pkHeaders = pkHeader == null ? Collections.emptyList()
+                    : Collections.singletonList(pkHeader);
             when(httpHeaders.getRequestHeader("dpop")).thenReturn(Collections.emptyList());
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
-            when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class)).thenReturn(null);
-            AuthenticatedClientSessionModel authenticatedClientSessionModel = new PersistentAuthenticatedClientSessionAdapter(
-                    keycloakSession, persistentClientSessionModel, realmModel, clientModel, userSessionModel);
+            when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class))
+                    .thenReturn(null);
+            AuthenticatedClientSessionModel authenticatedClientSessionModel =
+                    new PersistentAuthenticatedClientSessionAdapter(keycloakSession,
+                            persistentClientSessionModel, realmModel, clientModel,
+                            userSessionModel);
             if (userIsSvcAcct) {
                 when(clientModel.getId()).thenReturn(clientId);
-                Map<String, AuthenticatedClientSessionModel> clients = new HashMap<String, AuthenticatedClientSessionModel>();
+                Map<String, AuthenticatedClientSessionModel> clients =
+                        new HashMap<String, AuthenticatedClientSessionModel>();
                 clients.put("x", authenticatedClientSessionModel);
                 clients.put("y", authenticatedClientSessionModel);
                 when(userSessionModel.getAuthenticatedClientSessions()).thenReturn(clients);
@@ -253,7 +265,7 @@ public class TdfClaimsMapperTest {
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Map[] createMyModel(Map payload) {
-            Map[] response = { payload };
+            Map[] response = {payload};
             return response;
         }
 
