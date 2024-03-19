@@ -202,6 +202,7 @@ public class TdfClaimsMapperTest {
         config.put(DISABLE_TDF_CLAIMS, "false");
         config.put(REMOTE_PARAMETERS_USERNAME, "true");
         config.put(REMOTE_PARAMETERS_CLIENTID, "true");
+        config.put(DISABLE_TDF_CLAIMS, "false");
         if (userInfo) {
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_USERINFO, "true");
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "false");
