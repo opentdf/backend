@@ -50,15 +50,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Custom OIDC Protocol Mapper that interfaces with an Attribute Provider
- * Endpoint to retrieve custom claims to be
- * placed in a configured custom claim name
+ * Custom OIDC Protocol Mapper that interfaces with an Attribute Provider Endpoint to retrieve
+ * custom claims to be placed in a configured custom claim name
  * <p>
- * - Configurable properties allow for providing additional header and proprty
- * values to be passed to the attribute provider.
+ * - Configurable properties allow for providing additional header and proprty values to be passed
+ * to the attribute provider.
  * <p>
- * Configurable properties allow for providing additional header and proprty
- * values to be passed to the attribute provider.
+ * Configurable properties allow for providing additional header and proprty values to be passed to
+ * the attribute provider.
  */
 public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         implements OIDCAccessTokenMapper, OIDCIDTokenMapper, UserInfoTokenMapper {
@@ -77,6 +76,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     static final String CLAIM_NAME = "claim.name";
     static final String DPOP_ENABLED = "client.dpop";
     static final String PUBLIC_KEY_HEADER = "client.publickey";
+    static final String DISABLE_TDF_CLAIMS = "tdf_claim.enabled";
     private final CloseableHttpClient client = HttpClientBuilder.create().build();
 
     /**
@@ -101,13 +101,17 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 "List of headers to send separated by '&'. Separate header name and value by an equals sign '=', the value can contain equals signs (ex: Authorization=az89d).",
                 ProviderConfigProperty.STRING_TYPE, null));
 
-        configProperties.add(new ProviderConfigProperty(PUBLIC_KEY_HEADER, "Client Public Key Header Name",
-                "Header name containing tdf client public key",
+        configProperties.add(new ProviderConfigProperty(PUBLIC_KEY_HEADER,
+                "Client Public Key Header Name", "Header name containing tdf client public key",
                 ProviderConfigProperty.STRING_TYPE, "X-VirtruPubKey"));
 
         configProperties.add(new ProviderConfigProperty(DPOP_ENABLED, "Enable DPoP Extension",
                 "Support registering proof of possession with DPoP confirmation token",
                 ProviderConfigProperty.BOOLEAN_TYPE, "true"));
+        configProperties.add(new ProviderConfigProperty(DISABLE_TDF_CLAIMS, "Disable TDF Claims",
+                "Disable tdf claims for this client", ProviderConfigProperty.BOOLEAN_TYPE,
+                "false"));
+
     }
 
     @Override
@@ -141,8 +145,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     @Override
-    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel, UserSessionModel userSession,
-            KeycloakSession keycloakSession,
+    protected void setClaim(IDToken token, ProtocolMapperModel mappingModel,
+            UserSessionModel userSession, KeycloakSession keycloakSession,
             ClientSessionContext clientSessionCtx) {
 
         // FIXME We have to override the `sub` property so that it's the user's
@@ -150,7 +154,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // do this is because of how legacy code expects `dissems` to work.
         //
         // We will have to fix `dissems` to properly get rid of this hack.
-        
+
         token.setSubject(userSession.getUser().getId());
         logger.info("TDF claims mapper triggered");
 
@@ -159,6 +163,12 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         if (clientPK == null) {
             logger.info(
                     "No public key in auth request, skipping remote auth call and returning empty claims; simple access/id token");
+            return;
+        }
+        JsonNode disableClaims = clientSessionCtx.getAttribute(DISABLE_TDF_CLAIMS, JsonNode.class);
+        if (disableClaims != null && disableClaims.asBoolean()) {
+            logger.info(
+                    "Custom claims disabled for this client, skipping remote auth call and returning empty claims");
             return;
         }
         JsonNode claims = clientSessionCtx.getAttribute(REMOTE_AUTHORIZATION_ATTR, JsonNode.class);
@@ -176,7 +186,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         OIDCAttributeMapperHelper.mapClaim(token, mappingModel, claims);
     }
 
-    private Map<String, Object> getHeaders(ProtocolMapperModel mappingModel, UserSessionModel userSession) {
+    private Map<String, Object> getHeaders(ProtocolMapperModel mappingModel,
+            UserSessionModel userSession) {
         return buildMapFromStringConfig(mappingModel.getConfig().get(REMOTE_HEADERS));
     }
 
@@ -200,18 +211,18 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     private Map<String, Object> getRequestParameters(ProtocolMapperModel mappingModel,
-            UserSessionModel userSession,
-            IDToken token) throws JsonProcessingException {
+            UserSessionModel userSession, IDToken token) throws JsonProcessingException {
         // Get parameters
-        final Map<String, Object> formattedParameters = buildMapFromStringConfig(
-                mappingModel.getConfig().get(REMOTE_PARAMETERS));
+        final Map<String, Object> formattedParameters =
+                buildMapFromStringConfig(mappingModel.getConfig().get(REMOTE_PARAMETERS));
 
         // TODO By default, only request absolute minimum claims needed for auth/ID
         // tokens (claims with PoP payload (client public key))
         // String claimReqType = "min_claims";
         // Right now, for back compat, ALWAYS return full claims by default - later,
         // when/if a reduced claimset is needed, we can default to minClaims
-        logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(), userSession.getUser().getId());
+        logger.debug("USERNAME: [{}], User ID: [{}], ", userSession.getLoginUsername(),
+                userSession.getUser().getId());
 
         logger.debug("userSession.getNotes CONTENT IS: ");
         for (Map.Entry<String, String> entry : userSession.getNotes().entrySet()) {
@@ -223,9 +234,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // Get client ID (or IDs plural, if this is a token that has been exchanged for
         // the same user from a previous client)
         String clientId = userSession.getAuthenticatedClientSessions().values().stream()
-                .map(AuthenticatedClientSessionModel::getClient)
-                .map(ClientModel::getId)
-                .distinct()
+                .map(AuthenticatedClientSessionModel::getClient).map(ClientModel::getId).distinct()
                 .collect(Collectors.joining(","));
 
         logger.debug("Complete list of clients from keycloak is: {}", clientId);
@@ -245,7 +254,9 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         // For similar usage examples, see:
         // https://github.com/keycloak/keycloak/blob/99c06d11023689875b48ef56442c90bdb744c869/services/src/main/java/org/keycloak/exportimport/util/ExportUtils.java#L519
         if (user.getServiceAccountClientLink() != null) {
-            logger.debug("User: {} is a service account user, ignoring and using client ID in claims request", userSession.getLoginUsername());
+            logger.debug(
+                    "User: {} is a service account user, ignoring and using client ID in claims request",
+                    userSession.getLoginUsername());
             String clientInternalId = user.getServiceAccountClientLink();
             formattedParameters.put("primary_entity_id", clientInternalId);
 
@@ -319,10 +330,12 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
         }
         // Now, compare with legacy header
         String clientPKHeaderName = mappingModel.getConfig().get(PUBLIC_KEY_HEADER);
-        List<String> clientPKValues = new ArrayList<>(new HashSet<>(headers.getRequestHeader(clientPKHeaderName)));
+        List<String> clientPKValues =
+                new ArrayList<>(new HashSet<>(headers.getRequestHeader(clientPKHeaderName)));
         if (!clientPKValues.isEmpty()) {
             if (clientPKValues.size() > 1) {
-                throw new BadRequestException("Conflicting public key headers; only one supported at the moment");
+                throw new BadRequestException(
+                        "Conflicting public key headers; only one supported at the moment");
             }
             String legacyPK = clientPKValues.get(0);
             if (legacyPK.startsWith("LS0")) {
@@ -330,7 +343,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 legacyPK = new String(decodedBytes);
             }
             if (clientPK != null && !clientPK.equals(legacyPK)) {
-                logger.info("Conflicting public key and dpop headers: [{}] != [{}]", clientPK, legacyPK);
+                logger.info("Conflicting public key and dpop headers: [{}] != [{}]", clientPK,
+                        legacyPK);
             }
             clientPK = legacyPK;
         }
@@ -346,32 +360,32 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     /**
      * Query Attribute-Provider for user's attributes.
      * <p>
-     * If no client public key has been provided in the request headers noop occurs.
-     * Otherwise, a request
-     * is sent as a simple map json document with keys:
-     * - clientPublicSigningKey: the client's public signing key
-     * - primaryEntityId: required - identifier for the principal subject claims are
-     * being fetched for (PE or NPE)
-     * - key/value per parameter configuration.
-     * - secondaryEntityIds: required - list of identifiers for any additional
-     * secondary subjects claims will be fetched for.
+     * If no client public key has been provided in the request headers noop occurs. Otherwise, a
+     * request is sent as a simple map json document with keys: - clientPublicSigningKey: the
+     * client's public signing key - primaryEntityId: required - identifier for the principal
+     * subject claims are being fetched for (PE or NPE) - key/value per parameter configuration. -
+     * secondaryEntityIds: required - list of identifiers for any additional secondary subjects
+     * claims will be fetched for.
      * 
      * @return custom claims; null if no client pk present.
      */
-    private JsonNode getRemoteAuthorizations(ProtocolMapperModel mappingModel, UserSessionModel userSession,
-            IDToken token) {
+    private JsonNode getRemoteAuthorizations(ProtocolMapperModel mappingModel,
+            UserSessionModel userSession, IDToken token) {
 
         // Call remote service
         ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
         RegisterBuiltin.register(instance);
         instance.registerProvider(ResteasyJackson2Provider.class);
         final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
-        final String url = Strings.isNullOrEmpty(remoteUrl) ? System.getenv("CLAIMS_URL") : remoteUrl;
+        final String url =
+                Strings.isNullOrEmpty(remoteUrl) ? System.getenv("CLAIMS_URL") : remoteUrl;
         if (Strings.isNullOrEmpty(url)) {
             throw new JsonRemoteClaimException(
-                    REMOTE_URL + " property is not set via an env variable or configuration value", null);
+                    REMOTE_URL + " property is not set via an env variable or configuration value",
+                    null);
         }
-        logger.info("Request attributes for subject: [{}] within [{}] from [{}]", token.getSubject(), token, url);
+        logger.info("Request attributes for subject: [{}] within [{}] from [{}]",
+                token.getSubject(), token, url);
         try {
             // Get parameters
             Map<String, Object> parameters = getRequestParameters(mappingModel, userSession, token);
@@ -420,7 +434,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
             httpReq.setURI(uriBuilder.build());
         } catch (IllegalArgumentException | URISyntaxException e) {
-            throw new JsonRemoteClaimException("Invalid remote URL property for tdf_claims mapper", url);
+            throw new JsonRemoteClaimException("Invalid remote URL property for tdf_claims mapper",
+                    url);
         }
         return httpReq;
     }
