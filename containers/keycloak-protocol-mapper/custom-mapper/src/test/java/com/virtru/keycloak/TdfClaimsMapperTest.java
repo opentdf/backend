@@ -199,9 +199,9 @@ public class TdfClaimsMapperTest {
         config.put(CLAIM_NAME, "customAttrs");
         config.put(DPOP_ENABLED, "true");
         config.put(PUBLIC_KEY_HEADER, "testPK");
+        config.put(DISABLE_TDF_CLAIMS, "false");
         config.put(REMOTE_PARAMETERS_USERNAME, "true");
         config.put(REMOTE_PARAMETERS_CLIENTID, "true");
-        config.put(DISABLE_TDF_CLAIMS, "false");
         if (userInfo) {
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_USERINFO, "true");
             config.put(OIDCAttributeMapperHelper.INCLUDE_IN_ACCESS_TOKEN, "false");
@@ -229,7 +229,7 @@ public class TdfClaimsMapperTest {
                     : Collections.singletonList(pkHeader);
             when(httpHeaders.getRequestHeader("dpop")).thenReturn(Collections.emptyList());
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
-
+            when(clientSessionContext.getAttribute("tdf_claims", JsonNode.class)).thenReturn(null);
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class))
                     .thenReturn(null);
             AuthenticatedClientSessionModel authenticatedClientSessionModel =
