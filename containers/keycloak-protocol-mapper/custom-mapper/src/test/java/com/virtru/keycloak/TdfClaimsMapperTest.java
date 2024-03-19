@@ -230,6 +230,8 @@ public class TdfClaimsMapperTest {
             when(httpHeaders.getRequestHeader("dpop")).thenReturn(Collections.emptyList());
             when(httpHeaders.getRequestHeader("testPK")).thenReturn(pkHeaders);
 
+            when(clientSessionContext.getAttribute("tdf_claims.enabled", JsonNode.class))
+                    .thenReturn(null);
             when(clientSessionContext.getAttribute("remote-authorizations", JsonNode.class))
                     .thenReturn(null);
             AuthenticatedClientSessionModel authenticatedClientSessionModel =
