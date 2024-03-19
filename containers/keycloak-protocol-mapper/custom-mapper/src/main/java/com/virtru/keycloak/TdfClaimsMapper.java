@@ -165,8 +165,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                     "No public key in auth request, skipping remote auth call and returning empty claims; simple access/id token");
             return;
         }
-        JsonNode disableClaims = clientSessionCtx.getAttribute(DISABLE_TDF_CLAIMS, JsonNode.class);
-        if (disableClaims != null && disableClaims.asBoolean()) {
+        Object disableClaims = mappingModel.getConfig().get(DISABLE_TDF_CLAIMS);
+        if ("true".equals(disableClaims)) {
             logger.info(
                     "Custom claims disabled for this client, skipping remote auth call and returning empty claims");
             return;
