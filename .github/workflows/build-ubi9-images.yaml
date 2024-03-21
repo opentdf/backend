@@ -252,7 +252,7 @@ jobs:
         with:
           build-args: |-
             MAVEN_VERSION=3.8.4
-            JDK_VERSION=11
+            JDK_VERSION=17
             CONTAINER_REGISTRY=ghcr.io
             KEYCLOAK_BASE_VERSION=${{ needs.config.outputs.KEYCLOAK_BASE_VERSION }}
           context: ./containers/keycloak-protocol-mapper
