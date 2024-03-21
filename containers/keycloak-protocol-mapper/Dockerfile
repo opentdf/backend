@@ -12,7 +12,7 @@ COPY custom-mapper /usr/src/custom-mapper
 COPY x509-envoy /usr/src/x509-envoy
 COPY pom.xml /usr/src/pom.xml
 
-RUN mvn -f  /usr/src/pom.xml clean package
+RUN mvn -f  /usr/src/pom.xml clean --no-transfer-progress package
 
 FROM ${KEYCLOAK_BASE_IMAGE}:${KEYCLOAK_BASE_VERSION}
 
