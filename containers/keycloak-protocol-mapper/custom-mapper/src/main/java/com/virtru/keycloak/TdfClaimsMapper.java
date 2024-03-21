@@ -6,7 +6,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -16,20 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.http.ParseException;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.jboss.resteasy.plugins.providers.RegisterBuiltin;
-import org.jboss.resteasy.plugins.providers.jackson.ResteasyJackson2Provider;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.jetbrains.annotations.NotNull;
+import org.keycloak.Config;
 import org.keycloak.models.AuthenticatedClientSessionModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientSessionContext;
@@ -77,7 +72,7 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     static final String DPOP_ENABLED = "client.dpop";
     static final String PUBLIC_KEY_HEADER = "client.publickey";
     static final String DISABLE_TDF_CLAIMS = "tdf_claims.enabled";
-    private final CloseableHttpClient client = HttpClientBuilder.create().build();
+    private HttpClient httpClient;
 
     /**
      * Inner configuration to cache retrieved authorization for multiple tokens
@@ -112,6 +107,11 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
                 "Disable tdf claims for this client", ProviderConfigProperty.BOOLEAN_TYPE,
                 "false"));
 
+    }
+
+    @Override
+    public void init(Config.Scope config) {
+        httpClient = HttpClient.newHttpClient();
     }
 
     @Override
@@ -373,9 +373,6 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             UserSessionModel userSession, IDToken token) {
 
         // Call remote service
-        ResteasyProviderFactory instance = ResteasyProviderFactory.getInstance();
-        RegisterBuiltin.register(instance);
-        instance.registerProvider(ResteasyJackson2Provider.class);
         final String remoteUrl = mappingModel.getConfig().get(REMOTE_URL);
         final String url =
                 Strings.isNullOrEmpty(remoteUrl) ? System.getenv("CLAIMS_URL") : remoteUrl;
@@ -393,32 +390,23 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
             Map<String, Object> headers = getHeaders(mappingModel, userSession);
             headers.put("Content-Type", "application/json");
 
-            HttpPost httpReq = getHttpPost(url);
+
+            HttpRequest.Builder requestBuilder = getHttpPost(url);
 
             // Build parameters
             Map<String, Object> requestEntity = new HashMap<>(parameters);
 
             // Build headers
             for (Map.Entry<String, Object> header : headers.entrySet()) {
-                httpReq.setHeader(header.getKey(), header.getValue().toString());
+                requestBuilder = requestBuilder.setHeader(header.getKey(), header.getValue().toString());
             }
             ObjectMapper objectMapper = new ObjectMapper();
-            httpReq.setEntity(new StringEntity(objectMapper.writeValueAsString(requestEntity)));
-
+            requestBuilder=requestBuilder.POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestEntity)));
             logger.info("Request: {}", requestEntity);
-            try (CloseableHttpResponse response = client.execute(httpReq)) {
-                String bodyAsString = EntityUtils.toString(response.getEntity());
-                if (response.getStatusLine().getStatusCode() != 200) {
-                    logger.warn("line: {} body: {}", response.getStatusLine(), bodyAsString);
-                    throw new JsonRemoteClaimException(
-                            "Wrong status received for remote claim - Expected: 200, Received: "
-                                    + response.getStatusLine().getStatusCode(),
-                            url);
-                }
-                logger.debug(bodyAsString);
-                return objectMapper.readValue(bodyAsString, JsonNode.class);
-            }
-        } catch (IOException | ParseException e) {
+            HttpResponse<String> response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+            logger.debug(response.body());
+            return objectMapper.readValue(response.body(), JsonNode.class);
+        } catch (IOException | InterruptedException | IllegalArgumentException | ParseException e) {
             logger.error("Error", e);
             // exceptions are thrown to prevent token from being delivered without all
             // information
@@ -427,16 +415,8 @@ public class TdfClaimsMapper extends AbstractOIDCProtocolMapper
     }
 
     @NotNull
-    private static HttpPost getHttpPost(String url) {
-        HttpPost httpReq;
-        try {
-            httpReq = new HttpPost(url);
-            URIBuilder uriBuilder = new URIBuilder(httpReq.getURI());
-            httpReq.setURI(uriBuilder.build());
-        } catch (IllegalArgumentException | URISyntaxException e) {
-            throw new JsonRemoteClaimException("Invalid remote URL property for tdf_claims mapper",
-                    url);
-        }
-        return httpReq;
+    private static HttpRequest.Builder getHttpPost(String url) throws IllegalArgumentException {
+        return HttpRequest.newBuilder().uri(URI.create(url));
     }
 }
+
