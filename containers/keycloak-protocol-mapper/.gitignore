@@ -3,3 +3,5 @@
 __pycache__/
 dependency-reduced-pom.xml
 keycloak-containers/
+**/target
+**/.idea
