@@ -581,7 +581,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   custom-keycloak-image:
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+#    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs:
       - config
     permissions:
