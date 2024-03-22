@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>keycloak-virtru-services</artifactId>
+    <artifactId>opentdf-services</artifactId>
     <packaging>jar</packaging>
     <parent>
-        <groupId>com.virtru</groupId>
-        <artifactId>keycloak-virtru-services-pom</artifactId>
-        <version>1.0.1</version>
+        <groupId>io.github.opentdf</groupId>
+        <artifactId>keycloak-services-pom</artifactId>
+        <version>1.1.0</version>
     </parent>
 
     <dependencies>

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * EnvoyProxySslClientCertificateLookup is based on this documentation from Envoy:
- * https://www.envoyproxy.io/docs/envoy/v1.12.2/configuration/http/http_conn_man/headers#x-forwarded-client-cert
+ * https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_conn_man/headers#x-forwarded-client-cert
  *
  * @author <a href="mailto:giorgio.azzinnaro@gmail.com">Giorgio Azzinnaro</a>
  * @since 2020-01-18
@@ -101,15 +101,17 @@ public class EnvoyProxySslClientCertificateLookup implements X509ClientCertifica
      * where each string is a single certificate
      */
     private List<String> stringChainToPemBlocks(String chain) {
-        List<Integer> indexes = new ArrayList<>();
         List<String> pemBlocks = new ArrayList<>();
-        int lastIndex = 0;
-        while (lastIndex != -1) {
-            indexes.add(lastIndex);
-            lastIndex = chain.indexOf("-----BEGIN CERTIFICATE-----", lastIndex + 1);
-        }
-        for (int i = 0; i < indexes.size(); i++) {
-            pemBlocks.add(chain.substring(indexes.get(i), i == indexes.size() - 1 ? indexes.size() : indexes.get(i + 1)));
+        if (!chain.isEmpty()) {
+            List<Integer> indexes = new ArrayList<>();
+            int lastIndex = 0;
+            while (lastIndex != -1) {
+                indexes.add(lastIndex);
+                lastIndex = chain.indexOf("-----BEGIN CERTIFICATE-----", lastIndex + 1);
+            }
+            for (int i = 0; i < indexes.size(); i++) {
+                pemBlocks.add(chain.substring(indexes.get(i), i == indexes.size() - 1 ? chain.length() : indexes.get(i + 1)));
+            }
         }
         return pemBlocks;
     }
