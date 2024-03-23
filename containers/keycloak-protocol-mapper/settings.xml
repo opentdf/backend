@@ -1,0 +1,24 @@
+<settings>
+    <servers>
+        <server>
+            <id>central</id>
+            <username>${env.CENTRAL_USERNAME}</username>
+            <password>${env.CENTRAL_TOKEN}</password>
+        </server>
+        <server>
+            <id>${env.GPG_KEYNAME}</id>
+            <passphrase>${env.GPG_PASSPHRASE}</passphrase>
+        </server>
+    </servers>
+    <profiles>
+        <profile>
+            <id>ossrh</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+            </properties>
+        </profile>
+    </profiles>
+</settings>

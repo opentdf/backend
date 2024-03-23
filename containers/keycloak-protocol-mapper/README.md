@@ -47,3 +47,11 @@ See [custom-mapper](custom-mapper)
 ### Examples of advanced OIDC/Keycloak flows
 
 See [EXAMPLES.md](EXAMPLES.md)
+
+
+# Deploying to Sonatype central
+
+```shell
+mvn -s settings.xml --batch-mode clean deploy
+```
+

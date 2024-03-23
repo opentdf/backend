@@ -19,14 +19,15 @@ import org.keycloak.representations.AccessToken;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import java.util.*;
 
 import static com.virtru.keycloak.TdfClaimsMapper.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class})
@@ -47,7 +48,7 @@ public class TdfClaimsMapperTest {
     ProtocolMapperModel protocolMapperModel;
     @Mock
     KeycloakContext keycloakContext;
-    @Mock
+     @Mock
     HttpHeaders httpHeaders;
     @Mock
     ClientModel clientModel;
@@ -215,6 +216,7 @@ public class TdfClaimsMapperTest {
         when(protocolMapperModel.getConfig()).thenReturn(config);
 
         when(keycloakSession.getContext()).thenReturn(keycloakContext);
+        lenient().when(keycloakContext.getClient()).thenReturn(clientModel);
         when(keycloakContext.getRequestHeaders()).thenReturn(httpHeaders);
 
         when(userModel.getId()).thenReturn("1234-4567-8901");
@@ -253,6 +255,7 @@ public class TdfClaimsMapperTest {
     public void setup() throws Exception {
         server = new UndertowJaxrsServer().start();
         attributeOIDCProtocolMapper = new TdfClaimsMapper();
+        attributeOIDCProtocolMapper.init(null);
     }
 
     @AfterEach
